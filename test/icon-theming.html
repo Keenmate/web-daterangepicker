@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — icon &amp; --base-* token theming</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; margin-bottom: 12px; }
+        /* --base-rem should drive --drp-rem (chained, not hardcoded). */
+        #base-rem { --base-rem: 20px; }
+        /* Overriding the shared base chevron should re-skin the picker's nav glyph. */
+        #base-icon { --base-icon-chevron: url("http://sentinel.test/chevron.svg"); }
+    </style>
+</head>
+<body>
+    <h1>icon &amp; --base-* token theming</h1>
+    <p>Targeted by <code>e2e/icon-theming.spec.ts</code>.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">--base-rem drives --drp-rem</div>
+        <web-daterangepicker id="base-rem" selection-mode="single"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">--base-icon-chevron re-skins the nav chevron</div>
+        <web-daterangepicker id="base-icon" selection-mode="single"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">default icons + one-glyph nav rotate (no overrides)</div>
+        <web-daterangepicker id="default-icon" selection-mode="single"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

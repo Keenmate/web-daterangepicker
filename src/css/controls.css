@@ -177,6 +177,6 @@
   width: var(--drp-input-clear-icon-size);
   height: var(--drp-input-clear-icon-size);
   background-color: currentColor;
-  -webkit-mask: var(--drp-icon-input-clear) center / contain no-repeat;
-          mask: var(--drp-icon-input-clear) center / contain no-repeat;
+  -webkit-mask: var(--drp-icon-clear) center / contain no-repeat;
+          mask: var(--drp-icon-clear) center / contain no-repeat;
 }

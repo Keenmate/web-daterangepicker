@@ -127,6 +127,19 @@
       --drp-badge-text-color: #1e293b;       /* dark text on amber */
     }
 
+    /* Icon theming — override the shared --base-icon-* glyphs. Every --drp-icon-*
+       chains to --base-icon-*, so one override re-skins the prev/next nav chevrons,
+       the input clear ✕, and the calendar affordance at once (and, set on :root,
+       would re-skin every other KeenMate component in lockstep). */
+    web-daterangepicker.icons-alt {
+      /* Lucide chevrons-right (double) — one directional glyph, rotated per nav dir. */
+      --base-icon-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 17 5-5-5-5'/><path d='m13 17 5-5-5-5'/></svg>");
+      /* Lucide circle-x — the clear ✕ follows --base-icon-close. */
+      --base-icon-close: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='m15 9-6 6'/><path d='m9 9 6 6'/></svg>");
+      /* Lucide calendar-days — the input affordance. */
+      --base-icon-calendar: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v4'/><path d='M16 2v4'/><rect width='18' height='18' x='3' y='4' rx='2'/><path d='M3 10h18'/><path d='M8 14h.01'/><path d='M12 14h.01'/><path d='M16 14h.01'/><path d='M8 18h.01'/><path d='M12 18h.01'/></svg>");
+    }
+
     /* ---- Sizing presets (merged from the Sizing page) ---- */
 
     /* Global-scale presets (--drp-rem) applied per demo instance. */
@@ -1426,7 +1439,15 @@ web-daterangepicker.theme-classifier-corporate {
     <p>All variables you can override with <code>--drp-</code> prefix:</p>
 
     <h3 class="subsection">Base Unit</h3>
-    <div class="code-block"><span class="property">--drp-rem</span>: <span class="string">10px</span>;  <span class="comment">/* Base unit - change this to scale everything */</span></div>
+    <div class="code-block"><span class="property">--drp-rem</span>: <span class="string">var(--base-rem, 10px)</span>;  <span class="comment">/* Base unit — chains to the family-wide --base-rem; change either to scale everything */</span></div>
+
+    <h3 class="subsection">Icons (chain to the shared --base-icon-* contract)</h3>
+    <div class="code-block">--drp-icon-close      /* full-screen close ✕   → var(--base-icon-close, …) */
+--drp-icon-clear      /* input clear ✕         → var(--base-icon-clear, --drp-icon-close) */
+--drp-icon-chevron    /* prev/next nav (one directional glyph, rotated per dir) → var(--base-icon-chevron, …) */
+--drp-icon-calendar   /* input affordance      → var(--base-icon-calendar, …) */
+--drp-nav-icon-rotate-prev   /* 180deg — override with a pre-oriented glyph */
+--drp-nav-icon-rotate-next   /* 0deg */</div>
 
     <h3 class="subsection">Colors</h3>
     <div class="code-block">--drp-dropdown-bg           /* Calendar background */
@@ -1552,6 +1573,57 @@ const picker = document.getElementById('dynamic-picker');
 
 function switchTheme(newTheme) {
   picker.className = newTheme;
+}</div>
+  </div>
+
+  <div class="card">
+    <h2>TH26 · Icon Theming via <code>--base-icon-*</code></h2>
+    <p>
+      Every <code>--drp-icon-*</code> glyph chains to the shared
+      <code>--base-icon-*</code> contract (<code>var(--base-icon-chevron, …)</code>),
+      so overriding a base icon on the host re-skins the prev/next nav chevrons, the
+      input clear ✕, and the calendar affordance at once. Set the same override on
+      <code>:root</code> and it re-skins <em>every</em> KeenMate component
+      (multiselect, treeview, …) in lockstep. The nav reuses <strong>one</strong>
+      directional chevron rotated per direction, so there's a single glyph to swap.
+    </p>
+
+    <div class="card-grid mt-1" style="--grid-min: 320px; --grid-gap: 1.5rem;">
+      <div class="form-group">
+        <label>Default (Lucide) — compare the nav arrows ›</label>
+        <web-daterangepicker
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="1"></web-daterangepicker>
+      </div>
+      <div class="form-group">
+        <label>Icon swap (<code>--base-icon-*</code> overridden) — double-chevron nav »</label>
+        <web-daterangepicker
+          class="icons-alt"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-months-count="1"></web-daterangepicker>
+      </div>
+    </div>
+
+    <label class="mt-1">Floating input — the calendar affordance (and the clear ✕ once a date is picked) follow the same base tokens:</label>
+    <web-daterangepicker
+      class="icons-alt"
+      selection-mode="single"
+      initial-date="2026-06-15"
+      placeholder="Icon-swapped floating picker"></web-daterangepicker>
+
+    <div class="note success">
+      ✓ The swapped picker shows double-chevron nav arrows, a circled ✕ clear, and a
+      dotted calendar glyph — all from <code>--base-icon-*</code> overrides, with no
+      <code>--drp-icon-*</code> touched.
+    </div>
+
+    <div class="code-block"><span class="comment">/* One override re-skins nav + clear + calendar (and every other KM component). */</span>
+<span class="keyword">web-daterangepicker.icons-alt</span> {
+  <span class="property">--base-icon-chevron</span>:  <span class="string">url("…chevrons-right…")</span>;  <span class="comment">/* prev/next nav (rotated per dir) */</span>
+  <span class="property">--base-icon-close</span>:    <span class="string">url("…circle-x…")</span>;        <span class="comment">/* input clear ✕ (clear follows close) */</span>
+  <span class="property">--base-icon-calendar</span>: <span class="string">url("…calendar-days…")</span>;   <span class="comment">/* input affordance */</span>
 }</div>
   </div>
 

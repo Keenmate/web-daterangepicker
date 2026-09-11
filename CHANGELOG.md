@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Environment signal re-exported for device-adaptive configuration.**
+  `getEnvironment`, `observeEnvironment`, `observeViewport`, `classifyDevice`,
+  `configureBreakpoints`, and `TABLET_MIN_SHORT_SIDE` (plus the `EnvironmentSnapshot`
+  / `DeviceClass` / `Orientation` / `PointerType` / `OS` / `BreakpointMap` types) are
+  now re-exported from `@keenmate/web-daterangepicker`, tunneled from
+  `@keenmate/web-components-core`. Consumers get the *same* "what device am I on"
+  signal the picker's own presentation ladder reacts to, from one import surface and
+  with no direct core dependency — e.g. a rich `actionButtons` set on desktop and a
+  subset on phones, keyed off `classifyDevice(env)` (capability-first, so a landscape
+  phone still reads `mobile`). See the new **AB16** demo in the action-buttons page.
+  Mirrors web-multiselect's export surface.
 - **Container-responsive compaction — `compact-below` (via core rc09 `resized`
   hook).** A new opt-in attribute `compact-below="<px>"` (property `compactBelow`)
   collapses the calendar to a single month and hides the Today/Clear buttons when the
@@ -37,6 +48,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING — renamed the imperative `show()`/`hide()` methods to
+  `open()`/`close()`.** On both the `<web-daterangepicker>` element and the
+  `DateRangePicker` class, `show()` is now `open()` and `hide()` is now `close()`
+  (`toggle()` and the `isOpen` property are unchanged). This aligns the calendar
+  open/close API with the vocabulary used across the KM components (e.g.
+  web-multiselect). Migration: replace `picker.show()` → `picker.open()` and
+  `picker.hide()` → `picker.close()`. No aliases are kept.
+
 - **BREAKING — merged `auto-close` + `is-apply-button-shown` into a single
   `commit-mode`.** The old two attributes were an orthogonal pair that could be set to
   contradictory or redundant combinations (e.g. a range picker that closed on selection
@@ -60,17 +79,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Border default raised for contrast** — `--drp-border-color` now defaults to
   `light-dark(#cbd5e1, #52525b)` (was `light-dark(#e5e7eb, #3a3a3a)`, near-invisible on
   both schemes). Matches web-multiselect's rc07 contrast fix.
-- **All icons are now font-independent CSS masks from one icon set (Lucide).** The
-  prev/next month arrows (`‹` / `›`), the full-screen close (`×`), and the input's
-  calendar affordance (the `📅` emoji) were rendered as characters, so their shape,
-  weight, and — for the emoji — color changed with the page font / OS. Each is now a
-  `background-color: currentColor` pseudo-element masked by a `--drp-icon-*` SVG, so
-  it is pixel-identical everywhere and tints with the element's `color`. Every icon —
-  including the pre-existing input clear button — is now sourced verbatim from the
-  **Lucide** set via the pure-admin-icons MCP (`x`, `calendar`, `chevron-left`,
-  `chevron-right`), a single set for the whole component. New theming hooks:
-  `--drp-icon-close`, `--drp-icon-chevron-left`, `--drp-icon-chevron-right`,
-  `--drp-icon-calendar` (joining `--drp-icon-input-clear`), plus `--drp-nav-icon-size`.
+- **All icons are now font-independent CSS masks from one icon set (Lucide), wired to
+  the shared `--base-icon-*` contract.** The prev/next month arrows (`‹` / `›`), the
+  full-screen close (`×`), and the input's calendar affordance (the `📅` emoji) were
+  rendered as characters, so their shape, weight, and — for the emoji — color changed
+  with the page font / OS. Each is now a `background-color: currentColor` pseudo-element
+  masked by a `--drp-icon-*` SVG, pixel-identical everywhere and tinting with the
+  element's `color`. Each glyph token now **chains to `--base-icon-*`** with the Lucide
+  SVG as fallback (`--drp-icon-close: var(--base-icon-close, …)`, etc.), so setting a
+  base icon at `:root` re-skins the picker *and* the rest of the KeenMate component
+  family at once, while a standalone picker still renders the Lucide default. Token
+  sub-names now mirror the base contract 1:1: `--drp-icon-close`, `--drp-icon-clear`
+  (was `--drp-icon-input-clear`), `--drp-icon-chevron`, `--drp-icon-calendar`
+  (forward-references `--base-icon-calendar`, which the base layer doesn't define yet).
+  The prev/next nav now shares **one directional chevron** rotated per direction
+  (`--drp-nav-icon-rotate-prev`/`-next`, default `180deg`/`0deg`) instead of separate
+  `chevron-left`/`chevron-right` glyphs — one chevron to skin, matching the
+  web-multiselect toggle/pager handling. Plus `--drp-nav-icon-size`.
+- **`--drp-rem` now chains to `--base-rem`** (`var(--base-rem, 10px)`), so a family-wide
+  scale set once at `:root` reaches the picker too; the `10px` fallback keeps standalone
+  output byte-identical. Aligns with web-multiselect's `--ms-rem` and web-treeview's
+  `--wtv-rem`.
 
 ### Fixed
 

@@ -47,7 +47,12 @@
     { "name": "base-input-size-sm-height", "required": false, "usage": "Small input height (multiplier)" },
     { "name": "base-input-size-md-height", "required": false, "usage": "Medium input height (multiplier)" },
     { "name": "base-input-size-lg-height", "required": false, "usage": "Large input height (multiplier)" },
-    { "name": "base-input-size-xl-height", "required": false, "usage": "Extra large input height (multiplier)" }
+    { "name": "base-input-size-xl-height", "required": false, "usage": "Extra large input height (multiplier)" },
+    { "name": "base-rem", "required": false, "usage": "Family-wide rem scaling unit (drives --drp-rem; falls back to 10px)" },
+    { "name": "base-icon-close", "required": false, "usage": "Close glyph (full-screen close; drives --drp-icon-close)" },
+    { "name": "base-icon-clear", "required": false, "usage": "Field-clear glyph (input ✕; follows base-icon-close, drives --drp-icon-clear)" },
+    { "name": "base-icon-chevron", "required": false, "usage": "Directional chevron for prev/next month nav (rotated per direction; drives --drp-icon-chevron)" },
+    { "name": "base-icon-calendar", "required": false, "usage": "Calendar input affordance (drives --drp-icon-calendar; forward-referenced — inline Lucide fallback until the base contract defines it)" }
   ],
   "componentVariables": [
     { "name": "drp-rem", "category": "sizing", "usage": "Base sizing unit for proportional scaling (default: 10px)" },

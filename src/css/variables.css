@@ -50,10 +50,14 @@
      Default 10px produces same visual output as standard 16px rem.
      Set to 1rem in Pure Admin (10px base) to scale with document.
 
-     IMPORTANT: For web components, set --drp-rem on the <web-daterangepicker>
-     element itself or on :root. Setting on wrapper divs won't work due to
-     shadow DOM encapsulation. */
-  --drp-rem: 10px;
+     Chains to the shared --base-rem so a family-wide scale set once at :root
+     reaches this component too; the 10px fallback keeps standalone output
+     identical when no base layer is loaded.
+
+     IMPORTANT: For web components, set --drp-rem (or --base-rem) on the
+     <web-daterangepicker> element itself or on :root. Setting on wrapper divs
+     won't work due to shadow DOM encapsulation. */
+  --drp-rem: var(--base-rem, 10px);
 
   /* ==========================================================================
      FONT FAMILY (set at :host so all shadow DOM content inherits)
@@ -318,16 +322,27 @@
      is verbatim Lucide (24×24, fill=none, stroke, width 2, round caps/joins);
      `stroke='black'` only makes the mask alpha opaque — the visible color comes
      from `currentColor`. To add/replace an icon, pull it from the same Lucide set
-     (do not hand-draw or mix sets). */
-  /* Lucide `x` — the shared close/clear glyph. */
-  --drp-icon-input-clear: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6 6 18'/><path d='m6 6 12 12'/></svg>");
-  --drp-icon-close: var(--drp-icon-input-clear);
-  /* Lucide `chevron-left` / `chevron-right` — prev/next month nav. */
-  --drp-icon-chevron-left: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m15 18-6-6 6-6'/></svg>");
-  --drp-icon-chevron-right: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>");
+     (do not hand-draw or mix sets).
+
+     Each glyph chains to the shared --base-icon-* contract with the inline Lucide
+     SVG as fallback: setting --base-icon-close / -clear / -chevron / -calendar at
+     :root re-skins this picker AND the rest of the KeenMate component family at
+     once, while a standalone picker (no base layer) still renders the Lucide
+     default. Token sub-names mirror the --base-icon-* names 1:1. */
+  /* Lucide `x` — the shared close glyph (--base-icon-close). */
+  --drp-icon-close: var(--base-icon-close, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6 6 18'/><path d='m6 6 12 12'/></svg>"));
+  /* Field-clear follows close (matches --base-icon-clear → --base-icon-close). */
+  --drp-icon-clear: var(--base-icon-clear, var(--drp-icon-close));
+  /* Lucide `chevron-right` — the single DIRECTIONAL nav glyph (points right).
+     Prev/next month nav reuses this one glyph and rotates it (prev 180° → left,
+     next 0° → right) via --drp-nav-icon-rotate-*, so there's one chevron to skin,
+     not two. Mirrors the web-multiselect toggle/pager handling. */
+  --drp-icon-chevron: var(--base-icon-chevron, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m9 18 6-6-6-6'/></svg>"));
   /* Lucide `calendar` — the input affordance (replaces the 📅 emoji, whose shape
-     and color varied per OS). */
-  --drp-icon-calendar: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v3'/><path d='M16 2v3'/><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18'/></svg>");
+     and color varied per OS). Forward-references --base-icon-calendar: the base
+     contract doesn't define it today, so the inline glyph holds until it does —
+     then it re-skins for free with no edit here. */
+  --drp-icon-calendar: var(--base-icon-calendar, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v3'/><path d='M16 2v3'/><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18'/></svg>"));
 
   /* ==========================================================================
      INPUT SIZE VARIANTS (BASE VALUES)
@@ -382,6 +397,11 @@
   /* Navigation Button Dimensions */
   --drp-nav-size: calc(3.2 * var(--drp-rem));  /* 32px */
   --drp-nav-icon-size: calc(1.8 * var(--drp-rem));  /* prev/next chevron mask */
+  /* The nav chevron is one directional glyph (--drp-icon-chevron, points right);
+     prev rotates it 180° to point left, next leaves it at 0°. A theme supplying a
+     pre-oriented pair can opt out by overriding these (e.g. 0deg / 0deg). */
+  --drp-nav-icon-rotate-prev: 180deg;
+  --drp-nav-icon-rotate-next: 0deg;
 
   /* Time Picker (pickerMode: time / datetime) */
   --drp-time-picker-gap: var(--drp-spacing-sm);

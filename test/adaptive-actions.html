@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — device-adaptive action buttons</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 360px; }
+    </style>
+</head>
+<body>
+    <h1>device-adaptive action buttons</h1>
+    <p>Targeted by <code>e2e/adaptive-actions.spec.ts</code>. Inline picker whose
+       <code>actionButtons</code> set is chosen from the core environment signal
+       (<code>observeViewport</code> + <code>classifyDevice</code>, both re-exported
+       from the component package).</p>
+
+    <div class="fixture">
+        <div class="fixture-label">rich on desktop, essentials on phone</div>
+        <web-daterangepicker id="adaptive" selection-mode="range"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module">
+        // Consume the SAME environment signal the component reacts to, from the
+        // component's own export surface (the "tunnel") — no direct core dep.
+        import { observeViewport, classifyDevice } from '/src/index.ts';
+
+        await customElements.whenDefined('web-daterangepicker');
+        const el = document.querySelector('#adaptive');
+
+        // Rich desktop set (6) vs phone essentials (2) — deliberately different
+        // counts so the e2e can assert the flip by button count.
+        const desktopActions = [
+            { action: 'today', text: 'Today' },
+            { action: 'custom', text: 'Last Week', onClick: ({ picker }) => {
+                const end = new Date(); const start = new Date(); start.setDate(end.getDate() - 6);
+                picker.selectedRanges = [{ start, end }];
+            } },
+            { action: 'custom', text: 'This Month', onClick: ({ picker }) => {
+                const n = new Date();
+                picker.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth(), 1), end: new Date(n.getFullYear(), n.getMonth() + 1, 0) }];
+            } },
+            { action: 'custom', text: 'Last Month', onClick: ({ picker }) => {
+                const n = new Date();
+                picker.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth() - 1, 1), end: new Date(n.getFullYear(), n.getMonth(), 0) }];
+            } },
+            { action: 'clear', text: 'Clear' },
+            { action: 'apply', text: 'Apply' },
+        ];
+        const mobileActions = [
+            { action: 'today', text: 'Today' },
+            { action: 'clear', text: 'Clear' },
+        ];
+
+        // observeViewport fires immediately on subscribe, then on throttled resize.
+        // Only reassign when the resolved set actually changes (actionButtons is an
+        // update input — re-assigning identical values would re-render needlessly).
+        let last = '';
+        observeViewport((env) => {
+            const set = classifyDevice(env) === 'mobile' ? mobileActions : desktopActions;
+            const key = `${set.length}`;
+            if (key === last) return;
+            last = key;
+            el.actionButtons = set;
+        });
+    </script>
+</body>
+</html>

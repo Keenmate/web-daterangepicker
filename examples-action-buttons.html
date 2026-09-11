@@ -949,7 +949,101 @@ picker.actionButtons = [{
 }];</code></div>
   </div>
 
+  <!-- 15. Device-adaptive toolbar -->
+  <div class="card">
+    <h2>AB16 · Device-Adaptive Toolbar (rich on desktop, subset on phone)</h2>
+    <p>
+      A real consumer often wants a <strong>rich</strong> action bar on desktop but only the
+      <strong>essentials</strong> on a phone. Drive <code>actionButtons</code> from the <em>same</em>
+      environment signal the calendar itself reacts to — re-exported from the component package, so
+      it's one import and no direct <code>@keenmate/web-components-core</code> dependency:
+    </p>
+    <div class="code-block"><code><span class="keyword">import</span> { observeViewport, classifyDevice } <span class="keyword">from</span> <span class="string">'@keenmate/web-daterangepicker'</span>;
+
+<span class="keyword">const</span> desktopActions = [ <span class="comment">/* Today, Yesterday, Last 7 Days, This/Last Month, This Quarter, Clear, Apply */</span> ];
+<span class="keyword">const</span> mobileActions  = [ { action: <span class="string">'today'</span>, text: <span class="string">'Today'</span> }, { action: <span class="string">'clear'</span>, text: <span class="string">'Clear'</span> }, { action: <span class="string">'apply'</span>, text: <span class="string">'Apply'</span> } ];
+
+<span class="comment">// classifyDevice is capability-first (a landscape phone still reads 'mobile';
+// a shrunk desktop window stays 'desktop'). observeViewport fires immediately
+// then on throttled resize. Reassign only when the resolved set changes —
+// actionButtons is an update input, so identical re-assigns re-render needlessly.</span>
+observeViewport((env) => {
+  el.actionButtons = classifyDevice(env) === <span class="string">'mobile'</span> ? mobileActions : desktopActions;
+});</code></div>
+
+    <div class="form-group">
+      <label>Inline picker — resize the window (or open dev-tools device mode) to watch the bar adapt</label>
+      <web-daterangepicker
+        id="adaptive-toolbar"
+        selection-mode="range"
+        positioning-mode="inline"
+        visible-months-count="1"></web-daterangepicker>
+      <small id="adaptive-readout" style="font-family: monospace;">detecting…</small>
+    </div>
+
+    <div class="note info">
+      <strong>Capability, not width.</strong> The phone subset is keyed off <code>classifyDevice</code>
+      (coarse pointer + no hover, shorter side &lt; 600px) — not a raw width breakpoint — so a wide
+      landscape phone still gets the subset. Use <code>env.viewportWidth</code> only for genuine
+      "does it fit one row" layout questions.
+    </div>
+  </div>
+
   <script type="module" src="/src/index.ts"></script>
+
+  <script type="module">
+    // AB16 — device-adaptive toolbar. Consume the environment signal from the
+    // component's own export surface (the core re-export "tunnel").
+    import { observeViewport, classifyDevice } from '/src/index.ts';
+    await customElements.whenDefined('web-daterangepicker');
+
+    const el = document.querySelector('#adaptive-toolbar');
+    const readout = document.querySelector('#adaptive-readout');
+    if (el) {
+      const range = (start, end) => { el.selectedRanges = [{ start, end }]; };
+      const desktopActions = [
+        { action: 'today', text: 'Today' },
+        { action: 'custom', text: 'Yesterday', onClick: ({ picker }) => {
+          const d = new Date(); d.setDate(d.getDate() - 1); picker.selectedRanges = [{ start: d, end: d }];
+        } },
+        { action: 'custom', text: 'Last 7 Days', onClick: ({ picker }) => {
+          const end = new Date(); const start = new Date(); start.setDate(end.getDate() - 6);
+          picker.selectedRanges = [{ start, end }];
+        } },
+        { action: 'custom', text: 'This Month', onClick: ({ picker }) => {
+          const n = new Date(); picker.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth(), 1), end: new Date(n.getFullYear(), n.getMonth() + 1, 0) }];
+        } },
+        { action: 'custom', text: 'Last Month', onClick: ({ picker }) => {
+          const n = new Date(); picker.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth() - 1, 1), end: new Date(n.getFullYear(), n.getMonth(), 0) }];
+        } },
+        { action: 'custom', text: 'This Quarter', onClick: ({ picker }) => {
+          const n = new Date(); const q = Math.floor(n.getMonth() / 3);
+          picker.selectedRanges = [{ start: new Date(n.getFullYear(), q * 3, 1), end: new Date(n.getFullYear(), q * 3 + 3, 0) }];
+        } },
+        { action: 'clear', text: 'Clear' },
+        { action: 'apply', text: 'Apply' },
+      ];
+      const mobileActions = [
+        { action: 'today', text: 'Today' },
+        { action: 'clear', text: 'Clear' },
+        { action: 'apply', text: 'Apply' },
+      ];
+
+      let last = '';
+      observeViewport((env) => {
+        const device = classifyDevice(env);
+        const actions = device === 'mobile' ? mobileActions : desktopActions;
+        const key = `${device}|${actions.length}`;
+        if (key !== last) {
+          last = key;
+          el.actionButtons = actions;
+        }
+        if (readout) {
+          readout.textContent = `${device} · ${Math.round(env.viewportWidth)}px · ${actions.length} buttons`;
+        }
+      });
+    }
+  </script>
 
   <script type="module">
 

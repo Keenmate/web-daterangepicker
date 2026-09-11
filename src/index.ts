@@ -11,6 +11,30 @@ export { WebDaterangepickerElement } from './web-component';
 // Export the base class if users want direct access
 export { DateRangePicker } from './date-picker';
 
+// Device / viewport detection — re-exported from the core so consumers get the
+// same "what device am I on" signal the component itself reacts to
+// (environmentChanged / the presentation ladder), from ONE import surface and
+// ONE dependency. Use it to drive per-device configuration (e.g. a rich
+// actionButtons set on desktop, a subset on phones):
+//   import { observeViewport, classifyDevice } from '@keenmate/web-daterangepicker';
+//   observeViewport(env => { el.actionButtons = classifyDevice(env) === 'mobile' ? mobile : desktop; });
+export {
+    getEnvironment,
+    observeEnvironment,
+    observeViewport,
+    classifyDevice,
+    configureBreakpoints,
+    TABLET_MIN_SHORT_SIDE,
+} from '@keenmate/web-components-core';
+export type {
+    EnvironmentSnapshot,
+    DeviceClass,
+    Orientation,
+    PointerType,
+    OS,
+    BreakpointMap,
+} from '@keenmate/web-components-core';
+
 // Export types
 export type {
     DatePickerOptions, DateRange, FormatOptions, MonthDisplay, DatePickerEventDetail,

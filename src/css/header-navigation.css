@@ -92,24 +92,26 @@
   border: var(--drp-nav-border);
 }
 
-/* Prev/next arrows: Lucide chevron-left / chevron-right masks — font-independent,
-   unlike the old ‹ › text glyphs which shifted with the page font. */
+/* Prev/next arrows: one directional Lucide chevron mask (--drp-icon-chevron, points
+   right), rotated per direction — font-independent, unlike the old ‹ › text glyphs
+   which shifted with the page font. Both directions share the single glyph so a
+   theme skins the chevron once (via --base-icon-chevron / --drp-icon-chevron). */
 .drp__nav--prev::before,
 .drp__nav--next::before {
   content: '';
   width: var(--drp-nav-icon-size);
   height: var(--drp-nav-icon-size);
   background-color: currentColor;
+  -webkit-mask: var(--drp-icon-chevron) center / contain no-repeat;
+          mask: var(--drp-icon-chevron) center / contain no-repeat;
 }
 
 .drp__nav--prev::before {
-  -webkit-mask: var(--drp-icon-chevron-left) center / contain no-repeat;
-          mask: var(--drp-icon-chevron-left) center / contain no-repeat;
+  transform: rotate(var(--drp-nav-icon-rotate-prev, 180deg));
 }
 
 .drp__nav--next::before {
-  -webkit-mask: var(--drp-icon-chevron-right) center / contain no-repeat;
-          mask: var(--drp-icon-chevron-right) center / contain no-repeat;
+  transform: rotate(var(--drp-nav-icon-rotate-next, 0deg));
 }
 
 /* ==============================================================================
