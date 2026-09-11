@@ -10,6 +10,11 @@
         #base-rem { --base-rem: 20px; }
         /* Overriding the shared base chevron should re-skin the picker's nav glyph. */
         #base-icon { --base-icon-chevron: url("http://sentinel.test/chevron.svg"); }
+        /* Base elevation + easing tokens should flow into --drp-shadow-xl / --drp-easing-snappy. */
+        #base-tokens {
+            --base-dropdown-box-shadow: 0 1px 2px rgb(1 2 3 / 0.5);
+            --base-ease-standard: cubic-bezier(0.1, 0.2, 0.3, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -31,6 +36,12 @@
     <div class="fixture">
         <div class="fixture-label">default icons + one-glyph nav rotate (no overrides)</div>
         <web-daterangepicker id="default-icon" selection-mode="single"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">--base-dropdown-box-shadow / --base-ease-standard flow into the picker</div>
+        <web-daterangepicker id="base-tokens" selection-mode="single"
             positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
     </div>
 

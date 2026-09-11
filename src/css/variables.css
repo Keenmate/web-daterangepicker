@@ -171,13 +171,19 @@
   --drp-border-radius-lg: calc(var(--base-border-radius-lg, 0.8) * var(--drp-rem));  /* 8px */
   --drp-border-radius: var(--drp-border-radius-md);
 
-  --drp-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Picker popup elevation. Prefers the shared --base token (light-dark aware —
+     deepens on dark themes); the flat two-layer shadow is the standalone fallback. */
+  --drp-shadow-xl: var(--base-dropdown-box-shadow, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1));
 
   /* ==========================================================================
      TRANSITIONS & ANIMATIONS
      ========================================================================== */
+  /* Duration stays local: 150ms doesn't map cleanly onto the --base-duration-*
+     scale (fast 100ms / normal 150ms / medium 250ms), so wiring it risks a silent
+     timing change. */
   --drp-transition-fast: 150ms;
-  --drp-easing-snappy: cubic-bezier(0.4, 0.0, 0.2, 1);
+  /* Easing is an exact match for --base-ease-standard, so it flows from the shared token. */
+  --drp-easing-snappy: var(--base-ease-standard, cubic-bezier(0.4, 0.0, 0.2, 1));
 
   /* ==========================================================================
      Z-INDEX LAYERS

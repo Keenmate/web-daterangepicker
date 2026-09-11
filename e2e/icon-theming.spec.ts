@@ -72,3 +72,20 @@ test('the shared chevron is rotated per direction (prev 180°, next 0°)', async
     const prevTransform = await pseudoBefore(page, '#default-icon .drp__nav--prev', 'transform');
     expect(prevTransform).toMatch(/^matrix\(-1,/);
 });
+
+test('--drp-shadow-xl chains to --base-dropdown-box-shadow (dark-mode elevation)', async ({ page }) => {
+    // Host sets a sentinel shadow; the picker popup elevation should adopt it.
+    expect(await hostVar(page, 'base-tokens', '--drp-shadow-xl'))
+        .toBe('0 1px 2px rgb(1 2 3 / 0.5)');
+    // …and with no base override, it resolves to the flat two-layer fallback.
+    expect(await hostVar(page, 'default-icon', '--drp-shadow-xl'))
+        .toContain('rgb(0 0 0 / 0.1)');
+});
+
+test('--drp-easing-snappy chains to --base-ease-standard', async ({ page }) => {
+    expect(await hostVar(page, 'base-tokens', '--drp-easing-snappy'))
+        .toBe('cubic-bezier(0.1, 0.2, 0.3, 0.4)');
+    // Fallback is the exact standard curve when no base token is set.
+    expect(await hostVar(page, 'default-icon', '--drp-easing-snappy'))
+        .toBe('cubic-bezier(0.4, 0.0, 0.2, 1)');
+});

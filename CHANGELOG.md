@@ -100,6 +100,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   scale set once at `:root` reaches the picker too; the `10px` fallback keeps standalone
   output byte-identical. Aligns with web-multiselect's `--ms-rem` and web-treeview's
   `--wtv-rem`.
+- **Two more tokens wired to the shared `--base-*` contract for dark-mode fidelity.**
+  `--drp-shadow-xl` (the picker popup elevation) now prefers `--base-dropdown-box-shadow`,
+  a `light-dark()`-aware shadow that deepens on dark themes, with the flat two-layer
+  shadow kept as the standalone fallback; and `--drp-easing-snappy` now flows from
+  `--base-ease-standard` (an exact curve match). Durations stay local — the `150ms`
+  scale doesn't map cleanly onto `--base-duration-*`. Mirrors web-multiselect's rc12
+  base-token pass. Also manifests the pre-existing `--drp-input-clear-*` base chains.
 
 ### Fixed
 
