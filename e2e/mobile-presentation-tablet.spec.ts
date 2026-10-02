@@ -15,7 +15,7 @@ test('auto → modal on a tablet (touch, shorter side ≥ 600px)', async ({ page
   await page.goto('/test/mobile-presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
-  await host.evaluate(el => (el as any).show());
+  await host.evaluate(el => (el as any).open());
 
   const state = await host.evaluate(el => {
     const cal = el.shadowRoot?.querySelector('.drp__picker') ?? null;

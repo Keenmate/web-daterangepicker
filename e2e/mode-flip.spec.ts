@@ -19,7 +19,7 @@ test('positioning-mode flip leaves no zombie floating picker on the reused input
 
   // Environment-style flip while CLOSED (as the connect-time auto-modal switch
   // does): destroy() the freshly built floating picker + rebuild as modal. The
-  // destroyed picker never opened, so a leaked listener's show() would NOT early
+  // destroyed picker never opened, so a leaked listener's open() would NOT early
   // return on a stale --visible class — it proceeds and anchors a detached calendar.
   await host.evaluate(el => el.setAttribute('positioning-mode', 'modal'));
   await expect
@@ -27,7 +27,7 @@ test('positioning-mode flip leaves no zombie floating picker on the reused input
     .toBe('modal');
 
   // Trigger the input. Only the live modal picker should respond; a leaked listener
-  // from the destroyed floating picker would fire show() on its detached calendar
+  // from the destroyed floating picker would fire open() on its detached calendar
   // and drift.
   await host.locator('input').click();
   await page.waitForTimeout(800);

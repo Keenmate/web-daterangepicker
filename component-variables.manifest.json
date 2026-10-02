@@ -80,6 +80,7 @@
     { "name": "drp-line-height-tight", "category": "typography", "usage": "Tight line height (1.25)" },
     { "name": "drp-line-height-normal", "category": "typography", "usage": "Normal line height (1.5)" },
     { "name": "drp-line-height-relaxed", "category": "typography", "usage": "Relaxed line height (1.75)" },
+    { "name": "drp-font-family", "category": "typography", "usage": "Component font family (inherits from --base-font-family)" },
 
     { "name": "drp-dropdown-bg", "category": "surface", "usage": "Calendar dropdown background" },
     { "name": "drp-border-color", "category": "border", "usage": "Default border color" },
@@ -101,11 +102,12 @@
     { "name": "drp-tooltip-max-width", "category": "tooltip", "usage": "Tooltip max width" },
     { "name": "drp-tooltip-arrow-size", "category": "tooltip", "usage": "Tooltip arrow size" },
 
-    { "name": "drp-loading-overlay-bg", "category": "loading", "usage": "Loading overlay background" },
-    { "name": "drp-loading-spinner-size", "category": "loading", "usage": "Loading spinner size" },
-    { "name": "drp-loading-spinner-border-width", "category": "loading", "usage": "Loading spinner border width" },
-    { "name": "drp-loading-spinner-color", "category": "loading", "usage": "Loading spinner color" },
-    { "name": "drp-loading-spinner-accent", "category": "loading", "usage": "Loading spinner accent" },
+    { "name": "drp-loader-overlay-bg", "category": "loading", "usage": "Full-calendar loading overlay background (light-dark aware scrim)" },
+    { "name": "drp-loader-size", "category": "loading", "usage": "Full-calendar overlay spinner diameter" },
+    { "name": "drp-loader-inline-size", "category": "loading", "usage": "In-block spinner diameter (summary / message loaders)" },
+    { "name": "drp-loader-border-width", "category": "loading", "usage": "Spinner ring border width" },
+    { "name": "drp-loader-color", "category": "loading", "usage": "Spinner ring base color" },
+    { "name": "drp-loader-accent", "category": "loading", "usage": "Spinner ring accent (spinning top segment)" },
 
     { "name": "drp-border-width-base", "category": "border", "usage": "Base border width" },
     { "name": "drp-border-radius-sm", "category": "radius", "usage": "Small border radius (4px)" },
@@ -179,6 +181,9 @@
     { "name": "drp-nav-border-hover", "category": "navigation", "usage": "Navigation hover border color" },
     { "name": "drp-nav-border-hover-full", "category": "navigation", "usage": "Navigation hover border full" },
     { "name": "drp-nav-size", "category": "navigation", "usage": "Navigation button size" },
+    { "name": "drp-nav-icon-size", "category": "navigation", "usage": "Prev/next chevron mask size" },
+    { "name": "drp-nav-icon-rotate-prev", "category": "navigation", "usage": "Rotation applied to the chevron mask for the prev-month arrow (default 180deg)" },
+    { "name": "drp-nav-icon-rotate-next", "category": "navigation", "usage": "Rotation applied to the chevron mask for the next-month arrow (default 0deg)" },
 
     { "name": "drp-rolling-bg", "category": "rolling", "usage": "Rolling selector background" },
     { "name": "drp-rolling-border-color", "category": "rolling", "usage": "Rolling selector border color" },
@@ -303,6 +308,7 @@
 
     { "name": "drp-z-index-modal-backdrop", "category": "z-index", "usage": "Modal backdrop z-index" },
     { "name": "drp-z-index-modal", "category": "z-index", "usage": "Modal dialog z-index" },
+    { "name": "drp-z-index-fullscreen", "category": "z-index", "usage": "Phone full-screen overlay z-index (above modal)" },
 
     { "name": "drp-modal-gap", "category": "modal", "usage": "Gap between elements inside modal layout" },
     { "name": "drp-modal-backdrop-bg", "category": "modal", "usage": "Modal backdrop background (scrim)" },
@@ -311,6 +317,7 @@
     { "name": "drp-modal-width-sm", "category": "modal", "usage": "Modal width — small variant" },
     { "name": "drp-modal-width-md", "category": "modal", "usage": "Modal width — medium variant (default)" },
     { "name": "drp-modal-width-lg", "category": "modal", "usage": "Modal width — large variant" },
+    { "name": "drp-modal-width-single", "category": "modal", "usage": "Modal width for a lone single-month calendar (natural width, normal-sized day cells)" },
 
     { "name": "drp-time-picker-gap", "category": "time-picker", "usage": "Gap between time-picker sections" },
     { "name": "drp-time-picker-padding", "category": "time-picker", "usage": "Time picker container padding" },
@@ -385,6 +392,41 @@
     { "name": "drp-message-info-border", "category": "message", "usage": "Info message border color" },
     { "name": "drp-message-success-bg", "category": "message", "usage": "Success message background" },
     { "name": "drp-message-success-color", "category": "message", "usage": "Success message text color" },
-    { "name": "drp-message-success-border", "category": "message", "usage": "Success message border color" }
+    { "name": "drp-message-success-border", "category": "message", "usage": "Success message border color" },
+
+    { "name": "drp-icon-calendar", "category": "icon", "usage": "Calendar input affordance glyph (mask image; inherits from --base-icon-calendar, inline Lucide fallback)" },
+    { "name": "drp-icon-chevron", "category": "icon", "usage": "Directional chevron glyph for prev/next nav (mask image, rotated per direction; inherits from --base-icon-chevron)" },
+    { "name": "drp-icon-clear", "category": "icon", "usage": "Field-clear (✕) glyph (mask image; inherits from --base-icon-clear, falls back to --drp-icon-close)" },
+    { "name": "drp-icon-close", "category": "icon", "usage": "Close (✕) glyph for the full-screen close button (mask image; inherits from --base-icon-close, inline Lucide fallback)" },
+
+    { "name": "drp-input-clear-size", "category": "input", "usage": "Field-clear (✕) button hit-target size" },
+    { "name": "drp-input-clear-icon-size", "category": "input", "usage": "Field-clear (✕) glyph mask size" },
+    { "name": "drp-input-clear-inset", "category": "input", "usage": "Field-clear (✕) button inset from the input's trailing edge" },
+    { "name": "drp-input-clear-color", "category": "input", "usage": "Field-clear (✕) glyph color" },
+    { "name": "drp-input-clear-bg-hover", "category": "input", "usage": "Field-clear (✕) button hover background" },
+
+    { "name": "drp-fullscreen-rem", "category": "fullscreen", "usage": "Rem sizing unit for the phone full-screen overlay (≈1.2× the base; scales touch targets and text)" },
+    { "name": "drp-fullscreen-bg", "category": "fullscreen", "usage": "Full-screen overlay background" },
+    { "name": "drp-fullscreen-text-color", "category": "fullscreen", "usage": "Full-screen overlay text color" },
+    { "name": "drp-fullscreen-header-bg", "category": "fullscreen", "usage": "Full-screen header bar background" },
+    { "name": "drp-fullscreen-header-border", "category": "fullscreen", "usage": "Full-screen header bottom border" },
+    { "name": "drp-fullscreen-header-gap", "category": "fullscreen", "usage": "Gap between items in the full-screen header row" },
+    { "name": "drp-fullscreen-header-padding-v", "category": "fullscreen", "usage": "Full-screen header vertical padding" },
+    { "name": "drp-fullscreen-header-padding-h", "category": "fullscreen", "usage": "Full-screen header horizontal padding" },
+    { "name": "drp-fullscreen-header-padding", "category": "fullscreen", "usage": "Full-screen header padding shorthand (composed from the v/h values)" },
+    { "name": "drp-fullscreen-content-padding-h", "category": "fullscreen", "usage": "Full-screen content area horizontal padding" },
+    { "name": "drp-fullscreen-content-padding-top", "category": "fullscreen", "usage": "Full-screen content area top padding (added to the safe-area inset)" },
+    { "name": "drp-fullscreen-header-min-height", "category": "fullscreen", "usage": "Full-screen header minimum height" },
+    { "name": "drp-fullscreen-title-font-size", "category": "fullscreen", "usage": "Full-screen header title font size" },
+    { "name": "drp-fullscreen-title-color", "category": "fullscreen", "usage": "Full-screen header title color" },
+    { "name": "drp-fullscreen-close-size", "category": "fullscreen", "usage": "Full-screen close button hit-target size" },
+    { "name": "drp-fullscreen-close-icon-size", "category": "fullscreen", "usage": "Full-screen close button glyph mask size" },
+    { "name": "drp-fullscreen-close-color", "category": "fullscreen", "usage": "Full-screen close button glyph color" },
+    { "name": "drp-fullscreen-close-bg", "category": "fullscreen", "usage": "Full-screen close button background" },
+    { "name": "drp-fullscreen-close-bg-hover", "category": "fullscreen", "usage": "Full-screen close button hover background" },
+    { "name": "drp-fullscreen-close-border", "category": "fullscreen", "usage": "Full-screen close button border" },
+    { "name": "drp-fullscreen-close-border-radius", "category": "fullscreen", "usage": "Full-screen close button border radius" },
+    { "name": "drp-fullscreen-close-edge-nudge", "category": "fullscreen", "usage": "Negative margin nudging the close button toward the overlay edge" },
+    { "name": "drp-fullscreen-close-slot", "category": "fullscreen", "usage": "Reserved space for the close button, keeping the title centered (composed from close size + header gap)" }
   ]
 }

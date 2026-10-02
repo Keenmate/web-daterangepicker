@@ -1,7 +1,7 @@
 /**
  * Date Picker UI Methods
  *
- * Functions for UI-related logic including show/hide, positioning,
+ * Functions for UI-related logic including open/close, positioning,
  * and tooltips.
  */
 
@@ -42,7 +42,7 @@ function warnDrift(picker: any, report: DriftReport): void {
 }
 
 // The calendar's core anchor() handle is stored per-instance on the picker
-// (`picker.calendarAnchor`) — see show()/hide()/position(). (The former
+// (`picker.calendarAnchor`) — see open()/close()/position(). (The former
 // module-level autoUpdate cleanup was shared across instances, a latent bug.)
 
 // Window resize handler — registered in floating mode so we can close on
@@ -53,7 +53,7 @@ let viewportResizeHandler: (() => void) | null = null;
 /**
  * Tear down floating-mode positioning: destroy the calendar's autoUpdate anchor
  * and drop the viewport resize handler. Safe to call unconditionally (no-op in
- * modal/inline, which register neither). Called by both hide() and destroy() —
+ * modal/inline, which register neither). Called by both close() and destroy() —
  * the latter matters because a positioning-mode flip rebuilds an OPEN picker, and
  * without this the autoUpdate loop keeps firing on the removed calendar and
  * reports a bogus drift (measuring a detached, zero-rect element).
@@ -109,14 +109,14 @@ function ensureModalBackdrop(picker: any): HTMLElement {
         if (e.target !== backdrop || !pressedOnBackdrop) return;
         pressedOnBackdrop = false;
         uiLogger.debug('Backdrop pressed - closing modal');
-        hide(picker);
+        close(picker);
     });
     picker.containerElement.appendChild(backdrop);
     picker.modalBackdrop = backdrop;
     return backdrop;
 }
 
-export function show(picker: any) {
+export function open(picker: any) {
     // Skip for inline mode (always visible)
     if (picker.options.positioningMode === 'inline') {
         return;
@@ -129,31 +129,31 @@ export function show(picker: any) {
         return;
     }
 
-    // Already visible — skip. Without this guard, repeated show() calls (e.g., focus
+    // Already visible — skip. Without this guard, repeated open() calls (e.g., focus
     // fires after mousedown on the same click) overwrite originalInputValue with the
     // already-pending value and leak the autoUpdate cleanup function.
     if (picker.calendar.classList.contains('drp__picker--visible')) {
         // The tap's later triggers (mousedown/click) re-set openViaPointer after the
         // pointerdown already opened + armed; clear it so it can't linger to a later
-        // programmatic show().
+        // programmatic open().
         picker.openViaPointer = false;
         return;
     }
 
     // Disabled input — refuse to open. The browser already blocks a real
     // user click on a disabled input, but programmatic clicks, focus calls,
-    // and some a11y tools can still dispatch events. Guard show() so the
+    // and some a11y tools can still dispatch events. Guard open() so the
     // `disabled` setter on the host element fully suppresses opening.
     if (picker.input?.disabled) {
         return;
     }
 
-    uiLogger.debug('show() - adding visible class');
+    uiLogger.debug('open() - adding visible class');
 
     // Store original input value if Apply button is required (for restore on close without Apply)
     if (picker.requiresApplyButton() && picker.input) {
         picker.originalInputValue = picker.input.value;
-        uiLogger.debug('show() - stored original input value:', picker.originalInputValue);
+        uiLogger.debug('open() - stored original input value:', picker.originalInputValue);
     }
 
     // Snapshot wall-clock so renderTimePicker has a stable "now" for uncommitted
@@ -191,8 +191,9 @@ export function show(picker: any) {
     }
 
     picker.calendar.classList.add('drp__picker--visible');
-    picker.setCalendarActive(); // Make calendar active and deactivate other pickers
-    uiLogger.debug('show() - calendar classes:', picker.calendar.className);
+    picker.setCalendarActive(); // Make calendar active and deactivate other pickers (inline keyboard tracking)
+    picker.overlayCoord?.activate(); // Dismiss every other participating overlay (pickers, multiselects, …)
+    uiLogger.debug('open() - calendar classes:', picker.calendar.className);
 
     // Set up the chrome for the current runtime presentation (floating anchor,
     // centered modal, or phone full-screen overlay).
@@ -203,7 +204,7 @@ export function show(picker: any) {
 
 /**
  * Stand up the chrome for the picker's current runtime `presentation`. Called by
- * show() and by setPresentation() when the environment flips while open.
+ * open() and by setPresentation() when the environment flips while open.
  */
 function applyPresentationChrome(picker: any) {
     switch (picker.presentation) {
@@ -214,7 +215,7 @@ function applyPresentationChrome(picker: any) {
 }
 
 /**
- * Tear down whatever chrome the current `presentation` stood up. Called by hide()
+ * Tear down whatever chrome the current `presentation` stood up. Called by close()
  * and by setPresentation() before switching. cleanupPositioning() is safe in every
  * presentation (no-op when there is no floating anchor / resize handler).
  */
@@ -260,7 +261,7 @@ function setupFloatingAnchor(picker: any) {
     // Close on viewport resize (in either direction). With elementResize off, we
     // can't gracefully adapt to a smaller/larger window, so just dismiss the picker
     // and let the user reopen it in the new viewport.
-    viewportResizeHandler = () => hide(picker);
+    viewportResizeHandler = () => close(picker);
     window.addEventListener('resize', viewportResizeHandler);
 }
 
@@ -271,7 +272,7 @@ function setupFloatingAnchor(picker: any) {
  * single-mode auto-close, or the backdrop → dismiss). Armed only when the open was
  * pointer-triggered (`openViaPointer`), a one-shot capture-phase listener eats that
  * next click if it targets the overlay, then removes itself — so a genuine later tap
- * is untouched, and a programmatic `show()` (no ghost click) never arms it.
+ * is untouched, and a programmatic `open()` (no ghost click) never arms it.
  */
 function armGhostClickGuard(picker: any) {
     if (!picker.openViaPointer) return;
@@ -401,12 +402,12 @@ function buildFullscreenHeader(picker: any) {
         picker.calendar.classList.add('drp__picker--fs-merged-header');
     }
 
-    const close = document.createElement('button');
-    close.type = 'button';
-    close.className = 'drp__fullscreen-close';
-    close.setAttribute('aria-label', picker.localeStrings?.close || 'Close');
-    close.addEventListener('click', () => hide(picker));
-    header.appendChild(close);
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'drp__fullscreen-close';
+    closeBtn.setAttribute('aria-label', picker.localeStrings?.close || 'Close');
+    closeBtn.addEventListener('click', () => close(picker));
+    header.appendChild(closeBtn);
 
     // Titled header is a flow row pinned at the top (first child). The merged (no-
     // title) header is position:absolute, so its visual spot is fixed regardless of
@@ -501,7 +502,7 @@ function handleOverlayPopstate(picker: any) {
     if (!picker.overlayHistoryActive) return;
     picker.overlayHistoryActive = false;
     window.removeEventListener('popstate', picker.onOverlayPopstate);
-    if (picker.calendar.classList.contains('drp__picker--visible')) hide(picker);
+    if (picker.calendar.classList.contains('drp__picker--visible')) close(picker);
 }
 
 /** Programmatic close: remove the listener and pop the entry we pushed (so the
@@ -518,7 +519,7 @@ function popOverlayHistory(picker: any) {
 /**
  * Swap the runtime presentation in place (no rebuild). When the picker is open,
  * tears down the current chrome and stands up the new one, then re-renders so the
- * layout reflects the new sizing; when closed, just records it for the next show().
+ * layout reflects the new sizing; when closed, just records it for the next open().
  * Driven by the web component's environmentChanged hook (SPEC §12.9).
  */
 export function setPresentation(picker: any, next: 'floating' | 'modal' | 'fullscreen') {
@@ -538,7 +539,7 @@ export function setPresentation(picker: any, next: 'floating' | 'modal' | 'fulls
     if (next === 'floating') position(picker);
 }
 
-export function hide(picker: any) {
+export function close(picker: any) {
     // Skip for inline mode (always visible)
     if (picker.options.positioningMode === 'inline') return;
 
@@ -563,11 +564,12 @@ export function hide(picker: any) {
 
     picker.calendar.classList.remove('drp__picker--visible');
     picker.isCalendarActive = false; // Deactivate calendar when hidden
+    picker.overlayCoord?.deactivate(); // Release the active-overlay marker (no broadcast on close)
     picker.hoverPreviewEnd = null;
 
     // Restore original input value and selection state if closed without Apply
     if (picker.requiresApplyButton() && picker.pendingSelection && picker.input) {
-        uiLogger.debug('hide() - restoring original input value:', picker.originalInputValue);
+        uiLogger.debug('close() - restoring original input value:', picker.originalInputValue);
         // Restore input value
         if (picker.originalInputValue !== null) {
             picker.input.value = picker.originalInputValue;
@@ -588,7 +590,7 @@ export function hide(picker: any) {
         if (picker.options.pickerMode !== 'date') {
             picker._selectedTime = picker.committedTime ? { ...picker.committedTime } : null;
         }
-        uiLogger.debug('hide() - reverted selection state');
+        uiLogger.debug('close() - reverted selection state');
     }
 
     // Clear pending selection when calendar closes
@@ -611,16 +613,16 @@ export function hide(picker: any) {
 
 export function toggle(picker: any) {
     if (picker.calendar.classList.contains('drp__picker--visible')) {
-        hide(picker);
+        close(picker);
     } else {
-        show(picker);
+        open(picker);
     }
 }
 
 /**
  * Recompute the calendar's floating position now. The placement / middleware /
  * platform / drift-check all live on the core `anchor()` handle created in
- * show() (`picker.calendarAnchor`); this just asks it to update. No-op in modal
+ * open() (`picker.calendarAnchor`); this just asks it to update. No-op in modal
  * mode (CSS-centered, no anchor) or before the calendar is shown.
  */
 export function position(picker: any) {

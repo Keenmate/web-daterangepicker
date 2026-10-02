@@ -122,7 +122,7 @@ test('disabled = true suppresses calendar open even via programmatic clicks', as
     await p.evaluate((el: any) => { el.disabled = true; });
 
     // Force a click past the browser's pointer-events block on the input
-    // and confirm the picker still doesn't open (show() guards on input.disabled).
+    // and confirm the picker still doesn't open (open() guards on input.disabled).
     await inputOf(p).click({ force: true });
     await expect(calendarOf(p)).toBeHidden();
 

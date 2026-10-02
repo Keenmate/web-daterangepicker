@@ -16,7 +16,7 @@ whether to fix the picker, change the docs, or accept the behavior.
 
 2. **~~`disabled` setter only flags the input element; it doesn't suppress
    open-on-click.~~** ✅ FIXED
-   `show()` in `date-picker-ui.ts` now early-returns if `picker.input?.disabled`,
+   `open()` in `date-picker-ui.ts` now early-returns if `picker.input?.disabled`,
    so programmatic clicks (and any other event path that bypasses the
    browser's pointer-events block) can't open a disabled picker. New spec
    verifies the suppression.

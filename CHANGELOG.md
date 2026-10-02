@@ -9,6 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Build-time variable-manifest validator + gate (parity with web-multiselect v2.0.1).**
+  A new `scripts/check-variable-manifest.mjs` validates `component-variables.manifest.json`
+  against the actual CSS: every `--base-*` consumed in `src/css` must be documented (and
+  vice-versa, no dead entries), and every declared `--drp-*` must be listed (minus a tight
+  `INTERNAL_DRP` allow-list of JS-computed vars). Wired as `npm run check:vars` /
+  `check:vars:strict`, with `check:vars:strict` now gating `npm run build` so the manifest
+  (source of truth for the IDE-autocomplete outputs and theme-designer) can no longer
+  silently drift. The initial reconciliation removed 5 stale `--drp-loading-*` entries
+  (renamed to `--drp-loader-*`) and documented 44 previously-undocumented tokens.
+- **`custom-styles` attribute — declarative raw-CSS injection (parity with web-multiselect
+  v2.2.0-rc02).** The no-JS twin of `customStylesCallback`: a full stylesheet dropped
+  verbatim into the same replaceable shadow-root style slot. `customStylesCallback` wins
+  when both are set.
+- **Dev-mode custom-styles variable linting.** In dev builds, CSS injected via
+  `custom-styles` / `customStylesCallback` is linted (through core's `extractConsumedCssVars`
+  + `lintCssVars`) for `--drp-*` names the component never reads — a typo like
+  `--drp-day-background` warns once with a "did you mean" suggestion. Stripped from
+  production builds (`import.meta.env.DEV` gated).
+- **`defer` render gate + `ready()` / `ready` event (parity with web-multiselect v2.1.0).**
+  With the `defer` attribute present on upgrade, the component holds its initial render so
+  `value`, callbacks, and listeners can all be wired first, then builds ONCE on release via
+  `el.ready()` (or by removing the attribute) — killing the upgrade-then-restyle flash. The
+  gate is latched; the `ready` event fires on first build; `el.isReady` and the reflected
+  `is-ready` attribute expose the state. A `:host([defer]:not([is-ready]))` rule reserves
+  ~input height while deferred (mirroring the existing pre-upgrade `:not(:defined)` FOUC
+  rule), so releasing the gate doesn't shift layout in the input-anchored floating/modal
+  modes.
+- **Typed `DateRangePickerController` facade on callback contexts (parity with
+  web-multiselect v2.2.0).** Action-button callback contexts now carry a `controller` — a
+  curated, stable imperative surface (read the selection: `getSelectedDate/Range/Ranges/
+  Dates/Datetime`, `isOpen`; drive it: `selectToday`/`clearSelection`/`apply`/`open`/`close`/
+  `toggle`/`setPresentation`/`prevMonth`/`nextMonth`/`lock`/`unlock`/`showMessage`/
+  `showSummary`…) so callback authors don't reach into the raw instance. The `picker`
+  escape hatch remains. Exported as `DateRangePickerController`; also available via
+  `picker.getController()`.
+
+### Changed
+
+- **Unified `onSelect` onto the standardized event detail (parity with web-multiselect
+  v2.2.0).** The core-class `onSelect` notification now receives the standardized
+  `SelectEventDetail` as an additive second argument — the same payload (formatted value
+  plus the enabled/disabled/split breakdown per `disabledDatesHandling`) the web component's
+  `date-select`/`change` CustomEvents carry — so a core-class consumer no longer gets only
+  the bare positional selection. Built centrally by `picker.buildSelectDetail()`. Fully
+  backward compatible: existing one-argument `onSelect(date)` handlers keep working.
+
 - **Environment signal re-exported for device-adaptive configuration.**
   `getEnvironment`, `observeEnvironment`, `observeViewport`, `classifyDevice`,
   `configureBreakpoints`, and `TABLET_MIN_SHORT_SIDE` (plus the `EnvironmentSnapshot`

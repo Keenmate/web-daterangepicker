@@ -39,7 +39,7 @@ export type {
 export type {
     DatePickerOptions, DateRange, FormatOptions, MonthDisplay, DatePickerEventDetail,
     // Shared callback/event context vocabulary
-    PickerContext, PresentationContext, DayContext, MonthHeaderContext, UnifiedHeaderContext,
+    PickerContext, DateRangePickerController, PresentationContext, DayContext, MonthHeaderContext, UnifiedHeaderContext,
     SelectionContext, MonthChangeContext, SummaryContext, ActionButtonContext,
     SelectEventDetail, CustomActionEventDetail, LoaderTarget, LockAspect,
     // Supporting types

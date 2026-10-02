@@ -9,7 +9,7 @@
  *
  * `lock()` with no argument locks every aspect; `lock(aspect | aspect[])` locks a subset.
  * Guards live at each user-interaction choke point (the calendar click / keydown
- * handlers, drag start, the `<input>`'s readonly flag, `show()`, and the navigation
+ * handlers, drag start, the `<input>`'s readonly flag, `open()`, and the navigation
  * module) and consult `picker.isAspectLocked(aspect)`. The programmatic API
  * (selection setters, `clearSelection()`, etc.) is intentionally NOT gated — a lock
  * freezes the end user, not the developer driving the component.

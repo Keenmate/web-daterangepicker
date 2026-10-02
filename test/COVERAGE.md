@@ -50,11 +50,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `calendar-open-trigger="focus"` — opens on input focus        | ✓      | `triggers.spec.ts`           | `triggers.html`           |
 | `calendar-open-trigger="typing"` — opens when user types      | ✓      | `triggers.spec.ts`           | `triggers.html`           |
-| `calendar-open-trigger="manual"` — only opens via show()      | ✓      | `triggers.spec.ts`           | `triggers.html`           |
+| `calendar-open-trigger="manual"` — only opens via open()      | ✓      | `triggers.spec.ts`           | `triggers.html`           |
 | Click outside closes (floating)                               | ✓      | `triggers.spec.ts`           | `triggers.html`           |
 | Escape closes                                                 | ✓      | `keyboard-navigation.spec.ts`| `keyboard-navigation.html`|
 | Re-click input after scroll-close reopens (#3 regression)     | ✓      | `triggers.spec.ts`           | `triggers.html`           |
-| `show()` is idempotent (no double-init on focus+mousedown)    | △      | `triggers.spec.ts`           | `triggers.html`           |
+| `open()` is idempotent (no double-init on focus+mousedown)    | △      | `triggers.spec.ts`           | `triggers.html`           |
 
 ## 4. Multi-month layout
 

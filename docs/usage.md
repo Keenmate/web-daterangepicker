@@ -185,8 +185,8 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 
 | Method | Description |
 |---|---|
-| `show()` | Show the calendar (floating mode only) |
-| `hide()` | Hide the calendar |
+| `open()` | Open the calendar (floating mode only) |
+| `close()` | Close the calendar |
 | `toggle()` | Toggle calendar visibility |
 | `clearSelection()` | Clear the current selection |
 | `getInputValue()` | Get the current value as a string |
@@ -735,7 +735,7 @@ independent aspects.
 | `open` | (re)opening the popover (floating & modal). Closing (hide / Escape / backdrop) stays allowed, so a locked picker is never a keyboard trap |
 
 The lock gates the **end user only** — the programmatic API
-(`selectedRanges = …`, `clearSelection()`, `show()`, the nav methods,
+(`selectedRanges = …`, `clearSelection()`, `open()`, the nav methods,
 etc.) keeps working while locked, just like a `readOnly` `<input>` is
 still settable from JS.
 

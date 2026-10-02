@@ -773,10 +773,10 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 const picker = document.getElementById('picker-1');
 
 // Show calendar
-picker.show();
+picker.open();
 
 // Hide calendar
-picker.hide();
+picker.close();
 
 // Toggle calendar
 picker.toggle();
@@ -790,8 +790,8 @@ console.log('Calendar open?', picker.isOpen);
       </div>
 
       <div class="method-signature">
-        <div><span class="return-type">void</span> show()</div>
-        <div><span class="return-type">void</span> hide()</div>
+        <div><span class="return-type">void</span> open()</div>
+        <div><span class="return-type">void</span> close()</div>
         <div><span class="return-type">void</span> toggle()</div>
       </div>
     </div>
@@ -1052,18 +1052,18 @@ if (picker.isOpen) {
 // Conditional toggle
 function smartToggle() {
     if (picker.isOpen) {
-        picker.hide();
+        picker.close();
         console.log('Closed calendar');
     } else {
-        picker.show();
+        picker.open();
         console.log('Opened calendar');
     }
 }
 
-// There is no open/close event — read `isOpen` after show()/hide()/toggle()
-picker.show();
+// There is no open/close event — read `isOpen` after open()/close()/toggle()
+picker.open();
 console.log('isOpen is now:', picker.isOpen); // true
-picker.hide();
+picker.close();
 console.log('isOpen is now:', picker.isOpen); // false</code></pre>
       </div>
 
@@ -1149,8 +1149,8 @@ if (picker) {
       <label>API Demo</label>
       <web-daterangepicker id="api-demo" selection-mode="range"></web-daterangepicker>
       <div class="controls mt-1">
-        <button class="btn-outline" onclick="document.getElementById('api-demo').show()">Show</button>
-        <button class="btn-outline" onclick="document.getElementById('api-demo').hide()">Hide</button>
+        <button class="btn-outline" onclick="document.getElementById('api-demo').open()">Show</button>
+        <button class="btn-outline" onclick="document.getElementById('api-demo').close()">Hide</button>
         <button class="btn-outline" onclick="document.getElementById('api-demo').toggle()">Toggle</button>
         <button class="btn-outline" onclick="document.getElementById('api-demo').clearSelection()">Clear</button>
         <button class="btn-outline" onclick="alert(document.getElementById('api-demo').getInputValue())">Get Value</button>
@@ -1160,8 +1160,8 @@ if (picker) {
     <div class="code-block"><pre>const picker = document.querySelector('web-daterangepicker');
 
 // Methods
-picker.show();        // Show calendar
-picker.hide();        // Hide calendar
+picker.open();        // Show calendar
+picker.close();        // Hide calendar
 picker.toggle();      // Toggle calendar
 picker.clearSelection();       // Clear selection
 picker.getInputValue();    // Get current value
@@ -1403,7 +1403,7 @@ picker.actionButtons = [
         <div><span class="return-type">void</span> showMessage(html: string, type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number)</div>
         <div><span class="return-type">void</span> hideMessage()</div>
         <div><span class="return-type">void</span> apply()</div>
-        <div><span class="return-type">void</span> hide()</div>
+        <div><span class="return-type">void</span> close()</div>
       </div>
     </div>
   </section>
@@ -1747,12 +1747,12 @@ const picker = new DateRangePicker(inputElement, {
         </thead>
         <tbody>
           <tr>
-            <td><code>show()</code></td>
+            <td><code>open()</code></td>
             <td><code>void</code></td>
             <td>Open the calendar (floating/modal modes)</td>
           </tr>
           <tr>
-            <td><code>hide()</code></td>
+            <td><code>close()</code></td>
             <td><code>void</code></td>
             <td>Close the calendar (floating/modal modes)</td>
           </tr>
@@ -2219,12 +2219,12 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     };
 
     document.getElementById('btn-show').addEventListener('click', () => {
-      picker1.show();
+      picker1.open();
       renderState1();
     });
 
     document.getElementById('btn-hide').addEventListener('click', () => {
-      picker1.hide();
+      picker1.close();
       renderState1();
     });
 

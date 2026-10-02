@@ -14,6 +14,58 @@ export interface PickerContext {
 }
 
 /**
+ * Typed, curated imperative facade handed to callbacks (e.g. action-button
+ * `onClick`) via `context.controller` — a stable public surface for reading the
+ * selection and driving the picker, so callback authors don't reach into the raw
+ * instance. The `picker` escape hatch on {@link PickerContext} remains for
+ * anything not covered here. Mirrors web-multiselect's `MultiSelectController`.
+ */
+export interface DateRangePickerController {
+  // ── read current selection ──────────────────────────────────────────────
+  /** The selected date (single mode), or null. */
+  getSelectedDate(): Date | null;
+  /** The selected range (`{start,end}`) derived from the current endpoints, or null. */
+  getSelectedRange(): DateRange | null;
+  /** All committed ranges (range mode; one entry for a simple range, N for split/multi-range). */
+  getSelectedRanges(): DateRange[];
+  /** The selected dates (multiple mode), or the enabled dates of a range under `individual`/`split`. */
+  getSelectedDates(): Date[];
+  /** The composed Date when the picker has time semantics (datetime mode), or null. */
+  getSelectedDatetime(): Date | null;
+  /** Whether the calendar popover is currently open (floating/modal modes). */
+  readonly isOpen: boolean;
+
+  // ── mutate the selection ────────────────────────────────────────────────
+  /** Select today (and the current time in datetime mode). */
+  selectToday(): void;
+  /** Clear the current selection. */
+  clearSelection(): void;
+  /** Commit a pending selection (Apply / `commit-mode="apply"`). */
+  apply(): void;
+
+  // ── drive the calendar ──────────────────────────────────────────────────
+  open(): void;
+  close(): void;
+  toggle(): void;
+  /** Swap the presentation in place (no rebuild; selection preserved). */
+  setPresentation(next: 'floating' | 'modal' | 'fullscreen'): void;
+  /** Step the given month column (default: the active column) to the previous month. */
+  prevMonth(monthIndex?: number): void;
+  /** Step the given month column (default: the active column) to the next month. */
+  nextMonth(monthIndex?: number): void;
+
+  // ── locking ─────────────────────────────────────────────────────────────
+  lock(aspects?: LockAspect | LockAspect[]): void;
+  unlock(aspects?: LockAspect | LockAspect[]): void;
+
+  // ── feedback ────────────────────────────────────────────────────────────
+  showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number): void;
+  hideMessage(): void;
+  showSummary(content: string): void;
+  hideSummary(): void;
+}
+
+/**
  * Where a loader (spinner) is mounted by showLoader()/hideLoader()/toggleLoader().
  * - 'calendar' (default): full-calendar overlay
  * - 'message': in-block spinner inside the message area
@@ -226,6 +278,8 @@ export interface ActionButtonContext extends PickerContext {
   button: ActionButton;
   /** data-* attributes on the button (for 'custom' actions); mirrors CustomActionEventDetail.data */
   data?: Record<string, string>;
+  /** Typed facade for reading the selection and driving the picker (see {@link DateRangePickerController}). */
+  controller: DateRangePickerController;
 }
 
 export type PickerMode = 'date' | 'time' | 'datetime';
@@ -288,10 +342,25 @@ export interface DatePickerOptions {
    *
    * - `focus` — when the input receives focus
    * - `typing` — once the user starts typing a date
-   * - `manual` — only via the API (`show()`), never automatically
+   * - `manual` — only via the API (`open()`), never automatically
    */
   calendarOpenTrigger?: 'focus' | 'typing' | 'manual';
-  onSelect?: (date: Date | DateRange | DateRange[] | Date[]) => void;
+  /**
+   * Scope the "one overlay open at a time" coordination to a named group. Overlays
+   * (datepickers, multiselects, external popovers) sharing a group dismiss each other
+   * when one opens; different groups are independent. Unset = the default (ungrouped)
+   * group, in which every ungrouped overlay coordinates.
+   */
+  overlayGroup?: string;
+  /**
+   * Fire-and-forget notification that a date/range/time was selected (or applied).
+   * The first argument is the raw selection (kept for backward compatibility); the
+   * second is the standardized {@link SelectEventDetail} — the same payload the
+   * web component's `date-select`/`change` CustomEvents carry (formatted value plus
+   * the enabled/disabled/split breakdown for range `disabledDatesHandling`). New
+   * code should read `detail`; existing one-argument handlers keep working.
+   */
+  onSelect?: (date: Date | DateRange | DateRange[] | Date[], detail?: SelectEventDetail) => void;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
   /**
    * How the calendar is presented. Default: `floating`.
@@ -337,7 +406,7 @@ export interface DatePickerOptions {
    *   which commits the value and closes.
    * - `manual` — never auto-commit or auto-close, and render no built-in Apply button.
    *   The app drives commit/close itself via custom action buttons (ActionButton.onClick
-   *   calling `apply()` / `hide()`).
+   *   calling `apply()` / `close()`).
    */
   commitMode?: 'selection' | 'apply' | 'manual';
 

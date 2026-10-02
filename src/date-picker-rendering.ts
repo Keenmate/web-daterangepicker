@@ -788,7 +788,7 @@ export function renderTimePicker(picker: any) {
     const step = picker.options.timeStep || 1;
     const is12h = picker.options.hourCycle === 'h12';
 
-    // Consume the one-shot "force scroll" flag set by show(). Re-opens must
+    // Consume the one-shot "force scroll" flag set by open(). Re-opens must
     // re-center even if a stale focus item is technically still in the viewport
     // (the rolls keep their scrollTop across hide/show).
     const forceScroll = !!picker.forceTimePickerScroll;
@@ -1144,7 +1144,7 @@ export function renderWheelPicker(picker: any) {
     const step = picker.options.timeStep || 1;
     const is12h = picker.options.hourCycle === 'h12';
 
-    // Consume the one-shot force-scroll flag set by show() / first render. Without
+    // Consume the one-shot force-scroll flag set by open() / first render. Without
     // this, an already-centered value (preserved scrollTop) would skip recentering
     // and the user would land on a stale row from the previous open.
     const forceScroll = !!picker.forceWheelScroll;

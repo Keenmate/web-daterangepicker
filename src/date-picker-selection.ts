@@ -395,12 +395,12 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         if (picker.requiresApplyButton()) {
             picker.pendingSelection = payload;
         } else {
-            if (picker.options.onSelect) picker.options.onSelect(payload);
+            if (picker.options.onSelect) picker.options.onSelect(payload, picker.buildSelectDetail(payload));
         }
 
         // Auto-close handling
         if (picker.options.positioningMode !== 'inline' && picker.shouldAutoClose()) {
-            picker.hide();
+            picker.close();
         }
     } else if (picker.options.selectionMode === 'multiple') {
         // Multiple mode: toggle individual dates or add ranges
@@ -498,14 +498,14 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
             if (picker.requiresApplyButton()) {
                 picker.pendingSelection = selection;
             } else {
-                if (picker.options.onSelect) picker.options.onSelect(selection);
+                if (picker.options.onSelect) picker.options.onSelect(selection, picker.buildSelectDetail(selection));
             }
 
             // Auto-close handling. Floating closes on range-completion; modal and
             // fullscreen stay open until the user explicitly dismisses (backdrop /
             // ✕ / Apply), matching their heavier, deliberate presentation.
             if (picker.presentation === 'floating' && picker.shouldAutoClose()) {
-                picker.hide();
+                picker.close();
             }
         }
     }
@@ -539,14 +539,14 @@ export function selectToday(picker: any) {
     if (picker.requiresApplyButton()) {
         picker.pendingSelection = payload;
     } else {
-        if (picker.options.onSelect) picker.options.onSelect(payload);
+        if (picker.options.onSelect) picker.options.onSelect(payload, picker.buildSelectDetail(payload));
     }
 
     picker.renderCalendar();
 
     // Auto-close if appropriate
     if (picker.options.positioningMode !== 'inline' && picker.shouldAutoClose()) {
-        picker.hide();
+        picker.close();
     }
 }
 
@@ -610,7 +610,7 @@ function commitTimeSelection(picker: any) {
     if (picker.requiresApplyButton()) {
         picker.pendingSelection = payload;
     } else if (picker.options.onSelect) {
-        picker.options.onSelect(payload);
+        picker.options.onSelect(payload, picker.buildSelectDetail(payload));
     }
     picker.renderCalendar();
 }
@@ -976,7 +976,7 @@ export function apply(picker: any) {
     // Fire deferred callback if there was a pending selection
     if (picker.pendingSelection) {
         if (picker.options.onSelect) {
-            picker.options.onSelect(picker.pendingSelection);
+            picker.options.onSelect(picker.pendingSelection, picker.buildSelectDetail(picker.pendingSelection));
         }
         picker.pendingSelection = null;
     }
@@ -993,13 +993,13 @@ export function apply(picker: any) {
     } else if (picker.options.selectionMode === 'single') {
         picker.committedDate = picker._selectedDate;
     }
-    // Time/datetime modes also commit the time parts so hide() can revert.
+    // Time/datetime modes also commit the time parts so close() can revert.
     if (picker.options.pickerMode !== 'date') {
         picker.committedTime = picker._selectedTime ? { ...picker._selectedTime } : null;
     }
 
     // Always close on Apply (inline mode never closes; floating and modal both close)
     if (picker.options.positioningMode !== 'inline') {
-        picker.hide();
+        picker.close();
     }
 }

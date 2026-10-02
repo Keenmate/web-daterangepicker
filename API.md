@@ -86,7 +86,8 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 |-----------|------|---------|-------------|
 | `selection-mode` | `'single' \| 'range' \| 'multiple'` | `'single'` | Selection behavior: `single` day, `range`, or `multiple` days/ranges. |
 | `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`. |
-| `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | What opens the floating calendar: `focus`, `typing`, or `manual` (only `show()`). |
+| `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | What opens the floating calendar: `focus`, `typing`, or `manual` (only `open()`). |
+| `overlay-group` | `string \| null` | — | Scope the "one overlay open at a time" coordination to a named group. Overlays (datepickers, multiselects, external popovers) sharing a group dismiss each other when one opens; different groups are independent. Unset = the default (ungrouped) group. |
 | `visible-months-count` | `number` | — | Number of month columns shown side-by-side. |
 | `month-layout` | `'horizontal' \| 'grid'` | — | Multi-month arrangement: a horizontal row or a `grid` (see grid-rows/grid-columns). |
 | `grid-rows` | `number` | — | Rows in the month grid when month-layout is `grid`. |
@@ -144,6 +145,8 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `fullscreen-input` | `boolean` | — | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
 | `show-debug-info` | `boolean` | — | Enable the picker’s debug logging. |
 | `compact-below` | `number` | — | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
+| `defer` | `boolean` | — | Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `customStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes. |
+| `custom-styles` | `string \| null` | — | Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `customStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `customStylesCallback` wins when both are set. |
 <!-- GEN:attributes:end -->
 
 **Smart default positioning:**
@@ -324,8 +327,9 @@ Available on `<web-daterangepicker>` element:
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `formResetCallback()` | `() => void` | Form reset: clear the selection and the submitted value with the form. |
-| `show()` | `() => void` | Open the calendar (floating/modal modes). |
-| `hide()` | `() => void` | Close the calendar (floating/modal modes). |
+| `ready()` | `() => void` | Release the `defer` render gate: build the picker now (once), with every option, callback and listener wired while deferred already in place. No-op when the element wasn't deferred or is already built. `flush()` first so a synchronous `el.value = …; el.customStylesCallback = …; el.ready()` lands those pending writes in the single build rather than after it. Latched — the gate never re-closes. Fires the `ready` event on the first build. |
+| `open()` | `() => void` | Open the calendar (floating/modal modes). |
+| `close()` | `() => void` | Close the calendar (floating/modal modes). |
 | `toggle()` | `() => void` | Toggle the calendar open/closed. |
 | `clearSelection()` | `() => void` | Clear the current selection and reset the input. |
 | `showMessage()` | `(content: string, type?: 'error' \| 'warning' \| 'info' \| 'success', autoHide?: number) => void` | Show an inline message; `autoHide` (ms) dismisses it automatically. |
@@ -355,7 +359,7 @@ before first connect).
 ```javascript
 const picker = document.querySelector('web-daterangepicker');
 
-picker.show();
+picker.open();
 picker.setInputValue('2025-12-25');
 console.log(picker.getInputValue()); // "2025-12-25"
 picker.clearSelection();
@@ -367,8 +371,8 @@ Available on `DateRangePicker` instance (accessible via `picker.picker` on web c
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
-| `show()` | `() => void` | Show calendar |
-| `hide()` | `() => void` | Hide calendar |
+| `open()` | `() => void` | Open calendar |
+| `close()` | `() => void` | Close calendar |
 | `toggle()` | `() => void` | Toggle calendar visibility |
 | `clear()` | `() => void` | Clear selection |
 | `destroy()` | `() => void` | Remove calendar and cleanup all event listeners |
@@ -617,7 +621,7 @@ When `show-debug-info` is enabled, you'll see detailed logs in your browser cons
 [DRP:GENERAL] Format info: {separator: '-', parts: {...}, maxLength: 10}
 [DRP:GENERAL] Creating calendar
 [DRP:RENDERING] renderCalendar() called
-[DRP:UI] show() - adding visible class
+[DRP:UI] open() - adding visible class
 [DRP:UI] position() - FloatingUI computed - x: 245, y: 380, placement: 'bottom-start'
 ```
 
@@ -1314,6 +1318,7 @@ The web component provides convenient property accessors for JavaScript:
 <!-- Auto-generated from custom-elements.json — do not edit by hand. Run `npm run docs:api`. -->
 | Property | Type | Access | Description |
 |----------|------|--------|-------------|
+| `isReady` | `boolean` | Read-only | Whether the picker has been built (the `ready` event has fired). False while a `defer` gate is still held. |
 | `lockedAspects` | `LockAspect[]` | Read-only | The currently locked aspects (read-only snapshot). |
 | `value` | `string` | Read/Write | Text value of the input. |
 | `readonly` | `boolean` | Read/Write | Full read-only lock, reflected to the `readonly` attribute. Reads back `true` only when every aspect is locked. For partial locks use `lock([...])`. |
@@ -1332,7 +1337,8 @@ The web component provides convenient property accessors for JavaScript:
 | `picker` | `DateRangePicker \| undefined` | Read-only | The live `DateRangePicker` engine instance this element wraps (or `undefined` before first connect / while detached). An escape hatch for advanced use — the engine is also a public export — and the same white-box hook the old `private picker` field exposed. Prefer the element's own methods/properties where they exist. |
 | `selectionMode` | `'single' \| 'range' \| 'multiple'` | Read/Write | Selection behavior: `single` day, `range`, or `multiple` days/ranges. |
 | `positioningMode` | `'inline' \| 'floating' \| 'modal'` | Read/Write | How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`. |
-| `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | Read/Write | What opens the floating calendar: `focus`, `typing`, or `manual` (only `show()`). |
+| `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | Read/Write | What opens the floating calendar: `focus`, `typing`, or `manual` (only `open()`). |
+| `overlayGroup` | `string \| null` | Read/Write | Scope the "one overlay open at a time" coordination to a named group. Overlays (datepickers, multiselects, external popovers) sharing a group dismiss each other when one opens; different groups are independent. Unset = the default (ungrouped) group. |
 | `visibleMonthsCount` | `number` | Read/Write | Number of month columns shown side-by-side. |
 | `monthLayout` | `'horizontal' \| 'grid'` | Read/Write | Multi-month arrangement: a horizontal row or a `grid` (see grid-rows/grid-columns). |
 | `gridRows` | `number` | Read/Write | Rows in the month grid when month-layout is `grid`. |
@@ -1389,6 +1395,7 @@ The web component provides convenient property accessors for JavaScript:
 | `fullscreenInput` | `boolean` | Read/Write | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
 | `showDebugInfo` | `boolean` | Read/Write | Enable the picker’s debug logging. |
 | `compactBelow` | `number` | Read/Write | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
+| `deferRender` | `boolean` | Read/Write | Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `customStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes. |
 | `specialDates` | `DecoratedDate[]` | Read/Write | Array of decorated-date objects (badges, tooltips, per-day classes). Property-only. |
 | `actionButtons` | `ActionButton[]` | Read/Write | Custom footer action buttons. Property-only; when unset the built-in buttons apply. |
 | `customStrings` | `Partial<LocaleStrings>` | Read/Write | Per-instance locale string overrides. Property-only. |
@@ -1400,7 +1407,8 @@ The web component provides convenient property accessors for JavaScript:
 | `formatSummaryCallback` | `(ctx: SummaryContext) => string` | Read/Write | Render the range summary text. |
 | `getUnifiedHeaderCallback` | `(ctx: UnifiedHeaderContext) => string` | Read/Write | Render the unified grid header label. |
 | `getMonthHeaderCallback` | `(ctx: MonthHeaderContext) => string` | Read/Write | Render a per-column month header label. |
-| `customStylesCallback` | `() => string` | Read/Write | Return a CSS string injected into the component via a replaceable style slot (§12.8). |
+| `customStylesCallback` | `() => string` | Read/Write | Return a CSS string injected into the component via a replaceable style slot (§12.8). Takes precedence over the `custom-styles` attribute when both are set. |
+| `customStyles` | `string \| null` | Read/Write | Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `customStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `customStylesCallback` wins when both are set. |
 | `beforeDateSelectCallback` | `(ctx: SelectionContext) => BeforeSelectResult \| Promise<BeforeSelectResult>` | Read/Write | Runs before a day is selected; can veto or adjust the selection. |
 | `beforeMonthChangedCallback` | `(ctx: MonthChangeContext) => BeforeMonthChangeResult \| Promise<BeforeMonthChangeResult>` | Read/Write | Runs before month navigation; can veto the change. |
 <!-- GEN:properties:end -->

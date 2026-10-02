@@ -42,8 +42,10 @@
   "scripts": {
     "dev": "vite",
     "analyze": "cem analyze",
+    "check:vars": "node scripts/check-variable-manifest.mjs",
+    "check:vars:strict": "node scripts/check-variable-manifest.mjs --strict",
     "docs:api": "node scripts/gen-api-docs.mjs",
-    "build": "npm run clean:dist && npm run analyze && npm run docs:api && vite build && tsc",
+    "build": "npm run clean:dist && npm run check:vars:strict && npm run analyze && npm run docs:api && vite build && tsc",
     "build:types": "tsc",
     "build:full": "vite build && tsc",
     "preview": "vite preview",
@@ -90,6 +92,6 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "@keenmate/web-components-core": "^1.0.0-rc09"
+    "@keenmate/web-components-core": "^1.0.0-rc10"
   }
 }

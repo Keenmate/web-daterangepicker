@@ -15,7 +15,7 @@ for (const mode of ['modal', 'fullscreen'] as const) {
     const host = page.locator('#picker');
     await host.waitFor();
     await host.evaluate((el, m) => el.setAttribute('mobile-presentation', m), mode);
-    await host.evaluate(el => (el as any).show());
+    await host.evaluate(el => (el as any).open());
     await expect(host.locator('.drp__picker')).toHaveClass(new RegExp(`drp__picker--${mode}`));
 
     // Simulate the Back gesture.

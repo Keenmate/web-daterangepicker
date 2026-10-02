@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — single active overlay</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+        .fixture { display: flex; gap: 2rem; align-items: flex-start; }
+    </style>
+</head>
+<body>
+    <h1>single active overlay</h1>
+    <p>Targeted by <code>e2e/single-active.spec.ts</code>. Opening one calendar dismisses any other
+    open overlay via the core coordination primitive (`registerOverlay`).</p>
+
+    <div class="fixture">
+        <web-daterangepicker id="drp-a" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+        <web-daterangepicker id="drp-b" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton, ActionButtonContext, LoaderTarget, LockAspect, CustomActionEventDetail } from './types';
+import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton, ActionButtonContext, LoaderTarget, LockAspect, CustomActionEventDetail, SelectEventDetail, DateRangePickerController } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -24,7 +24,7 @@ import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
-import { presentationContext, type PresentationContext } from '@keenmate/web-components-core';
+import { presentationContext, registerOverlay, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
 import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -64,19 +64,19 @@ class DateRangePicker {
     // committed, so real-time-seconds advance doesn't pull the rolls along.
     timePickerOpenSnapshot: Date | null = null;
 
-    // Set by show() to tell the next renderTimePicker to force-scroll each roll
+    // Set by open() to tell the next renderTimePicker to force-scroll each roll
     // to center, bypassing the "already visible" optimization. Needed on reopen
     // because the rolls keep their stale scroll position from the previous open.
     forceTimePickerScroll: boolean = false;
 
     // Clock picker (timeDisplay: clock) — which step of the two-step Material
-    // flow is showing. Reset to 'hours' on show(); advances to 'minutes' when
+    // flow is showing. Reset to 'hours' on open(); advances to 'minutes' when
     // the user picks an hour; clicking the HH or MM digit in the header jumps
     // back to that step.
     clockStep: 'hours' | 'minutes' = 'hours';
 
     // Wheel picker (timeDisplay: wheel) — same role as forceTimePickerScroll, but
-    // for the iOS-style barrel columns. Set true by show() so each column re-centers
+    // for the iOS-style barrel columns. Set true by open() so each column re-centers
     // its focus value on every open even if scrollTop is preserved.
     forceWheelScroll: boolean = false;
 
@@ -92,6 +92,7 @@ class DateRangePicker {
     private committedEndDate: Date | null = null; // Last committed range end
     private committedRanges: DateRange[] = []; // Last committed multi-range result (range mode); empty for a plain single range
     private committedTime: SelectedTime | null = null; // Last committed time parts (time/datetime modes)
+    private _controller?: DateRangePickerController; // Memoized imperative facade (getController())
     focusedDayIndex: number | null;
     activeMonthIndex: number;
     rollingSelectorOpenByColumn: boolean[];
@@ -115,17 +116,18 @@ class DateRangePicker {
     private calendarContentHeight?: number; // Store calendar height for rolling selector
     private calendarContentWidth?: number; // Store calendar width for rolling selector
     isCalendarActive: boolean = false; // Track if this calendar is the keyboard-active one
+    // Cross-component "one overlay open at a time" coordination (core). activate() on
+    // open() dismisses every OTHER participating overlay (other datepickers, multiselects,
+    // external popovers); our onDismiss closes this popover when another opens. This
+    // supersedes the popover-closing that `drp-picker-activated` used to do — that event
+    // now only carries the inline keyboard-active tracking below. Torn down in destroy().
+    private overlayCoord: OverlayHandle | null = null;
     private readonly onAnotherPickerActivated = (e: Event) => {
         if ((e as CustomEvent).detail === this) return;
+        // Inline keyboard-active tracking only: exactly one inline picker responds to
+        // arrow keys at a time. Popover dismissal is handled by the core coordination
+        // (see overlayCoord), which also crosses component types.
         this.isCalendarActive = false;
-        // Close this picker's popover when another one opens so the user
-        // doesn't see two calendars overlap during the click sequence
-        // (pointerdown on the other input opens B, document click closes A
-        // — without this, the ~150-300ms gap between those two events shows
-        // both popovers stacked). `hide()` is a no-op for inline mode.
-        if (this.calendar?.classList.contains('drp__picker--visible')) {
-            this.hide();
-        }
     };
 
     // Scoped read-only lock state. Empty = fully interactive. See date-picker-lock.ts.
@@ -194,7 +196,7 @@ class DateRangePicker {
     // All input-element listeners are registered with this controller's signal so
     // destroy() can drop them in one call. The input element is REUSED across a
     // destroy()+rebuild (e.g. the positioning-mode flip), so without this a zombie
-    // picker's show()/handlers would keep firing on the shared input.
+    // picker's open()/handlers would keep firing on the shared input.
     private inputListenersAbort = new AbortController();
 
     // Week start and date restrictions
@@ -219,6 +221,7 @@ class DateRangePicker {
             visibleMonthsCount: options.visibleMonthsCount || (options.selectionMode === 'range' ? 2 : 1),
             dateFormatMask: options.dateFormatMask || 'YYYY-MM-DD',
             calendarOpenTrigger: options.calendarOpenTrigger || 'focus',
+            overlayGroup: options.overlayGroup || undefined,
             onSelect: options.onSelect || undefined,
             container: this.containerElement,
             positioningMode: options.positioningMode || 'floating',
@@ -496,6 +499,11 @@ class DateRangePicker {
         // on the page would respond to arrow keys at once.)
         document.addEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
 
+        // Join the single-active-overlay group (scoped by `overlay-group`, default ungrouped):
+        // when another KM overlay in the same group (or an external popover) opens, close this
+        // calendar. open() broadcasts the reverse.
+        this.overlayCoord = registerOverlay(() => this.close(), this.options.overlayGroup || undefined);
+
         // Only attach input listeners if we have an input element
         if (this.input) {
             this.attachInputListeners();
@@ -519,7 +527,7 @@ class DateRangePicker {
             // Call beforeMonthChangedCallback for initial month load
             Navigation.handleInitialMonthLoad(this);
         }
-        // Note: for floating mode, renderCalendar() is called on first show() instead of here
+        // Note: for floating mode, renderCalendar() is called on first open() instead of here
         // to avoid rendering days before the calendar is displayed
 
         drpLogger.debug('Init complete');
@@ -556,7 +564,7 @@ class DateRangePicker {
                 }
 
                 drpLogger.debug('Window scroll detected - closing calendar');
-                this.hide();
+                this.close();
             }
         });
         this.scrollSubscriptions.push(windowScrollSub);
@@ -574,7 +582,7 @@ class DateRangePicker {
 
             if (this.presentation === 'floating') {
                 // Floating mode: close entire calendar
-                this.hide();
+                this.close();
             } else {
                 // Inline/fixed/absolute mode: close only rolling selectors
                 let needsRender = false;
@@ -802,7 +810,7 @@ class DateRangePicker {
 
         buttons.forEach(button => {
             // One context object per button, shared by all of this button's callbacks
-            const ctx: ActionButtonContext = { picker: this, action: button.action, button };
+            const ctx: ActionButtonContext = { picker: this, controller: this.getController(), action: button.action, button };
 
             // Priority 1: Check dynamic visibility callback
             if (button.isVisibleCallback !== undefined) {
@@ -928,7 +936,7 @@ class DateRangePicker {
             if (!actionConfig) return;
 
             const tooltipText = actionConfig.getTooltipCallback
-                ? actionConfig.getTooltipCallback({ picker: this, action: actionConfig.action, button: actionConfig })
+                ? actionConfig.getTooltipCallback({ picker: this, controller: this.getController(), action: actionConfig.action, button: actionConfig })
                 : actionConfig.tooltip;
             if (!tooltipText) return;
 
@@ -1080,6 +1088,65 @@ class DateRangePicker {
      */
     splitRangeByDisabled(start: Date, end: Date): DateRange[] {
         return Validation.splitRangeByDisabled(start, end, (date) => this.isDateDisabled(date));
+    }
+
+    /**
+     * Build the standardized {@link SelectEventDetail} for a selection — the
+     * payload handed to `onSelect` as its second argument and mirrored by the web
+     * component's `date-select`/`change` events. Centralizing it here means a
+     * core-class consumer (`new DateRangePicker(el, { onSelect })`) gets the same
+     * rich breakdown (`enabledDates`/`disabledDates`/`dateRanges`/`dates` per
+     * `disabledDatesHandling`) that a web-component listener gets, instead of only
+     * the bare positional selection. `formattedValue` is composed from
+     * {@link formatDate}; the web component overrides it with the input's display
+     * string when it re-emits.
+     */
+    buildSelectDetail(selection: Date | DateRange | DateRange[] | Date[]): SelectEventDetail {
+        const formatRange = (r: DateRange) => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`;
+
+        // Single date.
+        if (selection instanceof Date) {
+            return { date: selection, formattedValue: this.formatDate(selection) };
+        }
+
+        // Array: either multiple ranges (split/multi-range) or a flat list of dates.
+        if (Array.isArray(selection)) {
+            if (selection.length > 0 && selection[0] instanceof Date) {
+                const dates = selection as Date[];
+                return { formattedValue: dates.map((d) => this.formatDate(d)).join(', '), dates };
+            }
+            const ranges = selection as DateRange[];
+            return { formattedValue: ranges.map(formatRange).join(', '), dateRanges: ranges };
+        }
+
+        // Single range — apply the disabled-dates breakdown for the active handling.
+        const { start, end } = selection;
+        const detail: SelectEventDetail = { dateRange: selection, formattedValue: formatRange(selection) };
+        switch (this.options.disabledDatesHandling) {
+            case 'allow':
+                detail.enabledDates = this.getEnabledDatesInRange(start, end);
+                detail.disabledDates = this.getDisabledDatesInRange(start, end);
+                detail.getEnabledDateCount = () => detail.enabledDates!.length;
+                detail.getTotalDays = () => {
+                    const msPerDay = 1000 * 60 * 60 * 24;
+                    return Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1;
+                };
+                break;
+            case 'split':
+                detail.dateRanges = this.splitRangeByDisabled(start, end);
+                detail.dates = this.getEnabledDatesInRange(start, end);
+                if (detail.dateRanges.length > 0) detail.formattedValue = detail.dateRanges.map(formatRange).join(', ');
+                break;
+            case 'individual':
+                detail.dates = this.getEnabledDatesInRange(start, end);
+                detail.dateRange = null;
+                if (detail.dates.length > 0) detail.formattedValue = detail.dates.map((d) => this.formatDate(d)).join(', ');
+                break;
+            case 'block':
+                detail.dates = this.getEnabledDatesInRange(start, end);
+                break;
+        }
+        return detail;
     }
 
     isToday(date: Date): boolean {
@@ -1404,13 +1471,13 @@ class DateRangePicker {
             // Open on focus (initial focus from tab-in or first click)
             this.input.addEventListener('focus', () => {
                 drpLogger.debug('Input focused - opening calendar');
-                this.show();
+                this.open();
             }, { signal });
             // Also re-open when the input is clicked while already focused but the
             // calendar got closed (e.g., by scroll, Escape, outside-click). The focus
             // event won't fire if focus didn't change. Both mousedown and click are
             // wired up because some pointer/touch sequences and accessibility tools
-            // skip one or the other; show() is now idempotent so doubled calls are
+            // skip one or the other; open() is now idempotent so doubled calls are
             // harmless.
             // Pointerdown is the modern unified pointer event. It fires even when
             // mousedown/click are suppressed (e.g., the first click after a window
@@ -1421,17 +1488,17 @@ class DateRangePicker {
             this.input.addEventListener('pointerdown', () => {
                 drpLogger.debug('Input pointerdown - ensuring calendar open');
                 this.openViaPointer = true; // a trailing "ghost" click may hit a modal/fullscreen overlay
-                this.show();
+                this.open();
             }, { signal });
             this.input.addEventListener('mousedown', () => {
                 drpLogger.debug('Input mousedown - ensuring calendar open');
                 this.openViaPointer = true;
-                this.show();
+                this.open();
             }, { signal });
             this.input.addEventListener('click', () => {
                 drpLogger.debug('Input click - ensuring calendar open');
                 this.openViaPointer = true;
-                this.show();
+                this.open();
             }, { signal });
             // Diagnose: log when the input loses focus and when window focus changes.
         } else if (triggerMode === 'typing') {
@@ -1439,11 +1506,11 @@ class DateRangePicker {
             this.input.addEventListener('input', (e) => {
                 if (!this.calendar.classList.contains('drp__picker--visible') && this.input && this.input.value.length > 0) {
                     drpLogger.debug('User started typing - opening calendar');
-                    this.show();
+                    this.open();
                 }
             }, { signal });
         }
-        // 'manual' mode: no automatic trigger, calendar only opens via .show()/.toggle() methods
+        // 'manual' mode: no automatic trigger, calendar only opens via .open()/.toggle() methods
 
         // Input masking handlers (always attached regardless of trigger mode)
         this.input.addEventListener('input', (e) => this.handleInputMask(e), { signal });
@@ -1518,6 +1585,7 @@ class DateRangePicker {
                         || { action: 'custom', text: '' };
                     await Promise.resolve(customOnClick({
                         picker: this,
+                        controller: this.getController(),
                         action: buttonConfig.action,
                         button: buttonConfig,
                         data: dataAttributes
@@ -1808,7 +1876,7 @@ class DateRangePicker {
             if (Interaction.inputOwnsCaretKey(e)) return;
 
             if (e.key === 'Escape') {
-                this.hide();
+                this.close();
                 e.preventDefault();
             }
             else if (e.key === 'ArrowUp') {
@@ -1872,7 +1940,7 @@ class DateRangePicker {
                     }
                 } else {
                     // No focused day - close calendar as confirmation
-                    this.hide();
+                    this.close();
                 }
                 e.preventDefault();
             }
@@ -2301,9 +2369,9 @@ class DateRangePicker {
             return;
         }
         if (value) {
-            this.show();
+            this.open();
         } else {
-            this.hide();
+            this.close();
         }
     }
 
@@ -2522,8 +2590,12 @@ class DateRangePicker {
         // Stop listening for cross-picker activation broadcasts
         document.removeEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
 
+        // Leave the single-active-overlay group.
+        this.overlayCoord?.dispose();
+        this.overlayCoord = null;
+
         // Drop every input-element listener at once. The input is reused across a
-        // rebuild, so leaving these attached would let a destroyed picker's show()
+        // rebuild, so leaving these attached would let a destroyed picker's open()
         // and mask/keydown handlers keep firing on the shared input (a zombie
         // floating picker reopening after a positioning-mode flip).
         this.inputListenersAbort.abort();
@@ -2564,8 +2636,8 @@ class DateRangePicker {
     }
 
     // UI methods - wrappers for pure functions
-    show() { return UI.show(this); }
-    hide() { return UI.hide(this); }
+    open() { return UI.open(this); }
+    close() { return UI.close(this); }
     /**
      * Swap the runtime presentation (`floating` | `modal` | `fullscreen`) in place —
      * no rebuild, selection preserved. Driven by the web component's device
@@ -2655,6 +2727,43 @@ class DateRangePicker {
     selectToday() { return Selection.selectToday(this); }
     clearSelection() { return Selection.clearSelection(this); }
     apply() { return Selection.apply(this); }
+
+    /**
+     * The typed, curated imperative facade handed to callbacks via
+     * `context.controller` (see {@link DateRangePickerController}). Memoized so its
+     * identity is stable across calls. The raw instance stays reachable via
+     * `context.picker` for anything not on the facade.
+     */
+    getController(): DateRangePickerController {
+        const picker = this;
+        return (this._controller ??= {
+            getSelectedDate: () => picker.selectedDate,
+            getSelectedRange: () => {
+                const start = picker.selectedStartDate;
+                const end = picker.selectedEndDate;
+                return start && end ? { start, end } : null;
+            },
+            getSelectedRanges: () => picker.selectedRanges,
+            getSelectedDates: () => picker.selectedDates,
+            getSelectedDatetime: () => picker.selectedDatetime,
+            get isOpen() { return picker.isOpen; },
+            selectToday: () => { picker.selectToday(); },
+            clearSelection: () => { picker.clearSelection(); },
+            apply: () => { picker.apply(); },
+            open: () => { picker.open(); },
+            close: () => { picker.close(); },
+            toggle: () => { picker.toggle(); },
+            setPresentation: (next) => { picker.setPresentation(next); },
+            prevMonth: (monthIndex = picker.activeMonthIndex) => { picker.prevMonth(monthIndex); },
+            nextMonth: (monthIndex = picker.activeMonthIndex) => { picker.nextMonth(monthIndex); },
+            lock: (aspects) => { picker.lock(aspects); },
+            unlock: (aspects) => { picker.unlock(aspects); },
+            showMessage: (content, type, autoHide) => { picker.showMessage(content, type, autoHide); },
+            hideMessage: () => { picker.hideMessage(); },
+            showSummary: (content) => { picker.showSummary(content); },
+            hideSummary: () => { picker.hideSummary(); },
+        });
+    }
     selectHour(hour: number, is12Hour: boolean) { return Selection.selectHour(this, hour, is12Hour); }
     selectMinute(minute: number) { return Selection.selectMinute(this, minute); }
     selectSecond(second: number) { return Selection.selectSecond(this, second); }

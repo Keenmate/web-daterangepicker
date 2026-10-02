@@ -17,7 +17,7 @@ test('auto → fullscreen: opening shows the edge-to-edge sheet with a close hea
 
   // Open via the API (Playwright tap emulation is unreliable; real focus/tap works
   // on device — see triggers.spec.ts for open-trigger coverage).
-  await host.evaluate(el => (el as any).show());
+  await host.evaluate(el => (el as any).open());
 
   const state = await host.evaluate(el => {
     const cal = el.shadowRoot?.querySelector('.drp__picker') ?? null;
@@ -38,7 +38,7 @@ test('the ✕ close button dismisses the full-screen sheet', async ({ page }) =>
   await page.goto('/test/mobile-presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
-  await host.evaluate(el => (el as any).show());
+  await host.evaluate(el => (el as any).open());
   await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--fullscreen/);
 
   await host.evaluate(el => (el.shadowRoot?.querySelector('.drp__fullscreen-close') as HTMLElement)?.click());
@@ -49,7 +49,7 @@ test('with no title, the ✕ merges into the month-nav row and stays on top', as
   await page.goto('/test/mobile-presentation.html');
   const host = page.locator('#picker'); // no fullscreen-title
   await host.waitFor();
-  await host.evaluate(el => (el as any).show());
+  await host.evaluate(el => (el as any).open());
   await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--fullscreen/);
 
   const state = await host.evaluate(el => {
@@ -71,7 +71,7 @@ test('fullscreen-input: the trigger input relocates into the header (numeric key
 
   const opened = await host.evaluate(el => {
     el.setAttribute('fullscreen-input', '');
-    (el as any).show();
+    (el as any).open();
     const sr = el.shadowRoot!;
     const input = sr.querySelector('input') as HTMLInputElement;
     const header = sr.querySelector('.drp__fullscreen-header');
@@ -110,7 +110,7 @@ test('keyboard-off default: the input is not focused when the sheet opens', asyn
   await page.goto('/test/mobile-presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
-  await host.evaluate(el => (el as any).show());
+  await host.evaluate(el => (el as any).open());
   const inputIsActive = await host.evaluate(el =>
     el.shadowRoot?.activeElement === el.shadowRoot?.querySelector('input'));
   expect(inputIsActive).toBe(false);

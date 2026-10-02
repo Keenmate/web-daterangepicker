@@ -32,6 +32,8 @@ import {
   toValue,
   adoptStyles,
   createStyleSlot,
+  extractConsumedCssVars,
+  lintCssVars,
   getEnvironment,
   resolvePresentation,
   type InputDef,
@@ -53,6 +55,15 @@ import type {
   SelectEventDetail, CustomActionEventDetail, SelectedTime, MonthDisplay,
 } from './types';
 import styles from './css/main.css?inline';
+
+// Dev-mode custom-styles lint: the set of `--drp-*` names the component's own
+// stylesheet actually consumes, used as the ground truth for typo detection in
+// author-injected CSS (custom-styles attribute / customStylesCallback). Computed
+// once, lazily — parsing the full stylesheet is not free.
+let consumedDrpVarsCache: Set<string> | null = null;
+function consumedDrpVars(): Set<string> {
+  return (consumedDrpVarsCache ??= extractConsumedCssVars(styles, '--drp-'));
+}
 
 // Build-time constant (Vite define).
 declare const __VERSION__: string;
@@ -80,7 +91,8 @@ const INPUTS: readonly InputDef[] = [
   // ── Structural (→ reinit): a change here rebuilds the picker ──────────────
   { configKey: 'selectionMode',                attribute: 'selection-mode',                converter: toEnum(SELECTION_MODES, { default: 'single' }), on: 'reinit', description: 'Selection behavior: `single` day, `range`, or `multiple` days/ranges.' },
   { configKey: 'positioningMode',              attribute: 'positioning-mode',              converter: toEnum(POSITIONING_MODES, { default: 'floating' }), on: 'reinit', description: 'How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`.' },
-  { configKey: 'calendarOpenTrigger',          attribute: 'calendar-open-trigger',         converter: toEnum(TRIGGERS, { default: 'focus' }), on: 'reinit', description: 'What opens the floating calendar: `focus`, `typing`, or `manual` (only `show()`).' },
+  { configKey: 'calendarOpenTrigger',          attribute: 'calendar-open-trigger',         converter: toEnum(TRIGGERS, { default: 'focus' }), on: 'reinit', description: 'What opens the floating calendar: `focus`, `typing`, or `manual` (only `open()`).' },
+  { configKey: 'overlayGroup',                 attribute: 'overlay-group',                 converter: toText({ isNullable: true }), on: 'reinit', description: 'Scope the "one overlay open at a time" coordination to a named group. Overlays (datepickers, multiselects, external popovers) sharing a group dismiss each other when one opens; different groups are independent. Unset = the default (ungrouped) group.' },
   { configKey: 'visibleMonthsCount',           attribute: 'visible-months-count',          converter: toInt({ min: 1 }), on: 'reinit', description: 'Number of month columns shown side-by-side.' },
   { configKey: 'monthLayout',                  attribute: 'month-layout',                  converter: toEnum(MONTH_LAYOUTS), on: 'reinit', description: 'Multi-month arrangement: a horizontal row or a `grid` (see grid-rows/grid-columns).' },
   { configKey: 'gridRows',                     attribute: 'grid-rows',                     converter: toInt({ min: 1 }), on: 'reinit', description: 'Rows in the month grid when month-layout is `grid`.' },
@@ -150,6 +162,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'fullscreenInput',              attribute: 'fullscreen-input',              converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
   { configKey: 'showDebugInfo',                attribute: 'show-debug-info',               converter: toBool('presence'), on: 'update', description: 'Enable the picker’s debug logging.' },
   { configKey: 'compactBelow',                 attribute: 'compact-below',                 converter: toInt({ min: 0 }), on: 'update', description: 'Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change.' },
+  { configKey: 'deferRender',                  attribute: 'defer',                         converter: toBool('presence'), on: 'reinit', description: 'Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `customStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes.' },
 
   // ── Complex property data (property-only) ─────────────────────────────────
   { configKey: 'specialDates',                 converter: toObjectArray(), on: 'update', type: 'DecoratedDate[]', description: 'Array of decorated-date objects (badges, tooltips, per-day classes). Property-only.' },
@@ -165,7 +178,8 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'formatSummaryCallback',        converter: cb(), on: 'update', type: '(ctx: SummaryContext) => string', description: 'Render the range summary text.' },
   { configKey: 'getUnifiedHeaderCallback',     converter: cb(), on: 'update', type: '(ctx: UnifiedHeaderContext) => string', description: 'Render the unified grid header label.' },
   { configKey: 'getMonthHeaderCallback',       converter: cb(), on: 'update', type: '(ctx: MonthHeaderContext) => string', description: 'Render a per-column month header label.' },
-  { configKey: 'customStylesCallback',         converter: cb(), on: 'update', type: '() => string', description: 'Return a CSS string injected into the component via a replaceable style slot (§12.8).' },
+  { configKey: 'customStylesCallback',         converter: cb(), on: 'update', type: '() => string', description: 'Return a CSS string injected into the component via a replaceable style slot (§12.8). Takes precedence over the `custom-styles` attribute when both are set.' },
+  { configKey: 'customStyles',                 attribute: 'custom-styles',                 converter: toText({ isNullable: true }), on: 'update', description: 'Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `customStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `customStylesCallback` wins when both are set.' },
 
   // ── Callbacks: before-hooks (behavior-shaping → update) ───────────────────
   { configKey: 'beforeDateSelectCallback',     converter: cb(), on: 'update', type: '(ctx: SelectionContext) => BeforeSelectResult | Promise<BeforeSelectResult>', description: 'Runs before a day is selected; can veto or adjust the selection.' },
@@ -180,11 +194,13 @@ type DrpEvents = {
   'date-select': SelectEventDetail;
   change: SelectEventDetail;
   'custom-action': CustomActionEventDetail;
+  ready: undefined;
 };
 const EVENTS = [
   { name: 'date-select', description: 'A date/range/time was selected (or applied). `detail` carries the date(s)/range(s), the formatted value, and — depending on disabled-dates-handling — enabled/disabled/split breakdowns.' },
   { name: 'change', description: 'Fires alongside `date-select` for form-style change wiring; same detail.' },
   { name: 'custom-action', description: 'A custom action button was clicked. `detail.data` is the button’s data-* map; `detail.picker` is the picker instance.' },
+  { name: 'ready', description: 'The picker was built and painted for the first time (once per element lifetime). Fires right after the first build — synchronously during upgrade for a normal element, or when the render gate is released (`el.ready()` / removing `defer`) for a deferred one. No detail.' },
 ] as const;
 
 /**
@@ -194,7 +210,7 @@ const EVENTS = [
  */
 const NON_PICKER_KEYS = new Set([
   'inputValue', 'placeholder', 'disabled', 'isReadonly', 'inputSize', 'enableTransitions',
-  'mobilePresentation', 'customStylesCallback', 'compactBelow',
+  'mobilePresentation', 'customStylesCallback', 'customStyles', 'compactBelow', 'deferRender',
   'formFieldName', 'valueFormat', 'getValueFormatCallback',
 ]);
 
@@ -247,6 +263,12 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   #inputWrapper?: HTMLDivElement;
   #inputClearButton?: HTMLButtonElement;
   #customStyles: StyleSlot | null = null;
+  // Dev-mode custom-styles lint: `--drp-*` names already warned about, so a
+  // re-apply (or a reactive update) doesn't re-spam the console.
+  #customStyleVarsWarned = new Set<string>();
+  // Render gate (`defer`): true once released via ready() / attribute removal /
+  // first build. Latched — a later re-added `defer` must not re-hold the gate.
+  #released = false;
   // Light-DOM hidden <input>(s) that carry the selection into form submission
   // (web-multiselect's model). Children of the host, so they sit inside the
   // <form> and submit under `name`; the host itself never calls setFormValue.
@@ -274,8 +296,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   /** Structural change (or first connect): rebuild the picker. */
   protected override reinit(): void {
     // reinit() runs on first connect (isConnected true) and on later on:'reinit'
-    // changes. connect() covers the plain-reconnect (DOM move) case.
-    if (this.isConnected) this.#rebuildPicker();
+    // changes. connect() covers the plain-reconnect (DOM move) case. While the
+    // render gate is held (`defer` set, not yet released) skip the build — config
+    // keeps accumulating and lands whole on release. Removing the `defer`
+    // attribute flips deferRender false, so this same reinit then builds.
+    if (this.isConnected && !this.#renderHeld()) this.#rebuildPicker();
   }
 
   /** Cosmetic change: element-level side effects, then patch the picker in place. */
@@ -299,7 +324,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     // date-format-mask feeds the range-mode placeholder fallback, so re-derive the
     // hint when it changes at runtime (no-op for an explicit placeholder).
     if ('dateFormatMask' in partial) this.#applyPlaceholder();
-    if ('customStylesCallback' in partial) this.#applyCustomStyles();
+    if ('customStylesCallback' in partial || 'customStyles' in partial) this.#applyCustomStyles();
     if ('mobilePresentation' in partial && this.#picker) {
       // Presentation policy changed at runtime — the environment observable won't
       // re-fire on its own, so re-resolve against the current environment now.
@@ -327,7 +352,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
 
   /** Activate: ensure the picker exists (a DOM move destroyed it in disconnect()). */
   protected override connect(): void {
-    if (!this.#picker) this.#buildPicker();
+    if (!this.#picker && !this.#renderHeld()) this.#buildPicker();
     // The device-adaptive presentation runs off core's environment observable,
     // which BlissElement (un)subscribes automatically because we override
     // environmentChanged() — no per-connect wiring needed here.
@@ -353,6 +378,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     this.#picker?.destroy();
     this.#picker = undefined;
     this.#buildPicker();
+  }
+
+  /** Whether the initial render is being held by the `defer` gate (not yet released). */
+  #renderHeld(): boolean {
+    return this.config.deferRender === true && !this.#released;
   }
 
   #buildPicker(): void {
@@ -397,6 +427,18 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     this.#applyPresentation(getEnvironment());
     // Apply transition styles once the calendar DOM exists.
     setTimeout(() => this.#applyTransitionStyles(), 0);
+
+    // First build of this element's lifetime: latch the gate open (a later
+    // re-added `defer` must not re-hold), reflect `is-ready` for CSS hooks
+    // (`:host([defer]:not([is-ready]))` can reserve space while deferred), and
+    // announce `ready` once. `is-ready`'s presence is the once-guard: a later
+    // rebuild (reinit) or disconnect/reconnect re-enters #buildPicker but never
+    // re-fires.
+    if (!this.hasAttribute('is-ready')) {
+      this.#released = true;
+      this.setAttribute('is-ready', '');
+      this.emit('ready', undefined);
+    }
   }
 
   #ensureInput(): void {
@@ -725,16 +767,43 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   #applyCustomStyles(): void {
     const slot = this.#customStyles;
     if (!slot) return;
+    // The JS callback wins when both are set; the `custom-styles` attribute is the
+    // declarative, no-JS fallback. Either resolves to a CSS string for the slot.
     const callback = this.config.customStylesCallback as (() => string | null | undefined) | null | undefined;
+    const staticCss = (this.config.customStyles as string | null | undefined) ?? null;
     if (typeof callback !== 'function') {
-      slot.clear();
+      slot.set(staticCss);
+      if (import.meta.env?.DEV && staticCss) this.#checkCustomStyleVars(staticCss);
       return;
     }
     try {
-      slot.set(callback());
+      const css = callback();
+      slot.set(css);
+      if (import.meta.env?.DEV && css) this.#checkCustomStyleVars(css);
     } catch (e) {
       console.warn('[web-daterangepicker] customStylesCallback threw', e);
       slot.clear();
+    }
+  }
+
+  /**
+   * Dev-only lint: warn when injected custom CSS references a `--drp-*` variable
+   * the component's own stylesheet never consumes — almost always a typo (e.g.
+   * `--drp-day-background` instead of `--drp-day-bg`). Pure matching lives in core
+   * (`lintCssVars`); the element owns only the dev gate and the warned-set dedupe.
+   * Guarded by `import.meta.env.DEV`, so it's stripped from production builds.
+   */
+  #checkCustomStyleVars(css: string): void {
+    const consumed = consumedDrpVars();
+    if (consumed.size === 0) return; // stylesheet not inlined (e.g. vitest) — no ground truth
+    for (const { name, suggestions } of lintCssVars(css, { prefix: '--drp-', consumed })) {
+      if (this.#customStyleVarsWarned.has(name)) continue;
+      this.#customStyleVarsWarned.add(name);
+      const hint = suggestions.length ? ` Did you mean ${suggestions.map((s) => `"${s}"`).join(', ')}?` : '';
+      console.warn(
+        `[web-daterangepicker] custom styles set "${name}", which no ` +
+        `--drp-* variable in the component reads — likely a typo.${hint}`,
+      );
     }
   }
 
@@ -860,12 +929,33 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     }
   }
 
+  // ── render gate (`defer`) ─────────────────────────────────────────────────
+
+  /**
+   * Release the `defer` render gate: build the picker now (once), with every
+   * option, callback and listener wired while deferred already in place. No-op
+   * when the element wasn't deferred or is already built. `flush()` first so a
+   * synchronous `el.value = …; el.customStylesCallback = …; el.ready()` lands
+   * those pending writes in the single build rather than after it. Latched — the
+   * gate never re-closes. Fires the `ready` event on the first build.
+   */
+  ready(): void {
+    this.#released = true;
+    this.flush(); // apply pending input writes (may itself build via reinit())
+    if (this.isConnected && !this.#picker) this.#buildPicker();
+  }
+
+  /** Whether the picker has been built (the `ready` event has fired). False while a `defer` gate is still held. */
+  get isReady(): boolean {
+    return this.hasAttribute('is-ready');
+  }
+
   // ── imperative API (flush pending writes, then delegate to the picker) ─────
 
   /** Open the calendar (floating/modal modes). */
-  show(): void { this.flush(); this.#picker?.show(); }
+  open(): void { this.flush(); this.#picker?.open(); }
   /** Close the calendar (floating/modal modes). */
-  hide(): void { this.flush(); this.#picker?.hide(); }
+  close(): void { this.flush(); this.#picker?.close(); }
   /** Toggle the calendar open/closed. */
   toggle(): void { this.flush(); this.#picker?.toggle(); }
   /** Clear the current selection and reset the input. */

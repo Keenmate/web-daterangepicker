@@ -378,7 +378,7 @@ export async function onDragEnd(picker: any, event: PointerEvent) {
                 picker.pendingSelection = selection;
             } else {
                 if (picker.options.onSelect) {
-                    picker.options.onSelect(selection);
+                    picker.options.onSelect(selection, picker.buildSelectDetail(selection));
                 }
             }
         }
@@ -461,7 +461,7 @@ export async function onDragEnd(picker: any, event: PointerEvent) {
     // Auto-close after drag if appropriate (but NOT if validation failed - user needs to see error and retry).
     // Applies to floating and modal — inline mode never closes.
     if (picker.options.positioningMode !== 'inline' && picker.shouldAutoClose() && validationSucceeded) {
-        picker.hide();
+        picker.close();
     }
 }
 
@@ -987,7 +987,7 @@ async function commitTypedRange(picker: any) {
         if (picker.requiresApplyButton()) {
             picker.pendingSelection = selection;
         } else if (picker.options.onSelect) {
-            picker.options.onSelect(selection);
+            picker.options.onSelect(selection, picker.buildSelectDetail(selection));
         }
 
         picker.renderCalendar();

@@ -24,6 +24,7 @@ setup: ## Install dependencies and prepare project
 
 dev: ## Start development server with hot reload
 	@echo "Starting development server..."
+	@rm -rf node_modules/.vite
 	npm run dev
 
 # Free the vite dev-server ports. Vite starts at 12300 and hops to the next free

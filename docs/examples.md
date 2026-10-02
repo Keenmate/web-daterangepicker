@@ -24,7 +24,7 @@ display. The single best file to skim when you first see the component.
 Everything programmatic in one place. Using the `DateRangePicker`
 class directly without the `<web-daterangepicker>` custom element
 (every callback wired up, explicit CSS-loading recipe); the instance
-methods (`show()` / `hide()` / `toggle()`, `setInputValue()`,
+methods (`open()` / `close()` / `toggle()`, `setInputValue()`,
 `clearSelection()`), reactive property accessors, the lock/unlock API,
 and the advanced configuration recipes moved out of Basic — rolling
 selector constraints, the `disabled-dates-handling` range modes,

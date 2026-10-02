@@ -127,8 +127,8 @@ picker.addEventListener('date-select', (e) => {
 });
 
 // Programmatic API
-picker.show();
-picker.hide();
+picker.open();
+picker.close();
 picker.toggle();
 picker.clearSelection();
 picker.setInputValue('2025-11-15');
