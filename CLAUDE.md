@@ -15,7 +15,7 @@ This is a web component project extracted from the pure-admin design system. The
 The codebase is TypeScript, organized as a core class plus extracted operation modules. CSS is plain CSS custom properties with the `--drp-*` prefix; no SCSS, no preprocessor.
 
 **Core**
-- `src/date-picker.ts` — `DateRangePicker` class (~1800 lines). Constructor, options resolution, calendar/DOM creation, locale init, action-button rendering, action-button tooltip lifecycle, day metadata lookup. Holds the state.
+- `src/date-picker.ts` — `DateRangePickerEngine` class (the internal engine, ~1800 lines; exported for advanced standalone use only). Constructor, options resolution, calendar/DOM creation, locale init, action-button rendering (core `/actions` `ActionItem`s, run through `runAction`: `beforeActionCallback` → `onClick` → `action` event → built-in), action-button tooltip lifecycle, day metadata lookup. Holds the state. Callback contexts and event details never expose the engine — they carry the `controller` facade (`el.controller`) + the host `element` (interaction model, web-components-core rc15).
 - `src/web-component.ts` — `WebDaterangepickerElement` custom element (~870 lines). Wraps the core class in a Shadow DOM. ~35 getter/setter pairs for attributes and complex-data properties; `attributeChangedCallback` routes most attribute changes through `destroy() + initializePicker()`.
 - `src/index.ts` — public-API entry; exports the web component, the core class, and types.
 - `src/types.ts` — shared types and the `DatePickerOptions` interface.
@@ -50,7 +50,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 - **Progressive input parsing**: calendar tracks the input as the user types valid date segments
 - **Rolling selector**: scrollable year/month list inside the header
 - **Disabled-dates handling**: `allow` / `prevent` / `block` / `split` / `individual` strategies for ranges that span disabled dates
-- **Custom rendering** via callbacks: `renderDayCallback`, `renderDayContentCallback`, `getMonthHeaderCallback`, `getUnifiedHeaderCallback`, `formatSummaryCallback` — see security note in `src/types.ts`
+- **Custom rendering** via callbacks: `renderDayCallback`, `renderDayContentCallback`, `getMonthHeaderCallback`, `getUnifiedHeaderCallback`, `renderSummaryCallback` — see security note in `src/types.ts`
 - **Tooltips** on day cells, badges, and action buttons (via Floating UI)
 - **Locale support**: bundled English plus user-overridable strings; auto-detects from browser
 

@@ -125,13 +125,13 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Clear button clears selection + input                         | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Apply commits pending selection, closes picker                | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `is-today-button-shown` / `is-clear-button-shown` / `commit-mode="apply"` (Apply button) | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
-| Custom `actionButtons` array (incl. `custom-action` event)    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
+| Custom `actionButtons` array (incl. `action` event)           | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | Action-button tooltip on hover                                | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 | `is-summary-shown="false"` omits summary block entirely           | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Actions `border-top` only when summary is visible             | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
 | Visible summary has `margin-top` (gap from months)            | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
 | Range summary text reflects selected days/nights              | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| `formatSummaryCallback` overrides summary HTML                | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| `renderSummaryCallback` overrides summary HTML                | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 
 ## 10. Custom rendering / callbacks
 
@@ -141,9 +141,11 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `renderDayContentCallback` (augmentation)                     | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `getMonthHeaderCallback` overrides per-month header           | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `getUnifiedHeaderCallback` overrides unified-mode header text | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
-| `customStylesCallback` injects styles into Shadow DOM         | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
-| `beforeDateSelectCallback`: accept / adjust / restore / clear | △      | `callbacks.spec.ts`          | `callbacks.html`          |
-| `beforeMonthChangedCallback`: bulk metadata, block            | △      | `callbacks.spec.ts`          | `callbacks.html`          |
+| `getCustomStylesCallback` injects styles into Shadow DOM      | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
+| `beforeSelectCallback`: accept / `false` / `DateRange[]` (adjust to N ranges) | △ | `callbacks.spec.ts`  | `callbacks.html`          |
+| `beforeSelectCallback` returning `null` clears                | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `beforeMonthChangeCallback` returning `false` blocks          | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
+| `getMonthDataCallback` bulk metadata / month headers          | ✗      |      |         |
 | `specialDates` + `*Member` property mapping                   | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `getDateMetadataCallback` per-date                            | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 
@@ -178,7 +180,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `change` event with full detail                               | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `apply` event                                                 | n/a    | _picker dispatches `change` on apply; no separate event_ |         |
 | `cancel` event                                                | n/a    | _no event; pending selection restores prior input value_ |         |
-| `custom-action` event (per v1.12.0 docs)                      | ✓      | `events-api.spec.ts`         | `events-api.html`         |
+| `action` event fires once per custom button click             | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `selectedDate` / `selectedRanges` / `selectedDates` setters   | △      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `isOpen` setter opens/closes programmatically                 | ✓      | `events-api.spec.ts`, `triggers.spec.ts` | `events-api.html`, `triggers.html` |
 | `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
@@ -186,9 +188,12 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `toggleMessage`                                               | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `value` setter populates input + selection                    | △      | `events-api.spec.ts`         | `events-api.html`         |
 | `disabled` setter disables input + suppresses open            | ✓      | `events-api.spec.ts`         | `events-api.html`         |
-| `custom-action` detail shape `{ data, picker }` (v2)          | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| HTML `data-action="custom" data-id` in `showMessage` → `action` (`source: 'message'`, `dataset`) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| Internal controls (nav arrows) do not fire `action`           | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `onSelect` twin receives the detail (same object as `select`) | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `month-change` event after navigation (`visibleMonths`)       | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 
-## 16. v2.0.0 symmetric feedback API & context callbacks
+## 16. v2.0.0 symmetric feedback API & interaction model
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
@@ -198,11 +203,15 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `showLoader()` full-calendar overlay + single-instance guard  | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `showLoader('summary')` / `('message')` in-block spinner      | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `hideLoader(target)` / `toggleLoader(target)`                 | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
-| Summary loader added in `date-select` handler survives commit re-render | ✓ | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
-| `ActionButton` callbacks receive `ActionButtonContext`        | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
-| `onClick` receives ctx (`ctx.picker`, `ctx.action`)           | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| Summary loader added in `select` handler survives commit re-render | ✓ | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| Action-item render callbacks receive the picker context (`controller`, `element`, presentation) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| `onClick` receives the action detail (`action`, `id`, `source`) | ✓    | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| Order: `beforeActionCallback` → `onClick` → `onAction` → `action` event → built-in (one detail) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| `beforeActionCallback` returning `false` (async) cancels everything | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| Each custom button gets its own tooltip                       | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `getTextCallback` / `getClassCallback` / `getTooltipCallback` via ctx | ✓ | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
-| `isVisibleCallback` / `isDisabledCallback` via ctx            | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsActiveCallback` via ctx | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| Custom items render `data-action="custom"` + `data-id`; string shorthand renders a built-in | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 
 ## 14. Visual states
 
@@ -217,7 +226,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Keyboard-focused day class                                    | ✓      | `keyboard-navigation.spec.ts`| `keyboard-navigation.html`|
 | Weekend styling                                               | n/a    | _picker emits no `--weekend` class; weekend cells are unstyled by default_ |         |
 | Adjacent-month (faded) days                                   | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
-| Invalid-range error styling (`showInvalidRange`)              | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
+| Invalid-range error styling (`ctx.markRangeInvalid()`)        | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 
 ## 15. Sizing & theming
 

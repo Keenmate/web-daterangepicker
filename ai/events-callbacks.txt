@@ -3,46 +3,52 @@ EVENTS & CALLBACKS
 
 EVENT SYSTEM
 ------------
-Date picker fires custom events on selection.
+The element fires CustomEvents (bubbling, composed: false — listen on the
+element or any ancestor in the same tree):
 
-TWO EVENT NAMES (identical data)
----------------------------------
-1. date-select - Primary event
-2. change - Alias event (for compatibility)
+  select        - a date/range/time was selected (or applied)
+  change        - fires right after `select`, SAME detail (form-style wiring)
+  action        - an action button or a data-action trigger was activated
+  month-change  - the visible month(s) changed (any navigation)
+  ready         - first build done (once per element lifetime)
 
-Both fire simultaneously with same data.
-Use whichever fits your naming convention.
+Every detail carries `controller` (the public facade, same as el.controller)
+and `element` (the host) as NON-enumerable properties — JSON.stringify(detail)
+and LiveView pushEvent see only the data — plus the presentation flags.
+
+ON* TWINS (receive the DETAIL, not the event)
+---------------------------------------------
+el.onSelect      = (detail) => ...
+el.onChange      = (detail) => ...
+el.onAction      = (detail) => ...
+el.onMonthChange = (detail) => ...
+el.onReady       = (detail) => ...
+
+el.onSelect = (d) => console.log(d.date);   // NOT d.detail / e.detail
 
 LISTENING TO EVENTS
 -------------------
-Web Component:
+const el = document.querySelector('web-daterangepicker');
 
-const picker = document.querySelector('web-daterangepicker');
-
-picker.addEventListener('date-select', (event) => {
+el.addEventListener('select', (event) => {
   console.log('Selected:', event.detail);
 });
 
-// Or use 'change' alias
-picker.addEventListener('change', (event) => {
+// Or 'change' (fires right after select)
+el.addEventListener('change', (event) => {
   console.log('Changed:', event.detail);
 });
 
-Events bubble and are composed (cross Shadow DOM).
-
-SINGLE MODE EVENT DATA
-----------------------
-event.detail structure:
-
+SINGLE MODE EVENT DATA (SelectEventDetail)
+------------------------------------------
 {
   date: Date object,
-  formattedValue: "2025-11-17"
+  formattedValue: "2025-11-17",
+  controller, element            // non-enumerable
 }
 
-Example:
-picker.addEventListener('date-select', (event) => {
+el.addEventListener('select', (event) => {
   const { date, formattedValue } = event.detail;
-
   console.log('Date object:', date);
   console.log('Formatted:', formattedValue);
   console.log('Day of week:', date.getDay());
@@ -50,664 +56,385 @@ picker.addEventListener('date-select', (event) => {
 
 RANGE MODE EVENT DATA
 ---------------------
-event.detail structure:
-
 {
   dateRange: { start: Date, end: Date },
   formattedValue: "2025-11-17 - 2025-11-24"
 }
 
-Example:
-picker.addEventListener('date-select', (event) => {
-  const { dateRange, formattedValue } = event.detail;
-
-  console.log('Start:', dateRange.start);
-  console.log('End:', dateRange.end);
-  console.log('Formatted:', formattedValue);
-
-  const nights = Math.floor(
-    (dateRange.end - dateRange.start) / (1000 * 60 * 60 * 24)
-  );
-  console.log('Nights:', nights);
-});
+el.onSelect = ({ dateRange, formattedValue }) => {
+  const nights = Math.floor((dateRange.end - dateRange.start) / 864e5);
+  console.log(formattedValue, 'Nights:', nights);
+};
 
 RANGE WITH DISABLED DATES HANDLING
 -----------------------------------
-When using disabled-dates-handling modes, additional data:
-
 Mode: 'allow'
 {
   dateRange: { start, end },
   formattedValue: "...",
-  enabledDates: [Date, Date, ...],     // Enabled dates in range
-  disabledDates: [Date, Date, ...],    // Disabled dates in range
-  getEnabledDateCount: () => number,   // Helper function
-  getTotalDays: () => number           // Helper function
+  enabledDates: [Date, ...],           // Enabled dates in range
+  disabledDates: [Date, ...],          // Disabled dates in range
+  getEnabledDateCount: () => number,
+  getTotalDays: () => number
 }
 
 Mode: 'split'
 {
-  dateRanges: [
-    { start: Date, end: Date },
-    { start: Date, end: Date }
-  ],
-  dates: [Date, Date, ...],  // All enabled dates
+  dateRanges: [{ start, end }, { start, end }],
+  dates: [Date, ...],                  // All enabled dates
   formattedValue: "..."
 }
 
 Mode: 'individual'
 {
-  dates: [Date, Date, ...],  // All enabled dates
+  dates: [Date, ...],                  // All enabled dates
   formattedValue: "..."
 }
 
-Example (allow mode):
-picker.addEventListener('date-select', (event) => {
+el.addEventListener('select', (event) => {
   const { dateRange, enabledDates, disabledDates } = event.detail;
-
-  console.log('Range:', dateRange);
-  console.log('Enabled:', enabledDates.length, 'dates');
-  console.log('Disabled:', disabledDates.length, 'dates');
   console.log('Total:', event.detail.getTotalDays(), 'days');
 });
 
 MULTIPLE MODE EVENT DATA
 ------------------------
-event.detail structure:
-
 {
-  dates: [Date, Date, ...],          // Selected individual dates
-  dateRanges: [{ start, end }, ...], // Selected ranges
+  dates: [Date, ...],                  // Selected individual dates
+  dateRanges: [{ start, end }, ...],   // Selected ranges
   formattedValue: "..."
 }
 
-Example:
-picker.addEventListener('date-select', (event) => {
-  const { dates, dateRanges } = event.detail;
+MONTH-CHANGE EVENT
+------------------
+Fires after any navigation (arrows, keyboard, rolling selector, programmatic).
 
-  console.log('Individual dates:', dates.length);
-  console.log('Ranges:', dateRanges.length);
+el.addEventListener('month-change', (e) => {
+  const { monthIndex, year, month, visibleMonths } = e.detail;
+  // month is 0-11; visibleMonths: [{ year, month }, ...]
+});
+el.onMonthChange = (d) => console.log(d.year, d.month + 1);
+
+READY EVENT
+-----------
+el.addEventListener('ready', (e) => {
+  const { controller, element } = e.detail;
 });
 
-CUSTOM-ACTION EVENT
--------------------
-Fired when any button with data-action="custom" is clicked.
-Works for both action buttons and message buttons.
+ACTION EVENT
+------------
+Fires for EVERY action button (built-ins too) and every HTML data-action
+trigger (e.g. buttons in showMessage HTML).
 
-Event detail contains all data-* attributes (except data-action) as camelCase keys.
+detail:
+  action          - 'today' | 'now' | 'clear' | 'apply' | 'custom'
+  id              - the custom item's id / the trigger's data-id
+  item            - the clicked item (synthetic for HTML triggers)
+  source          - 'action-buttons' | 'message' | 'summary' | 'calendar'
+  sourceEvent     - the DOM event
+  triggerElement  - the activated element
+  dataset         - the trigger's other data-* (minus data-action / data-id),
+                    camelCased: data-start-date -> dataset.startDate
+  controller, element, presentation flags
 
-LISTENING TO CUSTOM-ACTION
---------------------------
-picker.addEventListener('custom-action', (e) => {
-  console.log(e.detail);
-  // { startDate: '2026-01-14', endDate: '2026-01-17', ... }
+Order: beforeActionCallback -> item.onClick -> action event (onAction) -> built-in.
+
+el.addEventListener('action', (e) => {
+  console.log(e.detail.action, e.detail.id, e.detail.source, e.detail.dataset);
 });
 
 USE IN MESSAGE BUTTONS
 ----------------------
-Display alternative date options in messages:
+Custom HTML triggers need data-action="custom" AND data-id:
 
-picker.showMessage(`
-  <button data-action="custom"
+el.controller.showMessage(`
+  <button data-action="custom" data-id="alt-dates"
           data-start-date="2026-01-14"
           data-end-date="2026-01-17"
           data-nights="3">
     Jan 14 - Jan 17 (3 nights)
   </button>
-`);
+`, { type: 'info' });
 
-picker.addEventListener('custom-action', (e) => {
-  const { startDate, endDate, nights } = e.detail;
-
-  if (startDate && endDate) {
-    picker.selectedRanges = [{
-      start: new Date(startDate),
-      end: new Date(endDate)
-    }];
-    picker.hideMessage();
-  }
+el.addEventListener('action', (e) => {
+  if (e.detail.id !== 'alt-dates') return;       // e.detail.source === 'message'
+  const { startDate, endDate } = e.detail.dataset;
+  el.selectedRanges = [{ start: new Date(startDate), end: new Date(endDate) }];
+  el.controller.hideMessage();
 });
 
 USE IN ACTION BUTTONS
 ---------------------
-Custom action buttons with data attributes:
-
-picker.actionButtons = [
-  {
-    action: 'custom',
-    text: 'Last 7 Days',
-    onClick: (picker) => {
-      // onClick still works for backward compatibility
-    }
-  }
+el.actionButtons = [
+  { id: 'last-7', text: 'Last 7 Days', onClick: (d) => { /* per-button logic */ } }
 ];
 
-// But prefer using the event for consistency:
-picker.addEventListener('custom-action', (e) => {
-  // Handle all custom actions in one place
+// Or handle all actions in one place:
+el.addEventListener('action', (e) => {
+  if (e.detail.id === 'last-7') { ... }
 });
 
-DATA ATTRIBUTE CONVERSION
---------------------------
-HTML data-* attributes are converted to camelCase keys:
-
-data-start-date    → startDate
-data-end-date      → endDate
-data-source        → source
-data-custom-value  → customValue
+BEFOREACTIONCALLBACK
+--------------------
+el.beforeActionCallback = async (d) => {
+  if (d.action === 'clear' && !(await confirmDialog())) return false;
+};
+`false` cancels entirely (no onClick, no action event, no built-in). May be
+async; the button is busy meanwhile.
 
 EXAMPLE: AVAILABILITY ALTERNATIVES
 ----------------------------------
-beforeDateSelectCallback: async (range) => {
-  const result = await checkAvailability(range);
-
+el.beforeSelectCallback = async (ctx) => {
+  const result = await checkAvailability(ctx.range);
   if (!result.available) {
-    picker.showMessage(`
+    ctx.markRangeInvalid();                 // keep the rejected range visible
+    ctx.controller.showMessage(`
       <div>Dates not available. Try these:</div>
       ${result.alternatives.map(alt => `
-        <button data-action="custom"
+        <button data-action="custom" data-id="alternative"
                 data-start-date="${alt.start}"
-                data-end-date="${alt.end}"
-                data-source="availability">
+                data-end-date="${alt.end}">
           ${alt.label}
         </button>
       `).join('')}
-    `);
-    return { action: 'restore', showInvalidRange: true };
+    `, { type: 'warning' });
+    return false;
   }
-
-  return { action: 'accept' };
 };
 
-picker.addEventListener('custom-action', (e) => {
-  const { startDate, endDate, source } = e.detail;
-
-  if (source === 'availability' && startDate && endDate) {
-    picker.selectedRanges = [{
-      start: new Date(startDate),
-      end: new Date(endDate)
-    }];
-    picker.hideMessage();
-  }
+el.addEventListener('action', (e) => {
+  if (e.detail.id !== 'alternative') return;
+  const { startDate, endDate } = e.detail.dataset;
+  el.selectedRanges = [{ start: new Date(startDate), end: new Date(endDate) }];
+  el.controller.hideMessage();
 });
 
-EVENT BUBBLING
---------------
-The custom-action event:
-- Bubbles through the DOM
-- Is composed (crosses Shadow DOM boundaries)
-- Can be captured on the web component or any parent element
+BEFORESELECTCALLBACK
+--------------------
+CRITICAL: property only (not an attribute).
+Validation/control BEFORE a selection is finalized.
 
-BACKWARD COMPATIBILITY
-----------------------
-The onClick callback on action buttons still works:
+el.beforeSelectCallback = (ctx) => { ... };
 
-{
-  action: 'custom',
-  text: 'My Button',
-  onClick: (picker) => {
-    // This still fires after the event
-  }
-}
+CONTEXT (BeforeSelectContext)
+  mode            - 'single' | 'range' | 'multiple'
+  date            - proposed date (single mode)
+  range           - proposed { start, end } (range mode)
+  subRanges       - split/individual handling: enabled-only segments
+  enabledDates    - split/individual handling: enabled dates in the envelope
+  markRangeInvalid() - range mode: keep a rejected range visible with error styling
+  controller, element, presentation flags
 
-Event fires BEFORE onClick callback is invoked.
+RETURN CONTRACT
+  nothing (undefined) - accept as-is
+  false               - reject; previous selection restored
+  Date                - accept this adjusted date (single)
+  DateRange           - accept this adjusted range (range)
+  DateRange[]         - replace with these N independent ranges
+  null                - clear the selection entirely
 
-BEFOREDATESELECT CALLBACK
--------------------------
-CRITICAL: JavaScript API ONLY
-Validation/control BEFORE selection finalized.
-
-const picker = new DateRangePicker(input, {
-  beforeDateSelectCallback: (dateOrRange) => {
-    // Return action object
-    return {
-      action: 'accept' | 'adjust' | 'restore' | 'clear',
-      adjustedDate?: Date,           // For single mode
-      adjustedStartDate?: Date,      // For range mode
-      adjustedEndDate?: Date,        // For range mode
-      message?: string               // Optional user message
-    };
-  }
-});
-
-RETURN ACTIONS
---------------
-'accept' - Allow selection as-is
-'adjust' - Modify the selection
-'restore' - Revert to previous selection
-'clear' - Clear selection entirely
+Messages: ctx.controller.showMessage(text, { type: 'error' | 'warning' | 'info' | 'success', autoHideMs })
 
 SINGLE MODE VALIDATION
 ----------------------
 Block weekends:
 
-beforeDateSelectCallback: (date) => {
-  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-
-  if (isWeekend) {
-    return {
-      action: 'restore',
-      message: 'Weekends not allowed'
-    };
+el.beforeSelectCallback = (ctx) => {
+  const day = ctx.date.getDay();
+  if (day === 0 || day === 6) {
+    ctx.controller.showMessage('Weekends not allowed', { type: 'error' });
+    return false;
   }
-
-  return { action: 'accept' };
-}
+};
 
 Adjust to next business day:
 
-beforeDateSelectCallback: (date) => {
-  const day = date.getDay();
-
-  if (day === 0) { // Sunday → Monday
-    const adjusted = new Date(date);
-    adjusted.setDate(date.getDate() + 1);
-    return {
-      action: 'adjust',
-      adjustedDate: adjusted,
-      message: 'Adjusted to Monday'
-    };
-  } else if (day === 6) { // Saturday → Monday
-    const adjusted = new Date(date);
-    adjusted.setDate(date.getDate() + 2);
-    return {
-      action: 'adjust',
-      adjustedDate: adjusted,
-      message: 'Adjusted to Monday'
-    };
+el.beforeSelectCallback = (ctx) => {
+  const day = ctx.date.getDay();
+  if (day === 0 || day === 6) {
+    const adjusted = new Date(ctx.date);
+    adjusted.setDate(ctx.date.getDate() + (day === 0 ? 1 : 2));
+    ctx.controller.showMessage('Adjusted to Monday', { type: 'info', autoHideMs: 3000 });
+    return adjusted;
   }
-
-  return { action: 'accept' };
-}
+};
 
 Block past dates:
 
-beforeDateSelectCallback: (date) => {
+el.beforeSelectCallback = (ctx) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  if (date < today) {
-    return {
-      action: 'restore',
-      message: 'Past dates not allowed'
-    };
+  if (ctx.date < today) {
+    ctx.controller.showMessage('Past dates not allowed', { type: 'error' });
+    return false;
   }
-
-  return { action: 'accept' };
-}
+};
 
 RANGE MODE VALIDATION
 ---------------------
-Minimum nights requirement:
+Minimum nights requirement (keep the attempt visible):
 
-beforeDateSelectCallback: (range) => {
-  const nights = Math.floor(
-    (range.end - range.start) / (1000 * 60 * 60 * 24)
-  );
-
+el.beforeSelectCallback = (ctx) => {
+  const nights = Math.floor((ctx.range.end - ctx.range.start) / 864e5);
   if (nights < 2) {
-    return {
-      action: 'restore',
-      message: 'Minimum 2 nights required'
-    };
+    ctx.markRangeInvalid();
+    ctx.controller.showMessage('Minimum 2 nights required', { type: 'error' });
+    return false;
   }
-
-  return { action: 'accept' };
-}
-
-Maximum nights limit:
-
-beforeDateSelectCallback: (range) => {
-  const nights = Math.floor(
-    (range.end - range.start) / (1000 * 60 * 60 * 24)
-  );
-
-  if (nights > 7) {
-    return {
-      action: 'restore',
-      message: 'Maximum 7 nights allowed'
-    };
-  }
-
-  return { action: 'accept' };
-}
+};
 
 Adjust end date to checkout day (Sunday):
 
-beforeDateSelectCallback: (range) => {
-  const endDay = range.end.getDay();
-
-  if (endDay !== 0) { // Not Sunday
-    const adjusted = new Date(range.end);
-    const daysToSunday = 7 - endDay;
-    adjusted.setDate(range.end.getDate() + daysToSunday);
-
-    return {
-      action: 'adjust',
-      adjustedStartDate: range.start,
-      adjustedEndDate: adjusted,
-      message: 'Adjusted to Sunday checkout'
-    };
+el.beforeSelectCallback = (ctx) => {
+  const endDay = ctx.range.end.getDay();
+  if (endDay !== 0) {
+    const end = new Date(ctx.range.end);
+    end.setDate(end.getDate() + (7 - endDay));
+    ctx.controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
+    return { start: ctx.range.start, end };
   }
+};
 
-  return { action: 'accept' };
-}
+Split around a blocked day (N ranges):
+
+el.beforeSelectCallback = (ctx) => {
+  if (!ctx.range) return;
+  const hole = new Date(2026, 5, 15);
+  if (ctx.range.start <= hole && ctx.range.end >= hole) {
+    return [
+      { start: ctx.range.start, end: new Date(2026, 5, 14) },
+      { start: new Date(2026, 5, 16), end: ctx.range.end }
+    ];
+  }
+};
 
 ASYNC VALIDATION
 ----------------
-beforeDateSelectCallback supports async:
+Sync or async — a loader shows while a Promise is pending.
 
-beforeDateSelectCallback: async (dateOrRange) => {
-  // Show loading overlay automatically
+el.beforeSelectCallback = async (ctx) => {
   const response = await fetch('/api/check-availability', {
     method: 'POST',
-    body: JSON.stringify({
-      start: dateOrRange.start.toISOString(),
-      end: dateOrRange.end.toISOString()
-    })
+    body: JSON.stringify({ start: ctx.range.start.toISOString(), end: ctx.range.end.toISOString() })
   });
-
   const data = await response.json();
 
-  if (data.available) {
-    return { action: 'accept' };
-  } else if (data.suggestedEnd) {
-    return {
-      action: 'adjust',
-      adjustedStartDate: dateOrRange.start,
-      adjustedEndDate: new Date(data.suggestedEnd),
-      message: 'Adjusted to available dates'
-    };
-  } else {
-    return {
-      action: 'restore',
-      message: 'Dates not available'
-    };
+  if (data.available) return;                     // accept
+  if (data.suggestedEnd) {
+    ctx.controller.showMessage('Adjusted to available dates', { type: 'info' });
+    return { start: ctx.range.start, end: new Date(data.suggestedEnd) };
   }
-}
-
-Loading overlay shown automatically during async.
+  ctx.controller.showMessage('Dates not available', { type: 'error' });
+  return false;
+};
 
 COMBINING VALIDATIONS
 ---------------------
-Multiple checks in one callback:
+el.beforeSelectCallback = async (ctx) => {
+  const reject = (msg) => { ctx.controller.showMessage(msg, { type: 'error' }); return false; };
+  const nights = Math.floor((ctx.range.end - ctx.range.start) / 864e5);
 
-beforeDateSelectCallback: async (range) => {
-  // 1. Check min/max nights
-  const nights = Math.floor(
-    (range.end - range.start) / (1000 * 60 * 60 * 24)
-  );
-
-  if (nights < 2) {
-    return { action: 'restore', message: 'Min 2 nights' };
-  }
-
-  if (nights > 14) {
-    return { action: 'restore', message: 'Max 14 nights' };
-  }
-
-  // 2. Check API availability
-  const available = await checkAvailability(range);
-  if (!available) {
-    return { action: 'restore', message: 'Not available' };
-  }
-
-  // 3. Check user balance
-  const cost = calculateCost(nights);
-  if (cost > userBalance) {
-    return { action: 'restore', message: 'Insufficient funds' };
-  }
-
-  return { action: 'accept' };
-}
+  if (nights < 2) return reject('Min 2 nights');
+  if (nights > 14) return reject('Max 14 nights');
+  if (!(await checkAvailability(ctx.range))) return reject('Not available');
+  if (calculateCost(nights) > userBalance) return reject('Insufficient funds');
+};
 
 EXECUTION ORDER
 ---------------
-For a selection to complete:
-
 1. Local validation (disabled dates, min/max)
-2. beforeDateSelectCallback callback (if provided)
+2. beforeSelectCallback (if provided)
 3. Selection finalized
-4. date-select event fires
+4. select event (onSelect), then change event (onChange)
 
-If any step fails, selection reverts.
-
-USE CASES
----------
-Block invalid selections:
-- Blackout dates
-- Unauthorized dates
-- Past dates
-- Invalid ranges
-
-Adjust selections:
-- Round to business days
-- Snap to available dates
-- Enforce checkout days
-- Correct time zones
-
-API validation:
-- Check availability
-- Verify permissions
-- Validate pricing
-- Confirm capacity
-
-Business rules:
-- Minimum stay
-- Maximum advance booking
-- Lead time requirements
-- Special event rules
-
-SHOWING MESSAGES
-----------------
-Display validation messages:
-
-const picker = new DateRangePicker(input, {
-  beforeDateSelectCallback: async (range) => {
-    const result = await validate(range);
-
-    if (!result.valid) {
-      showToast(result.message, 'error');
-      return { action: 'restore', message: result.message };
-    }
-
-    return { action: 'accept' };
-  }
-});
-
-picker.addEventListener('date-select', (event) => {
-  showToast('Dates selected', 'success');
-});
+If step 1 or 2 rejects, the selection reverts.
 
 ERROR HANDLING
 --------------
-Handle async errors:
-
-beforeDateSelectCallback: async (range) => {
+el.beforeSelectCallback = async (ctx) => {
   try {
-    const available = await checkAvailability(range);
-    return available
-      ? { action: 'accept' }
-      : { action: 'restore', message: 'Not available' };
+    if (!(await checkAvailability(ctx.range))) {
+      ctx.controller.showMessage('Not available', { type: 'error' });
+      return false;
+    }
   } catch (error) {
     console.error('Validation error:', error);
-    showError('Unable to validate dates');
-    return { action: 'restore' };
+    ctx.controller.showMessage('Unable to validate dates', { type: 'error' });
+    return false;
   }
-}
+};
 
 DEBUGGING
 ---------
-Log all validation calls:
-
-beforeDateSelectCallback: (dateOrRange) => {
-  console.log('Validating:', dateOrRange);
-
-  const result = performValidation(dateOrRange);
-
+el.beforeSelectCallback = (ctx) => {
+  console.log('Validating:', ctx.mode, ctx.date ?? ctx.range);
+  const result = performValidation(ctx);  // must follow the return contract
   console.log('Result:', result);
-
   return result;
-}
-
-Track performance:
-
-beforeDateSelectCallback: async (range) => {
-  const start = performance.now();
-
-  const result = await validate(range);
-
-  const duration = performance.now() - start;
-  console.log('Validation took:', duration, 'ms');
-
-  return result;
-}
+};
 
 BEST PRACTICES
 --------------
-1. Keep validation fast
-   - Cache API responses
-   - Debounce expensive checks
-   - Pre-load validation data
+1. Keep validation fast (cache API responses, pre-load data).
+2. Explain rejections via ctx.controller.showMessage; suggest alternatives
+   with data-action="custom" data-id="..." buttons.
+3. Try/catch async code; return false on error.
+4. Return values: nothing = accept, false = reject, Date/DateRange/DateRange[]
+   = adjust, null = clear.
 
-2. Provide clear feedback
-   - Use descriptive messages
-   - Show why selection failed
-   - Suggest alternatives
+WEB COMPONENT
+-------------
+beforeSelectCallback is a PROPERTY (not an attribute):
 
-3. Handle errors gracefully
-   - Try/catch async code
-   - Fallback to safe defaults
-   - Log errors for debugging
+✅ el.beforeSelectCallback = (ctx) => { ... };
+❌ <web-daterangepicker before-select="...">  <!-- Not an attribute -->
 
-4. Test edge cases
-   - Network failures
-   - Timeout scenarios
-   - Concurrent selections
-   - Boundary conditions
+Listening to `select` is AFTER the fact; use beforeSelectCallback to validate
+BEFORE commit.
 
-5. Use appropriate actions
-   - 'restore' for hard rejections
-   - 'adjust' for auto-corrections
-   - 'clear' for complete resets
-   - 'accept' when valid
+MONTH NAVIGATION: beforeMonthChangeCallback + getMonthDataCallback
+=================================================================
+CRITICAL: properties only.
 
-WEB COMPONENT LIMITATIONS
---------------------------
-beforeDateSelectCallback is JavaScript API ONLY.
+beforeMonthChangeCallback(ctx) - runs BEFORE month navigation (not on the
+  initial open). Return `false` to block; nothing to continue. Sync or async.
 
-✅ Works:
-const picker = new DateRangePicker(input, {
-  beforeDateSelectCallback: (date) => { ... }
-});
-
-❌ Doesn't work:
-<web-daterangepicker
-  before-date-select="...">  <!-- Not an attribute -->
-</web-daterangepicker>
-
-For web component, validate in event listener instead:
-
-picker.addEventListener('date-select', (event) => {
-  const { date } = event.detail;
-
-  if (!isValid(date)) {
-    event.preventDefault();  // Doesn't work for validation
-    picker.clearSelection();
-    showError('Invalid date');
-  }
-});
-
-NOTE: Event-based validation happens AFTER selection.
-Use JavaScript API for BEFORE validation.
-
-BEFOREMONTHCHANGEDCALLBACK
-===========================
-CRITICAL: JavaScript API ONLY (Web Component Property)
-Performance optimization for bulk metadata loading.
-
-OVERVIEW
---------
-beforeMonthChangedCallback is called BEFORE month navigation occurs.
-Allows you to:
-- Load bulk metadata for all visible dates in ONE API call
-- Block navigation to unavailable months
-- Show loading overlay during async operations
+getMonthDataCallback(ctx) - loads data for the visible range on the INITIAL
+  OPEN and after every accepted navigation. Returns
+  { metadata?: Map<'YYYY-MM-DD', DayMetadata>, monthHeaders?: Map<'YYYY-MM', string> }
+  (or null/nothing). Sync or async; a loader shows while pending.
 
 PERFORMANCE BENEFIT
 -------------------
-WITHOUT beforeMonthChangedCallback:
-- User navigates to November
-- Calendar renders 35-42 days
-- getDateMetadataCallback called 35-42 times
-- Result: 35-42 API calls or lookups
+WITHOUT getMonthDataCallback:
+- getDateMetadataCallback called per rendered day (35-42 times per month)
 
-WITH beforeMonthChangedCallback:
-- User navigates to November
-- beforeMonthChangedCallback called ONCE with date range
-- 1 API call fetches all 35-42 days
-- Metadata cached and applied to all days
-- Result: 1 API call
+WITH getMonthDataCallback:
+- called ONCE per visible range (per column, or once for the whole grid in
+  unified navigation) -> 1 API call, metadata cached and applied to all days
 
-CALLBACK SIGNATURE
-------------------
-JavaScript API:
-
-const picker = new DateRangePicker(input, {
-  beforeMonthChangedCallback: async (context) => {
-    // context: { year, month, monthIndex, firstVisibleDate, lastVisibleDate }
-    // Returns: { action: 'accept' | 'block', metadata?, message? }
-  }
-});
-
-Web Component (Property):
-
-const picker = document.querySelector('web-daterangepicker');
-picker.beforeMonthChangedCallback = async (context) => {
-  // Same as above
-};
-
-CONTEXT PARAMETER
------------------
+CONTEXT PARAMETER (MonthChangeContext)
+--------------------------------------
 {
   year: number,              // 2025
   month: number,             // 0-11 (January = 0)
   monthIndex: number,        // Which visible month column (0, 1, 2...)
   firstVisibleDate: Date,    // First date in calendar grid (may be prev month)
-  lastVisibleDate: Date      // Last date in calendar grid (may be next month)
+  lastVisibleDate: Date,     // Last date in calendar grid (may be next month)
+  controller, element, presentation flags
 }
 
 DATE RANGE CALCULATION
 ----------------------
 Single Month Mode:
 - firstVisibleDate/lastVisibleDate span ~42 days (6 weeks around the target month)
-- Example: November calendar shows ~Oct 26 to Dec 6
 
 Unified Navigation Mode:
 - firstVisibleDate/lastVisibleDate span ALL visible months
-- Example: 2×3 grid showing Jan-Jun = ~180 days (late Dec to mid-Jul)
-- Allows bulk loading metadata for entire visible range in one API call
-- Significantly reduces API calls for multi-month displays
-
-RETURN ACTIONS
---------------
-'accept' - Allow navigation, proceed to new month
-'block' - Prevent navigation, stay on current month
-
-RETURN STRUCTURE
-----------------
-{
-  action: 'accept' | 'block',
-  metadata?: Map<string, DateInfo>,  // YYYY-MM-DD -> DateInfo
-  message?: string                    // Optional (for block action)
-}
+- Example: 2×3 grid showing Jan-Jun = ~180 days -> one call for the whole grid
 
 HOTEL AVAILABILITY EXAMPLE
 ---------------------------
-Load pricing and availability for entire month:
-
-beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
-  // Single API call for entire visible range
+el.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   const response = await fetch('/api/hotel/availability', {
     method: 'POST',
     body: JSON.stringify({
@@ -716,15 +443,9 @@ beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
       roomType: 'deluxe'
     })
   });
-
   const availability = await response.json();
-  // [
-  //   { date: "2025-11-01", available: 5, price: 150 },
-  //   { date: "2025-11-02", available: 0, price: 150 },
-  //   ...
-  // ]
+  // [{ date: "2025-11-01", available: 5, price: 150 }, ...]
 
-  // Build metadata map
   const metadata = new Map();
   availability.forEach(day => {
     metadata.set(day.date, {
@@ -736,121 +457,70 @@ beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
         : `${day.available} rooms available at $${day.price}/night`
     });
   });
+  return { metadata };
+};
 
-  return {
-    action: 'accept',
-    metadata: metadata
-  };
-}
+MONTH HEADERS
+-------------
+el.getMonthDataCallback = async ({ year, month }) => {
+  const key = `${year}-${String(month + 1).padStart(2, '0')}`;   // 'YYYY-MM', 1-based
+  return { monthHeaders: new Map([[key, `${key} (12 rooms)`]]) };
+};
+monthHeaders win over getMonthHeaderCallback.
 
 BLOCK NAVIGATION EXAMPLE
 -------------------------
-Prevent navigation to months without data:
-
-beforeMonthChangedCallback: async ({ year, month }) => {
+el.beforeMonthChangeCallback = async (ctx) => {
   try {
-    const response = await fetch(`/api/check-period/${year}/${month + 1}`);
+    const response = await fetch(`/api/check-period/${ctx.year}/${ctx.month + 1}`);
     const { dataReady } = await response.json();
-
     if (!dataReady) {
-      return {
-        action: 'block',
-        message: 'Data not yet available for this period'
-      };
+      ctx.controller.showMessage('Data not yet available for this period', { type: 'warning' });
+      return false;
     }
-
-    return { action: 'accept' };
   } catch (error) {
     console.error('Failed to check period:', error);
-    return {
-      action: 'block',
-      message: 'Unable to load data for this period'
-    };
+    ctx.controller.showMessage('Unable to load data for this period', { type: 'error' });
+    return false;
   }
-}
+};
 
 LOADING OVERLAY
 ---------------
-Loading overlay shown AUTOMATICALLY during async operations.
-No manual control needed.
+Shown AUTOMATICALLY while either callback's Promise is pending.
 
 METADATA PRIORITY
 -----------------
-When rendering dates, priority is:
-1. Bulk metadata cache (from beforeMonthChangedCallback)
+1. Bulk metadata cache (from getMonthDataCallback)
 2. getDateMetadataCallback (per-day callback)
 3. specialDates (static array)
 
-Bulk metadata has HIGHEST priority.
-
 CACHE BEHAVIOR
 --------------
-- Cache is REPLACED on each successful navigation
-- Navigating to September → cache updated
-- Navigating to October → cache updated
-- Navigating BACK to September → callback called AGAIN, cache updated
-
-No automatic caching - callback is called every time.
-If you want caching, implement it IN your callback.
+- Initial open: the cache is replaced with the loaded data.
+- Navigation: returned metadata/monthHeaders are MERGED into the caches;
+  returning no metadata drops the metadata cache.
+- The callback runs on every navigation — cache responses in your app if needed.
 
 COMBINING WITH getDateMetadataCallback
 ---------------------------------------
-You can use BOTH callbacks together:
-
-beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
-  // Bulk load pricing
+el.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   const metadata = new Map();
   // ... load pricing for all dates
-  return { action: 'accept', metadata };
-},
+  return { metadata };
+};
 
-getDateMetadataCallback: (date) => {
-  // Override specific dates with special conditions
+el.getDateMetadataCallback = ({ date }) => {
   if (isHoliday(date)) {
-    return {
-      badgeText: '🎉',
-      badgeClass: 'holiday',
-      isDisabled: true
-    };
+    return { badgeText: '🎉', badgeClass: 'holiday', isDisabled: true };
   }
-  return null; // Use bulk cache
-}
-
-Priority: getDateMetadataCallback wins if it returns non-null.
-
-BEST PRACTICES
---------------
-1. Use for expensive operations
-   - API calls to fetch pricing/availability
-   - Database lookups
-   - Complex calculations
-
-2. Keep it fast
-   - Single API call, not multiple
-   - Use Promise.all for parallel requests
-   - Cache responses in your app if appropriate
-
-3. Handle errors gracefully
-   - Try/catch async operations
-   - Return 'block' on error to be safe
-   - Log errors for debugging
-
-4. Provide clear messages
-   - Use 'message' field with 'block' action
-   - Help users understand why navigation was blocked
-
-5. Build metadata efficiently
-   - Use Map for O(1) lookups
-   - Format date keys as YYYY-MM-DD
-   - Only include dates that need metadata
+  return null;
+};
 
 EXAMPLE: EVENT CALENDAR
 ------------------------
-Color-code days with events:
-
-beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
+el.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   const events = await fetchEvents(firstVisibleDate, lastVisibleDate);
-
   const metadata = new Map();
   events.forEach(event => {
     metadata.set(event.date, {
@@ -859,42 +529,27 @@ beforeMonthChangedCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
       dayTooltip: event.title
     });
   });
-
-  return { action: 'accept', metadata };
-}
+  return { metadata };
+};
 
 DEBUGGING
 ---------
-Log all callback invocations:
-
-beforeMonthChangedCallback: async (context) => {
-  console.log('Month change:', context.year, context.month + 1);
-  console.log('Visible range:',
-    context.firstVisibleDate.toISOString().split('T')[0],
-    'to',
-    context.lastVisibleDate.toISOString().split('T')[0]
-  );
-
-  const startTime = performance.now();
-  const result = await loadMonthData(context);
-  const duration = performance.now() - startTime;
-
-  console.log('Loaded in', duration, 'ms');
-  console.log('Metadata entries:', result.metadata?.size || 0);
-
+el.getMonthDataCallback = async (ctx) => {
+  console.log('Load:', ctx.year, ctx.month + 1,
+    ctx.firstVisibleDate.toISOString().split('T')[0], 'to',
+    ctx.lastVisibleDate.toISOString().split('T')[0]);
+  const t = performance.now();
+  const result = await loadMonthData(ctx);
+  console.log('Loaded in', performance.now() - t, 'ms, entries:', result.metadata?.size || 0);
   return result;
-}
+};
+
+// After navigation:
+el.addEventListener('month-change', (e) => console.log('Now showing', e.detail.visibleMonths));
 
 LIMITATIONS
 -----------
-1. JavaScript API or Web Component Property ONLY
-   Cannot be set as HTML attribute
-
-2. Called every navigation
-   No built-in caching - implement in your callback if needed
-
-3. Blocks UI during async
-   Keep operations fast (< 1 second recommended)
-
-4. No cancellation
-   Once triggered, callback runs to completion
+1. Properties only — cannot be set as HTML attributes.
+2. Called every navigation — no built-in response caching.
+3. Navigation waits for async callbacks — keep them fast (< 1s recommended).
+4. No cancellation — once triggered, the callback runs to completion.

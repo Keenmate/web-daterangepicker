@@ -698,6 +698,9 @@ class DateRangePickerEngine {
             return false;
         }
 
+        // Captured before the merge (afterwards partial and options agree).
+        const isMonthDataSourceChanged = changed('getMonthDataCallback');
+
         // Merge partial into options (only keys present on partial — preserves untouched ones).
         for (const key of Object.keys(partial) as (keyof DatePickerOptions)[]) {
             (this.options as any)[key] = (partial as any)[key];
@@ -726,7 +729,19 @@ class DateRangePickerEngine {
         // Re-render is the universal post-step. Calendar DOM structure is unchanged,
         // so this just updates content/classes/inline styles.
         this.renderCalendar();
+
+        // A month-data source set (or replaced) after the first paint loads for the
+        // months already on screen — same as on the initial open.
+        if (isMonthDataSourceChanged && !this.isFirstRender) this.reloadMonthData();
         return true;
+    }
+
+    /**
+     * Re-run `getMonthDataCallback` for the visible months (replacing the cached
+     * metadata / headers) — e.g. after the backing data changed.
+     */
+    reloadMonthData(): Promise<void> {
+        return Navigation.handleInitialMonthLoad(this);
     }
 
     /**
@@ -799,10 +814,10 @@ class DateRangePickerEngine {
     }
 
     /**
-     * Render action buttons based on configuration
-     * Implements priority system matching web-multiselect:
-     * - Visibility: isVisibleCallback → isVisible → true (default visible)
-     * - Disabled: isDisabledCallback → isDisabled → false (default enabled)
+     * Render action buttons based on configuration (core `resolveActionItem`):
+     * every field resolves get*Callback → static value → built-in default, e.g.
+     * - Visibility: getIsVisibleCallback → isVisible → true (default visible)
+     * - Disabled: getIsDisabledCallback → isDisabled → false (default enabled)
      * - Text: getTextCallback → text (required)
      * - CSS: getClassCallback → cssClass → ''
      * - Tooltip: getTooltipCallback → tooltip → undefined
@@ -818,7 +833,7 @@ class DateRangePickerEngine {
 
         // Core ActionItem resolution (SPEC §12.12): get*Callback > static > built-in default.
         const ctx = this.ctx({});
-        this.getActionItems().forEach((item, index) => {
+        this.getActionItems().forEach((item) => {
             const resolved = resolveActionItem(item, ctx, this.getBuiltInItemDefaults(item.action));
             if (!resolved.isVisible) return;
 
@@ -831,12 +846,25 @@ class DateRangePickerEngine {
                 buttonEl.classList.add('drp__button--active');
                 buttonEl.setAttribute('aria-pressed', 'true');
             }
-            buttonEl.textContent = resolved.text;
+            // Icon: a glyph / short text before the label (set as text, never HTML).
+            if (resolved.icon) {
+                const icon = document.createElement('span');
+                icon.className = 'drp__button-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = resolved.icon;
+                buttonEl.appendChild(icon);
+            }
+            if (resolved.text) {
+                const label = document.createElement('span');
+                label.className = 'drp__button-label';
+                label.textContent = resolved.text;
+                buttonEl.appendChild(label);
+            }
+            if (!resolved.text && resolved.tooltip) buttonEl.setAttribute('aria-label', resolved.tooltip);
             if (resolved.isDisabled) buttonEl.disabled = true;
 
             buttonEl.dataset.action = resolved.action;
             if (resolved.id) buttonEl.dataset.id = resolved.id;
-            buttonEl.dataset.buttonIndex = String(index);
             this.actionButtonItems.set(buttonEl, item);
 
             container.appendChild(buttonEl);
@@ -897,7 +925,7 @@ class DateRangePickerEngine {
         const ctx = this.ctx({});
         const renderedButtons = this.actionsContainer.querySelectorAll('.drp__button');
 
-        renderedButtons.forEach((button: Element, index: number) => {
+        renderedButtons.forEach((button: Element) => {
             const buttonElement = button as HTMLElement;
             const item = this.actionButtonItems.get(buttonElement);
             if (!item) return;
@@ -905,7 +933,6 @@ class DateRangePickerEngine {
             const tooltipText = resolveActionItem(item, ctx).tooltip;
             if (!tooltipText) return;
 
-            buttonElement.dataset.tooltipId = `action-${index}`;
             // Core createTooltip (SPEC §12.2): per-trigger hover tooltip with delay.
             this.actionButtonTooltipInstances.push(createTooltip({
                 trigger: buttonElement,
@@ -2505,7 +2532,9 @@ class DateRangePickerEngine {
             : trigger.closest('.drp__summary') ? 'summary'
             : 'calendar';
         const detail = this.ctx({
-            action, id, item, source, sourceEvent, triggerElement: trigger, dataset: readActionDataset(trigger),
+            action, id, item, source, sourceEvent, triggerElement: trigger,
+            // Configured buttons carry no consumer data-*; HTML triggers bring their own.
+            dataset: configured ? {} : readActionDataset(trigger),
         }) as DateRangePickerActionEventDetail;
 
         await runAction({
@@ -2770,6 +2799,7 @@ class DateRangePickerEngine {
             showSummary: (content) => { picker.showSummary(content); },
             hideSummary: () => { picker.hideSummary(); },
             showLoader: (target) => { picker.showLoader(target); },
+            reloadMonthData: () => picker.reloadMonthData(),
             hideLoader: (target) => { picker.hideLoader(target); },
         });
     }

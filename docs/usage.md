@@ -8,7 +8,7 @@ page see the README quick start; for theming see
 
 ## Contents
 
-- [JavaScript instantiation (`DateRangePicker` class)](#javascript-instantiation-datepickerangepicker-class)
+- [JavaScript instantiation (`DateRangePickerEngine` class)](#javascript-instantiation-daterangepickerengine-class)
 - [Attributes](#attributes)
 - [Properties](#properties)
 - [Methods](#methods)
@@ -21,27 +21,29 @@ page see the README quick start; for theming see
   - [Special dates (holidays, events)](#special-dates-holidays-events)
   - [Advanced styling & info](#advanced-styling--info)
   - [CSS styling for special dates](#css-styling-for-special-dates)
-  - [Date selection validation (`beforeDateSelectCallback`)](#date-selection-validation-beforedateselectcallback)
-  - [Bulk metadata loading (`beforeMonthChangedCallback`)](#bulk-metadata-loading-beforemonthchangedcallback)
-  - [Messages & custom actions](#messages--custom-actions)
+  - [Date selection validation (`beforeSelectCallback`)](#date-selection-validation-beforeselectcallback)
+  - [Month navigation & bulk metadata loading (`beforeMonthChangeCallback` / `getMonthDataCallback`)](#month-navigation--bulk-metadata-loading-beforemonthchangecallback--getmonthdatacallback)
+  - [Messages & actions](#messages--actions)
   - [Locking (read-only)](#locking-read-only)
 - [Range selection modes](#range-selection-modes)
 
-## JavaScript instantiation (`DateRangePicker` class)
+## JavaScript instantiation (`DateRangePickerEngine` class)
 
-If you prefer the `DateRangePicker` class directly instead of the
-`<web-daterangepicker>` custom element, you get full programmatic
-control:
+The internal engine is exported as `DateRangePickerEngine` for advanced
+standalone use (no custom element, no Shadow DOM). Prefer the
+`<web-daterangepicker>` element — callbacks and events there carry the
+public `controller` facade, and the engine's own methods are not a
+stable API:
 
 ```ts
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 // IMPORTANT: import CSS separately — the web component auto-injects,
 // the class doesn't.
 import '@keenmate/web-daterangepicker/dist/style.css';
 
 const inputElement = document.getElementById('my-input');
 
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'range',
   visibleMonthsCount: 2,
   dateFormatMask: 'YYYY-MM-DD',
@@ -54,13 +56,13 @@ const picker = new DateRangePicker(inputElement, {
 
 ### ⚠️ CSS requirements
 
-Unlike the web component, the `DateRangePicker` class does **not**
+Unlike the web component, the `DateRangePickerEngine` class does **not**
 automatically inject styles. You must load the CSS separately or you'll
 see an unstyled calendar. Pick one:
 
 **Option 1 — import CSS in JavaScript (recommended):**
 ```ts
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/dist/style.css';
 ```
 
@@ -71,15 +73,15 @@ import '@keenmate/web-daterangepicker/dist/style.css';
 
 **Option 3 — programmatic injection:**
 ```ts
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
-DateRangePicker.injectGlobalStyles();  // once, before creating pickers
+DateRangePickerEngine.injectGlobalStyles();  // once, before creating pickers
 
-const picker = new DateRangePicker(inputElement, options);
+const picker = new DateRangePickerEngine(inputElement, options);
 ```
 
 **Why?** The web component uses Shadow DOM and injects styles into its
-isolated scope automatically. The `DateRangePicker` class creates
+isolated scope automatically. The `DateRangePickerEngine` class creates
 calendar elements in the regular DOM, so it expects global CSS to be
 loaded separately.
 
@@ -204,6 +206,15 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 | `unlock(aspects?)` | Release the given aspect(s), or the whole lock when called with no argument |
 | `toggleLock(aspects?)` | Toggle the given aspect(s), or the whole lock |
 | `isAspectLocked(aspect)` | `boolean` — whether that aspect is currently locked |
+| `ready()` | Release the `defer` render gate (builds the picker once) |
+
+`el.controller` (`DateRangePickerController`) is the same facade every callback
+context and event detail carries as `controller`: `getSelectedDate/Range/Ranges/Dates/Datetime()`,
+`isOpen`, `selectToday()`, `selectNow()`, `clearSelection()`, `apply()`, `open()` / `close()` / `toggle()`,
+`setPresentation()`, `prevMonth()` / `nextMonth()`, `lock()` / `unlock()`,
+`showMessage(content, { type, autoHideMs })`, `hideMessage()`, `showSummary()` / `hideSummary()`,
+`showLoader()` / `hideLoader()`. Note that `controller.showMessage` takes an options object,
+while the element's own `el.showMessage(html, type?, autoHide?)` keeps positional arguments.
 
 Read-only properties/attributes for locking: `lockedAspects` (`LockAspect[]` getter), `readonly` (boolean property + reflected attribute — full-lock convenience).
 
@@ -211,9 +222,28 @@ Read-only properties/attributes for locking: `lockedAspects` (`LockAspect[]` get
 
 | Event | Detail | Description |
 |---|---|---|
-| `date-select` | `SelectEventDetail` (`{ date?, dateRange?, formattedValue, … }`) | Fired when a date is selected |
-| `change` | `SelectEventDetail` | Fired when the selection changes |
-| `custom-action` | `{ data: { [key: string]: string }, picker }` | Fired when a button with `data-action="custom"` is clicked. `data` holds all `data-*` attributes as camelCase keys (e.g. `e.detail.data.startDate`). |
+| `select` | `SelectEventDetail` (`{ date?, dateRange?, dates?, dateRanges?, formattedValue, … }`) | A date / range / time was selected (or applied) |
+| `change` | `SelectEventDetail` | Fires right after `select`, same detail object (form-style wiring) |
+| `action` | `DateRangePickerActionEventDetail` (`{ action, id, item, source, sourceEvent, triggerElement, dataset, … }`) | An action button (built-ins included) or an HTML `data-action` trigger was activated. `action` is the built-in name (`today` / `now` / `clear` / `apply`) or `'custom'`; `id` identifies a custom item; `source` is `'action-buttons' \| 'message' \| 'summary' \| 'calendar'`; `dataset` holds the trigger's other `data-*` attributes (camelCase). Fires after the item's `onClick`, before the built-in behaviour. |
+| `month-change` | `MonthChangeEventDetail` (`{ monthIndex, year, month, visibleMonths }`) | The visible month(s) changed (any navigation) |
+| `ready` | `ReadyEventDetail` (`{ controller, element }`) | The picker was built for the first time (see `defer` / `ready()`) |
+
+Every detail also carries `controller` (the public facade, same as
+`el.controller`) and `element` (the host) — both non-enumerable, so
+`JSON.stringify(detail)` / LiveView `pushEvent` see only the data — plus the
+presentation flags. Events bubble but are not `composed`.
+
+Each event has an `on*` property twin — `onSelect`, `onChange`, `onAction`,
+`onMonthChange`, `onReady` — called with the **detail** (not the
+CustomEvent), right before the event is dispatched:
+
+```ts
+picker.onSelect = (detail) => console.log(detail.formattedValue, detail.date);
+picker.onAction = (detail) => {
+  if (detail.id === 'next-week') detail.controller.showMessage('Next week!', { type: 'info', autoHideMs: 2000 });
+};
+picker.addEventListener('month-change', (e) => console.log(e.detail.year, e.detail.month));
+```
 
 > There are no separate `apply` or `cancel` events. The Apply button
 > commits the pending selection and dispatches `change`. Pressing
@@ -440,7 +470,7 @@ The `'holiday'` / `'event'` strings are consumer-data discriminators
 applied as literal classes on the day cell — the picker ships default
 styling for them (consuming `--drp-holiday-color` / `--drp-event-color`),
 and you can supply your own custom classifier names with matching CSS
-via `customStylesCallback`. See the [consumer-data class convention
+via `getCustomStylesCallback` (or the `custom-styles` attribute). See the [consumer-data class convention
 note](../README.md#known-limitations) for the full story.
 
 ### Advanced styling & info
@@ -482,10 +512,11 @@ picker.getDateMetadataCallback = (ctx) => {
 ### CSS styling for special dates
 
 Since the component uses Shadow DOM, inject custom styles via
-`customStylesCallback`:
+`getCustomStylesCallback` (receives the picker context) or the declarative
+`custom-styles` attribute:
 
 ```js
-picker.customStylesCallback = () => `
+picker.getCustomStylesCallback = (ctx) => `
   /* Custom classifier — picker emits .drp__day.peak-season when you set dayClass: 'peak-season' */
   .drp__day.peak-season {
     background-color: rgba(251, 191, 36, 0.15);
@@ -499,16 +530,18 @@ picker.customStylesCallback = () => `
 `;
 ```
 
-### Date selection validation (`beforeDateSelectCallback`)
+### Date selection validation (`beforeSelectCallback`)
 
-Validate or modify date selections before they're applied. Supports
-async validation (e.g., API calls):
+Validate or modify date selections before they're committed. Runs after
+local validation (disabled dates, min/max) passed; may be async (a loader
+shows while the Promise is pending — e.g. an API call):
 
 ```js
 const picker = document.querySelector('web-daterangepicker');
 
-picker.beforeDateSelectCallback = async (ctx) => {
-  // ctx = { mode, date?, range?, subRanges?, enabledDates?, picker }
+picker.beforeSelectCallback = async (ctx) => {
+  // ctx = { mode, date?, range?, subRanges?, enabledDates?, markRangeInvalid(),
+  //         controller, element, presentation… }
   //   ctx.date   is set in single mode; ctx.range = { start, end } in range mode.
   //   ctx.subRanges / ctx.enabledDates are populated in range mode when
   //   disabledDatesHandling is 'split' / 'individual' — see "Split-aware validation".
@@ -527,72 +560,65 @@ picker.beforeDateSelectCallback = async (ctx) => {
   const { available, message } = await response.json();
 
   if (!available) {
-    return {
-      action: 'restore',
-      message: message,
-      showInvalidRange: true  // keep selection visible with error styling
-    };
+    ctx.markRangeInvalid();                                   // keep the attempt visible with error styling
+    ctx.controller.showMessage(message, { type: 'error' });
+    return false;                                             // reject → previous selection restored
   }
-
-  return { action: 'accept' };
+  // return nothing → accept
 };
 ```
 
-**Return object options:**
+**Return values:**
 
-| Property | Type | Description |
-|---|---|---|
-| `action` | `'accept' \| 'adjust' \| 'restore' \| 'clear'` | **Required.** What to do with the selection |
-| `message` | `string` | Optional message to display in the calendar |
-| `showInvalidRange` | `boolean` | With `action: 'restore'`, keeps the invalid selection visible with red error styling |
-| `adjustedDate` | `Date` | For `action: 'adjust'` in single mode — the corrected date |
-| `adjustedStartDate` | `Date` | For `action: 'adjust'` in range mode — the corrected start date |
-| `adjustedEndDate` | `Date` | For `action: 'adjust'` in range mode — the corrected end date |
-| `adjustedRanges` | `DateRange[]` | Range mode, with `action: 'accept'` or `'adjust'` — replace the single proposed range with N independent ranges (see "Returning multiple ranges") |
+| Return | Effect |
+|---|---|
+| nothing (`undefined`) | Accept the proposed selection as-is |
+| `false` | Reject it — the previous selection is restored. Call `ctx.markRangeInvalid()` first (range mode) to keep the rejected range visible with red error styling until the next attempt |
+| a `Date` (single mode) | Accept this adjusted date instead |
+| a `DateRange` `{ start, end }` (range mode) | Accept this adjusted range instead |
+| a `DateRange[]` (range mode) | Replace the proposal with N independent ranges (see "Returning multiple ranges") |
+| `null` | Clear the selection entirely |
 
-**Action behaviors:**
-
-- **`accept`** — apply the selection as-is. Hides any existing message.
-- **`adjust`** — apply corrected dates instead (use with `adjustedDate` or `adjustedStartDate` / `adjustedEndDate`, or `adjustedRanges` for multiple ranges).
-- **`restore`** — revert to previous selection. Use `showInvalidRange: true` to show what was attempted.
-- **`clear`** — clear the selection entirely.
+Messages are not part of the return value — show them through the
+facade: `ctx.controller.showMessage(text, { type: 'error' | 'warning' | 'info' | 'success', autoHideMs })`.
+A new selection attempt hides the previous message automatically.
 
 **Split-aware validation (`ctx.subRanges` / `ctx.enabledDates`):**
 
 In range mode the callback receives the contiguous *envelope* between the two endpoints — `ctx.range` may straddle disabled days. When `disabledDatesHandling` is `'split'` or `'individual'`, the context also carries the carved-out pieces so you don't have to re-derive them:
 
-- `ctx.subRanges` — `DateRange[]`, the envelope split into enabled-only segments (split mode only; identical to `picker.splitRangeByDisabled(start, end)`).
+- `ctx.subRanges` — `DateRange[]`, the envelope split into enabled-only segments (split mode only).
 - `ctx.enabledDates` — `Date[]`, the flat enabled-day list inside the envelope (split + individual).
 
 ```js
-picker.beforeDateSelectCallback = (ctx) => {
+picker.beforeSelectCallback = (ctx) => {
   // Reject if any enabled-only segment exceeds 7 nights
   if (ctx.subRanges?.some(r => (r.end - r.start) / 86400000 > 7)) {
-    return { action: 'restore', message: 'No segment may exceed 7 nights', showInvalidRange: true };
+    ctx.markRangeInvalid();
+    ctx.controller.showMessage('No segment may exceed 7 nights', { type: 'error' });
+    return false;
   }
-  return { action: 'accept' };
 };
 ```
 
-**Returning multiple ranges (`adjustedRanges`):**
+**Returning multiple ranges (`DateRange[]`):**
 
-A range-mode callback can commit **N independent ranges** instead of the single proposed span — e.g. to keep the enabled-only pieces of a split selection, or to punch a hole out of a range. Return `adjustedRanges` with `action: 'accept'` or `'adjust'`:
+A range-mode callback can commit **N independent ranges** instead of the single proposed span — e.g. to keep the enabled-only pieces of a split selection, or to punch a hole out of a range. Return an array of ranges:
 
 ```js
-picker.beforeDateSelectCallback = (ctx) => {
+picker.beforeSelectCallback = (ctx) => {
   // Turn a range straddling disabled days into its enabled-only segments
   if (ctx.subRanges && ctx.subRanges.length > 1) {
-    return { action: 'adjust', adjustedRanges: ctx.subRanges,
-             message: 'Selection split around unavailable days' };
+    ctx.controller.showMessage('Selection split around unavailable days', { type: 'info' });
+    return ctx.subRanges;
   }
-  return { action: 'accept' };
 };
 ```
 
-When `adjustedRanges` is returned:
+When a `DateRange[]` is returned:
 
 - `picker.selectedRanges` reflects the array; each range's start/end/in-range cells are highlighted in the grid, and the summary lists every piece.
-- `onSelect` receives the `DateRange[]` (not a single `{ start, end }`).
+- The `select` / `change` detail (and `onSelect`) carries the pieces in `detail.dateRanges` (not a single `detail.dateRange`).
 - The read-only envelope accessors `selectedStartDate` / `selectedEndDate` span the first range's start through the last range's end.
 - Assigning `picker.selectedRanges = [...]` directly in range mode renders identically — the callback path and the programmatic setter share the same multi-range machinery.
 - Starting a fresh range selection clears the multi-range result back to a single contiguous range.
@@ -601,50 +627,51 @@ When `adjustedRanges` is returned:
 **Example — minimum-nights validation with error display:**
 
 ```js
-picker.beforeDateSelectCallback = (ctx) => {
+picker.beforeSelectCallback = (ctx) => {
   const range = ctx.range;
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
 
-  if (nights < 2) {
-    return {
-      action: 'restore',
-      message: 'Minimum 2 nights required',
-      showInvalidRange: true
-    };
+  if (nights < 2 || nights > 14) {
+    ctx.markRangeInvalid();
+    ctx.controller.showMessage(
+      nights < 2 ? 'Minimum 2 nights required' : 'Maximum 14 nights allowed',
+      { type: 'error' }
+    );
+    return false;
   }
-
-  if (nights > 14) {
-    return {
-      action: 'restore',
-      message: 'Maximum 14 nights allowed',
-      showInvalidRange: true
-    };
-  }
-
-  return { action: 'accept' };
 };
 ```
 
-### Bulk metadata loading (`beforeMonthChangedCallback`)
+### Month navigation & bulk metadata loading (`beforeMonthChangeCallback` / `getMonthDataCallback`)
 
-Load metadata for all visible dates in a single API call when the user
-navigates months. Much more efficient than `getDateMetadataCallback`
-(which fires per-date):
+Two separate hooks:
+
+- **`beforeMonthChangeCallback(ctx)`** — runs before a month navigation (not on
+  the initial open). Return `false` to block it; anything else continues. May be async.
+- **`getMonthDataCallback(ctx)`** — loads data for the visible range on the
+  initial open and after every accepted navigation (per column, or once for the
+  whole grid in unified navigation). Returns `{ metadata?, monthHeaders? }`
+  (or nothing). May be async — a loader shows meanwhile.
+
+Both receive a `MonthChangeContext`: `{ year, month, monthIndex, firstVisibleDate, lastVisibleDate }`
+plus `controller` / `element` / presentation flags. After the navigation the
+`month-change` event fires (`onMonthChange`).
+
+Loading all visible dates in a single API call is much more efficient than
+`getDateMetadataCallback` (which fires per date):
 
 ```js
 const picker = document.querySelector('web-daterangepicker');
 
-picker.beforeMonthChangedCallback = async (context) => {
-  // context: { year, month, monthIndex, firstVisibleDate, lastVisibleDate }
-
+picker.getMonthDataCallback = async (ctx) => {
   // Fetch availability for all visible dates in one call.
   // Use toLocalISO (see "Working with dates across timezones") so the
   // server receives the calendar dates the user actually sees.
   const response = await fetch('/api/availability', {
     method: 'POST',
     body: JSON.stringify({
-      start: toLocalISO(context.firstVisibleDate),
-      end: toLocalISO(context.lastVisibleDate)
+      start: toLocalISO(ctx.firstVisibleDate),
+      end: toLocalISO(ctx.lastVisibleDate)
     })
   });
   const data = await response.json();
@@ -659,66 +686,77 @@ picker.beforeMonthChangedCallback = async (context) => {
     });
   });
 
-  return { action: 'accept', metadata };
+  return { metadata };
+};
+
+// Block navigation past the booking horizon
+picker.beforeMonthChangeCallback = (ctx) => {
+  if (ctx.year > 2027) {
+    ctx.controller.showMessage('Bookings open up to 2027', { type: 'warning', autoHideMs: 2000 });
+    return false;
+  }
 };
 ```
 
-**Return object options:**
+**`getMonthDataCallback` result (`MonthData`):**
 
 | Property | Type | Description |
 |---|---|---|
-| `action` | `'accept' \| 'block'` | **Required.** Allow or prevent month navigation |
 | `metadata` | `Map<string, DayMetadata>` | Bulk metadata keyed by `YYYY-MM-DD`. Cached and used instead of `getDateMetadataCallback`. |
-| `monthHeaders` | `Map<string, string>` | Custom month headers keyed by `YYYY-MM` (`"2026-01"` → `"Jan 2026 (5 rooms)"`) |
-| `message` | `string` | Optional message to display (useful with `action: 'block'`) |
+| `monthHeaders` | `Map<string, string>` | Custom month headers keyed by `YYYY-MM` (`"2026-01"` → `"Jan 2026 (5 rooms)"`). Takes precedence over `getMonthHeaderCallback`. |
 
 **Performance:** 1 API call per month navigation vs 35–42 calls with
 `getDateMetadataCallback`.
 
-### Messages & custom actions
+### Messages & actions
 
-Display contextual messages in the calendar with interactive buttons:
+Display contextual messages in the calendar with interactive buttons.
+Any element inside the message (or summary, or custom-rendered day content)
+carrying `data-action` is an **action trigger**: clicking it runs
+`beforeActionCallback` → the `action` event (`onAction`) → the built-in, if
+`data-action` names one (`today` / `now` / `clear` / `apply`).
 
 ```js
 const picker = document.querySelector('web-daterangepicker');
 
-// Simple message
+// Simple message (the element's own showMessage keeps positional args)
 picker.showMessage('<p>Please select a check-in date</p>');
+picker.showMessage('Saved', 'success', 2000);   // type + auto-hide ms
 
-// Message with close button
-picker.showMessage(`
-  <p>Weekend dates have higher rates</p>
-  <button data-action="close-message">Got it</button>
-`);
+// Same via the controller facade (options object) — e.g. from a callback
+picker.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
 
-// Message with custom action buttons
+// Message with custom action buttons — data-id identifies the action,
+// every other data-* attribute arrives in detail.dataset (camelCase)
 picker.showMessage(`
   <p>These dates are unavailable. Try:</p>
-  <button data-action="custom" data-start-date="2026-01-14" data-end-date="2026-01-17">
+  <button data-action="custom" data-id="suggest" data-start-date="2026-01-14" data-end-date="2026-01-17">
     Jan 14 – Jan 17
   </button>
+  <button data-action="custom" data-id="dismiss">Got it</button>
 `);
 
-// Handle custom action clicks — data-* attributes live under e.detail.data
-picker.addEventListener('custom-action', (e) => {
-  const { startDate, endDate } = e.detail.data;
-  if (startDate && endDate) {
+picker.addEventListener('action', (e) => {
+  const { id, source, dataset, controller } = e.detail;
+  if (source !== 'message') return;
+  if (id === 'suggest') {
     picker.selectedRanges = [{
-      start: new Date(startDate),
-      end: new Date(endDate)
+      start: new Date(dataset.startDate),
+      end: new Date(dataset.endDate)
     }];
-    picker.hideMessage();
   }
+  controller.hideMessage();
 });
 
 // Hide programmatically
 picker.hideMessage();
 ```
 
-**Built-in button actions:**
+**Action-trigger attributes:**
 
-- `data-action="close-message"` — closes the message (no event fired).
-- `data-action="custom"` — fires the `custom-action` event; all `data-*` attributes are exposed as camelCase keys under `e.detail.data`.
+- `data-action="custom" data-id="…"` — fires the `action` event with `action: 'custom'`, `id` from `data-id`, `source: 'message'` (or `'summary'` / `'calendar'`), `triggerElement`, and the remaining `data-*` attributes in `detail.dataset`.
+- `data-action="today" | "now" | "clear" | "apply"` — fires the `action` event, then runs that built-in.
+- The message's own ✕ close button is internal and fires nothing; to dismiss from your own button, handle its `action` event and call `hideMessage()`.
 
 ### Locking (read-only)
 
@@ -800,7 +838,7 @@ disabled date arrays:
 </web-daterangepicker>
 
 <script>
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   console.log('Enabled dates:',  e.detail.enabledDates);
   console.log('Disabled dates:', e.detail.disabledDates);
   console.log('Total days:',     e.detail.getTotalDays());
@@ -859,7 +897,7 @@ Returns multiple date ranges separated by disabled dates:
 </web-daterangepicker>
 
 <script>
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   console.log('Ranges:', e.detail.dateRanges);
   // e.g., [{start: Mon, end: Fri}, {start: Mon, end: Fri}, {start: Mon, end: Fri}]
   console.log('Formatted:', e.detail.formattedValue);
@@ -883,7 +921,7 @@ Returns a flat array of individual enabled dates:
 </web-daterangepicker>
 
 <script>
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   console.log('Individual dates:', e.detail.dates);
   // [Date(Mon), Date(Tue), Date(Wed), Date(Thu), Date(Fri), Date(Mon), ...]
   console.log('Formatted:', e.detail.formattedValue);

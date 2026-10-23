@@ -82,6 +82,27 @@
   border: var(--drp-button-border-hover-full);
 }
 
+/* Icon + label (action items with `icon`) */
+.drp__button-icon + .drp__button-label {
+  margin-inline-start: var(--drp-spacing-xs, 0.25rem);
+}
+
+/* `isDanger` — destructive action */
+.drp__button--danger {
+  color: var(--drp-message-error-color);
+  border-color: var(--drp-message-error-border);
+}
+
+.drp__button--danger:hover {
+  background-color: var(--drp-message-error-bg);
+}
+
+/* `isActive` — toggle state ("pressed"), rendered with aria-pressed="true" */
+.drp__button--active {
+  border-color: var(--drp-accent-color);
+  color: var(--drp-accent-color);
+}
+
 /* Disabled state */
 .drp__button:disabled,
 .drp__button[disabled] {

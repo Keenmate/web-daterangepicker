@@ -289,7 +289,7 @@ Example:
   // Listen to events and log details
   const picker = document.querySelector('web-daterangepicker');
 
-  picker.addEventListener('date-select', (e) => {
+  picker.addEventListener('select', (e) => {
     console.log('Date selected event:', e.detail);
   });
 
@@ -330,7 +330,7 @@ Example:
       // Add event listeners for demonstrations
       const pickers = document.querySelectorAll('web-daterangepicker');
       pickers.forEach((picker, index) => {
-        picker.addEventListener('date-select', (e) => {
+        picker.addEventListener('select', (e) => {
           console.log(`%c[DEMO] Picker ${index + 1} selected:`, 'color: #10b981; font-weight: bold', e.detail);
         });
       });

@@ -363,7 +363,7 @@
     const wireOutput = (id) => {
       const el = document.getElementById(id);
       const out = document.getElementById(`${id}-out`);
-      el.addEventListener('date-select', (e) => {
+      el.addEventListener('select', (e) => {
         out.textContent = `value: ${el.value}  |  detail.date: ${e.detail.date}`;
       });
     };

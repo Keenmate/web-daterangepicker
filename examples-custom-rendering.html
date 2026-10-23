@@ -173,7 +173,7 @@ picker.renderDayCallback = (data) => {
     <pre><code>const picker = document.getElementById('callback-augment');
 
 // Inject CSS for event-dot into Shadow DOM
-picker.customStylesCallback = () => `
+picker.getCustomStylesCallback = () => `
   .event-dot {
     position: absolute;
     bottom: 2px;
@@ -209,7 +209,7 @@ picker.renderDayContentCallback = (data) => {
     <h2>CR04 · Dynamic Styling Based on State</h2>
     <p class="description">
       Rainbow weekday visualization showing traffic intensity: Monday (light blue, lowest) → Friday (red, highest), weekends in pink/purple.
-      Uses <code>customStylesCallback</code> to inject CSS into Shadow DOM, then <code>getDateMetadataCallback</code> returns <code>dayClass</code> to style the entire day cell wrapper.
+      Uses <code>getCustomStylesCallback</code> to inject CSS into Shadow DOM, then <code>getDateMetadataCallback</code> returns <code>dayClass</code> to style the entire day cell wrapper.
       This is simpler than <code>renderDayCallback</code> and styles the whole day, not just the content.
     </p>
 
@@ -221,7 +221,7 @@ picker.renderDayContentCallback = (data) => {
     <pre><code>const picker = document.getElementById('callback-weekends');
 
 // Inject custom CSS into Shadow DOM for weekday styling
-picker.customStylesCallback = () => `
+picker.getCustomStylesCallback = () => `
   .weekday-sun { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); }
   .weekday-mon { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
   .weekday-tue { background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%); }
@@ -359,7 +359,7 @@ picker.renderDayCallback = (data) => {
 };
 
 // Calculate price on selection
-picker.addEventListener('date-select', (event) =&gt; {
+picker.addEventListener('select', (event) =&gt; {
   if (event.detail.dateRange) {
     const start = event.detail.dateRange.start;
     const end = event.detail.dateRange.end;
@@ -426,7 +426,7 @@ picker.addEventListener('date-select', (event) =&gt; {
       // Page-level <style> doesn't penetrate the picker's Shadow DOM, so
       // inject the .custom-day-content + .price-tag styles via this callback
       // (which the component runs inside the shadow root).
-      callbackFull.customStylesCallback = () => `
+      callbackFull.getCustomStylesCallback = () => `
         .custom-day-content {
           display: flex;
           flex-direction: column;
@@ -468,7 +468,7 @@ picker.addEventListener('date-select', (event) =&gt; {
     const callbackAugment = document.getElementById('callback-augment');
     if (callbackAugment) {
       // Inject CSS for event-dot into Shadow DOM
-      callbackAugment.customStylesCallback = () => `
+      callbackAugment.getCustomStylesCallback = () => `
         .event-dot {
           position: absolute;
           bottom: 2px;
@@ -501,7 +501,7 @@ picker.addEventListener('date-select', (event) =&gt; {
     const callbackWeekends = document.getElementById('callback-weekends');
     if (callbackWeekends) {
       // Inject custom CSS into Shadow DOM for weekday styling
-      callbackWeekends.customStylesCallback = () => `
+      callbackWeekends.getCustomStylesCallback = () => `
         .weekday-sun { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); }
         .weekday-mon { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
         .weekday-tue { background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%); }
@@ -606,7 +606,7 @@ picker.addEventListener('date-select', (event) =&gt; {
       };
 
       // Show booking details on selection
-      bookingSystem.addEventListener('date-select', (event) => {
+      bookingSystem.addEventListener('select', (event) => {
         const info = document.getElementById('booking-info');
         const details = document.getElementById('booking-details');
 

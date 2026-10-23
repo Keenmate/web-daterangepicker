@@ -77,6 +77,8 @@ export interface DateRangePickerController {
   hideSummary(): void;
   showLoader(target?: LoaderTarget): void;
   hideLoader(target?: LoaderTarget): void;
+  /** Re-run `getMonthDataCallback` for the visible months (after the backing data changed). */
+  reloadMonthData(): Promise<void>;
 }
 
 /**

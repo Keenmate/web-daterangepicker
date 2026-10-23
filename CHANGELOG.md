@@ -62,6 +62,15 @@ consumer markup can't trigger them.
 (→ `SelectEventDetail`), `AsyncValidationResult`. The engine class `DateRangePicker` is
 exported as `DateRangePickerEngine` (advanced standalone use only).
 
+### Added
+
+- `icon` on action buttons renders as a glyph (`.drp__button-icon`, plain text) before the
+  label; `isDanger` / `isActive` get default styling (`drp__button--danger` /
+  `drp__button--active`, the latter with `aria-pressed="true"`).
+- `controller.reloadMonthData()` — re-run `getMonthDataCallback` for the visible months.
+  Setting `getMonthDataCallback` after the first paint now loads the visible months
+  immediately (it used to wait for the first navigation).
+
 ### Fixed
 
 - Several custom action buttons no longer all show the first one's tooltip.

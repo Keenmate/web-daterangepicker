@@ -6,8 +6,8 @@ RESTRICTION TYPES
 1. Min/Max dates - Hard boundaries
 2. Disabled weekdays - Recurring weekly patterns
 3. Disabled dates array - Specific dates (holidays)
-4. getDateMetadataCallback callback - Complex logic
-5. getDateMetadata callback - Dynamic metadata + disabling
+4. getDateMetadataCallback - Complex logic / dynamic metadata + disabling (isDisabled)
+5. getMonthDataCallback - Bulk metadata per visible range (see events-callbacks.txt)
 
 ALL RESTRICTIONS ARE ADDITIVE
 A date is disabled if ANY restriction applies.
@@ -24,13 +24,13 @@ Set hard boundaries:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   minDate: '2025-01-01',  // String or Date object
   maxDate: '2025-12-31'
 });
 
 // Or with Date objects
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   minDate: new Date(2025, 0, 1),   // Jan 1, 2025
   maxDate: new Date(2025, 11, 31)  // Dec 31, 2025
 });
@@ -51,7 +51,7 @@ Disable recurring days of week:
 </web-daterangepicker>
 
 // JavaScript API (array of numbers)
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   disabledWeekdays: [0, 6]  // 0=Sunday, 6=Saturday
 });
 
@@ -86,7 +86,7 @@ picker.disabledDates = [
 </script>
 
 // JavaScript API
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   disabledDates: [
     '2025-01-01',
     '2025-12-25',
@@ -101,7 +101,7 @@ const holidays = [
   new Date(2025, 11, 26)
 ];
 
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   disabledDates: holidays
 });
 
@@ -123,7 +123,7 @@ GETDATEMETADATACALLBACK CALLBACK
 Complex logic for disabling dates:
 
 CRITICAL: JavaScript API ONLY (pass in constructor)
-✅ CORRECT: Pass in options during new DateRangePicker()
+✅ CORRECT: Pass in options during new DateRangePickerEngine()
 ❌ WRONG: Set as property after creation
 
 // JavaScript API
@@ -132,8 +132,8 @@ const bookings = [
   { start: new Date(2025, 6, 1), end: new Date(2025, 6, 10) }
 ];
 
-const picker = new DateRangePicker(input, {
-  getDateMetadataCallback: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     // Return metadata object to disable, null to enable
     const isBooked = bookings.some(booking =>
       date >= booking.start && date <= booking.end
@@ -144,15 +144,15 @@ const picker = new DateRangePicker(input, {
 
 // Web Component (set as property)
 const picker = document.querySelector('web-daterangepicker');
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const isPast = date < new Date();
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   return (isPast || isWeekend) ? { isDisabled: true } : null;
 };
 
 Function signature:
-getDateMetadataCallback: (date: Date) => DateInfo | null
-- Receives: Date object for each calendar cell
+getDateMetadataCallback: ({ date }) => DayMetadata | null
+- Receives: a DayContext ({ date, dateString, isToday, isWeekend, ..., controller, element }) per calendar cell
 - Returns: { isDisabled: true } to disable, null to enable
 - Called: ~35-42 times per month view
 
@@ -173,8 +173,8 @@ Return metadata for each date (styling + disabling):
 
 CRITICAL: JavaScript API ONLY
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const availability = checkAvailability(dateStr);
 
@@ -196,7 +196,7 @@ const picker = new DateRangePicker(input, {
   }
 });
 
-DateInfo interface:
+DayMetadata interface:
 {
   isDisabled?: boolean;      // Disable the date
   badgeText?: string;        // Text in top-right badge
@@ -217,7 +217,7 @@ COMBINING RESTRICTIONS
 ----------------------
 All restrictions stack (AND logic):
 
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   // 1. Only future dates
   minDate: new Date(),
 
@@ -231,13 +231,13 @@ const picker = new DateRangePicker(input, {
   ],
 
   // 4. No booked dates
-  getDateMetadataCallback: (date) => {
+  getDateMetadataCallback: ({ date }) => {
     const isBooked = bookings.some(b => date >= b.start && date <= b.end);
     return isBooked ? { isDisabled: true } : null;
   },
 
   // 5. Visual indicators
-  getDateMetadata: (date) => {
+  getDateMetadataCallback: ({ date }) => {
     const available = !isBooked(date);
     return {
       badgeText: available ? '✓' : '',
@@ -250,8 +250,7 @@ Evaluation order:
 1. minDate/maxDate (hard bounds)
 2. disabledWeekdays
 3. disabledDates array
-4. getDateMetadataCallback callback
-5. getDateMetadata (isDisabled property)
+4. getDateMetadataCallback (isDisabled property) / getMonthDataCallback metadata
 
 If ANY restriction disables, date is disabled.
 
@@ -262,14 +261,11 @@ Update restrictions after initialization:
 // Update disabled dates
 picker.disabledDates = newHolidays;
 
-// Update callback
-picker.getDateMetadataCallback = (date) => {
+// Update callback (assigning re-renders the calendar)
+picker.getDateMetadataCallback = ({ date }) => {
   const isBooked = newBookings.some(b => date >= b.start && date <= b.end);
   return isBooked ? { isDisabled: true } : null;
 };
-
-// Refresh calendar
-picker.renderCalendar();
 
 STYLING DISABLED DATES
 ----------------------
@@ -283,8 +279,8 @@ Disabled dates automatically get CSS class:
 
 Custom styling with dayClass:
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     if (isFullyBooked(date)) {
       return {
         isDisabled: true,
@@ -335,7 +331,7 @@ VALIDATION PATTERNS
 Common validation scenarios:
 
 // Booking system (no past + no booked)
-getDateMetadataCallback: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -348,19 +344,19 @@ getDateMetadataCallback: (date) => {
 }
 
 // Subscription expiry
-getDateMetadataCallback: (date) => {
+getDateMetadataCallback: ({ date }) => {
   return date > subscriptionEndDate ? { isDisabled: true } : null;
 }
 
 // Maximum advance booking
-getDateMetadataCallback: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const maxAdvance = new Date();
   maxAdvance.setDate(maxAdvance.getDate() + 90);
   return date > maxAdvance ? { isDisabled: true } : null;
 }
 
 // Business hours (Mon-Fri)
-getDateMetadataCallback: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const day = date.getDay();
   const isWeekend = day === 0 || day === 6;
   return isWeekend ? { isDisabled: true } : null;
@@ -368,25 +364,21 @@ getDateMetadataCallback: (date) => {
 
 ERROR HANDLING
 --------------
-Handle invalid date selections:
+Reject invalid selections BEFORE they commit:
 
-picker.addEventListener('date-select', (event) => {
-  const { date } = event.detail;
-
-  const metadata = picker.getDateMetadataCallback(date);
-  if (metadata?.isDisabled) {
-    console.error('Invalid date selected:', date);
-    picker.clearSelection();
-    showError('Please select an available date');
+picker.beforeSelectCallback = (ctx) => {
+  if (!isAvailable(ctx.date)) {
+    ctx.controller.showMessage('Please select an available date', { type: 'error' });
+    return false;   // previous selection restored
   }
-});
+};
 
 DEBUGGING
 ---------
 Log disabled date checks:
 
-const picker = new DateRangePicker(input, {
-  getDateMetadataCallback: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const shouldDisable = checkIfDisabled(date);
     const result = shouldDisable ? { isDisabled: true } : null;
     console.log('Check:', date.toISOString().split('T')[0], '→', result);
@@ -396,7 +388,7 @@ const picker = new DateRangePicker(input, {
 
 Count disabled dates:
 let disabledCount = 0;
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const shouldDisable = checkIfDisabled(date);
   const result = shouldDisable ? { isDisabled: true } : null;
   if (result) disabledCount++;
@@ -408,7 +400,7 @@ BEST PRACTICES
 1. Use simplest restriction type for your case
    - Static dates → disabledDates array
    - Weekly pattern → disabledWeekdays
-   - Dynamic → getDateMetadataCallback callback
+   - Dynamic → getDateMetadataCallback
 
 2. Keep getDateMetadataCallback fast
    - Pre-process data structures
@@ -422,7 +414,7 @@ BEST PRACTICES
    - Add callbacks for complex rules
 
 4. Provide visual feedback
-   - Use getDateMetadata for badges
+   - Use getDateMetadataCallback for badges
    - Add tooltips explaining why disabled
    - Style disabled dates clearly
 

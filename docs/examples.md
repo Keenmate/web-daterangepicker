@@ -21,8 +21,8 @@ display. The single best file to skim when you first see the component.
 
 ### Data & API — [`examples-data-api.html`](../examples-data-api.html)
 
-Everything programmatic in one place. Using the `DateRangePicker`
-class directly without the `<web-daterangepicker>` custom element
+Everything programmatic in one place. Using the engine class
+(`DateRangePickerEngine`) directly without the `<web-daterangepicker>` custom element
 (every callback wired up, explicit CSS-loading recipe); the instance
 methods (`open()` / `close()` / `toggle()`, `setInputValue()`,
 `clearSelection()`), reactive property accessors, the lock/unlock API,
@@ -35,10 +35,11 @@ keyboard-shortcut reference.
 
 ### Events, handlers & interceptors — [`examples-events-callbacks.html`](../examples-events-callbacks.html)
 
-The event system plus the `beforeDateSelectCallback` validation
-recipes from `usage.md` (minimum-nights, API availability check, the
-`showInvalidRange` red-error state) and `beforeMonthChangedCallback`
-for per-month data loading. (The five `disabled-dates-handling` range
+The event system (`select` / `change` / `action` / `month-change`) plus
+the `beforeSelectCallback` validation recipes from `usage.md`
+(minimum-nights, API availability check, the `ctx.markRangeInvalid()`
+red-error state), `beforeMonthChangeCallback` for blocking navigation and
+`getMonthDataCallback` for per-month data loading. (The five `disabled-dates-handling` range
 modes now live on the **Data & API** page.)
 
 ### Action buttons — [`examples-action-buttons.html`](../examples-action-buttons.html)
@@ -46,7 +47,9 @@ modes now live on the **Data & API** page.)
 Custom action buttons, preset buttons ("This week" / "Last 30 days"),
 controlling Today / Clear / Apply visibility via the
 `is-*-button-shown` attributes, commit modes, the multi-range
-selection mode, and the dynamic ActionButton callback API.
+selection mode, and the dynamic action-item callback API (`getTextCallback`,
+`getIsVisibleCallback`, `getIsDisabledCallback`, `getIsActiveCallback`,
+`beforeActionCallback`).
 
 ## Visual & data customization
 
@@ -58,7 +61,7 @@ the four `Member` mappings for non-standard data shapes, and the
 **consumer-data classifier convention** (`dayClass: 'event' | 'holiday'`
 + `badgeClass: 'badge-number' | 'badge-count' | 'badge-text'`) including
 the custom-classifier `salsa / rumba / pilates` demo wired up through
-`customStylesCallback`.
+`getCustomStylesCallback`.
 
 ### Custom rendering — [`examples-custom-rendering.html`](../examples-custom-rendering.html)
 

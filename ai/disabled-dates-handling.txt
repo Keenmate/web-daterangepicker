@@ -26,7 +26,7 @@ Set via attribute or option:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   selectionMode: 'range',
   disabledDatesHandling: 'allow',
   disabledWeekdays: [0, 6]
@@ -95,7 +95,7 @@ Use cases:
 - Pricing calculations (charge only enabled days)
 
 Example usage:
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   const {
     dateRange,
     enabledDates,
@@ -176,7 +176,7 @@ Use cases:
 - Complex scheduling
 
 Example usage:
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   const { dateRanges, dates } = event.detail;
 
   console.log('Segments:', dateRanges.length);
@@ -215,7 +215,7 @@ Use cases:
 - Per-date operations
 
 Example usage:
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   const { dates } = event.detail;
 
   dates.forEach(date => {
@@ -310,7 +310,7 @@ COMBINING WITH RESTRICTIONS
 ----------------------------
 Works with all restriction types:
 
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   selectionMode: 'range',
   disabledDatesHandling: 'allow',
 
@@ -318,7 +318,7 @@ const picker = new DateRangePicker(input, {
   minDate: '2025-01-01',
   disabledWeekdays: [0, 6],
   disabledDates: ['2025-12-25'],
-  getDateMetadataCallback: (date) => {
+  getDateMetadataCallback: ({ date }) => {
     const booked = isBooked(date);
     return booked ? { isDisabled: true } : null;
   }
@@ -330,13 +330,13 @@ PRICING EXAMPLE (allow mode)
 -----------------------------
 Charge only for enabled days:
 
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   selectionMode: 'range',
   disabledDatesHandling: 'allow',
   disabledWeekdays: [0, 6]
 });
 
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   const { enabledDates, getEnabledDateCount } = event.detail;
 
   const billableDays = getEnabledDateCount();
@@ -353,13 +353,13 @@ MULTI-SEGMENT EXAMPLE (split mode)
 -----------------------------------
 Book separate continuous periods:
 
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   selectionMode: 'range',
   disabledDatesHandling: 'split',
   disabledWeekdays: [0, 6]
 });
 
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   const { dateRanges } = event.detail;
 
   dateRanges.forEach((range, index) => {
@@ -395,7 +395,7 @@ ERROR HANDLING
 --------------
 Handle empty results:
 
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   const { dates, dateRanges } = event.detail;
 
   if (dates && dates.length === 0) {
@@ -479,7 +479,7 @@ Communicate mode to users:
 </web-daterangepicker>
 
 Provide summary:
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   const summary = generateSummary(event.detail);
   announceToScreenReader(summary);
 });

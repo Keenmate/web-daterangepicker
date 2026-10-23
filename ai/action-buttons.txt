@@ -3,15 +3,15 @@ ACTION BUTTONS
 
 CRITICAL: JavaScript API ONLY
 Action buttons configuration not available as web component attributes.
+Action buttons are web-components-core ActionItems (type: DateRangePickerActionItem).
 
 BUILT-IN BUTTONS
 ----------------
-Three default buttons in range mode:
-1. Today - Jump to today's date
-2. Clear - Clear selection
-3. Apply - Confirm and close (range mode)
+Built-in actions: 'today', 'now' (time/datetime), 'clear', 'apply'.
+Defaults depend on the mode (Today + Clear; Now in time/datetime; Apply when
+commit-mode="apply").
 
-Control visibility:
+Control visibility of the defaults:
 
 <!-- Web Component -->
 <web-daterangepicker
@@ -19,13 +19,6 @@ Control visibility:
   is-today-button-shown="true"
   is-clear-button-shown="true">
 </web-daterangepicker>
-
-// JavaScript API
-const picker = new DateRangePicker(input, {
-  selectionMode: 'range',
-  isTodayButtonShown: true,
-  isClearButtonShown: true
-});
 
 The Apply button is not toggled directly. It is rendered when
 commit-mode="apply" (see below) and omitted for 'selection' and 'manual'.
@@ -48,174 +41,179 @@ Modes:
                 and for 'multiple' selection mode.
 - 'manual'    - Never auto-commit or auto-close, and render no built-in Apply
                 button. The app drives commit/close via custom action buttons
-                (ActionButton.onClick calling apply() / hide()).
-
-// JavaScript API
-const picker = new DateRangePicker(input, {
-  commitMode: 'selection'
-});
+                (onClick: (d) => { d.controller.apply(); d.controller.close(); }).
 
 CUSTOM ACTION BUTTONS
 ---------------------
 CRITICAL: JavaScript API ONLY (actionButtons property)
 
-Set via web component property:
+const el = document.querySelector('web-daterangepicker');
 
-const picker = document.querySelector('web-daterangepicker');
-
-picker.actionButtons = [
-  {
-    action: 'today' | 'clear' | 'apply' | 'custom',
-    text: string,
-    onClick?: (picker) => void,  // Required for 'custom'
-
-    // Static properties
-    cssClass?: string,
-    tooltip?: string,
-    isVisible?: boolean,
-    isDisabled?: boolean,
-
-    // Dynamic callbacks (override static)
-    isVisibleCallback?: (picker) => boolean,
-    isDisabledCallback?: (picker) => boolean,
-    getTextCallback?: (picker) => string,
-    getClassCallback?: (picker) => string | string[],
-    getTooltipCallback?: (picker) => string
-  }
+el.actionButtons = [
+  'today',                                   // string shorthand for a built-in
+  { action: 'clear', text: 'Reset' },        // built-in with overrides
+  { id: 'last-week', text: 'Last Week', onClick: (d) => { ... } }  // custom: id, NO action
 ];
 
-ACTIONBUTTON INTERFACE
-----------------------
-{
-  // Required
-  action: 'today' | 'clear' | 'apply' | 'custom';
-  text: string;
+A custom button sets `id` (and no `action`). `action` is only for the
+built-ins: 'today' | 'now' | 'clear' | 'apply'.
 
-  // Custom action handler
-  onClick?: (picker) => void;  // Required if action='custom'
+DateRangePickerActionItem INTERFACE
+-----------------------------------
+{
+  action?: 'today' | 'now' | 'clear' | 'apply';  // built-ins only
+  id?: string;                // identifies a custom button (reported in the action event)
+  text?: string;              // plain text (NOT HTML); built-ins default to the locale label
 
   // Static properties
-  cssClass?: string;
+  icon?: string;              // core ActionItem field (see ICONS below)
   tooltip?: string;
-  isVisible?: boolean;    // Default: true
-  isDisabled?: boolean;   // Default: false
+  cssClass?: string;
+  isVisible?: boolean;        // Default: true
+  isDisabled?: boolean;       // Default: false
+  isDanger?: boolean;         // destructive styling (.drp__button--danger)
+  isActive?: boolean;         // toggle state: .drp__button--active + aria-pressed="true"
 
-  // Dynamic callbacks (take priority over static)
-  isVisibleCallback?: (picker) => boolean;
-  isDisabledCallback?: (picker) => boolean;
-  getTextCallback?: (picker) => string;
-  getClassCallback?: (picker) => string | string[];
-  getTooltipCallback?: (picker) => string;
+  // Render-time callbacks - receive the PICKER CONTEXT (ctx), win over static
+  getTextCallback?: (ctx) => string;
+  getIconCallback?: (ctx) => string;
+  getTooltipCallback?: (ctx) => string;
+  getClassCallback?: (ctx) => string | string[];
+  getIsVisibleCallback?: (ctx) => boolean;
+  getIsDisabledCallback?: (ctx) => boolean;
+  getIsActiveCallback?: (ctx) => boolean;
+
+  // Click handler - receives the ACTION DETAIL (works for built-ins too)
+  onClick?: (detail) => void | Promise<void>;
 }
+
+THE PICKER CONTEXT (render-time callbacks)
+------------------------------------------
+ctx.controller   - public facade (same object as el.controller):
+                   getSelectedDate(), getSelectedRange(), getSelectedRanges(),
+                   getSelectedDates(), getSelectedDatetime(), isOpen,
+                   selectToday(), selectNow(), clearSelection(), apply(),
+                   open(), close(), toggle(), setPresentation(p),
+                   prevMonth(i?), nextMonth(i?), lock(a?), unlock(a?),
+                   showMessage(content, { type, autoHideMs }), hideMessage(),
+                   showSummary(html), hideSummary(), showLoader(t?), hideLoader(t?)
+ctx.element      - the <web-daterangepicker> host (selectedStartDate,
+                   selectedEndDate, selectedRanges = [...], etc.)
+ctx.presentation + presentation flags of the open chrome
+
+There is NO ctx.picker (the raw engine is not part of the public API), and
+render-time callbacks get no `action` / `button` fields.
+
+THE ACTION DETAIL (onClick / beforeActionCallback / action event)
+-----------------------------------------------------------------
+The picker context PLUS:
+  action          - built-in name, or 'custom'
+  id              - the item's id
+  item            - the clicked item
+  source          - 'action-buttons' | 'message' | 'summary' | 'calendar'
+  sourceEvent     - the DOM event (click / keydown)
+  triggerElement  - the activated element
+  dataset         - the trigger's other data-* attributes
+
+CLICK ORDER
+-----------
+beforeActionCallback(detail) -> item.onClick(detail) -> 'action' event (onAction)
+-> built-in behaviour (today/now/clear/apply).
+
+el.beforeActionCallback = async (d) => {
+  if (d.action === 'clear' && !confirm('Clear the selection?')) return false; // cancels everything
+};
+
+`false` cancels: no onClick, no action event, no built-in. May be async (the
+button is busy meanwhile).
+
+el.addEventListener('action', (e) => {
+  if (e.detail.id === 'last-week') analytics.track('preset', e.detail.id);
+});
+// or the twin (receives the DETAIL, not the event):
+el.onAction = (d) => console.log(d.action, d.id, d.source);
 
 CALLBACK PRIORITY
 -----------------
-When both static property and callback defined, callback wins:
-
-Priority chain:
-- isVisibleCallback → isVisible → true
-- isDisabledCallback → isDisabled → false
-- getTextCallback → text → action
-- getClassCallback → cssClass → ''
-- getTooltipCallback → tooltip → ''
+get*Callback -> static property -> built-in default:
+- getIsVisibleCallback -> isVisible -> true
+- getIsDisabledCallback -> isDisabled -> false
+- getIsActiveCallback -> isActive -> false
+- getTextCallback -> text -> built-in locale label
+- getClassCallback -> cssClass -> ''
+- getTooltipCallback -> tooltip -> none
 
 PRESET BUTTONS
 --------------
 Quick date range shortcuts:
 
-const picker = document.querySelector('#picker');
+const el = document.querySelector('#picker');
 
-picker.actionButtons = [
+el.actionButtons = [
   {
-    action: 'custom',
+    id: 'last-week',
     text: 'Last Week',
-    onClick: (picker) => {
+    onClick: ({ element }) => {
       const end = new Date();
       const start = new Date();
       start.setDate(end.getDate() - 7);
-
-      picker.selectedStartDate = start;
-      picker.selectedEndDate = end;
-      picker.renderCalendar();
-      picker.updateSummary();
+      element.selectedRanges = [{ start, end }];
     }
   },
   {
-    action: 'custom',
+    id: 'next-month',
     text: 'Next Month',
-    onClick: (picker) => {
+    onClick: ({ element }) => {
       const start = new Date();
       const end = new Date();
       end.setMonth(end.getMonth() + 1);
-
-      picker.selectedStartDate = start;
-      picker.selectedEndDate = end;
-      picker.renderCalendar();
-      picker.updateSummary();
+      element.selectedRanges = [{ start, end }];
     }
   },
-  { action: 'clear', text: 'Clear' },
-  { action: 'apply', text: 'Apply' }
+  'clear',
+  'apply'
 ];
 
 CONDITIONAL VISIBILITY
 ----------------------
 Show/hide buttons based on state:
 
-picker.actionButtons = [
-  { action: 'today', text: 'Today' },
-  { action: 'clear', text: 'Clear' },
+el.actionButtons = [
+  'today',
+  'clear',
   {
     action: 'apply',
-    text: 'Apply',
     // Only show when both dates selected
-    isVisibleCallback: (picker) => {
-      return picker.selectedStartDate && picker.selectedEndDate;
-    }
+    getIsVisibleCallback: (ctx) => !!ctx.controller.getSelectedRange()
   }
 ];
 
 DYNAMIC DISABLED STATE
 ----------------------
-Enable/disable based on state:
-
-picker.actionButtons = [
-  { action: 'today', text: 'Today' },
+el.actionButtons = [
+  'today',
   {
     action: 'clear',
-    text: 'Clear',
     // Disable when nothing selected
-    isDisabledCallback: (picker) => {
-      return !picker.selectedStartDate && !picker.selectedEndDate;
-    }
+    getIsDisabledCallback: ({ element }) =>
+      !element.selectedStartDate && !element.selectedEndDate
   },
   {
     action: 'apply',
-    text: 'Apply',
     // Disable until both dates selected
-    isDisabledCallback: (picker) => {
-      return !picker.selectedStartDate || !picker.selectedEndDate;
-    }
+    getIsDisabledCallback: (ctx) => !ctx.controller.getSelectedRange()
   }
 ];
 
 DYNAMIC TEXT
 ------------
-Change button text based on state:
-
-picker.actionButtons = [
+el.actionButtons = [
   {
     action: 'apply',
-    text: 'Apply',
-    getTextCallback: (picker) => {
-      if (!picker.selectedStartDate || !picker.selectedEndDate) {
-        return 'Apply';
-      }
-
-      const days = Math.floor(
-        (picker.selectedEndDate - picker.selectedStartDate) / (1000 * 60 * 60 * 24)
-      ) + 1;
-
+    getTextCallback: (ctx) => {
+      const range = ctx.controller.getSelectedRange();
+      if (!range) return 'Apply';
+      const days = Math.floor((range.end - range.start) / 864e5) + 1;
       return `Apply (${days} day${days !== 1 ? 's' : ''})`;
     }
   }
@@ -223,413 +221,306 @@ picker.actionButtons = [
 
 DYNAMIC CSS CLASSES
 -------------------
-Apply classes based on state:
-
-picker.actionButtons = [
+el.actionButtons = [
   {
     action: 'clear',
-    text: 'Clear',
     cssClass: 'clear-button',
     // Return array of classes
-    getClassCallback: (picker) => {
+    getClassCallback: ({ element }) => {
       const classes = ['clear-button'];
-      if (picker.selectedStartDate || picker.selectedEndDate) {
-        classes.push('danger');
-      }
+      if (element.selectedStartDate || element.selectedEndDate) classes.push('danger');
       return classes;
     }
   },
   {
     action: 'apply',
-    text: 'Apply',
     // Return single string
-    getClassCallback: (picker) => {
-      const hasComplete = picker.selectedStartDate && picker.selectedEndDate;
-      return hasComplete ? 'apply-ready' : 'apply-waiting';
-    }
+    getClassCallback: (ctx) =>
+      ctx.controller.getSelectedRange() ? 'apply-ready' : 'apply-waiting'
   }
 ];
 
-// Inject styles
-picker.customStylesCallback = () => `
-  .apply-ready {
-    background: #10b981 !important;
-    color: white !important;
-    font-weight: 600 !important;
-  }
-  .apply-waiting {
-    background: #d1d5db !important;
-    color: #6b7280 !important;
-  }
-  .danger {
-    background: #ef4444 !important;
-    color: white !important;
-  }
+// Inject styles into the shadow root
+el.getCustomStylesCallback = () => `
+  .apply-ready   { background: #10b981 !important; color: white !important; font-weight: 600 !important; }
+  .apply-waiting { background: #d1d5db !important; color: #6b7280 !important; }
+  .danger        { background: #ef4444 !important; color: white !important; }
 `;
+
+For destructive styling prefer `isDanger: true` (adds .drp__button--danger).
+
+TOGGLE BUTTONS (isActive)
+-------------------------
+el.actionButtons = [
+  {
+    id: 'weekends',
+    text: 'Weekends',
+    getIsActiveCallback: () => showWeekends,   // .drp__button--active + aria-pressed
+    onClick: () => { showWeekends = !showWeekends; /* re-render via reassigning */ }
+  }
+];
 
 DYNAMIC TOOLTIPS
 ----------------
-Change tooltip based on state:
-
-picker.actionButtons = [
+el.actionButtons = [
   {
     action: 'today',
-    text: 'Today',
-    getTooltipCallback: (picker) => {
-      const today = new Date();
-      return `Set to ${today.toLocaleDateString()}`;
-    }
+    getTooltipCallback: () => `Set to ${new Date().toLocaleDateString()}`
   },
   {
     action: 'clear',
-    text: 'Clear',
-    getTooltipCallback: (picker) => {
-      if (!picker.selectedStartDate && !picker.selectedEndDate) {
-        return 'No selection to clear';
-      }
-      return 'Clear the current date range';
-    }
+    getTooltipCallback: ({ element }) =>
+      (!element.selectedStartDate && !element.selectedEndDate)
+        ? 'No selection to clear'
+        : 'Clear the current date range'
   },
   {
     action: 'apply',
-    text: 'Apply',
-    getTooltipCallback: (picker) => {
-      if (!picker.selectedStartDate || !picker.selectedEndDate) {
-        return 'Select both start and end dates';
-      }
-
-      const days = Math.floor(
-        (picker.selectedEndDate - picker.selectedStartDate) / (1000 * 60 * 60 * 24)
-      ) + 1;
-
+    getTooltipCallback: (ctx) => {
+      const range = ctx.controller.getSelectedRange();
+      if (!range) return 'Select both start and end dates';
+      const days = Math.floor((range.end - range.start) / 864e5) + 1;
       return `Apply ${days}-day range`;
     }
   }
 ];
 
+Each button keeps its own tooltip (several custom buttons no longer share the
+first one's tooltip).
+
 ICONS IN BUTTONS
 ----------------
-Use HTML in text property:
+`text` is set as PLAIN TEXT - HTML in `text` is no longer injected. `icon` /
+`getIconCallback` are part of the core ActionItem shape. For icon glyphs on the
+footer buttons, style a cssClass:
 
-picker.actionButtons = [
-  {
-    action: 'today',
-    text: '<i class="fa-solid fa-calendar-day"></i> Today',
-    tooltip: 'Jump to today'
-  },
-  {
-    action: 'clear',
-    text: '<i class="fa-solid fa-circle-xmark"></i> Clear',
-    cssClass: 'danger-icon'
-  },
-  {
-    action: 'apply',
-    text: '<i class="fa-solid fa-circle-check"></i> Apply',
-    cssClass: 'success-icon'
-  }
+el.actionButtons = [
+  { action: 'today', text: 'Today', cssClass: 'with-icon icon-today', tooltip: 'Jump to today' },
+  { action: 'clear', text: 'Clear', isDanger: true }
 ];
 
-// Import Font Awesome into Shadow DOM
-picker.customStylesCallback = () => `
-  @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
-
-  .drp__action {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
-  .success-icon {
-    background: #10b981 !important;
-    color: white !important;
-  }
-  .danger-icon {
-    background: #ef4444 !important;
-    color: white !important;
-  }
+el.getCustomStylesCallback = () => `
+  .with-icon { display: inline-flex; align-items: center; gap: 0.375rem; }
+  .icon-today::before { content: '\\1F4C5'; }
 `;
 
 BUSINESS PERIOD PRESETS
 -----------------------
-Common business date ranges:
+const setRange = (element, start, end) => { element.selectedRanges = [{ start, end }]; };
 
-picker.actionButtons = [
+el.actionButtons = [
   {
-    action: 'custom',
+    id: 'last-business-week',
     text: 'Last Business Week',
     tooltip: 'Monday-Friday of last week',
-    onClick: (picker) => {
+    onClick: ({ element }) => {
       const today = new Date();
       const dayOfWeek = today.getDay();
       const daysToLastMonday = dayOfWeek === 0 ? 6 : dayOfWeek + 6;
-
       const lastMonday = new Date(today);
       lastMonday.setDate(today.getDate() - daysToLastMonday);
-
       const lastFriday = new Date(lastMonday);
       lastFriday.setDate(lastMonday.getDate() + 4);
-
-      picker.selectedStartDate = lastMonday;
-      picker.selectedEndDate = lastFriday;
-      picker.renderCalendar();
-      picker.updateSummary();
+      setRange(element, lastMonday, lastFriday);
     }
   },
   {
-    action: 'custom',
+    id: 'this-quarter',
     text: 'This Quarter',
     tooltip: 'Current fiscal quarter',
-    onClick: (picker) => {
+    onClick: ({ element }) => {
       const now = new Date();
-      const quarter = Math.floor(now.getMonth() / 3);
-      const start = new Date(now.getFullYear(), quarter * 3, 1);
-      const end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
-
-      picker.selectedStartDate = start;
-      picker.selectedEndDate = end;
-      picker.renderCalendar();
-      picker.updateSummary();
+      const q = Math.floor(now.getMonth() / 3);
+      setRange(element, new Date(now.getFullYear(), q * 3, 1), new Date(now.getFullYear(), q * 3 + 3, 0));
     }
   },
   {
-    action: 'custom',
+    id: 'ytd',
     text: 'Year to Date',
     tooltip: 'From Jan 1 to today',
-    onClick: (picker) => {
+    onClick: ({ element }) => {
       const today = new Date();
-      const start = new Date(today.getFullYear(), 0, 1);
-
-      picker.selectedStartDate = start;
-      picker.selectedEndDate = today;
-      picker.renderCalendar();
-      picker.updateSummary();
+      setRange(element, new Date(today.getFullYear(), 0, 1), today);
     }
   },
   {
-    action: 'custom',
+    id: 'rolling-90',
     text: 'Rolling 90 Days',
     cssClass: 'rolling-period',
-    onClick: (picker) => {
+    onClick: ({ element }) => {
       const end = new Date();
       const start = new Date();
       start.setDate(end.getDate() - 89);
-
-      picker.selectedStartDate = start;
-      picker.selectedEndDate = end;
-      picker.renderCalendar();
-      picker.updateSummary();
+      setRange(element, start, end);
     }
   },
-  { action: 'clear', text: 'Clear' },
-  { action: 'apply', text: 'Apply' }
+  'clear',
+  'apply'
 ];
 
 COMBINING ALL FEATURES
 ----------------------
-All dynamic callbacks together:
+const hasSelection = ({ element }) => !!(element.selectedStartDate || element.selectedEndDate);
 
-picker.actionButtons = [
-  { action: 'today', text: 'Today' },
+el.actionButtons = [
+  'today',
   {
     action: 'clear',
-    text: 'Clear All',              // Overridden by getTextCallback
+    text: 'Clear All',               // Overridden by getTextCallback
     cssClass: 'base-clear',          // Overridden by getClassCallback
     tooltip: 'Static tooltip',       // Overridden by getTooltipCallback
-    isVisible: true,                 // Overridden by isVisibleCallback
-    isDisabled: false,               // Overridden by isDisabledCallback
+    isVisible: true,                 // Overridden by getIsVisibleCallback
+    isDisabled: false,               // Overridden by getIsDisabledCallback
 
-    // Callbacks take priority
-    isVisibleCallback: (picker) =>
-      picker.selectedStartDate || picker.selectedEndDate,
+    getIsVisibleCallback: hasSelection,
+    getIsDisabledCallback: (ctx) => !hasSelection(ctx),
+    getTextCallback: (ctx) => hasSelection(ctx) ? 'Clear Selection' : 'Clear All',
+    getClassCallback: (ctx) => hasSelection(ctx) ? 'danger' : 'base-clear',
+    getTooltipCallback: (ctx) => hasSelection(ctx) ? 'Remove current selection' : 'Nothing to clear',
 
-    isDisabledCallback: (picker) =>
-      !picker.selectedStartDate && !picker.selectedEndDate,
-
-    getTextCallback: (picker) => {
-      const hasSelection = picker.selectedStartDate || picker.selectedEndDate;
-      return hasSelection ? 'Clear Selection' : 'Clear All';
-    },
-
-    getClassCallback: (picker) => {
-      return (picker.selectedStartDate || picker.selectedEndDate)
-        ? 'danger'
-        : 'base-clear';
-    },
-
-    getTooltipCallback: (picker) => {
-      if (!picker.selectedStartDate && !picker.selectedEndDate) {
-        return 'Nothing to clear';
-      }
-      return 'Remove current selection';
-    }
+    // Runs for built-ins too, BEFORE the built-in clear
+    onClick: (d) => console.log('clearing', d.controller.getSelectedRange())
   }
 ];
 
-PICKER INSTANCE METHODS
------------------------
-Available in onClick handlers:
+WHAT onClick CAN USE
+--------------------
+onClick: (d) => {
+  // Which button
+  d.action;  d.id;  d.source;  d.dataset;
 
-onClick: (picker) => {
-  // Access properties
-  const start = picker.selectedStartDate;
-  const end = picker.selectedEndDate;
-  const date = picker.selectedDate;
+  // Read state via the controller facade
+  const range = d.controller.getSelectedRange();
+  const date  = d.controller.getSelectedDate();
+  const open  = d.controller.isOpen;
 
-  // Call methods
-  picker.renderCalendar();
-  picker.updateSummary();
-  picker.clearSelection();
-  picker.hide();
-  picker.show();
+  // Drive the picker
+  d.controller.clearSelection();
+  d.controller.apply();
+  d.controller.close();
+  d.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
 
-  // Access options
-  const mode = picker.options.selectionMode;
+  // Or the host element (full element API)
+  d.element.selectedRanges = [{ start, end }];
+  const mode = d.element.getAttribute('selection-mode');
 }
 
 BUTTON ORDER
 ------------
 Buttons appear in array order:
 
-picker.actionButtons = [
-  { action: 'today', text: 'Today' },         // Left
-  { action: 'custom', text: 'Preset' },
-  { action: 'clear', text: 'Clear' },
-  { action: 'apply', text: 'Apply' }          // Right
+el.actionButtons = [
+  'today',                                       // Left
+  { id: 'preset', text: 'Preset', onClick: ... },
+  'clear',
+  'apply'                                        // Right
 ];
 
 UPDATING BUTTONS
 ----------------
-Update button configuration after creation:
-
 // Replace all buttons
-picker.actionButtons = newButtonsArray;
+el.actionButtons = newButtonsArray;
 
 // Add button
-picker.actionButtons = [
-  ...picker.actionButtons,
-  { action: 'custom', text: 'New', onClick: handler }
+el.actionButtons = [
+  ...el.actionButtons,
+  { id: 'new', text: 'New', onClick: handler }
 ];
 
 // Remove button
-picker.actionButtons = picker.actionButtons.filter(
-  btn => btn.action !== 'clear'
-);
+el.actionButtons = el.actionButtons.filter(btn => (btn.action ?? btn) !== 'clear');
 
 // Calendar auto-updates
 
 DEBUGGING
 ---------
-Log button clicks:
-
-picker.actionButtons = [
+el.actionButtons = [
   {
-    action: 'custom',
+    id: 'debug',
     text: 'Debug',
-    onClick: (picker) => {
+    onClick: (d) => {
       console.log('Picker state:', {
-        start: picker.selectedStartDate,
-        end: picker.selectedEndDate,
-        isOpen: picker.isOpen
+        range: d.controller.getSelectedRange(),
+        isOpen: d.controller.isOpen
       });
     }
   }
 ];
 
-Track button state:
+// Or log every activation (built-ins, custom, data-action triggers)
+el.onAction = (d) => console.log('action', d.action, d.id, d.source);
 
-picker.actionButtons = [{
-  action: 'apply',
-  text: 'Apply',
-  isDisabledCallback: (picker) => {
-    const disabled = !picker.selectedStartDate || !picker.selectedEndDate;
-    console.log('Apply button disabled:', disabled);
-    return disabled;
+HTML TRIGGERS (data-action)
+---------------------------
+Buttons inside showMessage / summary / custom-rendered HTML fire the same
+pipeline. Custom triggers need data-id; other data-* go to detail.dataset:
+
+el.controller.showMessage(
+  'Unsaved changes. <button data-action="custom" data-id="discard" data-reason="user">Discard</button>',
+  { type: 'warning' }
+);
+el.addEventListener('action', (e) => {
+  if (e.detail.id === 'discard') {      // e.detail.source === 'message'
+    console.log(e.detail.dataset.reason); // 'user'
   }
-}];
+});
+
+`data-action` may also name a built-in: <button data-action="today">Today</button>.
 
 BEST PRACTICES
 --------------
-1. Use appropriate button types
-   - Built-in buttons for standard actions
-   - Custom buttons for presets
-   - Conditional visibility for optional actions
-
-2. Provide clear feedback
-   - Dynamic text shows current state
-   - Tooltips explain what will happen
-   - Disabled state prevents invalid actions
-
-3. Keep onClick handlers simple
-   - Set dates directly on picker
-   - Call renderCalendar() after changes
-   - Call updateSummary() for range mode
-
-4. Style consistently
-   - Use cssClass for static styling
-   - Use getClassCallback for state-based styling
-   - Inject styles via customStylesCallback
-
-5. Test button behavior
-   - Verify onClick handlers work
-   - Check disabled/enabled states
-   - Test visibility conditions
-   - Ensure tooltips are helpful
+1. Built-ins via `action` or the string shorthand; custom buttons via `id`.
+2. Read state with ctx.controller (or ctx.element) - never an engine instance.
+3. Keep onClick handlers simple; setting element.selectedRanges re-renders.
+4. Style with cssClass / getClassCallback / isDanger; inject CSS via
+   getCustomStylesCallback.
+5. Use beforeActionCallback to confirm/cancel, the `action` event for
+   cross-cutting tracking.
 
 ACCESSIBILITY
 -------------
-Ensure buttons are accessible:
-
-picker.actionButtons = [{
+el.actionButtons = [{
   action: 'apply',
   text: 'Apply Selection',
-  tooltip: 'Confirm and close calendar',
-  getTooltipCallback: (picker) => {
-    if (!picker.selectedStartDate || !picker.selectedEndDate) {
-      return 'Please select both start and end dates';
-    }
-    return 'Confirm and close calendar';
-  }
+  getTooltipCallback: (ctx) => ctx.controller.getSelectedRange()
+    ? 'Confirm and close calendar'
+    : 'Please select both start and end dates'
 }];
+
+Toggle buttons (isActive / getIsActiveCallback) render aria-pressed="true".
 
 COMMON PATTERNS
 ---------------
-Minimal buttons (no clutter):
-picker.actionButtons = [
-  { action: 'apply', text: 'Apply' }
-];
+Minimal buttons:
+el.actionButtons = ['apply'];
 
 Maximum buttons (all presets):
-picker.actionButtons = [
-  { action: 'today', text: 'Today' },
-  { action: 'custom', text: 'Yesterday', onClick: setYesterday },
-  { action: 'custom', text: 'Last 7 Days', onClick: setLastWeek },
-  { action: 'custom', text: 'Last 30 Days', onClick: setLastMonth },
-  { action: 'clear', text: 'Clear' },
-  { action: 'apply', text: 'Apply' }
+el.actionButtons = [
+  'today',
+  { id: 'yesterday',   text: 'Yesterday',    onClick: setYesterday },
+  { id: 'last-7',      text: 'Last 7 Days',  onClick: setLastWeek },
+  { id: 'last-30',     text: 'Last 30 Days', onClick: setLastMonth },
+  'clear',
+  'apply'
 ];
 
 Context-aware buttons:
-picker.actionButtons = [{
+el.actionButtons = [{
   action: 'apply',
-  text: 'Apply',
-  isVisibleCallback: (picker) => picker.selectedStartDate && picker.selectedEndDate,
-  getTextCallback: (picker) => {
-    const days = calculateDays(picker);
-    return days ? `Apply (${days} days)` : 'Apply';
+  getIsVisibleCallback: (ctx) => !!ctx.controller.getSelectedRange(),
+  getTextCallback: (ctx) => {
+    const r = ctx.controller.getSelectedRange();
+    return r ? `Apply (${Math.floor((r.end - r.start) / 864e5) + 1} days)` : 'Apply';
   }
 }];
 
 WEB COMPONENT LIMITATIONS
 --------------------------
-actionButtons property is JavaScript API ONLY.
+actionButtons is a PROPERTY only.
 
 ✅ Works (set as property):
-const picker = document.querySelector('web-daterangepicker');
-picker.actionButtons = [...];
-
-✅ Works (JavaScript API):
-const picker = new DateRangePicker(input, {
-  actionButtons: [...]
-});
+const el = document.querySelector('web-daterangepicker');
+el.actionButtons = [...];
 
 ❌ Doesn't work (attribute):
 <web-daterangepicker

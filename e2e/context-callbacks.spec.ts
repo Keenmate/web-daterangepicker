@@ -215,3 +215,40 @@ test('beforeSelectCallback returning null clears the selection', async ({ page }
     });
     expect(result).toBeNull();
 });
+
+test('icon renders as a glyph before the label; isDanger adds the modifier; no internal data-* in dataset', async ({ page }) => {
+    const p = pickerById(page, 'ctx-actions');
+    const btn = buttonByText(p, 'ICONED');
+    await expect(btn.locator('.drp__button-icon')).toHaveText('★');
+    await expect(btn).toHaveClass(/drp__button--danger/);
+    const dataset = await p.evaluate(async (el: any) => {
+        let d: any;
+        el.addEventListener('action', (e: any) => { d = e.detail.dataset; });
+        el.shadowRoot.querySelector('.drp__button[data-id="iconed"]').click();
+        await new Promise((r) => setTimeout(r, 50));
+        return d;
+    });
+    expect(dataset).toEqual({});
+});
+
+test('getMonthDataCallback set after upgrade loads the visible months; reloadMonthData re-runs it', async ({ page }) => {
+    const p = pickerById(page, 'ctx-events');
+    const calls = await p.evaluate(async (el: any) => {
+        const seen: string[] = [];
+        let label = 'A';
+        el.getMonthDataCallback = async ({ year, month }: any) => {
+            seen.push(`${year}-${month}`);
+            return { monthHeaders: new Map([[`${year}-${String(month + 1).padStart(2, '0')}`, `HDR-${label}`]]) };
+        };
+        await el.whenSettled();
+        await new Promise((r) => setTimeout(r, 50));
+        const first = el.shadowRoot.querySelector('.drp__month-year').textContent;
+        label = 'B';
+        await el.controller.reloadMonthData();
+        const second = el.shadowRoot.querySelector('.drp__month-year').textContent;
+        return { seen, first, second };
+    });
+    expect(calls.seen).toEqual(['2026-5', '2026-5']);
+    expect(calls.first).toBe('HDR-A');
+    expect(calls.second).toBe('HDR-B');
+});

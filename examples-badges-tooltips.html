@@ -71,7 +71,7 @@
           <td>Medium</td>
         </tr>
         <tr>
-          <td><code>badgeTooltipCallback</code> / <code>dayTooltipCallback</code></td>
+          <td><code>getBadgeTooltipCallback</code> / <code>getDayTooltipCallback</code></td>
           <td>Advanced HTML tooltips with rich formatting</td>
           <td>Yes (HTML)</td>
           <td>Advanced</td>
@@ -159,7 +159,7 @@ picker.specialDates = [
         <label>4. Rich Tooltips</label>
         <web-daterangepicker id="method-tooltips" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Complex tooltip content with HTML formatting</small>
-        <span class="method-note">Uses: <code>badgeTooltipCallback</code></span>
+        <span class="method-note">Uses: <code>getBadgeTooltipCallback</code></span>
       </div>
     </div>
 
@@ -169,7 +169,7 @@ picker.specialDates = [
 ];
 
 // Method 2: Dynamic Calculation with Custom Styles
-picker.customStylesCallback = () => {
+picker.getCustomStylesCallback = () => {
   return `.price-high { background: #fee2e2; color: #991b1b; }
           .price-low { background: #d1fae5; color: #065f46; }`;
 };
@@ -190,18 +190,18 @@ picker.specialDates = [
 picker.specialDates = [
   { date: '2025-12-25', badgeText: '🎄', badgeClass: 'holiday' }
 ];
-picker.badgeTooltipCallback = (data) => {
+picker.getBadgeTooltipCallback = (data) => {
   return '&lt;strong&gt;Christmas Day&lt;/strong&gt;&lt;br&gt;🎁 Gift exchange&lt;br&gt;🍽️ Family dinner';
 };</code></pre>
   </div>
 
   <!-- Method 5: Async data on month change -->
   <div class="card">
-    <h2>BT04 · Async Badges — Load per Month (<code>beforeMonthChangedCallback</code>)</h2>
+    <h2>BT04 · Async Badges — Load per Month (<code>getMonthDataCallback</code>)</h2>
     <p>
       The badge callbacks (Methods 1–4) are <strong>synchronous</strong> — they render from data you already have.
       When your badge data lives behind an API, load it <strong>per visible month</strong> with
-      <code>beforeMonthChangedCallback</code>. It fires on initial load and every navigation, hands you the visible
+      <code>getMonthDataCallback</code>. It fires on the initial open and after every navigation, hands you the visible
       date range, and — because the callback returns a <code>Promise</code> — the picker automatically shows its
       loading overlay while the fetch is in flight. Navigate the months below: each new month "fetches"
       availability (mocked with a 600&nbsp;ms delay) and fills in price badges.
@@ -210,17 +210,16 @@ picker.badgeTooltipCallback = (data) => {
     <div class="form-group">
       <label>Availability &amp; pricing, loaded on demand</label>
       <web-daterangepicker id="method-async" visible-months-count="2" placeholder="Select a range"></web-daterangepicker>
-      <small><strong>Best for:</strong> API-driven badges — one request per month instead of a per-day callback.
-        Open the calendar and use the <strong>🔄 Refresh</strong> button in the action bar to re-fetch (prices shift so you can see it worked).</small>
-      <span class="method-note">Uses: <code>beforeMonthChangedCallback</code> + a custom <code>actionButtons</code> entry whose <code>onClick({ picker })</code> re-fetches</span>
+      <small><strong>Best for:</strong> API-driven badges — one request per month instead of a per-day callback.</small>
+      <span class="method-note">Uses: <code>getMonthDataCallback</code></span>
     </div>
 
-    <pre><code>picker.beforeMonthChangedCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+    <pre><code>picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   // One request for the whole visible grid (may include adjacent-month days).
   const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
 
   // Key each entry by a local 'YYYY-MM-DD' string — the same key the picker
-  // uses internally (Validation.formatDateKey).
+  // uses internally.
   const metadata = new Map();
   days.forEach(d => metadata.set(d.date, {
     isDisabled: d.available === 0,
@@ -229,35 +228,16 @@ picker.badgeTooltipCallback = (data) => {
     badgeTooltip: d.available === 0 ? 'Sold out — no rooms left' : `${d.available} rooms · $${d.price}/night`
   }));
 
-  // 'accept' + metadata → merged into the cache and used instead of a per-day
-  // callback. Returning { action: 'block', message } would refuse the navigation.
-  return { action: 'accept', metadata };
-};
-
-// A Refresh button INSIDE the picker. Its onClick gets the core instance as
-// `picker` — so refreshing badges needs no reach into element internals:
-picker.actionButtons = [
-  { action: 'today', text: 'Today' },
-  { action: 'clear', text: 'Clear' },
-  { action: 'custom', text: '🔄 Refresh', onClick: async ({ picker }) => {
-      picker.showLoader();                       // public overlay
-      const { start, end } = picker.visibleDateRange;  // what's on screen
-      const days = await fetchAvailability(start, end);
-      const fresh = buildMetadata(days);         // Map&lt;'YYYY-MM-DD', DayMetadata&gt;
-      picker.bulkMetadataCache ??= new Map();
-      fresh.forEach((v, k) => picker.bulkMetadataCache.set(k, v));
-      picker.renderCalendar();                   // re-render from the fresh cache
-      picker.hideLoader();
-    } },
-  { action: 'apply', text: 'Apply' }
-];</code></pre>
+  // Merged into the picker's cache and used instead of a per-day callback.
+  // (To refuse a navigation instead, return false from beforeMonthChangeCallback.)
+  return { metadata };
+};</code></pre>
 
     <div class="note info">
       <strong>Why this and not <code>getDateMetadataCallback</code>?</strong>
       The per-day metadata callback is synchronous and runs ~42 times per month — you can't <code>await</code> inside it.
-      <code>beforeMonthChangedCallback</code> is the async, once-per-month hook: it fills
-      <code>bulkMetadataCache</code>, which takes priority over the per-day callback during rendering, and the cache
-      <em>merges</em> across visits so paging back to a loaded month is instant.
+      <code>getMonthDataCallback</code> is the async, once-per-month hook: its <code>metadata</code> takes priority over
+      the per-day callback during rendering, and it <em>merges</em> across visits so paging back to a loaded month is instant.
     </div>
   </div>
 
@@ -387,7 +367,7 @@ picker.getDateMetadataCallback = ({ date }) => {
   <div class="card">
     <h2>BT07 · Advanced HTML Tooltips</h2>
     <p>
-      For rich, formatted tooltips with HTML content, use <code>badgeTooltipCallback</code> or <code>dayTooltipCallback</code>.
+      For rich, formatted tooltips with HTML content, use <code>getBadgeTooltipCallback</code> or <code>getDayTooltipCallback</code>.
       These callbacks return HTML strings that are rendered with full formatting support.
     </p>
 
@@ -433,7 +413,7 @@ picker.getDateMetadataCallback = ({ date }) => {
 };
 
 // Add rich HTML tooltips via callback
-picker.dayTooltipCallback = (data) => {
+picker.getDayTooltipCallback = (data) => {
   const info = bookingInfo[data.dateString];
 
   if (info) {
@@ -465,7 +445,7 @@ picker.dayTooltipCallback = (data) => {
     <h2>BT08 · Combining Multiple Methods</h2>
     <p>
       You can combine different methods for maximum flexibility. For example, use <code>specialDates</code> for static holidays
-      and <code>getDateMetadataCallback</code> for dynamic pricing, with <code>dayTooltipCallback</code> for rich tooltips.
+      and <code>getDateMetadataCallback</code> for dynamic pricing, with <code>getDayTooltipCallback</code> for rich tooltips.
     </p>
 
     <div class="form-group">
@@ -502,8 +482,8 @@ picker.getDateMetadataCallback = ({ date }) => {
   return null;
 };
 
-// 3. Rich tooltips via dayTooltipCallback
-picker.dayTooltipCallback = (data) => {
+// 3. Rich tooltips via getDayTooltipCallback
+picker.getDayTooltipCallback = (data) => {
   const price = priceData[data.dateString];
   if (price) {
     return `&lt;strong&gt;$${price}/night&lt;/strong&gt;&lt;br&gt;Click to book`;
@@ -541,7 +521,7 @@ picker.dayTooltipCallback = (data) => {
         <li><code>badgeClass: 'badge-text'</code> — gray uppercase text badge (consumes <code>--drp-badge-text-bg</code> / <code>--drp-badge-text-color</code>)</li>
       </ul>
       Any other string (e.g., <code>'salsa'</code>, <code>'rumba'</code>) is rendered as-is — you
-      ship the matching CSS via <code>customStylesCallback</code>.
+      ship the matching CSS via <code>getCustomStylesCallback</code>.
     </div>
 
     <h3>Demo 1 — Built-in <code>dayClass</code> tints</h3>
@@ -582,7 +562,7 @@ picker.specialDates = [
     <h3>Demo 3 — Custom classifiers (your own vocabulary)</h3>
     <p>
       When you need domain-specific classes (a fitness studio's schedule, a venue's class types, etc.),
-      use whatever strings make sense and ship the matching CSS via <code>customStylesCallback</code>.
+      use whatever strings make sense and ship the matching CSS via <code>getCustomStylesCallback</code>.
       The callback returns a CSS string that's injected into the picker's shadow DOM, so it can target
       <code>.drp__day.&lt;your-class&gt;</code> directly.
     </p>
@@ -598,7 +578,7 @@ picker.specialDates = [
     <pre><code>const picker = document.getElementById('custom-classifier-demo');
 
 // 1. Ship the CSS for your class names — injected into the picker's shadow DOM.
-picker.customStylesCallback = () => `
+picker.getCustomStylesCallback = () => `
   .drp__day.salsa {
     background: color-mix(in srgb, #fb7185 18%, transparent);
     border-color: #fb7185;
@@ -624,7 +604,7 @@ picker.specialDates = [
 ];</code></pre>
 
     <div class="note info">
-      <strong>Why <code>customStylesCallback</code> instead of a regular stylesheet?</strong>
+      <strong>Why <code>getCustomStylesCallback</code> instead of a regular stylesheet?</strong>
       The picker lives inside a shadow DOM, so document-level CSS can't reach
       <code>.drp__day</code>. Either inject your styles via this callback (recommended for component-scoped
       rules), or theme via <code>--drp-*</code> CSS variables on the host element (which DO cross the
@@ -657,12 +637,12 @@ picker.specialDates = [
           <td>"Available", "Fully booked", "Weekend rate applies"</td>
         </tr>
         <tr>
-          <td><code>badgeTooltipCallback</code></td>
+          <td><code>getBadgeTooltipCallback</code></td>
           <td>Rich badge explanations with HTML</td>
           <td>Formatted price breakdowns, availability charts</td>
         </tr>
         <tr>
-          <td><code>dayTooltipCallback</code></td>
+          <td><code>getDayTooltipCallback</code></td>
           <td>Detailed date information with HTML</td>
           <td>Event schedules, booking details, weather forecasts</td>
         </tr>
@@ -711,7 +691,7 @@ picker.specialDates = [
     const holidaysDemo = document.getElementById('holidays-demo');
     if (holidaysDemo) {
       // Inject CSS for badge styling into Shadow DOM
-      holidaysDemo.customStylesCallback = () => {
+      holidaysDemo.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.holiday {
             background-color: rgba(239, 68, 68, 0.3) !important;
@@ -746,7 +726,7 @@ picker.specialDates = [
     const cottageDemo = document.getElementById('cottage-demo');
     if (cottageDemo) {
       // Inject CSS for booked badge styling into Shadow DOM
-      cottageDemo.customStylesCallback = () => {
+      cottageDemo.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.booked {
             background-color: rgba(107, 114, 128, 0.3) !important;
@@ -809,7 +789,7 @@ picker.specialDates = [
     const methodDynamic = document.getElementById('method-dynamic');
     if (methodDynamic) {
       // Inject CSS into Shadow DOM for price tier styling
-      methodDynamic.customStylesCallback = () => {
+      methodDynamic.getCustomStylesCallback = () => {
         return `
           .price-high {
             background-color: #fee2e2 !important;
@@ -859,7 +839,7 @@ picker.specialDates = [
     const methodMapping = document.getElementById('method-mapping');
     if (methodMapping) {
       // Inject CSS for badge styling into Shadow DOM
-      methodMapping.customStylesCallback = () => {
+      methodMapping.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.holiday {
             background-color: rgba(239, 68, 68, 0.3) !important;
@@ -895,12 +875,12 @@ picker.specialDates = [
       methodMapping.specialDates = eventsData;
     }
 
-    // Method 4: Rich Tooltips (badgeTooltipCallback)
+    // Method 4: Rich Tooltips (getBadgeTooltipCallback)
     const methodTooltips = document.getElementById('method-tooltips');
     console.log('[Method 4] Element found:', !!methodTooltips);
     if (methodTooltips) {
       // Inject CSS for badge styling into Shadow DOM
-      methodTooltips.customStylesCallback = () => {
+      methodTooltips.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.holiday {
             background-color: rgba(239, 68, 68, 0.3) !important;
@@ -932,7 +912,7 @@ picker.specialDates = [
         { date: holidayA,    badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Office Closed' },
         { date: holidayB,    badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'Office Closed' }
       ];
-      console.log('[Method 4] specialDates set. Setting badgeTooltipCallback...');
+      console.log('[Method 4] specialDates set. Setting getBadgeTooltipCallback...');
 
       // Add rich HTML tooltips, keyed by the same date strings used above.
       const richTooltips = {
@@ -942,15 +922,15 @@ picker.specialDates = [
         [holidayA]:    '<strong>Office Closed</strong><br>🎁 Holiday party at 3pm<br>🍽️ Catered lunch',
         [holidayB]:    '<strong>Office Closed</strong><br>🎉 End-of-year celebration<br>🎆 Fireworks at midnight'
       };
-      methodTooltips.badgeTooltipCallback = (data) => richTooltips[data.dateString] || `<strong>${data.dateString}</strong>`;
-      console.log('[Method 4] badgeTooltipCallback set. Setup complete.');
+      methodTooltips.getBadgeTooltipCallback = (data) => richTooltips[data.dateString] || `<strong>${data.dateString}</strong>`;
+      console.log('[Method 4] getBadgeTooltipCallback set. Setup complete.');
     }
 
-    // Method 5: Async data on month change (beforeMonthChangedCallback)
+    // Method 5: Async data on month change (getMonthDataCallback)
     const methodAsync = document.getElementById('method-async');
     if (methodAsync) {
       // Same tier styling as Method 2 so sold-out vs available reads clearly.
-      methodAsync.customStylesCallback = () => `
+      methodAsync.getCustomStylesCallback = () => `
         .price-high {
           background-color: #fee2e2 !important;
           color: #991b1b !important;
@@ -965,13 +945,8 @@ picker.specialDates = [
         }
       `;
 
-      // `priceShift` lets the Refresh button return *different* prices each time
-      // so you can see the re-fetch actually took effect. No closure needed to
-      // remember what's shown — the Refresh button reads picker.visibleDateRange.
-      let priceShift = 0;
-
       // Mock API: availability/pricing for every day in [start, end].
-      // Deterministic from the date (+ current priceShift) so a given fetch is
+      // Deterministic from the date so a given fetch is
       // stable, with a 600ms delay so the picker's async loading overlay shows.
       const fetchAvailability = (start, end) =>
         new Promise((resolve) => {
@@ -986,7 +961,7 @@ picker.specialDates = [
               const dateNum = cursor.getDate();
               // Every ~9th day is sold out; weekends cost more.
               const available = (dateNum % 9 === 0) ? 0 : (dow === 0 || dow === 6 ? 4 : 12);
-              const price = ((dow === 0 || dow === 6) ? 220 : 150) + priceShift;
+              const price = ((dow === 0 || dow === 6) ? 220 : 150);
               days.push({ date: toLocalISO(cursor), available, price });
               cursor.setDate(cursor.getDate() + 1);
             }
@@ -994,7 +969,7 @@ picker.specialDates = [
           }, 600);
         });
 
-      // days[] -> Map<'YYYY-MM-DD', DayMetadata>. Shared by the callback and Refresh.
+      // days[] -> Map<'YYYY-MM-DD', DayMetadata>.
       const buildMetadata = (days) => {
         const metadata = new Map();
         days.forEach((d) => metadata.set(d.date, {
@@ -1006,45 +981,10 @@ picker.specialDates = [
         return metadata;
       };
 
-      methodAsync.beforeMonthChangedCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+      methodAsync.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
         const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
-        return { action: 'accept', metadata: buildMetadata(days) };
+        return { metadata: buildMetadata(days) };
       };
-
-      // ----- Refresh button, rendered INSIDE the picker ---------------------
-      // A custom action button lives in the picker's action bar next to
-      // Today/Clear/Apply. Its onClick receives { picker } — the core instance —
-      // so refreshing needs NO reach into element internals: it reads what's
-      // shown from picker.visibleDateRange and every call below is public
-      // (showLoader/hideLoader/renderCalendar + the bulkMetadataCache field).
-      // `actionButtons` REPLACES the defaults, so we re-list Today/Clear/Apply.
-      methodAsync.actionButtons = [
-        { action: 'today', text: 'Today' },
-        { action: 'clear', text: 'Clear' },
-        {
-          action: 'custom',
-          text: '🔄 Refresh',
-          tooltip: 'Re-fetch prices for the visible months',
-          onClick: async ({ picker }) => {
-            priceShift += 15;            // make the change visible
-            picker.showLoader();         // public — full-calendar overlay
-
-            // What's on screen — no closure needed. Envelope of the visible grid.
-            const { start, end } = picker.visibleDateRange;
-            const days = await fetchAvailability(start, end);
-            const fresh = buildMetadata(days);
-
-            // Merge fresh data into the bulk cache and re-render. Both are public
-            // on the core instance handed to us via the button context.
-            picker.bulkMetadataCache = picker.bulkMetadataCache || new Map();
-            fresh.forEach((v, k) => picker.bulkMetadataCache.set(k, v));
-            picker.renderCalendar();
-
-            picker.hideLoader();
-          }
-        },
-        { action: 'apply', text: 'Apply' }
-      ];
     }
 
     // ========================================
@@ -1054,7 +994,7 @@ picker.specialDates = [
     const memberMappingExample = document.getElementById('member-mapping-example');
     if (memberMappingExample) {
       // Inject CSS for badge styling into Shadow DOM
-      memberMappingExample.customStylesCallback = () => {
+      memberMappingExample.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.holiday {
             background-color: rgba(239, 68, 68, 0.3) !important;
@@ -1101,7 +1041,7 @@ picker.specialDates = [
     const dynamicPricing = document.getElementById('dynamic-pricing');
     if (dynamicPricing) {
       // Inject CSS into Shadow DOM for price tier styling
-      dynamicPricing.customStylesCallback = () => {
+      dynamicPricing.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.price-high {
             background-color: #fee2e2 !important;
@@ -1155,7 +1095,7 @@ picker.specialDates = [
     const dynamicAvailability = document.getElementById('dynamic-availability');
     if (dynamicAvailability) {
       // Inject CSS into Shadow DOM for availability styling
-      dynamicAvailability.customStylesCallback = () => {
+      dynamicAvailability.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.low-availability {
             background-color: rgba(239, 68, 68, 0.3) !important;
@@ -1233,7 +1173,7 @@ picker.specialDates = [
       };
 
       // Add rich HTML tooltips
-      htmlTooltipsBooking.dayTooltipCallback = (data) => {
+      htmlTooltipsBooking.getDayTooltipCallback = (data) => {
         const info = bookingInfo[data.dateString];
 
         if (info) {
@@ -1292,7 +1232,7 @@ picker.specialDates = [
         return null;
       };
 
-      htmlTooltipsEvents.dayTooltipCallback = (data) => {
+      htmlTooltipsEvents.getDayTooltipCallback = (data) => {
         const event = eventInfo[data.dateString];
 
         if (event) {
@@ -1321,7 +1261,7 @@ picker.specialDates = [
     const combinedExample = document.getElementById('combined-example');
     if (combinedExample) {
       // Inject CSS for badge styling into Shadow DOM
-      combinedExample.customStylesCallback = () => {
+      combinedExample.getCustomStylesCallback = () => {
         return `
           .drp__badge-cell.holiday {
             background-color: rgba(239, 68, 68, 0.3) !important;
@@ -1383,7 +1323,7 @@ picker.specialDates = [
       };
 
       // 3. Rich HTML tooltips
-      combinedExample.dayTooltipCallback = (data) => {
+      combinedExample.getDayTooltipCallback = (data) => {
         const price = priceData[data.dateString];
 
         if (price) {
@@ -1438,7 +1378,7 @@ picker.specialDates = [
     // Demo 3 — custom classifier names (salsa / rumba / pilates) with shadow-DOM CSS injection
     const customClassifierDemo = document.getElementById('custom-classifier-demo');
     if (customClassifierDemo) {
-      customClassifierDemo.customStylesCallback = () => `
+      customClassifierDemo.getCustomStylesCallback = () => `
         .drp__day.salsa {
           background: color-mix(in srgb, #fb7185 18%, transparent);
           border-color: #fb7185;

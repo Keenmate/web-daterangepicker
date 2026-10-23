@@ -32,23 +32,25 @@
     <header>
       <a href="index.html" class="back-link">← Back to Examples</a>
       <h1>⚡ Events, Handlers & Interceptors</h1>
-      <p class="subtitle">Custom events, handler properties, and callbacks (beforeDateSelectCallback, beforeMonthChangedCallback) for validating, controlling, and enriching selections</p>
+      <p class="subtitle">Custom events, handler properties, and callbacks (beforeSelectCallback, beforeMonthChangeCallback, getMonthDataCallback) for validating, controlling, and enriching selections</p>
     </header>
 
   <!-- Events Overview -->
   <div class="card">
     <h2>EV01 · Events Fired by the Component</h2>
-    <p>The date picker fires three custom events:</p>
+    <p>The date picker fires these custom events:</p>
 
     <div class="note info">
       <strong>Event Names:</strong>
       <ul>
-        <li><code>date-select</code> - Primary event for date selection</li>
-        <li><code>change</code> - Alias event (fires simultaneously with date-select)</li>
-        <li><code>custom-action</code> - Fired when a custom action button is clicked (<code>detail.data</code> / <code>detail.picker</code>)</li>
+        <li><code>select</code> - Primary event for date selection</li>
+        <li><code>change</code> - Fires right after <code>select</code>, with the same detail</li>
+        <li><code>action</code> - An action button (built-ins too) or a <code>data-action</code> trigger was clicked (<code>detail.action</code>, <code>detail.id</code>, <code>detail.source</code>, <code>detail.dataset</code>)</li>
+        <li><code>month-change</code> - The visible month(s) changed (<code>detail.monthIndex</code>, <code>year</code>, <code>month</code>, <code>visibleMonths</code>)</li>
+        <li><code>ready</code> - The picker was built for the first time</li>
       </ul>
-      <p><strong>Note:</strong> All events bubble and are composed (cross Shadow DOM boundaries).</p>
-      <p><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onDateSelect</code>, <code>onChange</code>, or <code>onCustomAction</code> — each receives the <code>CustomEvent</code> just like <code>addEventListener</code>; assign <code>null</code> to detach.</p>
+      <p><strong>Note:</strong> All events bubble from the <code>&lt;web-daterangepicker&gt;</code> element (they are not <code>composed</code>). Every detail also carries <code>controller</code> (the picker facade) and <code>element</code> (the host); both are non-enumerable, so <code>JSON.stringify(detail)</code> shows only the data.</p>
+      <p><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onSelect</code>, <code>onChange</code>, <code>onAction</code>, <code>onMonthChange</code> or <code>onReady</code>. Each receives the event <strong>detail</strong> (not the <code>CustomEvent</code>): <code>el.onSelect = (detail) =&gt; detail.date</code>. Assign <code>null</code> to detach.</p>
     </div>
 
     <h3>Event Detail Structure</h3>
@@ -92,7 +94,7 @@
     <pre><code>// Listening to events
 const picker = document.getElementById('my-picker');
 
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   console.log('Date selected:', event.detail);
 
   if (event.detail.date) {
@@ -102,14 +104,26 @@ picker.addEventListener('date-select', (event) => {
     // Range mode
     console.log('Selected range:', event.detail.dateRange);
   }
+});
+
+// Handler property: receives the detail directly
+picker.onSelect = (detail) => console.log(detail.formattedValue);
+
+// Month navigation
+picker.addEventListener('month-change', (event) => {
+  const { year, month, monthIndex } = event.detail; // month is 0-11
+  console.log(`Column ${monthIndex} now shows ${year}-${month + 1}`);
 });</code></pre>
   </div>
 
-  <!-- beforeDateSelectCallback Callback -->
+  <!-- beforeSelectCallback Callback -->
   <div class="card">
-    <h2>EV02 · beforeDateSelectCallback Callback - Validation & Control</h2>
+    <h2>EV02 · beforeSelectCallback - Validation & Control</h2>
     <p>
-      The <code>beforeDateSelectCallback</code> callback is invoked BEFORE a selection is finalized.
+      The <code>beforeSelectCallback(ctx)</code> callback is invoked BEFORE a selection is finalized.
+      <code>ctx</code> carries the proposal (<code>mode</code>, <code>date</code> in single mode,
+      <code>range</code> in range mode, plus <code>subRanges</code> / <code>enabledDates</code> under
+      split/individual handling), <code>controller</code>, <code>element</code> and <code>markRangeInvalid()</code>.
       It allows you to validate, block, adjust, or clear selections based on your business logic.
     </p>
 
@@ -118,39 +132,45 @@ picker.addEventListener('date-select', (event) => {
       <ul>
         <li>Works for both <strong>single</strong> and <strong>range</strong> modes</li>
         <li>Supports <strong>synchronous</strong> and <strong>asynchronous</strong> validation</li>
-        <li>Can <strong>block</strong>, <strong>adjust</strong>, <strong>restore</strong>, or <strong>clear</strong> selections</li>
+        <li>Can <strong>reject</strong>, <strong>adjust</strong>, or <strong>clear</strong> selections</li>
+        <li>Explain a decision with <code>ctx.controller.showMessage(text, { type })</code></li>
         <li>Shows loading overlay during async operations</li>
         <li>Called AFTER local validation (disabled dates, min/max) passes</li>
       </ul>
     </div>
 
-    <h3>Return Value Actions</h3>
+    <h3>Return Values</h3>
     <table class="reference-table">
       <thead>
         <tr>
-          <th>Action</th>
+          <th>Return</th>
           <th>Description</th>
           <th>Use Case</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td><code>'accept'</code></td>
+          <td>nothing (<code>undefined</code>)</td>
           <td>Allow the selection as-is</td>
           <td>Validation passed</td>
         </tr>
         <tr>
-          <td><code>'adjust'</code></td>
-          <td>Modify the selected date(s)</td>
-          <td>Round to business days, snap to availability</td>
-        </tr>
-        <tr>
-          <td><code>'restore'</code></td>
-          <td>Reject and revert to previous selection</td>
+          <td><code>false</code></td>
+          <td>Reject and revert to the previous selection (call <code>ctx.markRangeInvalid()</code> first to keep a rejected range visible with error styling)</td>
           <td>Validation failed, keep previous state</td>
         </tr>
         <tr>
-          <td><code>'clear'</code></td>
+          <td>a <code>Date</code> / <code>{ start, end }</code></td>
+          <td>Accept this adjusted selection instead</td>
+          <td>Round to business days, snap to availability</td>
+        </tr>
+        <tr>
+          <td><code>DateRange[]</code></td>
+          <td>Replace the proposal with these N ranges (range mode)</td>
+          <td>Split around unavailable days</td>
+        </tr>
+        <tr>
+          <td><code>null</code></td>
           <td>Clear the selection entirely</td>
           <td>Hard reset on validation failure</td>
         </tr>
@@ -160,7 +180,7 @@ picker.addEventListener('date-select', (event) => {
 
   <!-- Single Mode Examples -->
   <div class="card">
-    <h2>EV03 · Single Mode - beforeDateSelectCallback Examples</h2>
+    <h2>EV03 · Single Mode - beforeSelectCallback Examples</h2>
 
     <div class="grid">
       <!-- Example 1: Block Weekends -->
@@ -218,44 +238,43 @@ picker.addEventListener('date-select', (event) => {
 
     <h3>Code Examples</h3>
     <pre><code>// Block weekends
-picker.beforeDateSelectCallback = ({ date }) => {
+picker.beforeSelectCallback = ({ date, controller }) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-  return isWeekend
-    ? { action: 'restore', message: 'Weekends not allowed' }
-    : { action: 'accept' };
+  if (isWeekend) {
+    controller.showMessage('Weekends not allowed', { type: 'error' });
+    return false; // reject, keep the previous selection
+  }
+  // returning nothing accepts
 };
 
 // Adjust to next business day
-picker.beforeDateSelectCallback = ({ date }) => {
+picker.beforeSelectCallback = ({ date, controller }) => {
   const day = date.getDay();
-  if (day === 0) { // Sunday → Monday
+  if (day === 0 || day === 6) { // Sunday / Saturday → Monday
     const adjusted = new Date(date);
-    adjusted.setDate(date.getDate() + 1);
-    return { action: 'adjust', adjustedDate: adjusted, message: 'Adjusted to Monday' };
-  } else if (day === 6) { // Saturday → Monday
-    const adjusted = new Date(date);
-    adjusted.setDate(date.getDate() + 2);
-    return { action: 'adjust', adjustedDate: adjusted, message: 'Adjusted to Monday' };
+    adjusted.setDate(date.getDate() + (day === 0 ? 1 : 2));
+    controller.showMessage('Adjusted to Monday', { type: 'info' });
+    return adjusted; // accept this date instead
   }
-  return { action: 'accept' };
 };
 
 // Async API validation
-picker.beforeDateSelectCallback = async (date) => {
+picker.beforeSelectCallback = async ({ date, controller }) => {
   const response = await fetch('/api/check-date', {
     method: 'POST',
     body: JSON.stringify({ date: date.toISOString() })
   });
   const { available } = await response.json();
-  return available
-    ? { action: 'accept' }
-    : { action: 'restore', message: 'Date not available' };
+  if (!available) {
+    controller.showMessage('Date not available', { type: 'error' });
+    return false;
+  }
 };</code></pre>
   </div>
 
   <!-- Range Mode Examples -->
   <div class="card">
-    <h2>EV04 · Range Mode - beforeDateSelectCallback Examples</h2>
+    <h2>EV04 · Range Mode - beforeSelectCallback Examples</h2>
 
     <div class="grid">
       <!-- Example 5: Minimum Nights -->
@@ -271,14 +290,14 @@ picker.beforeDateSelectCallback = async (date) => {
         </div>
       </div>
 
-      <!-- Example 6: Maximum Nights (with showInvalidRange) -->
+      <!-- Example 6: Maximum Nights (with markRangeInvalid) -->
       <div class="form-group">
         <label>
           <span class="status-dot status-dot--err"></span>
-          Maximum 7 Nights (showInvalidRange)
+          Maximum 7 Nights (markRangeInvalid)
         </label>
         <web-daterangepicker id="range-max-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
-        <small>Cannot exceed 7 nights. Uses <code>showInvalidRange: true</code> to keep invalid range visible with error styling.</small>
+        <small>Cannot exceed 7 nights. Calls <code>ctx.markRangeInvalid()</code> before returning <code>false</code> to keep the invalid range visible with error styling.</small>
         <div id="log-range-max" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Waiting for selection...</div>
         </div>
@@ -304,7 +323,7 @@ picker.beforeDateSelectCallback = async (date) => {
           Check Availability (Custom Message)
         </label>
         <web-daterangepicker id="range-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
-        <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>showMessage(html)</code> for full control.</small>
+        <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>ctx.controller.showMessage(html)</code> for full control; its buttons fire the <code>action</code> event.</small>
         <div id="log-range-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Waiting for selection...</div>
         </div>
@@ -313,32 +332,27 @@ picker.beforeDateSelectCallback = async (date) => {
 
     <h3>Code Examples</h3>
     <pre><code>// Minimum nights requirement
-picker.beforeDateSelectCallback = ({ range }) => {
+picker.beforeSelectCallback = ({ range, controller }) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
-  return nights &lt; 2
-    ? { action: 'restore', message: 'Minimum 2 nights required' }
-    : { action: 'accept' };
+  if (nights &lt; 2) {
+    controller.showMessage('Minimum 2 nights required', { type: 'error' });
+    return false;
+  }
 };
 
 // Adjust end date to checkout day (Sunday)
-picker.beforeDateSelectCallback = ({ range }) => {
+picker.beforeSelectCallback = ({ range, controller }) => {
   const endDay = range.end.getDay();
   if (endDay !== 0) { // Not Sunday
     const adjusted = new Date(range.end);
-    const daysToSunday = endDay === 0 ? 0 : 7 - endDay;
-    adjusted.setDate(range.end.getDate() + daysToSunday);
-    return {
-      action: 'adjust',
-      adjustedStartDate: range.start,
-      adjustedEndDate: adjusted,
-      message: `Adjusted to Sunday checkout`
-    };
+    adjusted.setDate(range.end.getDate() + (7 - endDay));
+    controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
+    return { start: range.start, end: adjusted }; // accept this range instead
   }
-  return { action: 'accept' };
 };
 
 // Async availability check
-picker.beforeDateSelectCallback = async (range) => {
+picker.beforeSelectCallback = async ({ range, controller }) => {
   const response = await fetch('/api/check-availability', {
     method: 'POST',
     body: JSON.stringify({
@@ -348,48 +362,42 @@ picker.beforeDateSelectCallback = async (range) => {
   });
   const data = await response.json();
 
-  if (data.available) {
-    return { action: 'accept' };
-  } else if (data.suggestedEnd) {
-    return {
-      action: 'adjust',
-      adjustedStartDate: range.start,
-      adjustedEndDate: new Date(data.suggestedEnd),
-      message: 'Adjusted to available dates'
-    };
-  } else {
-    return { action: 'restore', message: 'Dates not available' };
+  if (data.available) return; // accept
+  if (data.suggestedEnd) {
+    controller.showMessage('Adjusted to available dates', { type: 'info' });
+    return { start: range.start, end: new Date(data.suggestedEnd) };
   }
+  controller.showMessage('Dates not available', { type: 'error' });
+  return false;
 };
 
-// Maximum nights with showInvalidRange
-// Keeps invalid range visible with red styling for better visual feedback
-// User controls the message display via picker.showMessage()
-picker.beforeDateSelectCallback = ({ range }) => {
-  const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+// Maximum nights with markRangeInvalid()
+// Keeps the rejected range visible with red styling for better visual feedback
+picker.beforeSelectCallback = (ctx) => {
+  const nights = Math.floor((ctx.range.end - ctx.range.start) / (1000 * 60 * 60 * 24));
   if (nights > 7) {
-    // Show message using the built-in styled alert
-    picker.showMessage('Maximum 7 nights allowed', 'error');
-    return { action: 'restore', showInvalidRange: true };
+    ctx.markRangeInvalid();
+    ctx.controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
+    return false;
   }
-  return { action: 'accept' };
 };
 
 // Custom HTML message with full control
-// Use data-action="custom" on buttons to fire custom-action event
-// Add data-start-date and data-end-date as data attributes
-picker.beforeDateSelectCallback = async (range) => {
-  const response = await fetch('/api/check', { method: 'POST', body: JSON.stringify(range) });
+// A button with data-action="custom" data-id="…" fires the 'action' event;
+// its other data-* attributes arrive in detail.dataset
+picker.beforeSelectCallback = async (ctx) => {
+  const response = await fetch('/api/check', { method: 'POST', body: JSON.stringify(ctx.range) });
   const data = await response.json();
 
   if (!data.available) {
-    // Show fully custom HTML message
-    picker.showMessage(`
+    // Show fully custom HTML message (no type = raw HTML)
+    ctx.controller.showMessage(`
       &lt;div style="background: #fef2f2; ..."&gt;
         &lt;div style="color: #991b1b;"&gt;Dates not available&lt;/div&gt;
         &lt;div style="margin-top: 8px;"&gt;
           ${data.alternatives.map(alt => `
             &lt;button data-action="custom"
+                    data-id="use-alternative"
                     data-start-date="${alt.start}"
                     data-end-date="${alt.end}"
                     style="background: #dcfce7; ..."&gt;
@@ -399,32 +407,52 @@ picker.beforeDateSelectCallback = async (range) => {
         &lt;/div&gt;
       &lt;/div&gt;
     `);
-    return { action: 'restore', showInvalidRange: true };
+    ctx.markRangeInvalid();
+    return false;
   }
-  return { action: 'accept' };
 };
 
-// Handle custom-action event to apply selected dates
-picker.addEventListener('custom-action', (e) => {
-  const { startDate, endDate } = e.detail.data;
-  if (startDate && endDate) {
-    picker.selectedRanges = [{
-      start: new Date(startDate),
-      end: new Date(endDate)
-    }];
-    picker.hideMessage();
-  }
+// Handle the action event to apply the chosen alternative
+picker.addEventListener('action', (e) => {
+  if (e.detail.id !== 'use-alternative') return;
+  const { startDate, endDate } = e.detail.dataset; // data-start-date → startDate
+  picker.selectedRanges = [{
+    start: new Date(startDate),
+    end: new Date(endDate)
+  }];
+  e.detail.controller.hideMessage();
 });</code></pre>
   </div>
 
-  <!-- beforeMonthChangedCallback Examples -->
+  <!-- getMonthDataCallback / beforeMonthChangeCallback Examples -->
   <div class="card">
-    <h2>EV05 · beforeMonthChangedCallback - Performance Optimization</h2>
+    <h2>EV05 · getMonthDataCallback &amp; beforeMonthChangeCallback - Performance Optimization</h2>
     <p>
-      The <code>beforeMonthChangedCallback</code> is called BEFORE month navigation occurs.
-      Use it to bulk-load metadata for all visible dates in ONE API call instead of calling
-      <code>getDateMetadataCallback</code> 35-42 times per month.
+      <code>getMonthDataCallback(ctx)</code> loads data for the visible range on the initial open and
+      after every month navigation. Use it to bulk-load metadata for all visible dates in ONE API call
+      instead of calling <code>getDateMetadataCallback</code> 35-42 times per month; return
+      <code>{ metadata, monthHeaders }</code>. <code>beforeMonthChangeCallback(ctx)</code> runs before a
+      navigation; return <code>false</code> to block it. Both may be async (a loader shows meanwhile) and
+      receive <code>year</code>, <code>month</code> (0-11), <code>monthIndex</code>,
+      <code>firstVisibleDate</code>, <code>lastVisibleDate</code>, plus <code>controller</code> / <code>element</code>.
     </p>
+
+    <pre><code>// Bulk data for the visible range
+picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+  const days = await fetchPricing(firstVisibleDate, lastVisibleDate);
+  return {
+    metadata: new Map(days.map(d => [d.date, { // key: 'YYYY-MM-DD'
+      badgeText: `$${d.price}`,
+      isDisabled: d.soldOut
+    }]))
+  };
+};
+
+// Block navigation more than 2 months ahead
+picker.beforeMonthChangeCallback = ({ year, month }) => {
+  const now = new Date();
+  if ((year - now.getFullYear()) * 12 + (month - now.getMonth()) > 2) return false;
+};</code></pre>
 
     <div class="note info">
       <strong>Performance:</strong> 1 API call per month vs 35-42 calls with per-day callbacks
@@ -496,7 +524,7 @@ picker.addEventListener('custom-action', (e) => {
       <strong>Two Approaches:</strong>
       <ul>
         <li><code>getMonthHeaderCallback</code> - Callback to generate header on-the-fly</li>
-        <li><code>monthHeaders</code> in <code>beforeMonthChangedCallback</code> result - Return headers with async-loaded data</li>
+        <li><code>monthHeaders</code> in the <code>getMonthDataCallback</code> result - Return headers with async-loaded data (keys <code>YYYY-MM</code>, 1-based month)</li>
       </ul>
       <p><strong>Priority:</strong> monthHeaders &gt; getMonthHeaderCallback &gt; default format</p>
     </div>
@@ -512,7 +540,7 @@ picker.addEventListener('custom-action', (e) => {
         </div>
       </div>
 
-      <!-- Example: monthHeaders from beforeMonthChangedCallback -->
+      <!-- Example: monthHeaders from getMonthDataCallback -->
       <div class="form-group">
         <label>Headers from Async Data</label>
         <web-daterangepicker id="header-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
@@ -559,18 +587,17 @@ picker.getMonthHeaderCallback = ({ month, monthName, year }) => {
   return `${monthName} ${year} (${rooms} rooms)`;
 };
 
-// Approach 2: monthHeaders from beforeMonthChangedCallback
-picker.beforeMonthChangedCallback = async ({ year, month }) => {
+// Approach 2: monthHeaders from getMonthDataCallback
+picker.getMonthDataCallback = async ({ year, month }) => {
   const data = await fetchAvailability(year, month);
 
   const monthHeaders = new Map();
-  const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`; // 'YYYY-MM', 1-based
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   monthHeaders.set(monthKey, `${monthNames[month]} ${year} (${data.totalRooms} rooms)`);
 
   return {
-    action: 'accept',
     metadata: data.dateMetadata,
     monthHeaders  // Custom headers returned with data
   };
@@ -619,15 +646,15 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
     const eventSingle = document.getElementById('event-single');
     const eventRange = document.getElementById('event-range');
 
-    eventSingle.addEventListener('date-select', (e) => {
-      logEvent('event-log-single', 'date-select', {
+    eventSingle.addEventListener('select', (e) => {
+      logEvent('event-log-single', 'select', {
         formattedValue: e.detail.formattedValue,
         date: e.detail.date.toISOString()
       }, 'success');
     });
 
-    eventRange.addEventListener('date-select', (e) => {
-      logEvent('event-log-range', 'date-select', {
+    eventRange.addEventListener('select', (e) => {
+      logEvent('event-log-range', 'select', {
         formattedValue: e.detail.formattedValue,
         dateRange: {
           start: e.detail.dateRange.start.toISOString(),
@@ -636,13 +663,23 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       }, 'success');
     });
 
+    // Handler property (on* twin): receives the detail, not the CustomEvent
+    eventRange.onMonthChange = (detail) => {
+      logEvent('event-log-range', 'month-change', {
+        monthIndex: detail.monthIndex,
+        year: detail.year,
+        month: detail.month + 1,
+        visibleMonths: detail.visibleMonths.map(m => `${m.year}-${m.month + 1}`)
+      }, 'info');
+    };
+
     // =================================================================
     // Single Mode Examples
     // =================================================================
 
     // Example 1: Block Weekends
     const singleBlockWeekends = document.getElementById('single-block-weekends');
-    singleBlockWeekends.beforeDateSelectCallback = ({ date }) => {
+    singleBlockWeekends.beforeSelectCallback = ({ date, controller }) => {
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
 
@@ -652,14 +689,16 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         isWeekend ? 'error' : 'success'
       );
 
-      return isWeekend
-        ? { action: 'restore', message: 'Weekends not allowed' }
-        : { action: 'accept' };
+      if (isWeekend) {
+        controller.showMessage('Weekends not allowed', { type: 'error' });
+        return false; // reject
+      }
+      // nothing returned = accept
     };
 
     // Example 2: Block Past Dates
     const singleBlockPast = document.getElementById('single-block-past');
-    singleBlockPast.beforeDateSelectCallback = ({ date }) => {
+    singleBlockPast.beforeSelectCallback = ({ date, controller }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const isPast = date < today;
@@ -670,14 +709,15 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         isPast ? 'error' : 'success'
       );
 
-      return isPast
-        ? { action: 'restore', message: 'Past dates not allowed' }
-        : { action: 'accept' };
+      if (isPast) {
+        controller.showMessage('Past dates not allowed', { type: 'error' });
+        return false;
+      }
     };
 
     // Example 3: Adjust to Business Day
     const singleAdjustBusiness = document.getElementById('single-adjust-business');
-    singleAdjustBusiness.beforeDateSelectCallback = ({ date }) => {
+    singleAdjustBusiness.beforeSelectCallback = ({ date, controller }) => {
       const day = date.getDay();
       let adjusted = null;
       let message = '';
@@ -702,14 +742,15 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         adjusted ? 'warning' : 'success'
       );
 
-      return adjusted
-        ? { action: 'adjust', adjustedDate: adjusted, message }
-        : { action: 'accept' };
+      if (adjusted) {
+        controller.showMessage(message, { type: 'info' });
+        return adjusted; // accept this date instead
+      }
     };
 
     // Example 4: Async API Validation
     const singleAsync = document.getElementById('single-async');
-    singleAsync.beforeDateSelectCallback = async (date) => {
+    singleAsync.beforeSelectCallback = async ({ date, controller }) => {
       logEvent('log-single-async', 'Validating...', { date: toLocalISO(date) }, 'info');
 
       // Simulate API call
@@ -724,9 +765,10 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         isBlocked ? 'error' : 'success'
       );
 
-      return isBlocked
-        ? { action: 'restore', message: 'Date unavailable per API' }
-        : { action: 'accept' };
+      if (isBlocked) {
+        controller.showMessage('Date unavailable per API', { type: 'error' });
+        return false;
+      }
     };
 
     // =================================================================
@@ -735,7 +777,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
     // Example 5: Minimum Nights
     const rangeMinNights = document.getElementById('range-min-nights');
-    rangeMinNights.beforeDateSelectCallback = ({ range }) => {
+    rangeMinNights.beforeSelectCallback = ({ range, controller }) => {
       const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
       const isValid = nights >= 2;
 
@@ -749,14 +791,15 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         isValid ? 'success' : 'error'
       );
 
-      return isValid
-        ? { action: 'accept' }
-        : { action: 'restore', message: 'Minimum 2 nights required' };
+      if (!isValid) {
+        controller.showMessage('Minimum 2 nights required', { type: 'error' });
+        return false;
+      }
     };
 
-    // Example 6: Maximum Nights (with showInvalidRange)
+    // Example 6: Maximum Nights (with markRangeInvalid)
     const rangeMaxNights = document.getElementById('range-max-nights');
-    rangeMaxNights.beforeDateSelectCallback = ({ range }) => {
+    rangeMaxNights.beforeSelectCallback = ({ range, controller, markRangeInvalid }) => {
       const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
       const isValid = nights <= 7;
 
@@ -771,16 +814,16 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       );
 
       if (!isValid) {
-        // User controls when/how to show messages
-        rangeMaxNights.showMessage('Maximum 7 nights allowed', 'error');
-        return { action: 'restore', showInvalidRange: true };
+        // Keep the rejected range visible with error styling, explain, reject
+        markRangeInvalid();
+        controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
+        return false;
       }
-      return { action: 'accept' };
     };
 
     // Example 7: Adjust End Date to Sunday
     const rangeAdjustCheckout = document.getElementById('range-adjust-checkout');
-    rangeAdjustCheckout.beforeDateSelectCallback = ({ range }) => {
+    rangeAdjustCheckout.beforeSelectCallback = ({ range, controller }) => {
       const endDay = range.end.getDay();
 
       if (endDay !== 0) { // Not Sunday
@@ -797,12 +840,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
           'warning'
         );
 
-        return {
-          action: 'adjust',
-          adjustedStartDate: range.start,
-          adjustedEndDate: adjusted,
-          message: 'Adjusted to Sunday checkout'
-        };
+        controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
+        return { start: range.start, end: adjusted }; // accept this range instead
       }
 
       logEvent('log-range-adjust', 'ACCEPTED (already Sunday)',
@@ -812,13 +851,11 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         },
         'success'
       );
-
-      return { action: 'accept' };
     };
 
     // Example 8: Async Availability Check (with custom HTML message)
     const rangeAsync = document.getElementById('range-async');
-    rangeAsync.beforeDateSelectCallback = async (range) => {
+    rangeAsync.beforeSelectCallback = async ({ range, controller, markRangeInvalid }) => {
       logEvent('log-range-async', 'Checking availability...', {
         start: toLocalISO(range.start),
         end: toLocalISO(range.end)
@@ -855,7 +892,8 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         const formatDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
         // Show custom HTML message with available alternatives
-        rangeAsync.showMessage(`
+        // No type = raw HTML. A data-action="custom" data-id="…" button fires the 'action' event.
+        controller.showMessage(`
           <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px;">
             <div style="color: #991b1b; font-weight: 600; margin-bottom: 8px;">
               ⚠️ Selected dates not available
@@ -867,16 +905,16 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
               Available alternatives:
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button data-action="custom"
-                      data-start-date="${formatDateKey(alt1Start)}"
-                      data-end-date="${formatDateKey(alt1End)}"
+              <button data-action="custom" data-id="use-alternative"
+                      data-start-date="${toLocalISO(alt1Start)}"
+                      data-end-date="${toLocalISO(alt1End)}"
                       data-nights="3"
                       style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                 ${formatDate(alt1Start)} - ${formatDate(alt1End)} (3 nights)
               </button>
-              <button data-action="custom"
-                      data-start-date="${formatDateKey(alt2Start)}"
-                      data-end-date="${formatDateKey(alt2End)}"
+              <button data-action="custom" data-id="use-alternative"
+                      data-start-date="${toLocalISO(alt2Start)}"
+                      data-end-date="${toLocalISO(alt2End)}"
                       data-nights="4"
                       style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                 ${formatDate(alt2Start)} - ${formatDate(alt2End)} (4 nights)
@@ -885,40 +923,41 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
           </div>
         `);
 
-        return { action: 'restore', showInvalidRange: true };
+        markRangeInvalid();
+        return false;
       }
-
-      return { action: 'accept' };
     };
 
-    // Handle custom-action event to apply selected dates
-    rangeAsync.addEventListener('custom-action', (e) => {
-      const { startDate, endDate, nights } = e.detail.data;
+    // Handle the action event (source: 'message') to apply the chosen alternative
+    rangeAsync.addEventListener('action', (e) => {
+      if (e.detail.id !== 'use-alternative') return;
+      // The trigger's other data-* attributes: data-start-date → dataset.startDate
+      const { startDate, endDate, nights } = e.detail.dataset;
 
-      logEvent('log-range-async', 'CUSTOM-ACTION', {
+      logEvent('log-range-async', 'ACTION', {
+        id: e.detail.id,
+        source: e.detail.source,
         startDate,
         endDate,
         nights
       }, 'info');
 
-      if (startDate && endDate) {
-        rangeAsync.selectedRanges = [{
-          start: new Date(startDate),
-          end: new Date(endDate)
-        }];
-        rangeAsync.hideMessage();
-      }
+      rangeAsync.selectedRanges = [{
+        start: new Date(`${startDate}T00:00`),
+        end: new Date(`${endDate}T00:00`)
+      }];
+      e.detail.controller.hideMessage();
     });
 
     // =================================================================
-    // beforeMonthChangedCallback Examples (Performance Optimization)
+    // getMonthDataCallback / beforeMonthChangeCallback Examples (Performance Optimization)
     // =================================================================
 
     // Example 9: Bulk Metadata Loading (Hotel Pricing)
     const monthBulkPricing = document.getElementById('month-bulk-pricing');
 
     // Add custom styles for badge classes
-    monthBulkPricing.customStylesCallback = () => `
+    monthBulkPricing.getCustomStylesCallback = () => `
       .drp__badge-cell.available {
         background-color: rgba(34, 197, 94, 0.3);
         color: #166534;
@@ -932,14 +971,15 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       }
     `;
 
-    monthBulkPricing.beforeMonthChangedCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
+    // getMonthDataCallback runs on the initial open and after every month navigation
+    monthBulkPricing.getMonthDataCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
       const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
       logEvent('log-month-bulk', `📅 Loading ${monthName}...`, {
         range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`
       }, 'info');
 
-      console.log(`[beforeMonthChangedCallback] Loading ${monthName}`);
+      console.log(`[getMonthDataCallback] Loading ${monthName}`);
       console.log(`  Visible range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
 
       // Simulate API call to fetch availability for entire month
@@ -980,15 +1020,12 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         soldOut: Array.from(metadata.values()).filter(m => m.isDisabled).length
       }, 'success');
 
-      return {
-        action: 'accept',
-        metadata: metadata
-      };
+      return { metadata };
     };
 
     // Example 10: Block Future Navigation
     const monthBlockFuture = document.getElementById('month-block-future');
-    monthBlockFuture.beforeMonthChangedCallback = async ({ year, month }) => {
+    monthBlockFuture.beforeMonthChangeCallback = async ({ year, month }) => {
       const today = new Date();
       const currentMonth = today.getMonth();
       const currentYear = today.getFullYear();
@@ -1015,12 +1052,9 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
           'error'
         );
 
-        console.warn(`[beforeMonthChangedCallback] Blocked navigation to ${monthName}`);
+        console.warn(`[beforeMonthChangeCallback] Blocked navigation to ${monthName}`);
 
-        return {
-          action: 'block',
-          message: 'Cannot navigate more than 2 months into the future'
-        };
+        return false; // block the navigation
       }
 
       logEvent('log-month-block',
@@ -1028,8 +1062,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         { monthsFromNow: targetMonthsFromNow },
         'success'
       );
-
-      return { action: 'accept' };
+      // nothing returned = navigation continues
     };
 
     // =================================================================
@@ -1038,7 +1071,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
     const unifiedGridExample = document.getElementById('unified-grid-example');
 
     // Add custom styles for badge classes
-    unifiedGridExample.customStylesCallback = () => `
+    unifiedGridExample.getCustomStylesCallback = () => `
       .drp__badge-cell.available {
         background-color: rgba(34, 197, 94, 0.3);
         color: #166534;
@@ -1052,18 +1085,9 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       }
     `;
 
-    unifiedGridExample.beforeMonthChangedCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
+    // Gate: block navigation beyond ±3 months from today
+    unifiedGridExample.beforeMonthChangeCallback = ({ year, month }) => {
       const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-      logEvent('log-unified-grid', `📅 Loading unified grid (anchor: ${anchorMonthName})...`, {
-        range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`,
-        anchorIndex: monthIndex
-      }, 'info');
-
-      console.log(`[Unified Grid] Anchor: ${anchorMonthName} (index ${monthIndex})`);
-      console.log(`  Full range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
-
-      // Check if navigation should be blocked (±3 months from today)
       const today = new Date();
       const currentMonth = today.getMonth();
       const currentYear = today.getFullYear();
@@ -1077,11 +1101,21 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
 
         console.warn(`[Unified Grid] Navigation blocked: ${targetMonthsFromNow} months from now (limit: ±3)`);
 
-        return {
-          action: 'block',
-          message: 'Navigation limited to ±3 months from current date'
-        };
+        return false;
       }
+    };
+
+    // Data: one call for the whole 6-month grid (unified navigation)
+    unifiedGridExample.getMonthDataCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
+      const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      logEvent('log-unified-grid', `📅 Loading unified grid (anchor: ${anchorMonthName})...`, {
+        range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`,
+        anchorIndex: monthIndex
+      }, 'info');
+
+      console.log(`[Unified Grid] Anchor: ${anchorMonthName} (index ${monthIndex})`);
+      console.log(`  Full range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 700));
@@ -1115,10 +1149,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         unavailable: Array.from(metadata.values()).filter(m => m.isDisabled).length
       }, 'success');
 
-      return {
-        action: 'accept',
-        metadata: metadata
-      };
+      return { metadata };
     };
 
     // =================================================================
@@ -1169,7 +1200,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
     const specialDays = generateSpecialDays();
 
     // Custom styles for working day and special day highlighting
-    headerCallback.customStylesCallback = () => `
+    headerCallback.getCustomStylesCallback = () => `
       .drp__day.working-day {
         background-color: rgba(34, 197, 94, 0.15);
       }
@@ -1205,7 +1236,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
     };
 
     // Mark working days and special days with colors
-    headerCallback.beforeMonthChangedCallback = ({ firstVisibleDate, lastVisibleDate }) => {
+    headerCallback.getMonthDataCallback = ({ firstVisibleDate, lastVisibleDate }) => {
       const metadata = new Map();
       const current = new Date(firstVisibleDate);
       const endDate = new Date(lastVisibleDate);
@@ -1229,14 +1260,14 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         current.setDate(current.getDate() + 1);
       }
 
-      return { action: 'accept', metadata };
+      return { metadata };
     };
 
-    // Example: monthHeaders from beforeMonthChangedCallback
+    // Example: monthHeaders from getMonthDataCallback
     const headerAsync = document.getElementById('header-async');
 
     // Custom styles for badge classes
-    headerAsync.customStylesCallback = () => `
+    headerAsync.getCustomStylesCallback = () => `
       .drp__badge-cell.rooms-high {
         background-color: rgba(34, 197, 94, 0.3);
         color: #166534;
@@ -1251,7 +1282,7 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
       }
     `;
 
-    headerAsync.beforeMonthChangedCallback = async ({ year, month, firstVisibleDate, lastVisibleDate }) => {
+    headerAsync.getMonthDataCallback = async ({ year, month, firstVisibleDate, lastVisibleDate }) => {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -1280,13 +1311,13 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      // Set month header with loaded data
-      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+      // Set month header with loaded data (key: YYYY-MM, 1-based month)
+      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
       monthHeaders.set(monthKey, `${monthNames[month]} ${year} (${totalRooms} total)`);
 
       logEvent('log-header-async', `Loaded`, { header: monthHeaders.get(monthKey) }, 'success');
 
-      return { action: 'accept', metadata, monthHeaders };
+      return { metadata, monthHeaders };
     };
 
     // Example: Block Navigation
@@ -1294,18 +1325,17 @@ picker.beforeMonthChangedCallback = async ({ year, month }) => {
     const todayForBlock = new Date();
     const maxMonthForBlock = new Date(todayForBlock.getFullYear(), todayForBlock.getMonth() + 3, 1);
 
-    headerBlock.beforeMonthChangedCallback = ({ year, month }) => {
+    headerBlock.beforeMonthChangeCallback = ({ year, month }) => {
       const targetDate = new Date(year, month, 1);
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
       if (targetDate > maxMonthForBlock) {
         logEvent('log-header-block', `BLOCKED: ${monthNames[month]} ${year}`, { reason: 'Too far ahead' }, 'error');
-        return { action: 'block', message: 'Cannot view more than 3 months ahead' };
+        return false; // block
       }
 
       logEvent('log-header-block', `Allowed: ${monthNames[month]} ${year}`, {}, 'success');
-      return { action: 'accept' };
     };
 
     // Example: Grid with Occupancy

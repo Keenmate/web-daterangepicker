@@ -29,8 +29,7 @@ disable dates, block dates → date-restrictions.txt
 min date, max date, boundaries → date-restrictions.txt
 disabled weekdays, weekends only → date-restrictions.txt
 holidays, blackout dates → date-restrictions.txt
-getDateMetadataCallback callback → date-restrictions.txt
-getDateMetadata → date-restrictions.txt, custom-rendering.txt
+getDateMetadataCallback → date-restrictions.txt, custom-rendering.txt
 isDisabled property → date-restrictions.txt
 past dates, future only → date-restrictions.txt
 booking validation → date-restrictions.txt
@@ -38,10 +37,19 @@ availability check → date-restrictions.txt
 
 EVENTS & VALIDATION
 -------------------
-date-select event → events-callbacks.txt
+select event, onSelect → events-callbacks.txt
 change event → events-callbacks.txt
+action event, onAction → events-callbacks.txt, action-buttons.txt
+month-change event, onMonthChange → events-callbacks.txt
+ready event, onReady → events-callbacks.txt
+on* twins receive the detail (not the event) → events-callbacks.txt
 event data, event detail → events-callbacks.txt
-beforeDateSelectCallback, validation → events-callbacks.txt
+controller, ctx.controller, el.controller → basic-usage.txt, events-callbacks.txt
+beforeSelectCallback, validation → events-callbacks.txt
+markRangeInvalid → events-callbacks.txt
+beforeMonthChangeCallback, block navigation → events-callbacks.txt
+getMonthDataCallback, bulk month metadata → events-callbacks.txt
+data-action buttons in messages, dataset → events-callbacks.txt
 async validation, api check → events-callbacks.txt
 prevent selection, block invalid → events-callbacks.txt
 adjust dates, auto-correct → events-callbacks.txt
@@ -63,12 +71,12 @@ CUSTOM RENDERING & STYLING
 badges, badge text → custom-rendering.txt
 tooltips, hover text → custom-rendering.txt
 day cell styling, custom classes → custom-rendering.txt
-renderDayContent → custom-rendering.txt
-getDateMetadata → custom-rendering.txt, date-restrictions.txt
+renderDayContentCallback → custom-rendering.txt
+getDateMetadataCallback → custom-rendering.txt, date-restrictions.txt
 hotel availability display → custom-rendering.txt
 price badges → custom-rendering.txt
 event markers → custom-rendering.txt
-customStylesCallback, inject css → custom-rendering.txt
+getCustomStylesCallback, inject css → custom-rendering.txt
 shadow dom styling → custom-rendering.txt
 dayClass, badgeClass → custom-rendering.txt
 dayTooltip, badgeTooltip → custom-rendering.txt
@@ -101,9 +109,9 @@ FORMATTING & LOCALIZATION
 --------------------------
 date format, date-format-mask → basic-usage.txt
 locale, language → basic-usage.txt
-customStrings, custom labels → basic-usage.txt (JS API only)
+customStrings, custom labels → basic-usage.txt (property only)
 display format → basic-usage.txt
-formatSummaryCallback, custom summary → basic-usage.txt
+renderSummaryCallback, custom summary → basic-usage.txt
 summary formatting, pricing display → basic-usage.txt
 nights calculation, hotel summary → basic-usage.txt
 
@@ -139,13 +147,13 @@ selectedStartDate, selectedEndDate → basic-usage.txt
 open close calendar → basic-usage.txt
 isOpen property → basic-usage.txt
 clearSelection → basic-usage.txt
-renderCalendar → basic-usage.txt
 
 INTERFACES & TYPES
 ------------------
-DateInfo interface → custom-rendering.txt, date-restrictions.txt
-DayRenderContext interface → custom-rendering.txt
-ActionButton interface → action-buttons.txt
+DayMetadata interface → custom-rendering.txt, date-restrictions.txt
+DayContext interface → custom-rendering.txt
+DateRangePickerActionItem interface → action-buttons.txt
+BeforeSelectContext, MonthChangeContext → events-callbacks.txt
 event detail structure → events-callbacks.txt
 
 ADVANCED FEATURES
@@ -163,19 +171,22 @@ testing, validation testing → events-callbacks.txt
 
 WEB COMPONENT CALLBACK PROPERTIES
 ----------------------------------
-formatSummaryCallback → basic-usage.txt (property, not attribute)
+renderSummaryCallback → basic-usage.txt (property, not attribute)
 getDateMetadataCallback → date-restrictions.txt (property, not attribute)
-badgeTooltipCallback → custom-rendering.txt (property, not attribute)
-dayTooltipCallback → custom-rendering.txt (property, not attribute)
+getBadgeTooltipCallback → custom-rendering.txt (property, not attribute)
+getDayTooltipCallback → custom-rendering.txt (property, not attribute)
 renderDayCallback → custom-rendering.txt (property, not attribute)
 renderDayContentCallback → custom-rendering.txt (property, not attribute)
-customStylesCallback → custom-rendering.txt (property, not attribute)
-beforeDateSelectCallback → events-callbacks.txt (property, not attribute)
+getCustomStylesCallback → custom-rendering.txt (property, not attribute)
+beforeSelectCallback → events-callbacks.txt (property, not attribute)
+beforeMonthChangeCallback → events-callbacks.txt (property, not attribute)
+getMonthDataCallback → events-callbacks.txt (property, not attribute)
+beforeActionCallback → action-buttons.txt (property, not attribute)
 
-JAVASCRIPT API ONLY FEATURES
------------------------------
-customStrings → basic-usage.txt (not available on web component)
-actionButtons → action-buttons.txt (not available on web component)
+PROPERTY-ONLY FEATURES (no attribute)
+-------------------------------------
+customStrings → basic-usage.txt (set as a property)
+actionButtons → action-buttons.txt (set as a property)
 
 WEB COMPONENT ATTRIBUTES
 -------------------------
@@ -200,16 +211,18 @@ enable-transitions → basic-usage.txt
 PROPERTIES (Web Component)
 ---------------------------
 disabledDates → date-restrictions.txt
-getDateMetadataCallback → date-restrictions.txt
-getDateMetadata → date-restrictions.txt, custom-rendering.txt
+getDateMetadataCallback → date-restrictions.txt, custom-rendering.txt
 selectedRanges → basic-usage.txt
 isOpen → basic-usage.txt
 
 ERROR PATTERNS TO AVOID
 -----------------------
 ❌ setting callbacks as HTML attributes → basic-usage.txt (use JS properties)
-❌ customStrings on web component → basic-usage.txt (JS API only)
-❌ actionButtons on web component → action-buttons.txt (JS API only)
+❌ customStrings / actionButtons as HTML attributes → set them as properties
+❌ el.picker / ctx.picker (removed) → use el.controller / ctx.controller / ctx.element
+❌ e.detail inside on* twins → el.onSelect = (detail) => detail.date
+❌ { action: 'custom', ... } buttons → { id: 'my-id', ... }
+❌ { action: 'accept' } result objects → return nothing / false / a value (events-callbacks.txt)
 
 FILE DESCRIPTIONS
 -----------------
@@ -222,7 +235,7 @@ date-restrictions.txt
   Start here for: Blocking dates, availability, validation
 
 events-callbacks.txt
-  Interaction: Events, beforeDateSelectCallback validation, async checks
+  Interaction: Events, beforeSelectCallback validation, async checks
   Start here for: Selection handling, validation, business rules
 
 disabled-dates-handling.txt
@@ -264,13 +277,13 @@ CROSS-REFERENCES
 ----------------
 Features spanning multiple files:
 
-getDateMetadata
+getDateMetadataCallback
   → date-restrictions.txt (for disabling dates)
   → custom-rendering.txt (for badges/tooltips/styling)
 
 Validation
   → date-restrictions.txt (static restrictions)
-  → events-callbacks.txt (beforeDateSelectCallback dynamic validation)
+  → events-callbacks.txt (beforeSelectCallback dynamic validation)
 
 Range mode
   → basic-usage.txt (basic range selection)
@@ -292,10 +305,10 @@ Problem: Dates not getting disabled
 → date-restrictions.txt (check restriction types)
 
 Problem: Need to validate selection before accepting
-→ events-callbacks.txt (beforeDateSelectCallback)
+→ events-callbacks.txt (beforeSelectCallback)
 
 Problem: Want to show room availability
-→ custom-rendering.txt (badges with getDateMetadata)
+→ custom-rendering.txt (badges with getDateMetadataCallback)
 
 Problem: Range includes weekends but shouldn't bill for them
 → disabled-dates-handling.txt ('allow' mode with pricing)
@@ -328,7 +341,7 @@ Hotel booking system:
 
 Appointment scheduler:
 → date-restrictions.txt (business hours, disabled weekdays)
-→ events-callbacks.txt (beforeDateSelectCallback validation)
+→ events-callbacks.txt (beforeSelectCallback validation)
 
 Vacation rental:
 → disabled-dates-handling.txt ('block' mode, 'split' mode)

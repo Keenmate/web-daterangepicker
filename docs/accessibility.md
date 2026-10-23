@@ -102,13 +102,13 @@ ARIA at the time of writing. Only one declaration exists:
   modes) or `role="grid"` (for the day matrix). Modal mode also lacks
   `aria-modal="true"`.
 - There's no `aria-live` region announcing month changes, selection
-  changes, or validation messages from `beforeDateSelectCallback`.
+  changes, or validation messages from `beforeSelectCallback`.
 - Action buttons (Today / Clear / Apply / Now) have only their visible
   text; no `aria-label` or `aria-describedby` for context.
 
 **If you ship to consumers with strict accessibility requirements**,
 audit the component against your own standard and add the roles /
-labels your platform needs via `customStylesCallback` (for CSS) or a
+labels your platform needs via `getCustomStylesCallback` / `custom-styles` (for CSS) or a
 fork. We track this as a known limitation; full WAI-ARIA conformance
 is on the roadmap but isn't claimed for the 1.x line.
 

@@ -261,7 +261,7 @@
       setIfPresent('range-limits-demo',  { 'min-date': monthFirstISO(), 'max-date': monthLastISO() });
       // Add event listeners to demo the events
       document.querySelectorAll('web-daterangepicker').forEach(picker => {
-        picker.addEventListener('date-select', (e) => {
+        picker.addEventListener('select', (e) => {
           console.log('Date selected:', e.detail);
         });
       });
@@ -280,7 +280,7 @@
       // Setup inline calendar examples
       const inlineSingle = document.getElementById('inline-single');
       if (inlineSingle) {
-        inlineSingle.addEventListener('date-select', (e) => {
+        inlineSingle.addEventListener('select', (e) => {
           const output = document.getElementById('inline-single-output');
           if (output && e.detail.date) {
             output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
@@ -290,7 +290,7 @@
 
       const inlineUnifiedGrid = document.getElementById('inline-unified-grid');
       if (inlineUnifiedGrid) {
-        inlineUnifiedGrid.addEventListener('date-select', (e) => {
+        inlineUnifiedGrid.addEventListener('select', (e) => {
           const output = document.getElementById('inline-unified-grid-output');
           if (output && e.detail.dateRange) {
             const nights = Math.floor(

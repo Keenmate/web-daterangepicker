@@ -43,8 +43,8 @@ as the user types; **drag-to-adjust** for range endpoints; **disabled
 dates** with five different range-traversal strategies; **special
 dates** with badges, tooltips, and `dayClass` / `badgeClass`
 discriminator hooks; **localized** week start, month names, and labels;
-and **async validation** via `beforeDateSelectCallback` with optional
-bulk metadata loading per month.
+and **async validation** via `beforeSelectCallback` with optional
+bulk metadata loading per month (`getMonthDataCallback`).
 
 What makes it different from the rest of the date-picker ecosystem:
 
@@ -122,11 +122,17 @@ import '@keenmate/web-daterangepicker';
 const picker = document.querySelector('web-daterangepicker');
 
 // Listen for date selection
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   console.log('Selected:', e.detail.formattedValue);
   console.log('Date object:', e.detail.date);
   console.log('Range:', e.detail.dateRange);
 });
+
+// …or the property twin, which receives the detail directly
+picker.onSelect = (detail) => console.log(detail.formattedValue);
+
+// Action buttons (and `data-action` triggers) fire one `action` event
+picker.addEventListener('action', (e) => console.log(e.detail.action, e.detail.id));
 
 // Programmatic API
 picker.open();
@@ -136,8 +142,8 @@ picker.clearSelection();
 picker.setInputValue('2025-11-15');
 ```
 
-Using the `DateRangePicker` class directly (without the custom
-element) is fully supported — see [`docs/usage.md`](./docs/usage.md#javascript-instantiation-datepickerangepicker-class)
+Using the engine class (`DateRangePickerEngine`) directly (without the custom
+element) is supported for advanced use — see [`docs/usage.md`](./docs/usage.md#javascript-instantiation-daterangepickerengine-class)
 for the CSS-loading caveats.
 
 ## Editor IntelliSense
@@ -194,16 +200,16 @@ over rendering but requires sanitizing untrusted data:
 | `renderDayCallback` | Day cells (innerHTML) | HTML injection |
 | `renderDayContentCallback` | Day cells (innerHTML) | HTML injection |
 | `getDateMetadataCallback` (`badgeText`, `dayTooltip`) | Badges / tooltips (innerHTML) | HTML injection |
-| `formatSummaryCallback` | Summary display (innerHTML) | HTML injection |
+| `renderSummaryCallback` | Summary display (innerHTML) | HTML injection |
 | `getMonthHeaderCallback` | Month headers (innerHTML) | HTML injection |
 | `getUnifiedHeaderCallback` | Unified header (innerHTML) | HTML injection |
-| `customStylesCallback` | Style tag (textContent) | CSS injection |
-| `actionButtons[].label` | Button labels (innerHTML) | HTML injection |
+| `getCustomStylesCallback` / `custom-styles` | Style tag (textContent) | CSS injection |
 
 **Safe callbacks** (output is escaped or used as data):
 
-- `beforeDateSelectCallback`, `beforeMonthChangedCallback` (return action objects)
-- `onSelect`, `onChange` (event handlers)
+- `beforeSelectCallback`, `beforeMonthChangeCallback` (return values, not markup)
+- `actionButtons[].text` / `getTextCallback` (set as plain text)
+- `onSelect`, `onChange`, `onAction`, `onMonthChange` (event handlers)
 - `getDateMetadataCallback` (`isDisabled`, `dayClass`, `badgeClass` — CSS class names only)
 
 **If displaying user-generated content**, sanitize it before passing

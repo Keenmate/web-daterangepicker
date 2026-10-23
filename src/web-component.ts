@@ -59,7 +59,7 @@ import styles from './css/main.css?inline';
 
 // Dev-mode custom-styles lint: the set of `--drp-*` names the component's own
 // stylesheet actually consumes, used as the ground truth for typo detection in
-// author-injected CSS (custom-styles attribute / customStylesCallback). Computed
+// author-injected CSS (custom-styles attribute / getCustomStylesCallback). Computed
 // once, lazily — parsing the full stylesheet is not free.
 let consumedDrpVarsCache: Set<string> | null = null;
 function consumedDrpVars(): Set<string> {
@@ -294,7 +294,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#shadow = this.attachShadow({ mode: 'open' });
     // §12.8: static shell CSS via one shared, cached CSSStyleSheet (per string).
     adoptStyles(this.#shadow, styles);
-    // Per-instance replaceable slot for customStylesCallback CSS.
+    // Per-instance replaceable slot for getCustomStylesCallback CSS.
     this.#customStyles = createStyleSlot(this.#shadow, { className: 'drp-custom-styles' });
   }
 
@@ -912,7 +912,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * Release the `defer` render gate: build the picker now (once), with every
    * option, callback and listener wired while deferred already in place. No-op
    * when the element wasn't deferred or is already built. `flush()` first so a
-   * synchronous `el.value = …; el.customStylesCallback = …; el.ready()` lands
+   * synchronous `el.value = …; el.getCustomStylesCallback = …; el.ready()` lands
    * those pending writes in the single build rather than after it. Latched — the
    * gate never re-closes. Fires the `ready` event on the first build.
    */
@@ -1091,6 +1091,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       showSummary: call('showSummary'),
       hideSummary: call('hideSummary'),
       showLoader: call('showLoader'),
+      reloadMonthData: () => engine()?.reloadMonthData() ?? Promise.resolve(),
       hideLoader: call('hideLoader'),
     };
   }

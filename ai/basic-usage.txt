@@ -7,16 +7,22 @@ TWO USAGE MODES
 2. JavaScript API (programmatic control)
 
 CRITICAL: Most callbacks are available as web component PROPERTIES:
-- formatSummaryCallback - custom summary formatting (WEB COMPONENT PROPERTY)
+- renderSummaryCallback - custom summary rendering (WEB COMPONENT PROPERTY)
 - getDateMetadataCallback - dynamic date metadata (WEB COMPONENT PROPERTY)
-- badgeTooltipCallback - custom badge tooltips (WEB COMPONENT PROPERTY)
-- dayTooltipCallback - custom day tooltips (WEB COMPONENT PROPERTY)
+- getBadgeTooltipCallback - custom badge tooltips (WEB COMPONENT PROPERTY)
+- getDayTooltipCallback - custom day tooltips (WEB COMPONENT PROPERTY)
 - renderDayCallback - custom day rendering (WEB COMPONENT PROPERTY)
 - renderDayContentCallback - custom day content (WEB COMPONENT PROPERTY)
-- customStylesCallback - inject custom styles to shadow DOM (WEB COMPONENT PROPERTY)
-- beforeDateSelectCallback - validation callback (WEB COMPONENT PROPERTY)
+- getCustomStylesCallback - inject custom styles to shadow DOM (WEB COMPONENT PROPERTY)
+- beforeSelectCallback - validation callback (WEB COMPONENT PROPERTY)
+- beforeMonthChangeCallback / getMonthDataCallback - navigation gate + bulk month data
+- beforeActionCallback - gate every action button click
 
-JavaScript API ONLY (not available on web component):
+Every callback receives ONE context object (ctx) carrying ctx.controller (the
+public facade, same as el.controller), ctx.element (the host) and the
+presentation flags, plus its own fields.
+
+Property-only (no attribute):
 - customStrings - custom UI button labels
 - actionButtons - custom button configuration
 
@@ -63,14 +69,14 @@ Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
 <script>
   const picker = document.getElementById('my-picker');
 
-  // Custom summary formatting
-  picker.formatSummaryCallback = (data) => {
+  // Custom summary rendering
+  picker.renderSummaryCallback = (data) => {
     const total = data.nights * 150;
     return `${data.nights} nights × $150 = $${total}`;
   };
 
   // Custom date metadata
-  picker.getDateMetadataCallback = (date) => {
+  picker.getDateMetadataCallback = ({ date }) => {
     if (isHoliday(date)) {
       return {
         isDisabled: true,
@@ -82,7 +88,7 @@ Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
   };
 
   // Custom tooltips
-  picker.dayTooltipCallback = (data) => {
+  picker.getDayTooltipCallback = (data) => {
     return `Click to select ${data.date.toLocaleDateString()}`;
   };
 
@@ -97,40 +103,41 @@ Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
   };
 
   // Custom styles injected to shadow DOM
-  picker.customStylesCallback = () => `
+  picker.getCustomStylesCallback = (ctx) => `
     .drp__day--weekend {
       background-color: #f0f9ff;
     }
   `;
 
   // Validation before selection
-  picker.beforeDateSelectCallback = async (selection) => {
-    const isAvailable = await checkAvailability(selection);
-    return {
-      isValid: isAvailable,
-      errorMessage: isAvailable ? null : 'Dates not available'
-    };
+  // Return nothing = accept, false = reject, Date/DateRange = adjust, null = clear
+  picker.beforeSelectCallback = async (ctx) => {
+    const isAvailable = await checkAvailability(ctx.range ?? ctx.date);
+    if (!isAvailable) {
+      ctx.controller.showMessage('Dates not available', { type: 'error' });
+      return false;
+    }
   };
 </script>
 
-IMPORTANT: These callbacks trigger re-initialization when set, so set them
-AFTER the web component is connected to the DOM (e.g., in DOMContentLoaded
-or after the element is created).
+Callbacks are reactive properties — they can be set before or after the
+element upgrades/connects. To avoid an upgrade-then-restyle flash, add the
+`defer` attribute, wire everything, then call el.ready().
 
 JAVASCRIPT API (Full Control)
 ------------------------------
 Import and instantiate:
 
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const inputElement = document.querySelector('#my-input');
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   minDate: '2025-01-01',
   maxDate: '2025-12-31',
   dateFormatMask: 'YYYY-MM-DD',
-  onSelect: (date) => {
-    console.log('Selected:', date);
+  onSelect: (detail) => {
+    console.log('Selected:', detail.date, detail.formattedValue);
   }
 });
 
@@ -147,14 +154,14 @@ Select one date:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   selectionMode: 'single',
-  onSelect: (date) => {
-    console.log('Date:', date); // Date object
+  onSelect: (detail) => {
+    console.log('Date:', detail.date); // Date object
   }
 });
 
-Event: date-select
+Event: select
 Event detail: { date: Date, formattedValue: "2025-01-15" }
 
 RANGE MODE
@@ -169,16 +176,16 @@ Select start and end dates:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePicker(input, {
+const picker = new DateRangePickerEngine(input, {
   selectionMode: 'range',
   visibleMonthsCount: 2,
-  onSelect: (dateRange) => {
-    console.log('Start:', dateRange.start);
-    console.log('End:', dateRange.end);
+  onSelect: (detail) => {
+    console.log('Start:', detail.dateRange.start);
+    console.log('End:', detail.dateRange.end);
   }
 });
 
-Event: date-select
+Event: select
 Event detail: { dateRange: { start: Date, end: Date }, formattedValue: "..." }
 
 MULTIPLE MODE
@@ -234,7 +241,7 @@ Web Component fires custom events:
 const picker = document.querySelector('web-daterangepicker');
 
 // Primary event (use this)
-picker.addEventListener('date-select', (event) => {
+picker.addEventListener('select', (event) => {
   console.log('Selected:', event.detail);
 
   if (event.detail.date) {
@@ -246,30 +253,36 @@ picker.addEventListener('date-select', (event) => {
   }
 });
 
-// Alias event (same data)
+// Fires right after 'select' (same detail object)
 picker.addEventListener('change', (event) => {
   console.log('Changed:', event.detail);
 });
 
-Both events fire simultaneously with identical data.
+// Or the on* twin — receives the DETAIL, not the event
+picker.onSelect = (detail) => console.log(detail.date ?? detail.dateRange);
+
+Other events: 'action' (action buttons / data-action triggers),
+'month-change' ({ monthIndex, year, month, visibleMonths }),
+'ready' ({ controller, element }). See events-callbacks.txt.
 
 ACCESSING VIA JAVASCRIPT
 -------------------------
-Get picker instance from web component:
+The element itself is the API; `el.controller` is the stable facade (the same
+object callbacks get as ctx.controller). There is no `el.picker`.
 
 <web-daterangepicker id="my-picker"></web-daterangepicker>
 
 <script>
-const pickerElement = document.getElementById('my-picker');
-const picker = pickerElement.picker; // Access internal instance
+const el = document.getElementById('my-picker');
 
-// Access properties
-const startDate = picker.selectedStartDate;
-const endDate = picker.selectedEndDate;
+// Element properties
+const startDate = el.selectedStartDate;
+const endDate = el.selectedEndDate;
 
-// Call methods
-picker.renderCalendar();
-picker.clearSelection();
+// Controller facade
+const range = el.controller.getSelectedRange();
+el.controller.clearSelection();
+el.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
 </script>
 
 SETTING PROPERTIES PROGRAMMATICALLY
@@ -287,12 +300,13 @@ picker.selectedRanges = [
 picker.isOpen = true;
 
 // Set callbacks (if exposed)
-picker.getDateMetadataCallback = (date) => {
+picker.getDateMetadataCallback = ({ date }) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   return isWeekend ? { isDisabled: true } : null; // Disable weekends
 };
 
-picker.getDateMetadata = (date) => {
+// or decorate every day
+picker.getDateMetadataCallback = ({ date }) => {
   return {
     badgeText: '✓',
     dayClass: 'special',
@@ -332,7 +346,7 @@ npm install @keenmate/web-daterangepicker
 import '@keenmate/web-daterangepicker';
 
 // Or import specific exports
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 AUTO-REGISTRATION
 -----------------

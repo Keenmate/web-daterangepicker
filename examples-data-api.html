@@ -6,7 +6,7 @@
   <title>Data & API — Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
-    /* The DateRangePicker *class* renders its calendar into LIGHT DOM (unlike the
+    /* The DateRangePickerEngine *class* renders its calendar into LIGHT DOM (unlike the
        <web-daterangepicker> element, which is shadow-isolated). So this page's global
        `* { margin:0; padding:0 }` reset in examples-shared.css leaks straight into the
        calendar and flattens all of the component's own spacing. The component declares
@@ -25,7 +25,7 @@
     }
 
     /* Page-specific bespoke widget only — the real light-DOM <input> elements that
-       the DateRangePicker class attaches to (this page demonstrates JS instantiation
+       the DateRangePickerEngine class attaches to (this page demonstrates JS instantiation
        against plain inputs). Everything else (cards, code blocks, copy buttons,
        notes, output panels) uses shared classes from examples-shared.css. */
     .demo-input {
@@ -125,7 +125,7 @@
 
     <div class="note warning">
       <strong>⚠️ Important:</strong> When using JavaScript instantiation, you must create a regular
-      <code>&lt;input type="text"&gt;</code> element first, then pass it to the <code>DateRangePicker</code>
+      <code>&lt;input type="text"&gt;</code> element first, then pass it to the <code>DateRangePickerEngine</code>
       constructor. The class will attach the calendar functionality to your existing input.
     </div>
   </div>
@@ -133,7 +133,7 @@
   <!-- CSS Requirements -->
   <div class="card">
     <h2>DA02 · Critical: CSS Requirements</h2>
-    <p><strong>Unlike the web component approach, the <code>DateRangePicker</code> class does NOT automatically inject styles.</strong>
+    <p><strong>Unlike the web component approach, the <code>DateRangePickerEngine</code> class does NOT automatically inject styles.</strong>
     You MUST import the CSS separately, or you'll see an unstyled matrix of day numbers.</p>
 
     <div class="note warning">
@@ -145,10 +145,10 @@
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
       <pre>// When using a bundler (Webpack, Vite, Rollup, etc.)
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/dist/style.css';
 
-const picker = new DateRangePicker(inputElement, options);</pre>
+const picker = new DateRangePickerEngine(inputElement, options);</pre>
     </div>
 
     <h3>Method 2: Link CSS in HTML (For CDN or Simple Setups)</h3>
@@ -158,8 +158,8 @@ const picker = new DateRangePicker(inputElement, options);</pre>
 &lt;link rel="stylesheet" href="./node_modules/@keenmate/web-daterangepicker/dist/style.css"&gt;
 
 &lt;script type="module"&gt;
-  import { DateRangePicker } from '@keenmate/web-daterangepicker';
-  const picker = new DateRangePicker(inputElement, options);
+  import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  const picker = new DateRangePickerEngine(inputElement, options);
 &lt;/script&gt;</pre>
     </div>
 
@@ -167,29 +167,29 @@ const picker = new DateRangePicker(inputElement, options);</pre>
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
       <pre>// If you want to customize variables or build from source
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/src/css/main.css';
 
-const picker = new DateRangePicker(inputElement, options);</pre>
+const picker = new DateRangePickerEngine(inputElement, options);</pre>
     </div>
 
     <h3>Method 4: Programmatic Injection (Alternative)</h3>
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
       <pre>// Inject styles programmatically (no CSS import needed!)
-import { DateRangePicker } from '@keenmate/web-daterangepicker';
+import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 // Inject styles once before creating any pickers
-DateRangePicker.injectGlobalStyles();
+DateRangePickerEngine.injectGlobalStyles();
 
 // Now create your pickers
-const picker = new DateRangePicker(inputElement, options);</pre>
+const picker = new DateRangePickerEngine(inputElement, options);</pre>
     </div>
 
     <div class="note info">
       <strong>💡 Why is this necessary?</strong><br>
       The web component (<code>&lt;web-daterangepicker&gt;</code>) uses Shadow DOM and injects styles automatically
-      into its isolated scope. The <code>DateRangePicker</code> class doesn't use Shadow DOM - it creates
+      into its isolated scope. The <code>DateRangePickerEngine</code> class doesn't use Shadow DOM - it creates
       calendar elements in the regular DOM, so it expects global CSS to be loaded separately.
     </div>
 
@@ -215,12 +215,12 @@ const picker = new DateRangePicker(inputElement, options);</pre>
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
       <pre>import {
-  DateRangePicker, observeEnvironment, classifyDevice
+  DateRangePickerEngine, observeEnvironment, classifyDevice
 } from '@keenmate/web-daterangepicker';
 
 const inputElement = document.getElementById('input-1');
 
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   dateFormatMask: 'YYYY-MM-DD',
   onSelect: (detail) => {
@@ -255,11 +255,11 @@ observeEnvironment(env => picker.setPresentation(BY_DEVICE[classifyDevice(env)])
 
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePicker } from '@keenmate/web-daterangepicker';
+      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const inputElement = document.getElementById('input-2');
 
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'range',
   visibleMonthsCount: 2,
   monthLayout: 'horizontal',
@@ -300,7 +300,7 @@ const picker = new DateRangePicker(inputElement, {
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
       <pre>// European format
-const pickerEU = new DateRangePicker(document.getElementById('input-4a'), {
+const pickerEU = new DateRangePickerEngine(document.getElementById('input-4a'), {
   selectionMode: 'single',
   dateFormatMask: 'DD.MM.YYYY',
   onSelect: (detail) => {
@@ -310,7 +310,7 @@ const pickerEU = new DateRangePicker(document.getElementById('input-4a'), {
 });
 
 // US format
-const pickerUS = new DateRangePicker(document.getElementById('input-4b'), {
+const pickerUS = new DateRangePickerEngine(document.getElementById('input-4b'), {
   selectionMode: 'single',
   dateFormatMask: 'MM/DD/YYYY',
   onSelect: (detail) => {
@@ -335,7 +335,7 @@ const pickerUS = new DateRangePicker(document.getElementById('input-4b'), {
 
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePicker } from '@keenmate/web-daterangepicker';
+      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const today = new Date();
 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -343,7 +343,7 @@ const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
 const inputElement = document.getElementById('input-3');
 
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   dateFormatMask: 'YYYY-MM-DD',
   minDate: firstDay,
@@ -373,10 +373,10 @@ const picker = new DateRangePicker(inputElement, {
 
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePicker } from '@keenmate/web-daterangepicker';
+      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 // For inline mode, pass null as the input element
-const picker = new DateRangePicker(null, {
+const picker = new DateRangePickerEngine(null, {
   selectionMode: 'single',
   positioningMode: 'inline',
   container: document.getElementById('inline-container'),
@@ -407,9 +407,9 @@ const picker = new DateRangePicker(null, {
 
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePicker } from '@keenmate/web-daterangepicker';
+      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
-const picker = new DateRangePicker(document.getElementById('input-6'), {
+const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
   selectionMode: 'single',
   visibleMonthsCount: 6,
   monthLayout: 'grid',
@@ -437,7 +437,7 @@ const picker = new DateRangePicker(document.getElementById('input-6'), {
 
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePicker } from '@keenmate/web-daterangepicker';
+      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 let pickerCount = 0;
 
@@ -472,7 +472,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
   document.getElementById('dynamic-pickers').appendChild(container);
 
   // Initialize picker
-  const picker = new DateRangePicker(input, {
+  const picker = new DateRangePickerEngine(input, {
     selectionMode: 'single',
     dateFormatMask: 'YYYY-MM-DD',
     onSelect: (detail) => {
@@ -617,14 +617,14 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
   </div>
 
   <div class="card">
-    <h2>DA12 · Week-Snapping Selection (<code>adjustedRanges</code>)</h2>
+    <h2>DA12 · Week-Snapping Selection (<code>beforeSelectCallback</code> → <code>DateRange[]</code>)</h2>
     <p>
-      A <code>beforeDateSelectCallback</code> that rewrites the raw selection into
+      A <code>beforeSelectCallback</code> that rewrites the raw selection into
       whole weeks. For every week the selection touches, it counts the selected
       <strong>work days (Mon–Fri)</strong>: if <strong>2 or more</strong> land in
       that week the <strong>entire week (Mon–Sun) is selected</strong>; if fewer
       than 2, that week contributes <strong>0 days</strong> and is dropped. The
-      surviving weeks are returned as <code>adjustedRanges</code> — one range per
+      surviving weeks are returned as a <code>DateRange[]</code> — one range per
       week — so the grid, summary, and <code>onSelect</code> all reflect the snap.
     </p>
     <div class="form-group">
@@ -642,7 +642,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 
   <div class="card">
     <h2>DA13 · Custom Summary Formatting</h2>
-    <p>Use the <code>formatSummaryCallback</code> option to completely customize the summary display below the calendar.</p>
+    <p>Use the <code>renderSummaryCallback</code> option to completely customize the summary display below the calendar.</p>
     <div class="grid">
       <div class="form-group">
         <label>Custom Pricing Display</label>
@@ -1012,7 +1012,7 @@ const date = singlePicker.selectedDate;
 
 // Set selected date (single mode)
 singlePicker.selectedDate = new Date('2025-12-25');
-// Triggers re-render and date-select event
+// Triggers re-render and select event
 
 // Get selected ranges (range mode)
 const ranges = rangePicker.selectedRanges;
@@ -1023,7 +1023,7 @@ rangePicker.selectedRanges = [{
     start: new Date('2025-01-01'),
     end: new Date('2025-01-31')
 }];
-// Triggers re-render and date-select event
+// Triggers re-render and select event
 
 // Clear using properties
 singlePicker.selectedDate = null;
@@ -1101,13 +1101,15 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
     </div>
   </section>
 
-  <!-- Section 6: Picker Instance Access -->
+  <!-- Section 6: Controller Access -->
   <section class="card">
     <div>
-      <h2>DA20 · Picker Instance Access</h2>
+      <h2>DA20 · Controller Access (<code>el.controller</code>)</h2>
       <p class="description">
-        Access the underlying DateRangePicker instance for advanced features and internal state.
-        <strong>Note:</strong> This is an advanced API - prefer using web component methods when possible.
+        <code>el.controller</code> is the picker's public facade — a stable surface for reading the
+        selection and driving the picker. It is the same object every callback context and event
+        detail carries as <code>controller</code>, and it survives internal rebuilds. The internal
+        engine is not part of the public API.
       </p>
     </div>
     <div>
@@ -1120,53 +1122,39 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
         </web-daterangepicker>
 
         <div class="controls">
-          <button id="btn-get-instance">Get Picker Instance</button>
-          <button id="btn-get-internal-state">Get Internal State</button>
+          <button id="btn-get-instance">Read via Controller</button>
+          <button id="btn-get-internal-state">Drive via Controller</button>
         </div>
 
         <div class="log-panel" id="output-m6">
-          Click buttons to explore picker instance...
+          Click buttons to explore the controller...
         </div>
       </div>
 
       <div class="code-block">
         <button class="copy-button" onclick="copyCode(this)">Copy</button>
         <pre><code>const component = document.getElementById('picker-6');
+const controller = component.controller;
 
-// Access underlying picker instance
-const picker = component.picker;
+// Read the selection
+console.log('Range:', controller.getSelectedRange());   // { start, end } | null
+console.log('Ranges:', controller.getSelectedRanges()); // DateRange[]
+console.log('Open:', controller.isOpen);
 
-if (picker) {
-    // Access internal state
-    console.log('Selected start:', picker.selectedStartDate);
-    console.log('Selected end:', picker.selectedEndDate);
-    console.log('Format info:', picker.formatInfo);
+// Drive the picker
+controller.open();
+controller.nextMonth();
+controller.showMessage('Pick your stay', { type: 'info', autoHideMs: 2000 });
+controller.lock('navigation');   // scoped read-only lock
+controller.unlock();
 
-    // Access calendar element
-    const calendar = picker.calendar;
-    console.log('Calendar element:', calendar);
-
-    // Access configuration (via options object)
-    console.log('Mode:', picker.options.selectionMode); // 'single' or 'range'
-    console.log('Months to show:', picker.options.visibleMonthsCount);
-    console.log('Commit mode:', picker.options.commitMode);
-    console.log('Show summary:', picker.options.isSummaryShown);
-} else {
-    console.warn('Picker not initialized yet');
-}</code></pre>
+// Configuration is read from the element itself
+console.log('Mode:', component.selectionMode);
+console.log('Months to show:', component.visibleMonthsCount);</code></pre>
       </div>
 
       <div class="method-signature">
-        <div><span class="return-type">DateRangePicker | null</span> picker <em>(read-only)</em></div>
-      </div>
-
-      <div class="note warning">
-        <strong>⚠️ Advanced API Warning:</strong>
-        <p>
-          Direct picker instance access is provided for advanced use cases. Modifying internal state
-          directly may cause unexpected behavior. Always prefer web component methods and properties
-          when available.
-        </p>
+        <div><span class="return-type">DateRangePickerController</span> controller <em>(read-only)</em></div>
       </div>
     </div>
   </section>
@@ -1201,9 +1189,11 @@ picker.dateFormatMask = 'DD.MM.YYYY';
 picker.value = '2025-11-15';
 
 // Events
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   console.log('Selected:', e.detail);
-});</pre></div>
+});
+// ...or the on* twin, which receives the detail directly
+picker.onSelect = (detail) => console.log('Selected:', detail.formattedValue);</pre></div>
   </div>
 
   <!-- ===== REAL-WORLD PATTERNS ===== -->
@@ -1283,7 +1273,7 @@ picker.getDateMetadataCallback = ({ date }) =&gt; {
 
 // Estimate: the picker's own summary sums the on-screen badges for any
 // selected range (shows live, including drag preview).
-picker.formatSummaryCallback = ({ startDate, endDate }) =&gt; {
+picker.renderSummaryCallback = ({ startDate, endDate }) =&gt; {
     if (!startDate || !endDate) return '';
     return `&lt;b&gt;Estimated&lt;/b&gt; — ~$${bookingTotal({ start: startDate, end: endDate })}`;
 };
@@ -1293,8 +1283,8 @@ picker.formatSummaryCallback = ({ startDate, endDate }) =&gt; {
 // Booking confirms + locks; amending releases. Swapping the array re-renders the
 // bar, so Book ⇄ Amend is just two arrays.
 const bookActions  = [{ action: 'clear', text: 'Clear' },
-                      { action: 'custom', text: 'Book', onClick: bookNow }];
-const amendActions = [{ action: 'custom', text: 'Amend', onClick: amendNow }];
+                      { id: 'book', text: 'Book', onClick: bookNow }];
+const amendActions = [{ id: 'amend', text: 'Amend', onClick: amendNow }];
 
 async function bookNow() {
     const { selectedStartDate: start, selectedEndDate: end } = picker;
@@ -1401,34 +1391,34 @@ const MIN_NIGHTS = 3;
 picker.actionButtons = [
     { action: 'clear', text: 'Clear' },
     {
-        action: 'custom',
+        id: 'confirm',
         text: 'Confirm',
         cssClass: 'drp__button--apply',              // primary-action accent
-        onClick: async ({ picker }) =&gt; {
-            const start = picker.selectedStartDate;
-            const end   = picker.selectedEndDate;
+        onClick: async ({ element, controller }) =&gt; {
+            const start = element.selectedStartDate;
+            const end   = element.selectedEndDate;
 
             // 1) nothing / half a range → warn, stay open
             if (!start || !end) {
-                picker.showMessage('Please select a full date range first.', 'error');
+                controller.showMessage('Please select a full date range first.', { type: 'error' });
                 return;
             }
             // 2) business rule → warn, stay open
             const nights = Math.round((end - start) / 86400000);
             if (nights &lt; MIN_NIGHTS) {
-                picker.showMessage(`Minimum ${MIN_NIGHTS} nights — you picked ${nights}.`, 'warning');
+                controller.showMessage(`Minimum ${MIN_NIGHTS} nights — you picked ${nights}.`, { type: 'warning' });
                 return;
             }
             // 3) valid → commit AND close
-            picker.hideMessage();
-            picker.apply();
+            controller.hideMessage();
+            controller.apply();
         }
     }
 ];</code></pre>
       </div>
 
       <div class="method-signature">
-        <div><span class="return-type">void</span> showMessage(html: string, type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number)</div>
+        <div><span class="return-type">void</span> controller.showMessage(html: string, { type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number })</div>
         <div><span class="return-type">void</span> hideMessage()</div>
         <div><span class="return-type">void</span> apply()</div>
         <div><span class="return-type">void</span> close()</div>
@@ -1500,8 +1490,8 @@ function DatePicker({ value, onChange }) {
             onChange(e.detail.formattedValue);
         };
 
-        picker.addEventListener('date-select', handleSelect);
-        return () => picker.removeEventListener('date-select', handleSelect);
+        picker.addEventListener('select', handleSelect);
+        return () => picker.removeEventListener('select', handleSelect);
     }, [onChange]);
 
     useEffect(() => {
@@ -1517,7 +1507,7 @@ function DatePicker({ value, onChange }) {
 &lt;template&gt;
     &lt;web-daterangepicker
         ref="picker"
-        @date-select="handleSelect"
+        @select="handleSelect"
     &gt;&lt;/web-daterangepicker&gt;
 &lt;/template&gt;
 
@@ -1557,7 +1547,7 @@ class DateRangeManager {
 
     init() {
         // Listen for picker changes
-        this.picker.addEventListener('date-select', (e) => {
+        this.picker.addEventListener('select', (e) => {
             if (e.detail.dateRange) {
                 this.state.start = e.detail.dateRange.start;
                 this.state.end = e.detail.dateRange.end;
@@ -1625,13 +1615,13 @@ const manager = new DateRangeManager();</code></pre>
   <!-- Example 8: All Options Reference -->
   <div class="card">
     <h2>DA26 · Complete Options Reference</h2>
-    <p>All available options you can pass to the DateRangePicker constructor.</p>
+    <p>All available options you can pass to the DateRangePickerEngine constructor.</p>
 
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePicker } from '@keenmate/web-daterangepicker';
+      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   // Selection
   selectionMode: 'single' | 'range',               // Default: 'single'
 
@@ -1696,18 +1686,28 @@ const picker = new DateRangePicker(inputElement, {
     console.log('Selected:', detail);
   },
 
-  beforeDateSelectCallback: async (selection) => {
-    // Validate before selection is finalized
-    // Return { action: 'accept' | 'adjust' | 'restore' | 'clear' }
-    return { action: 'accept' };
+  beforeSelectCallback: async (ctx) => {
+    // Validate before the selection is finalized (ctx.date / ctx.range).
+    // Return nothing = accept, false = reject, a Date / DateRange = adjust,
+    // a DateRange[] = N ranges, null = clear.
+    // Explain a rejection with ctx.controller.showMessage(text, { type: 'error' }).
   },
 
-  formatSummaryCallback: (data) => {
+  beforeMonthChangeCallback: (ctx) => {
+    // Return false to block navigation to ctx.year / ctx.month
+  },
+
+  getMonthDataCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
+    // Load data for the visible range (initial open + every navigation)
+    return { metadata: new Map(), monthHeaders: new Map() };
+  },
+
+  renderSummaryCallback: (data) => {
     // Custom summary formatting for range mode
     return `${data.nights} nights selected`;
   },
 
-  getDateMetadataCallback: (date) => {
+  getDateMetadataCallback: ({ date, dateString }) => {
     // Add custom metadata to dates
     return {
       badgeClass: 'custom-class',
@@ -1719,27 +1719,27 @@ const picker = new DateRangePicker(inputElement, {
     };
   },
 
-  renderDayCallback: (date, metadata) => {
+  renderDayCallback: ({ date, cellElement }) => {
     // Completely custom day cell rendering
     return `<div class="custom-day">${date.getDate()}</div>`;
   },
 
-  renderDayContentCallback: (date, metadata) => {
+  renderDayContentCallback: ({ date }) => {
     // Custom content inside day cell
     return `<span class="custom-content">${date.getDate()}</span>`;
   },
 
-  customStylesCallback: (date, metadata) => {
-    // Add inline styles to day cells
-    return { backgroundColor: '#f0f0f0' };
+  getCustomStylesCallback: (ctx) => {
+    // CSS string injected into the picker (replaceable style slot)
+    return `.drp__day--today { background: #f0f0f0; }`;
   },
 
-  badgeTooltipCallback: (date, metadata) => {
+  getBadgeTooltipCallback: ({ dateString }) => {
     // Custom badge tooltip
     return 'Badge tooltip text';
   },
 
-  dayTooltipCallback: (date, metadata) => {
+  getDayTooltipCallback: ({ dateString }) => {
     // Custom day tooltip
     return 'Day tooltip text';
   },
@@ -1986,10 +1986,10 @@ const picker = new DateRangePicker(inputElement, {
             <td>The currently locked aspects (read-only snapshot)</td>
           </tr>
           <tr>
-            <td><code>picker</code></td>
-            <td><code>DateRangePicker | undefined</code></td>
+            <td><code>controller</code></td>
+            <td><code>DateRangePickerController</code></td>
             <td>Read-only</td>
-            <td>Underlying engine instance — <code>undefined</code> before first connect (advanced)</td>
+            <td>Public facade (read the selection, open/close, messages, loaders, locks) — the same object every callback context and event detail carries as <code>controller</code></td>
           </tr>
         </tbody>
       </table>
@@ -2010,19 +2010,29 @@ const picker = new DateRangePicker(inputElement, {
         </thead>
         <tbody>
           <tr>
-            <td><code>date-select</code></td>
-            <td><code>DateSelectDetail</code></td>
-            <td>Fired when date(s) selected</td>
+            <td><code>select</code></td>
+            <td><code>SelectEventDetail</code></td>
+            <td>Fired when date(s) selected (twin: <code>onSelect(detail)</code>)</td>
           </tr>
           <tr>
             <td><code>change</code></td>
-            <td><code>DateSelectDetail</code></td>
-            <td>Alias for date-select (same detail)</td>
+            <td><code>SelectEventDetail</code></td>
+            <td>Fires right after <code>select</code> (same detail; twin: <code>onChange(detail)</code>)</td>
           </tr>
           <tr>
-            <td><code>custom-action</code></td>
-            <td><code>CustomActionEventDetail</code></td>
-            <td>Fired when a custom action button is clicked (<code>detail.data</code> / <code>detail.picker</code>)</td>
+            <td><code>action</code></td>
+            <td><code>DateRangePickerActionEventDetail</code></td>
+            <td>Fired for every action button (built-ins too) and every <code>data-action</code> trigger (<code>detail.action</code> / <code>detail.id</code> / <code>detail.source</code> / <code>detail.dataset</code>)</td>
+          </tr>
+          <tr>
+            <td><code>month-change</code></td>
+            <td><code>MonthChangeEventDetail</code></td>
+            <td>The visible month(s) changed (<code>monthIndex</code>, <code>year</code>, <code>month</code>, <code>visibleMonths</code>)</td>
+          </tr>
+          <tr>
+            <td><code>ready</code></td>
+            <td><code>ReadyEventDetail</code></td>
+            <td>First build finished (<code>detail.controller</code> / <code>detail.element</code>)</td>
           </tr>
         </tbody>
       </table>
@@ -2035,16 +2045,17 @@ const picker = new DateRangePicker(inputElement, {
     end: Date;
 }
 
-interface DateSelectDetail {
+interface SelectEventDetail {
     formattedValue: string;
     date?: Date;           // Single mode only
     dateRange?: DateRange; // Range mode only
+    // ...plus controller / element (non-enumerable) and the presentation flags
 }
 
 // Usage with TypeScript
 const picker = document.getElementById('my-picker') as WebDaterangepickerElement;
 
-picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&gt;) => {
+picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) => {
     console.log('Formatted:', event.detail.formattedValue);
 
     if (event.detail.date) {
@@ -2065,13 +2076,13 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
   <!-- SCRIPTS                                                       -->
   <!-- ============================================================= -->
 
-  <!-- JS-instantiation demos (DateRangePicker class against plain inputs) -->
+  <!-- JS-instantiation demos (DateRangePickerEngine class against plain inputs) -->
   <script type="module">
-    import { DateRangePicker, observeEnvironment, classifyDevice } from './src/index.ts';
-    // IMPORTANT: Import styles globally for DateRangePicker class to work
+    import { DateRangePickerEngine, observeEnvironment, classifyDevice } from './src/index.ts';
+    // IMPORTANT: Import styles globally for DateRangePickerEngine class to work
     import './src/css/main.css';
 
-    // Device-adaptive presentation for the raw DateRangePicker class.
+    // Device-adaptive presentation for the raw DateRangePickerEngine class.
     // The <web-daterangepicker> element does this automatically, but the class
     // does NOT: a floating picker stays a floating popover on every device, so on
     // a phone the calendar overlaps the content below it (the output box and code
@@ -2089,7 +2100,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
     // Example 1: Basic Single Date Picker
     const input1 = document.getElementById('input-1');
-    const picker1 = makeAdaptive(new DateRangePicker(input1, {
+    const picker1 = makeAdaptive(new DateRangePickerEngine(input1, {
       selectionMode: 'single',
       dateFormatMask: 'YYYY-MM-DD',
       onSelect: (detail) => {
@@ -2100,7 +2111,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     }));
 
     // Example 2: Date Range Picker
-    const picker2 = makeAdaptive(new DateRangePicker(document.getElementById('input-2'), {
+    const picker2 = makeAdaptive(new DateRangePickerEngine(document.getElementById('input-2'), {
       selectionMode: 'range',
       visibleMonthsCount: 2,
       monthLayout: 'horizontal',
@@ -2123,7 +2134,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
     const input3 = document.getElementById('input-3');
-    const picker3 = makeAdaptive(new DateRangePicker(input3, {
+    const picker3 = makeAdaptive(new DateRangePickerEngine(input3, {
       selectionMode: 'single',
       dateFormatMask: 'YYYY-MM-DD',
       minDate: firstDay,
@@ -2137,7 +2148,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
     // Example 4: Different Formats
     const input4a = document.getElementById('input-4a');
-    const picker4a = makeAdaptive(new DateRangePicker(input4a, {
+    const picker4a = makeAdaptive(new DateRangePickerEngine(input4a, {
       selectionMode: 'single',
       dateFormatMask: 'DD.MM.YYYY',
       onSelect: (detail) => {
@@ -2147,7 +2158,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     }));
 
     const input4b = document.getElementById('input-4b');
-    const picker4b = makeAdaptive(new DateRangePicker(input4b, {
+    const picker4b = makeAdaptive(new DateRangePickerEngine(input4b, {
       selectionMode: 'single',
       dateFormatMask: 'MM/DD/YYYY',
       onSelect: (detail) => {
@@ -2157,7 +2168,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     }));
 
     // Example 5: Inline Calendar
-    const picker5 = new DateRangePicker(null, {
+    const picker5 = new DateRangePickerEngine(null, {
       selectionMode: 'single',
       positioningMode: 'inline',
       container: document.getElementById('inline-container'),
@@ -2170,7 +2181,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
     // Example 6: Grid Layout
     const input6 = document.getElementById('input-6');
-    const picker6 = makeAdaptive(new DateRangePicker(input6, {
+    const picker6 = makeAdaptive(new DateRangePickerEngine(input6, {
       selectionMode: 'single',
       visibleMonthsCount: 6,
       monthLayout: 'grid',
@@ -2212,7 +2223,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
       container.appendChild(output);
       document.getElementById('dynamic-pickers').appendChild(container);
 
-      const picker = makeAdaptive(new DateRangePicker(input, {
+      const picker = makeAdaptive(new DateRangePickerEngine(input, {
         selectionMode: 'single',
         dateFormatMask: 'YYYY-MM-DD',
         onSelect: (detail) => {
@@ -2392,39 +2403,28 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
       updateState5();
     });
 
-    // Section 6: Picker Instance Access
+    // Section 6: Controller Access
     const picker6 = document.getElementById('picker-6');
     const output6 = document.getElementById('output-m6');
+    const fmt6 = (d) => (d ? d.toLocaleDateString() : 'null');
 
     document.getElementById('btn-get-instance').addEventListener('click', () => {
-      const instance = picker6.picker;
-      if (instance) {
-        output6.innerHTML = `
-          <div>Picker instance found:</div>
-          <div>• Mode: <strong>${instance.options.selectionMode}</strong></div>
-          <div>• Months to show: <strong>${instance.options.visibleMonthsCount}</strong></div>
-          <div>• Commit mode: <strong>${instance.options.commitMode}</strong></div>
-        `;
-      } else {
-        output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';
-      }
+      const controller = picker6.controller;
+      const range = controller.getSelectedRange();
+      output6.innerHTML = `
+        <div>Read via <code>el.controller</code>:</div>
+        <div>• Mode: <strong>${picker6.selectionMode}</strong></div>
+        <div>• Range: <strong>${range ? `${fmt6(range.start)} – ${fmt6(range.end)}` : 'none'}</strong></div>
+        <div>• Ranges: <strong>${controller.getSelectedRanges().length}</strong></div>
+        <div>• Open: <strong>${controller.isOpen}</strong></div>
+      `;
     });
 
     document.getElementById('btn-get-internal-state').addEventListener('click', () => {
-      const instance = picker6.picker;
-      if (instance) {
-        const hasStart = instance.selectedStartDate !== null;
-        const hasEnd = instance.selectedEndDate !== null;
-
-        output6.innerHTML = `
-          <div>Internal state:</div>
-          <div>• Start date: <strong>${hasStart ? instance.selectedStartDate.toLocaleDateString() : 'null'}</strong></div>
-          <div>• End date: <strong>${hasEnd ? instance.selectedEndDate.toLocaleDateString() : 'null'}</strong></div>
-          <div>• Format: <strong>${instance.formatInfo.format}</strong></div>
-        `;
-      } else {
-        output6.innerHTML = '<strong style="color: #dc3545;">Picker not initialized</strong>';
-      }
+      const controller = picker6.controller;
+      controller.open();
+      controller.showMessage('Opened and messaged via <code>el.controller</code>', { type: 'info', autoHideMs: 2500 });
+      output6.innerHTML = '<div>Called <code>controller.open()</code> + <code>controller.showMessage(…, { type: 'info', autoHideMs: 2500 })</code></div>';
     });
 
     // Section 9: Booking desk — confirm & lock (scoped read-only)
@@ -2443,7 +2443,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
     // Inject the price-tier styles into the shadow DOM and stamp a $-rate
     // badge onto every day cell (reused verbatim from the badges demo).
-    picker9.customStylesCallback = () => `
+    picker9.getCustomStylesCallback = () => `
       .price-high   { background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #f87171 !important; font-weight: 600; }
       .price-medium { background-color: #fef3c7 !important; color: #92400e !important; border: 1px solid #fbbf24 !important; font-weight: 600; }
       .price-low    { background-color: #d1fae5 !important; color: #065f46 !important; border: 1px solid #34d399 !important; font-weight: 600; }
@@ -2456,7 +2456,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     // The picker's OWN summary is the live ESTIMATE — the sum of the on-screen
     // badges — shown automatically for any selected range (including drag preview).
     // Confirm later paints the server's real price over it via showSummary().
-    picker9.formatSummaryCallback = ({ startDate, endDate, days }) => {
+    picker9.renderSummaryCallback = ({ startDate, endDate, days }) => {
       if (!startDate || !endDate) return '';
       const est = bookingTotal({ start: startDate, end: endDate });
       return `<b>Estimated</b> — ${days} day${days > 1 ? 's' : ''} · ~$${est} ` +
@@ -2511,7 +2511,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     // persistent override).
     const bookNow = async () => {
       // A plain range lives in selectedStartDate / selectedEndDate;
-      // selectedRanges only carries multi-range (adjustedRanges) results.
+      // selectedRanges only carries multi-range (beforeSelectCallback DateRange[]) results.
       const start = picker9.selectedStartDate, end = picker9.selectedEndDate;
       if (!start || !end) {
         picker9.showMessage('Pick a range first, then hit Book.', 'warning', 2500);
@@ -2550,10 +2550,10 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
     const bookActions = [
       { action: 'clear', text: 'Clear' },
-      { action: 'custom', text: 'Book', cssClass: 'drp__button--apply', onClick: bookNow } // reuse the primary-action accent
+      { id: 'book', text: 'Book', cssClass: 'drp__button--apply', onClick: bookNow } // reuse the primary-action accent
     ];
     const amendActions = [
-      { action: 'custom', text: 'Amend', onClick: amendNow }
+      { id: 'amend', text: 'Amend', onClick: amendNow }
     ];
     picker9.actionButtons = bookActions;            // start in "Book" mode
 
@@ -2575,28 +2575,28 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     pickerConfirm.actionButtons = [
       { action: 'clear', text: 'Clear' },
       {
-        action: 'custom',
+        id: 'confirm',
         text: 'Confirm',
         cssClass: 'drp__button--apply',          // reuse the primary-action accent
-        onClick: async ({ picker }) => {
-          const start = picker.selectedStartDate;
-          const end = picker.selectedEndDate;
+        onClick: async ({ element, controller }) => {
+          const start = element.selectedStartDate;
+          const end = element.selectedEndDate;
 
           // 1) nothing / half a range → warn, stay open
           if (!start || !end) {
-            picker.showMessage('Please select a full date range first.', 'error');
+            controller.showMessage('Please select a full date range first.', { type: 'error' });
             return;
           }
           // 2) business rule (min nights) → warn, stay open
           const nights = Math.round((end - start) / 86400000);
           if (nights < CONFIRM_MIN_NIGHTS) {
-            picker.showMessage(`Minimum ${CONFIRM_MIN_NIGHTS} nights — you picked ${nights}.`, 'warning');
+            controller.showMessage(`Minimum ${CONFIRM_MIN_NIGHTS} nights — you picked ${nights}.`, { type: 'warning' });
             return;
           }
           // 3) valid → reflect it, then commit AND close
-          picker.hideMessage();
+          controller.hideMessage();
           confirmState.textContent = `confirmed ${fmtLocal(start)} → ${fmtLocal(end)} (${nights} nights)`;
-          picker.apply();
+          controller.apply();
         }
       }
     ];
@@ -2625,9 +2625,9 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
         'max-date': `${_today.getFullYear()}-12-31`,
       });
 
-      // Log all date-select events (for demo observability)
+      // Log all select events (for demo observability)
       document.querySelectorAll('web-daterangepicker').forEach(picker => {
-        picker.addEventListener('date-select', (e) => {
+        picker.addEventListener('select', (e) => {
           console.log('Date selected:', e.detail);
         });
       });
@@ -2635,7 +2635,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
       // Range Selection Modes (over disabled dates)
       const modeAllow = document.getElementById('mode-allow');
       if (modeAllow) {
-        modeAllow.addEventListener('date-select', (e) => {
+        modeAllow.addEventListener('select', (e) => {
           const output = document.getElementById('mode-allow-output');
           if (output && e.detail.enabledDates && e.detail.disabledDates) {
             output.innerHTML = `
@@ -2649,7 +2649,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
       const modeBlock = document.getElementById('mode-block');
       if (modeBlock) {
-        modeBlock.addEventListener('date-select', (e) => {
+        modeBlock.addEventListener('select', (e) => {
           const output = document.getElementById('mode-block-output');
           if (output && e.detail.dates) {
             output.innerHTML = `
@@ -2663,7 +2663,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
       const modeSplit = document.getElementById('mode-split');
       if (modeSplit) {
         // Customize the calendar summary to show disabled day count
-        modeSplit.formatSummaryCallback = (data) => {
+        modeSplit.renderSummaryCallback = (data) => {
           if (data.dateRanges && data.dateRanges.length > 1) {
             // Calculate disabled days
             const totalDaysInRange = Math.floor(
@@ -2686,7 +2686,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
           return '';
         };
 
-        modeSplit.addEventListener('date-select', (e) => {
+        modeSplit.addEventListener('select', (e) => {
           const output = document.getElementById('mode-split-output');
           if (output && e.detail.dateRanges && e.detail.dateRanges.length > 0) {
             // Build individual range details
@@ -2722,7 +2722,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
       const modeIndividual = document.getElementById('mode-individual');
       if (modeIndividual) {
         // Customize the calendar summary to show disabled day count
-        modeIndividual.formatSummaryCallback = (data) => {
+        modeIndividual.renderSummaryCallback = (data) => {
           if (data.dates && data.dates.length > 0) {
             // Calculate disabled days
             const totalDaysInRange = Math.floor(
@@ -2743,7 +2743,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
           return '';
         };
 
-        modeIndividual.addEventListener('date-select', (e) => {
+        modeIndividual.addEventListener('select', (e) => {
           const output = document.getElementById('mode-individual-output');
           if (output && e.detail.dates) {
             output.innerHTML = `
@@ -2754,7 +2754,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
         });
       }
 
-      // Week-snapping selection via adjustedRanges:
+      // Week-snapping selection — beforeSelectCallback returns a DateRange[]:
       //   count selected work days (Mon–Fri) per week →
       //     >= 2  ⇒ select the whole week (Mon–Sun)
       //     <  2  ⇒ drop that week
@@ -2772,8 +2772,8 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
         const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
         const isWorkday = (d) => d.getDay() >= 1 && d.getDay() <= 5;
 
-        weekSnap.beforeDateSelectCallback = (ctx) => {
-          if (!ctx.range) return { action: 'accept' };
+        weekSnap.beforeSelectCallback = (ctx) => {
+          if (!ctx.range) return; // nothing returned = accept
           const start = atMidnight(ctx.range.start);
           const end = atMidnight(ctx.range.end);
 
@@ -2792,18 +2792,17 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
           }
 
           if (weeks.length === 0) {
-            // No week qualified — nothing gets selected.
-            return { action: 'clear', message: 'Fewer than 2 work days in every week — nothing selected' };
+            // No week qualified — nothing gets selected (null clears).
+            ctx.controller.showMessage('Fewer than 2 work days in every week — nothing selected', { type: 'warning' });
+            return null;
           }
 
-          return {
-            action: 'adjust',
-            message: `${weeks.length} full week${weeks.length !== 1 ? 's' : ''} selected`,
-            adjustedRanges: weeks.map(w => ({ start: w.start, end: w.end }))
-          };
+          // A DateRange[] replaces the proposal with these N ranges.
+          ctx.controller.showMessage(`${weeks.length} full week${weeks.length !== 1 ? 's' : ''} selected`, { type: 'info' });
+          return weeks.map(w => ({ start: w.start, end: w.end }));
         };
 
-        weekSnap.addEventListener('date-select', () => {
+        weekSnap.addEventListener('select', () => {
           const output = document.getElementById('week-snap-output');
           if (!output) return;
           const ranges = weekSnap.selectedRanges;
@@ -2821,7 +2820,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
       // Setup custom summary formatting examples
       const summaryPricing = document.getElementById('summary-pricing');
       if (summaryPricing) {
-        summaryPricing.formatSummaryCallback = (data) => {
+        summaryPricing.renderSummaryCallback = (data) => {
           const pricePerNight = 150;
           const total = data.nights * pricePerNight;
           const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
@@ -2838,7 +2837,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
       const summaryWeekdays = document.getElementById('summary-weekdays');
       if (summaryWeekdays) {
-        summaryWeekdays.formatSummaryCallback = (data) => {
+        summaryWeekdays.renderSummaryCallback = (data) => {
           if (data.enabledDates && data.disabledDates) {
             const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
 
@@ -2856,7 +2855,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
       const summarySplit = document.getElementById('summary-split');
       if (summarySplit) {
-        summarySplit.formatSummaryCallback = (data) => {
+        summarySplit.renderSummaryCallback = (data) => {
           if (data.dateRanges && data.dateRanges.length > 1) {
             const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
 
@@ -2875,7 +2874,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
       const summaryNights = document.getElementById('summary-nights');
       if (summaryNights) {
-        summaryNights.formatSummaryCallback = (data) => {
+        summaryNights.renderSummaryCallback = (data) => {
           const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
 
           return `

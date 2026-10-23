@@ -3,20 +3,24 @@ CUSTOM RENDERING & METADATA
 
 THREE CUSTOMIZATION LEVELS
 ---------------------------
-1. getDateMetadata - Per-date metadata (badges, tooltips, classes)
-2. renderDayContent - Custom day cell HTML
-3. Callbacks - Badge/tooltip dynamic content
+1. getDateMetadataCallback - Per-date metadata (badges, tooltips, classes)
+2. renderDayContentCallback / renderDayCallback - Custom day cell HTML
+3. getBadgeTooltipCallback / getDayTooltipCallback - Dynamic tooltip content
+(+ getMonthDataCallback for bulk metadata per visible range - events-callbacks.txt)
 
-CRITICAL: All JavaScript API ONLY
+Every callback receives ONE context object (ctx) with its own fields plus
+ctx.controller (public facade), ctx.element (the host) and presentation flags.
+
+CRITICAL: Properties only (el.getDateMetadataCallback = ...).
 Not available as web component attributes.
 
 GETDATEMETADATA CALLBACK
 ------------------------
 Return metadata for each date cell.
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
-    // Return DateInfo object
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
+    // Return a DayMetadata object
     return {
       isDisabled: boolean,
       badgeText: string,
@@ -50,8 +54,8 @@ BADGE SYSTEM
 ------------
 Small badge in top-right corner of day cell.
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const availability = checkRooms(date);
 
     if (!availability) return {};
@@ -71,7 +75,7 @@ BADGE STYLING
 Use badgeClass to style badges:
 
 // JavaScript
-getDateMetadata: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const rooms = getRoomCount(date);
 
   return {
@@ -83,7 +87,7 @@ getDateMetadata: (date) => {
 }
 
 // CSS (inject into shadow DOM)
-picker.customStylesCallback = () => `
+picker.getCustomStylesCallback = () => `
   .drp__badge.full {
     background: #ef4444 !important;
     color: white !important;
@@ -102,8 +106,8 @@ DAY CELL STYLING
 ----------------
 Add CSS classes to entire day cell:
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const status = getStatus(date);
 
     return {
@@ -114,7 +118,7 @@ const picker = new DateRangePicker(input, {
 });
 
 // CSS
-picker.customStylesCallback = () => `
+picker.getCustomStylesCallback = () => `
   .drp__day.status-booked {
     background: #fee2e2 !important;
     color: #991b1b !important;
@@ -138,7 +142,7 @@ Two types of tooltips:
    - For general date info
 
 Example:
-getDateMetadata: (date) => {
+getDateMetadataCallback: ({ date }) => {
   return {
     badgeText: '$150',
     badgeTooltip: 'Price per night',
@@ -156,8 +160,8 @@ const availability = {
   '2025-11-19': { rooms: 10, status: 'available' }
 };
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const avail = availability[dateStr];
 
@@ -177,7 +181,7 @@ const picker = new DateRangePicker(input, {
 });
 
 // Styling
-picker.customStylesCallback = () => `
+picker.getCustomStylesCallback = () => `
   .drp__badge.full {
     background: #ef4444 !important;
     color: white !important;
@@ -203,8 +207,8 @@ const pricing = {
   '2025-11-23': 200
 };
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const price = pricing[dateStr];
 
@@ -230,8 +234,8 @@ const events = {
   '2025-12-25': { name: 'Christmas', type: 'holiday' }
 };
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const event = events[dateStr];
 
@@ -253,8 +257,8 @@ Complete control over day cell HTML.
 
 CRITICAL: JavaScript API ONLY
 
-const picker = new DateRangePicker(input, {
-  renderDayContent: (data) => {
+const picker = new DateRangePickerEngine(input, {
+  renderDayContentCallback: (data) => {
     // data: DayRenderContext interface
     // Return HTMLElement or null
 
@@ -294,16 +298,21 @@ Complete interface:
   isWeekend: boolean;      // Is Sat/Sun
 
   monthIndex: number;      // Which month column (multi-month)
-  element: HTMLElement;    // The day cell element
-  picker: any;             // Picker instance
+  cellElement?: HTMLElement; // The default-rendered day cell (augmentation pattern)
+
+  controller;              // Public facade (getSelectedRange(), showMessage(), ...)
+  element: HTMLElement;    // The <web-daterangepicker> HOST (not the cell!)
+  // + presentation flags
 }
+
+NOTE: `element` is the host; the day cell is `cellElement`. There is no `picker`.
 
 CUSTOM DAY RENDERING EXAMPLE
 -----------------------------
 Multi-line cell content:
 
-const picker = new DateRangePicker(input, {
-  renderDayContent: (data) => {
+const picker = new DateRangePickerEngine(input, {
+  renderDayContentCallback: (data) => {
     const availability = getAvailability(data.date);
 
     const wrapper = document.createElement('div');
@@ -337,42 +346,38 @@ const picker = new DateRangePicker(input, {
 
 BADGE CALLBACK (DYNAMIC)
 ------------------------
-Generate badge content dynamically:
+Badge text/class come from metadata (getDateMetadataCallback / specialDates /
+getMonthDataCallback). The tooltip can be computed separately:
 
-const picker = new DateRangePicker(input, {
-  badgeContentCallback: (date) => {
-    const count = getEventCount(date);
-    return count > 0 ? `${count}` : '';
-  },
+el.getDateMetadataCallback = ({ date }) => {
+  const count = getEventCount(date);
+  return count > 0
+    ? { badgeText: `${count}`, badgeClass: count > 5 ? 'many-events' : 'few-events' }
+    : null;
+};
 
-  badgeClassCallback: (date) => {
-    const count = getEventCount(date);
-    return count > 5 ? 'many-events' : 'few-events';
-  },
-
-  badgeTooltipCallback: (date) => {
-    const events = getEvents(date);
-    return `${events.length} events:\n${events.map(e => e.name).join('\n')}`;
-  }
-});
+el.getBadgeTooltipCallback = ({ date }) => {
+  const events = getEvents(date);
+  return `${events.length} events:\n${events.map(e => e.name).join('\n')}`;
+};
+// return null to keep the default (metadata badgeTooltip)
 
 TOOLTIP CALLBACK (DYNAMIC)
 --------------------------
-Generate tooltips dynamically:
+Generate tooltips dynamically (ctx is a DayContext):
 
-const picker = new DateRangePicker(input, {
-  dayTooltipCallback: (date) => {
-    const events = getEvents(date);
-    const weather = getWeather(date);
+el.getDayTooltipCallback = ({ date }) => {
+  const events = getEvents(date);
+  const weather = getWeather(date);
 
-    return `
-      ${date.toLocaleDateString()}
-      ${events.length} events
-      Weather: ${weather.description}
-      Temp: ${weather.temp}°F
-    `.trim();
-  }
-});
+  return `
+    ${date.toLocaleDateString()}
+    ${events.length} events
+    Weather: ${weather.description}
+    Temp: ${weather.temp}°F
+  `.trim();
+};
+// return null to keep the default (metadata dayTooltip)
 
 PERFORMANCE CONSIDERATIONS
 --------------------------
@@ -380,14 +385,14 @@ Callbacks called frequently (~35-42 times per month).
 
 Keep fast:
 ✅ GOOD:
-getDateMetadata: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const dateStr = date.toISOString().split('T')[0];
   const data = dataMap.get(dateStr); // O(1) lookup
   return data || {};
 }
 
 ❌ BAD:
-getDateMetadata: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const data = dataArray.find(d =>  // O(n) lookup
     d.date === date.toISOString().split('T')[0]
   );
@@ -401,17 +406,18 @@ const dataMap = new Map(
 );
 
 // Callback (fast)
-getDateMetadata: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const dateStr = date.toISOString().split('T')[0];
   return dataMap.get(dateStr) || {};
 }
 
-CUSTOMSTYLES CALLBACK
----------------------
-Inject CSS into Shadow DOM:
+GETCUSTOMSTYLES CALLBACK
+------------------------
+Inject CSS into Shadow DOM (receives the picker context; the no-JS twin is the
+`custom-styles` attribute - the callback wins when both are set):
 
-const picker = new DateRangePicker(input, {
-  customStylesCallback: (picker) => {
+const picker = new DateRangePickerEngine(input, {
+  getCustomStylesCallback: (ctx) => {
     return `
       /* Custom badge styles */
       .drp__badge.premium {
@@ -441,8 +447,8 @@ COMBINING CALLBACKS
 -------------------
 Use multiple callbacks together:
 
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => {
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => {
     const data = getData(date);
     return {
       badgeText: data.badge,
@@ -451,12 +457,12 @@ const picker = new DateRangePicker(input, {
     };
   },
 
-  renderDayContent: (data) => {
+  renderDayContentCallback: (data) => {
     const customContent = buildContent(data);
     return customContent;
   },
 
-  customStylesCallback: () => {
+  getCustomStylesCallback: () => {
     return getCustomStyles();
   }
 });
@@ -465,7 +471,7 @@ DEBUGGING
 ---------
 Log render calls:
 
-getDateMetadata: (date) => {
+getDateMetadataCallback: ({ date }) => {
   const result = computeMetadata(date);
   console.log('Metadata for', date.toISOString().split('T')[0], '→', result);
   return result;
@@ -473,7 +479,7 @@ getDateMetadata: (date) => {
 
 Count renders:
 let renderCount = 0;
-renderDayContent: (data) => {
+renderDayContentCallback: (data) => {
   renderCount++;
   console.log('Render count:', renderCount);
   return buildContent(data);
@@ -497,9 +503,9 @@ BEST PRACTICES
    - Avoid complex calculations
 
 4. Use appropriate method
-   - Simple badges → getDateMetadata
-   - Complex layout → renderDayContent
-   - Styling only → customStylesCallback
+   - Simple badges → getDateMetadataCallback
+   - Complex layout → renderDayContentCallback
+   - Styling only → getCustomStylesCallback
 
 5. Test performance
    - Profile with many dates
@@ -508,11 +514,11 @@ BEST PRACTICES
 
 WEB COMPONENT LIMITATIONS
 --------------------------
-All rendering callbacks are JavaScript API ONLY.
+All rendering callbacks are properties (or engine options), never attributes.
 
 ✅ Works:
-const picker = new DateRangePicker(input, {
-  getDateMetadata: (date) => { ... }
+const picker = new DateRangePickerEngine(input, {
+  getDateMetadataCallback: ({ date }) => { ... }
 });
 
 ❌ Doesn't work:
@@ -520,8 +526,6 @@ const picker = new DateRangePicker(input, {
   get-date-metadata="...">  <!-- Not an attribute -->
 </web-daterangepicker>
 
-For web component, set as property:
-const picker = document.querySelector('web-daterangepicker');
-picker.getDateMetadata = (date) => { ... };
-
-But properties may not be exposed. Use JavaScript API for full control.
+For web component, set as property (all callbacks are exposed):
+const el = document.querySelector('web-daterangepicker');
+el.getDateMetadataCallback = ({ date }) => { ... };

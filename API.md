@@ -242,7 +242,7 @@ The `disabled-dates-handling` attribute controls behavior when selecting ranges 
 
 ## DatePicker Options
 
-When instantiating `DateRangePicker` directly (not using web component), pass these options. The web component automatically converts attributes to options.
+When instantiating the engine (`DateRangePickerEngine`) directly (not using web component — advanced use), pass these options. The web component automatically converts attributes to options.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -251,7 +251,9 @@ When instantiating `DateRangePicker` directly (not using web component), pass th
 | `visibleMonthsCount` | `number` | `1` or `2` | Number of months to display |
 | `dateFormatMask` | `string` | `'YYYY-MM-DD'` | Date format pattern |
 | `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How calendar is triggered: `'focus'` (on input focus), `'typing'` (when typing starts), `'manual'` (button/code only) |
-| `onSelect` | `(detail: SelectEventDetail) => void` | `undefined` | Fires on selection/apply with the standardized detail (same payload as the `date-select` event) |
+| `onSelect` | `(detail: SelectEventDetail) => void` | `undefined` | Fires on selection/apply with the standardized detail (same payload as the element's `select` event) |
+| `onAction` | `(detail: DateRangePickerActionEventDetail) => void` | `undefined` | Fires when an action button / `data-action` trigger is activated (the element's `action` event) |
+| `onMonthChange` | `(detail: MonthChangeEventDetail) => void` | `undefined` | Fires after month navigation (the element's `month-change` event) |
 | `container` | `HTMLElement` | `document.body` | Where to append calendar (for web component, uses shadow root) |
 | `positioningMode` | `'inline' \| 'floating'` | `'floating'` | Display mode |
 | `monthLayout` | `'horizontal' \| 'grid'` | `'horizontal'` | Multi-month layout mode |
@@ -270,20 +272,25 @@ When instantiating `DateRangePicker` directly (not using web component), pass th
 | `badgeTooltipMember` | `string` | `'badgeTooltip'` | Property name in `specialDates` objects containing badge tooltip |
 | `dayTooltipMember` | `string` | `'dayTooltip'` | Property name in `specialDates` objects containing day tooltip |
 | `isDisabledMember` | `string` | `'isDisabled'` | Property name in `specialDates` objects containing disabled flag |
-| `getDateMetadataCallback` | `(date: Date) => DateInfo \| null` | `undefined` | Custom function to provide date styling/labels |
-| `rangeDisabledHandling` | `'allow' \| 'block' \| 'split' \| 'individual'` | `'allow'` | Range behavior over disabled dates |
+| `getDateMetadataCallback` | `(ctx: DayContext) => DayMetadata \| null` | `undefined` | Custom function to provide date styling/labels |
+| `disabledDatesHandling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | Range behavior over disabled dates |
 | `shouldHighlightDisabledInRange` | `boolean` | `true` | Highlight disabled dates in range |
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and Intl date formatting. Built-in: `'en'`, `'de'`, `'fr'`, `'es'` |
 | `displayFormatMask` | `string` | Same as `dateFormatMask` | Localized format mask for display (e.g., `'dd/mm/aaaa'` for Spanish) |
 | `customStrings` | `Partial<LocaleStrings>` | `undefined` | Override built-in UI strings (Today, Clear, Apply, etc.) |
 | `monthNames` | `string[]` | locale-based | Override month names. 12 strings, indexed by month: `[0]`=January … `[11]`=December |
 | `weekdayNames` | `string[]` | locale-based | Override weekday header labels. 7 strings, indexed by day-of-week: `[0]`=Sunday … `[6]`=Saturday (`weekStartDay` only rotates the display, not this mapping) |
-| `formatSummaryCallback` | `(data: SummaryCallbackData) => string` | `undefined` | Custom function to format the summary display (receives all selection data, returns HTML string) |
+| `renderSummaryCallback` | `(ctx: SummaryContext) => string` | `undefined` | Render the summary display (receives all selection data + picker context, returns HTML string) |
+| `beforeSelectCallback` | `(ctx: BeforeSelectContext) => BeforeSelectResult \| Promise<…>` | `undefined` | Intercept a selection: nothing = accept, `false` = reject, `Date` / `DateRange` / `DateRange[]` = adjust, `null` = clear |
+| `beforeMonthChangeCallback` | `(ctx: MonthChangeContext) => void \| false \| Promise<…>` | `undefined` | `false` blocks the navigation |
+| `getMonthDataCallback` | `(ctx: MonthChangeContext) => MonthData \| null \| Promise<…>` | `undefined` | Bulk-load `metadata` / `monthHeaders` for the visible range |
+| `actionButtons` | `(DateRangePickerActionItem \| 'today' \| 'now' \| 'clear' \| 'apply')[]` | built-ins | Footer action buttons (see [Action Buttons](#action-buttons)) |
+| `beforeActionCallback` | `(detail: DateRangePickerActionEventDetail) => void \| false \| Promise<…>` | `undefined` | `false` cancels an action click |
 
 ### Example Usage
 
 ```javascript
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'range',
   dateFormatMask: 'DD/MM/YYYY',
   visibleMonthsCount: 2,
@@ -298,7 +305,7 @@ const picker = new DateRangePicker(inputElement, {
 });
 
 // Spanish localization with custom strings
-const pickerES = new DateRangePicker(inputElement, {
+const pickerES = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   locale: 'es',
   dateFormatMask: 'YYYY-MM-DD',
@@ -327,7 +334,7 @@ Available on `<web-daterangepicker>` element:
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `formResetCallback()` | `() => void` | Form reset: clear the selection and the submitted value with the form. |
-| `ready()` | `() => void` | Release the `defer` render gate: build the picker now (once), with every option, callback and listener wired while deferred already in place. No-op when the element wasn't deferred or is already built. `flush()` first so a synchronous `el.value = …; el.customStylesCallback = …; el.ready()` lands those pending writes in the single build rather than after it. Latched — the gate never re-closes. Fires the `ready` event on the first build. |
+| `ready()` | `() => void` | Release the `defer` render gate: build the picker now (once), with every option, callback and listener wired while deferred already in place. No-op when the element wasn't deferred or is already built. `flush()` first so a synchronous `el.value = …; el.getCustomStylesCallback = …; el.ready()` lands those pending writes in the single build rather than after it. Latched — the gate never re-closes. Fires the `ready` event on the first build. |
 | `open()` | `() => void` | Open the calendar (floating/modal modes). |
 | `close()` | `() => void` | Close the calendar (floating/modal modes). |
 | `toggle()` | `() => void` | Toggle the calendar open/closed. |
@@ -351,10 +358,6 @@ Available on `<web-daterangepicker>` element:
 | `setRollingItemAlignment()` | `(alignment: 'flex-start' \| 'center' \| 'flex-end') => void` | Align items within the rolling year/month selector (`flex-start` \| `center` \| `flex-end`). |
 <!-- GEN:methods:end -->
 
-You can also reach the underlying engine directly: **`picker.picker`** is a
-read-only getter that returns the live `DateRangePicker` instance (or `undefined`
-before first connect).
-
 **Example:**
 ```javascript
 const picker = document.querySelector('web-daterangepicker');
@@ -365,40 +368,54 @@ console.log(picker.getInputValue()); // "2025-12-25"
 picker.clearSelection();
 ```
 
-### DateRangePicker Instance Methods
+### Controller facade (`el.controller`)
 
-Available on `DateRangePicker` instance (accessible via `picker.picker` on web component):
+`el.controller` is the picker's public, stable imperative surface — the same
+object every callback context and event detail carries as `controller`. It
+survives rebuilds, so it's safe to hold on to. (The internal engine is not
+reachable from the element; `el.picker` was removed.)
 
-| Method | Signature | Description |
+| Member | Signature | Description |
 |--------|-----------|-------------|
-| `open()` | `() => void` | Open calendar |
-| `close()` | `() => void` | Close calendar |
-| `toggle()` | `() => void` | Toggle calendar visibility |
-| `clear()` | `() => void` | Clear selection |
-| `destroy()` | `() => void` | Remove calendar and cleanup all event listeners |
-| `formatDate(date)` | `(date: Date \| null) => string` | Format date using configured format |
-| `isDateDisabledInternal(date)` | `(date: Date) => boolean` | Check if date is disabled (combines all disable logic) |
-| `getDateInfoInternal(date)` | `(date: Date) => DateInfo \| null` | Get date info (styling/labels) |
-| `hasDisabledDatesInRange(start, end)` | `(start: Date, end: Date) => boolean` | Check if range contains disabled dates |
-| `getEnabledDatesInRange(start, end)` | `(start: Date, end: Date) => Date[]` | Get all enabled dates in range |
-| `getDisabledDatesInRange(start, end)` | `(start: Date, end: Date) => Date[]` | Get all disabled dates in range |
-| `findLastEnabledBeforeGap(start, end)` | `(start: Date, end: Date) => Date` | Find last enabled date before disabled gap (for 'block' mode) |
-| `splitRangeByDisabled(start, end)` | `(start: Date, end: Date) => DateRange[]` | Split range into multiple ranges by disabled dates |
-| `isToday(date)` | `(date: Date) => boolean` | Check if date is today |
-| `isSameDay(date1, date2)` | `(date1: Date \| null, date2: Date \| null) => boolean` | Compare two dates (day precision) |
-| `isInRange(date)` | `(date: Date) => boolean` | Check if date is within selected range |
+| `getSelectedDate()` | `() => Date \| null` | The selected date (single mode) |
+| `getSelectedRange()` | `() => DateRange \| null` | The selected range (`{ start, end }`) |
+| `getSelectedRanges()` | `() => DateRange[]` | All committed ranges (one for a simple range, N for split / multi-range) |
+| `getSelectedDates()` | `() => Date[]` | Selected dates (multiple mode), or the enabled dates of a range under `individual` / `split` |
+| `getSelectedDatetime()` | `() => Date \| null` | The composed Date in time / datetime modes |
+| `isOpen` | `boolean` (read-only) | Whether the popover is open |
+| `selectToday()` | `() => void` | Select today (and the current time in datetime mode) |
+| `selectNow()` | `() => void` | Select the current time (time / datetime modes) |
+| `clearSelection()` | `() => void` | Clear the selection |
+| `apply()` | `() => void` | Commit a pending selection (Apply / `commit-mode="apply"`) |
+| `open()` / `close()` / `toggle()` | `() => void` | Drive the popover |
+| `setPresentation(next)` | `('floating' \| 'modal' \| 'fullscreen') => void` | Swap the presentation in place (selection preserved) |
+| `prevMonth(monthIndex?)` / `nextMonth(monthIndex?)` | `(monthIndex?: number) => void` | Step a month column (default: the active one) |
+| `lock(aspects?)` / `unlock(aspects?)` | `(aspects?: LockAspect \| LockAspect[]) => void` | Scoped read-only lock |
+| `showMessage(content, opts?)` | `(content: string, opts?: { type?: 'error' \| 'warning' \| 'info' \| 'success'; autoHideMs?: number }) => void` | Show an (HTML) message in the calendar |
+| `hideMessage()` | `() => void` | Hide the message |
+| `showSummary(content)` / `hideSummary()` | | Pin / drop a custom summary |
+| `showLoader(target?)` / `hideLoader(target?)` | `(target?: LoaderTarget) => void` | Spinner on `calendar` (default) / `message` / `summary` |
 
-**Example:**
+> `controller.showMessage` takes an **options object**; the element's own
+> `el.showMessage(content, type?, autoHide?)` keeps positional arguments.
+
 ```javascript
-const picker = new DateRangePicker(input, { selectionMode: 'range' });
+const el = document.querySelector('web-daterangepicker');
+const { controller } = el;
 
-const start = new Date(2025, 0, 1);
-const end = new Date(2025, 0, 31);
-
-console.log(picker.hasDisabledDatesInRange(start, end));
-const enabled = picker.getEnabledDatesInRange(start, end);
-console.log(`${enabled.length} enabled days in January`);
+if (!controller.getSelectedRange()) controller.selectToday();
+controller.showMessage('Pick a check-out date', { type: 'info', autoHideMs: 3000 });
 ```
+
+### Advanced: `DateRangePickerEngine`
+
+The internal engine is exported as `DateRangePickerEngine` for advanced
+standalone use (an input without the custom element — see
+[`docs/usage.md`](./docs/usage.md#javascript-instantiation-daterangepickerengine-class)).
+Its methods are internal and may change between releases; prefer the element
+and `el.controller`. Engine options follow [DatePicker Options](#datepicker-options);
+`onSelect`, `onAction` and `onMonthChange` receive the same details as the
+element's events.
 
 ---
 
@@ -406,33 +423,46 @@ console.log(`${enabled.length} enabled days in January`);
 
 ### Custom Events
 
-The web component dispatches the following events:
+The web component dispatches the following events. All bubble; none are
+`composed` (listen on the element or an ancestor in the same tree).
 
-| Event Name | Bubbles | Composed | Description |
-|------------|---------|----------|-------------|
-| `date-select` | ✓ | ✓ | Fired when a date or range is selected |
-| `change` | ✓ | ✓ | Fired when a date or range is selected (alias of `date-select`) |
-| `custom-action` | ✓ | ✓ | Fired when the user clicks an action button declared with `action: 'custom'` (see [Custom Action Buttons](#custom-action-buttons) below). |
+| Event Name | Detail | Description |
+|------------|--------|-------------|
+| `select` | `SelectEventDetail` | A date / range / time was selected (or applied) |
+| `change` | `SelectEventDetail` | Fires right after `select` with the same detail object (form-style wiring) |
+| `action` | `DateRangePickerActionEventDetail` | An action button (built-ins too) or an HTML `data-action` trigger was activated — see [Action Buttons](#action-buttons) |
+| `month-change` | `MonthChangeEventDetail` | The visible month(s) changed (any navigation) |
+| `ready` | `ReadyEventDetail` | The picker was built for the first time (once per element; deferred elements fire on `ready()` / `defer` removal) |
 
-`date-select` and `change` have the same `detail` structure. `custom-action` has its own — see below.
+Every detail also carries **`controller`** (the [facade](#controller-facade-elcontroller))
+and **`element`** (the host) — both non-enumerable, so `JSON.stringify(detail)`
+and LiveView `pushEvent` see only the data — plus the presentation flags
+(`presentation`, `isModal`, `isFullscreen`).
 
-> **Note**: there are no separate `apply` or `cancel` events. Clicking the Apply button commits the pending selection and dispatches `change`. Pressing Escape with an uncommitted selection silently restores the previous input value and fires nothing.
+> **Note**: there are no separate `apply` or `cancel` events. Clicking the Apply button commits the pending selection and dispatches `select` + `change` (and `action` with `action: 'apply'` for the click itself). Pressing Escape with an uncommitted selection silently restores the previous input value and fires nothing.
 
 ### Event Detail Properties
 
-The `event.detail` object contains different properties depending on the mode and configuration:
+`select` / `change` (`SelectEventDetail`) — properties depend on the mode and configuration:
 
 | Property | Type | Always Present | Conditions | Description |
 |----------|------|----------------|------------|-------------|
 | `formattedValue` | `string` | ✓ | - | Formatted date string for display |
 | `date` | `Date` | - | Mode: `single` | Selected date (single mode) |
 | `dateRange` | `DateRange` | - | Mode: `range` (except `individual`) | Selected range with `start` and `end` dates |
-| `enabledDates` | `Date[]` | - | Mode: `range`, rangeDisabledMode: `'allow'` | All enabled dates within range |
-| `disabledDates` | `Date[]` | - | Mode: `range`, rangeDisabledMode: `'allow'` | All disabled dates within range |
-| `dateRanges` | `DateRange[]` | - | Mode: `range`, rangeDisabledMode: `'split'` | Multiple ranges split by disabled dates |
-| `dates` | `Date[]` | - | Mode: `range`, rangeDisabledMode: `'split'` or `'individual'` | Flat array of individual enabled dates |
-| `getEnabledDateCount` | `() => number` | - | Mode: `range`, rangeDisabledMode: `'allow'` | Helper function to count enabled dates |
-| `getTotalDays` | `() => number` | - | Mode: `range`, rangeDisabledMode: `'allow'` | Helper function to get total days in range |
+| `enabledDates` | `Date[]` | - | Mode: `range`, `disabledDatesHandling: 'allow'` | All enabled dates within range |
+| `disabledDates` | `Date[]` | - | Mode: `range`, `disabledDatesHandling: 'allow'` | All disabled dates within range |
+| `dateRanges` | `DateRange[]` | - | Mode: `range`, `disabledDatesHandling: 'split'`, or a `DateRange[]` returned by `beforeSelectCallback` | Multiple ranges |
+| `dates` | `Date[]` | - | Mode: `multiple`; or `range` with `'split'` / `'individual'` | Flat array of individual enabled dates |
+| `getEnabledDateCount` | `() => number` | - | Mode: `range`, `disabledDatesHandling: 'allow'` | Helper function to count enabled dates |
+| `getTotalDays` | `() => number` | - | Mode: `range`, `disabledDatesHandling: 'allow'` | Helper function to get total days in range |
+| `controller`, `element` | | ✓ | non-enumerable | The facade and the host |
+
+`month-change` (`MonthChangeEventDetail`): `monthIndex` (the column that changed), `year`, `month` (0–11), `visibleMonths` (`{ year, month }[]`, every column).
+
+`ready` (`ReadyEventDetail`): just `controller` / `element` (+ presentation flags).
+
+`action` (`DateRangePickerActionEventDetail`): see [Action Buttons](#action-buttons).
 
 ### Event Examples
 
@@ -440,13 +470,13 @@ The `event.detail` object contains different properties depending on the mode an
 const picker = document.querySelector('web-daterangepicker');
 
 // Single mode
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   console.log('Selected date:', e.detail.date);
   console.log('Formatted:', e.detail.formattedValue);
 });
 
 // Range mode - 'allow' mode
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   const { dateRange, enabledDates, disabledDates } = e.detail;
   console.log('Range:', dateRange.start, 'to', dateRange.end);
   console.log('Enabled days:', enabledDates.length);
@@ -455,7 +485,7 @@ picker.addEventListener('date-select', (e) => {
 });
 
 // Range mode - 'split' mode
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   const { dateRanges, dates } = e.detail;
   console.log('Split into', dateRanges.length, 'ranges');
   console.log('Total enabled dates:', dates.length);
@@ -465,90 +495,170 @@ picker.addEventListener('date-select', (e) => {
 });
 
 // Range mode - 'individual' mode
-picker.addEventListener('date-select', (e) => {
+picker.addEventListener('select', (e) => {
   const { dates } = e.detail;
   console.log('Selected', dates.length, 'individual dates');
   dates.forEach(date => console.log(date.toLocaleDateString()));
+});
+
+// Month navigation
+picker.addEventListener('month-change', (e) => {
+  console.log('Now showing', e.detail.visibleMonths);
 });
 ```
 
 ### Event Handler Properties
 
-As an alternative to `addEventListener`, each event exposes a managed `on*`
-handler property. Assigning a function registers a real listener (assigning
-`null` removes it); the handler receives the same `CustomEvent`, so it behaves
-exactly like `addEventListener`:
+As an alternative to `addEventListener`, each event has an `on*` property twin.
+The handler receives the event **detail** (not the `CustomEvent`) and is called
+right before the event is dispatched; assign `null` to remove it.
 
 | Property | Event | Handler receives |
 |----------|-------|------------------|
-| `onDateSelect` | `date-select` | `CustomEvent<DatePickerEventDetail>` |
-| `onChange` | `change` | `CustomEvent<DatePickerEventDetail>` |
-| `onCustomAction` | `custom-action` | `CustomEvent<CustomActionEventDetail>` |
+| `onSelect` | `select` | `SelectEventDetail` |
+| `onChange` | `change` | `SelectEventDetail` |
+| `onAction` | `action` | `DateRangePickerActionEventDetail` |
+| `onMonthChange` | `month-change` | `MonthChangeEventDetail` |
+| `onReady` | `ready` | `ReadyEventDetail` |
 
 ```javascript
 const picker = document.querySelector('web-daterangepicker');
 
-picker.onDateSelect = (e) => console.log('Selected:', e.detail.formattedValue);
-picker.onCustomAction = (e) => console.log('Action:', e.detail.data);
+picker.onSelect = (detail) => console.log('Selected:', detail.formattedValue);
+picker.onAction = (detail) => console.log('Action:', detail.action, detail.id, detail.dataset);
 
-picker.onDateSelect = null; // detach
+picker.onSelect = null; // detach
 ```
 
-### Custom Action Buttons
+### Action Buttons
 
-The picker's built-in action bar (Today / Clear / Apply) can be replaced with custom buttons via the `actionButtons` option. Buttons with `action: 'custom'` fire a `custom-action` event when clicked, and any `data-*` attributes you attach become the event's `detail` payload.
+The footer action bar is configured with the `actionButtons` property — an array
+of core `ActionItem`s (`DateRangePickerActionItem`). When unset, the built-ins for
+the mode apply (Today / Now / Clear / Apply, per the `is-*-button-shown` attributes
+and `commit-mode`).
+
+- **Built-in** button: `action: 'today' | 'now' | 'clear' | 'apply'`, or the bare
+  string shorthand (`'today'`).
+- **Custom** button: no `action`; identify it with `id`.
 
 ```javascript
 const picker = document.querySelector('web-daterangepicker');
 
 picker.actionButtons = [
+  'today',
   {
-    action: 'custom',
-    text: 'Apply with note',
-    cssClass: 'btn-primary',
-    // Any extra fields beyond the well-known ones get serialized as data-* attributes:
-    'data-source': 'apply-button',
-    'data-note': 'user clicked apply'
+    id: 'next-week',
+    text: '+7 days',
+    icon: '📅',
+    tooltip: 'Select the next 7 days',
+    onClick: (detail) => {
+      const start = new Date();
+      const end = new Date(); end.setDate(start.getDate() + 6);
+      detail.element.selectedRanges = [{ start, end }];
+    }
   },
-  { action: 'clear', text: 'Clear' }
+  {
+    id: 'reset',
+    text: 'Reset',
+    isDanger: true,
+    getIsDisabledCallback: (ctx) => ctx.controller.getSelectedRanges().length === 0
+  },
+  { action: 'apply', text: 'Book' }
 ];
 
-// Fired when the custom button is clicked:
-picker.addEventListener('custom-action', (e) => {
-  console.log(e.detail);
-  // → { source: 'apply-button', note: 'user clicked apply' }
+// Fires for EVERY button (built-ins included), after its onClick
+picker.addEventListener('action', (e) => {
+  console.log(e.detail.action, e.detail.id, e.detail.source); // 'custom' 'next-week' 'action-buttons'
 });
 ```
 
-**Detail shape**: `Record<string, string>` — a flat object of every `data-*` attribute on the clicked button (with `data-` prefix stripped, kebab-case → camelCase per the standard `dataset` API). `data-action` itself is excluded.
+**Item fields** (`DateRangePickerActionItem`):
 
-Common pattern — using a `beforeDateSelectCallback` to inject a custom HTML message with `data-action="custom"` buttons, then handling the click via this event:
+| Field | Type | Description |
+|-------|------|-------------|
+| `action` | `'today' \| 'now' \| 'clear' \| 'apply'` | Built-in behaviour; omit for a custom button |
+| `id` | `string` | Identifies a custom button (reported back as `detail.id`) |
+| `text` | `string` | Label (plain text) |
+| `icon` | `string` | Icon (glyph / markup) |
+| `tooltip` | `string` | Tooltip text |
+| `cssClass` | `string` | Extra CSS classes |
+| `isVisible` / `isDisabled` / `isDanger` / `isActive` | `boolean` | Static flags (`isActive` renders `aria-pressed="true"`) |
+| `getTextCallback` / `getIconCallback` / `getTooltipCallback` | `(ctx: PickerContext) => string` | Dynamic text / icon / tooltip |
+| `getClassCallback` | `(ctx: PickerContext) => string \| string[]` | Dynamic classes |
+| `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsActiveCallback` | `(ctx: PickerContext) => boolean` | Dynamic flags |
+| `onClick` | `(detail: DateRangePickerActionEventDetail) => void \| Promise<void>` | Click handler (any button, built-ins too); awaited — the button is busy meanwhile |
+
+Render-time callbacks (`get*Callback`) receive the **picker context**
+(`controller`, `element`, presentation flags) and are re-evaluated whenever the
+action bar re-renders.
+
+**Click order:** `beforeActionCallback(detail)` (element property; return `false`
+to cancel everything, may be async) → item `onClick(detail)` → `action` event /
+`onAction` → built-in behaviour (`today` / `now` / `clear` / `apply`).
 
 ```javascript
-picker.beforeDateSelectCallback = async (range) => {
-  const response = await fetch('/api/check', { method: 'POST', body: JSON.stringify(range) });
+picker.beforeActionCallback = (detail) => {
+  if (detail.action === 'clear' && !confirm('Clear the selection?')) return false;
+};
+```
+
+**Action detail** (`DateRangePickerActionEventDetail` — the `action` event's
+`detail`, and the argument of `onClick`, `onAction`, `beforeActionCallback`):
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `action` | `'today' \| 'now' \| 'clear' \| 'apply' \| 'custom'` | Built-in name, or `'custom'` |
+| `id` | `string \| undefined` | The custom item's `id` (or the trigger's `data-id`) |
+| `item` | `DateRangePickerActionItem` | The clicked item (synthetic for HTML triggers) |
+| `source` | `'action-buttons' \| 'message' \| 'summary' \| 'calendar'` | Where the trigger lives |
+| `sourceEvent` | `Event \| undefined` | The DOM event (click / keydown) |
+| `triggerElement` | `HTMLElement \| undefined` | The activated element |
+| `dataset` | `Record<string, string>` | The trigger's `data-*` attributes (camelCase), minus `data-action` / `data-id` |
+| `controller`, `element` | | The facade and the host (non-enumerable) + presentation flags |
+
+#### HTML action triggers (`data-action`)
+
+Any element with `data-action` inside the calendar's message, summary or
+custom-rendered content is an action trigger too — it runs the same pipeline
+(`beforeActionCallback` → `action` event → built-in). Use
+`data-action="custom" data-id="…"` for your own actions; other `data-*`
+attributes arrive in `detail.dataset`. `data-action="today"` (etc.) runs that
+built-in.
+
+Common pattern — confirm a range before committing it:
+
+```javascript
+picker.beforeSelectCallback = async (ctx) => {
+  const response = await fetch('/api/check', {
+    method: 'POST',
+    body: JSON.stringify({ start: ctx.range.start, end: ctx.range.end })
+  });
   const data = await response.json();
 
   if (data.requiresConfirmation) {
-    picker.showMessage(`
+    ctx.controller.showMessage(`
       <p>${data.message}</p>
-      <button data-action="custom"
-              data-start-date="${range.start.toISOString()}"
-              data-end-date="${range.end.toISOString()}">
+      <button data-action="custom" data-id="confirm-range"
+              data-start="${ctx.range.start.toISOString()}"
+              data-end="${ctx.range.end.toISOString()}">
         Confirm
       </button>
-    `);
-    return { allow: false }; // don't apply yet — wait for the custom-action click
+    `, { type: 'warning' });
+    return false; // don't commit yet — wait for the confirm click
   }
-
-  return { allow: true };
+  // return nothing → accept
 };
 
-picker.addEventListener('custom-action', (e) => {
-  const { startDate, endDate } = e.detail;
-  // ... apply the range now that the user confirmed
+picker.addEventListener('action', (e) => {
+  const { id, source, dataset, element } = e.detail;
+  if (source === 'message' && id === 'confirm-range') {
+    element.selectedRanges = [{ start: new Date(dataset.start), end: new Date(dataset.end) }];
+    element.hideMessage();
+  }
 });
 ```
+
+> Assigning `selectedRanges` programmatically does not re-run `beforeSelectCallback`.
 
 A live demo lives in `examples-data-api.html` ("Confirm & close — validate before dismissing").
 
@@ -850,7 +960,7 @@ These classes are automatically applied by the component (read-only):
 
 #### Custom Date Classes
 
-Can be added via `specialDates` array or `getDateInfo` callback:
+Can be added via `specialDates` array or `getDateMetadataCallback`:
 
 | Predefined Class | Description |
 |------------------|-------------|
@@ -1065,46 +1175,38 @@ picker.classList.add('theme-green');
 
 ### DatePickerOptions
 
+The full option interface lives in `src/types.ts` (`DatePickerOptions`); the
+web component maps its attributes/properties onto it. The callback and event
+members:
+
 ```typescript
 interface DatePickerOptions {
-  mode?: 'single' | 'range';
-  position?: string;
-  monthsToShow?: number;
-  format?: string;
-  calendarTrigger?: 'auto' | 'button';
+  // … layout / format / restriction / member-mapping options …
+
+  // Per-day data & rendering
+  getDateMetadataCallback?: (ctx: DayContext) => DayMetadata | null;
+  getBadgeTooltipCallback?: (ctx: DayContext) => string | null;
+  getDayTooltipCallback?: (ctx: DayContext) => string | null;
+  renderDayCallback?: (ctx: DayContext) => HTMLElement | string | null;
+  renderDayContentCallback?: (ctx: DayContext) => HTMLElement | string | null;
+  renderSummaryCallback?: (ctx: SummaryContext) => string;
+  getMonthHeaderCallback?: (ctx: MonthHeaderContext) => string;
+  getUnifiedHeaderCallback?: (ctx: UnifiedHeaderContext) => string;
+  getCustomStylesCallback?: (ctx: PickerContext) => string | null;
+
+  // Interceptors
+  beforeSelectCallback?: (ctx: BeforeSelectContext) => BeforeSelectResult | Promise<BeforeSelectResult>;
+  beforeMonthChangeCallback?: (ctx: MonthChangeContext) => void | false | Promise<void | false>;
+  getMonthDataCallback?: (ctx: MonthChangeContext) => MonthData | null | void | Promise<MonthData | null | void>;
+
+  // Action buttons
+  actionButtons?: (DateRangePickerActionItem | 'today' | 'now' | 'clear' | 'apply')[];
+  beforeActionCallback?: (detail: DateRangePickerActionEventDetail) => void | false | Promise<void | false>;
+
+  // Engine notifications (the element re-emits these as events)
   onSelect?: (detail: SelectEventDetail) => void;
-  container?: HTMLElement;
-  display?: 'inline' | 'floating';
-  layout?: 'horizontal' | 'grid';
-  gridRows?: number;
-  gridColumns?: number;
-  weekStartDay?: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  minDate?: Date | string;
-  maxDate?: Date | string;
-  disabledDates?: (Date | string)[];
-  disabledDays?: number[];
-  specialDates?: DecoratedDate[];
-
-  // Member mapping for specialDates
-  dateMember?: string;
-  badgeTextMember?: string;
-  badgeClassMember?: string;
-  dayClassMember?: string;
-  badgeTooltipMember?: string;
-  dayTooltipMember?: string;
-  isDisabledMember?: string;
-
-  getDateInfo?: (date: Date) => DateInfo | null;
-  rangeDisabledMode?: 'allow' | 'block' | 'split' | 'individual';
-  shouldHighlightDisabledInRange?: boolean;
-
-  // Internationalization
-  locale?: string | 'auto';
-  displayFormatMask?: string;
-  customStrings?: Partial<LocaleStrings>;
-
-  // Custom summary formatting
-  formatSummaryCallback?: (data: SummaryCallbackData) => string;
+  onAction?: (detail: DateRangePickerActionEventDetail) => void;
+  onMonthChange?: (detail: MonthChangeEventDetail) => void;
 }
 ```
 
@@ -1117,27 +1219,121 @@ interface DateRange {
 }
 ```
 
-### DatePickerEventDetail
+### PickerContext
+
+The base of every callback context and event detail:
 
 ```typescript
-interface DatePickerEventDetail {
+interface PickerContext {
+  controller: DateRangePickerController; // the public facade (also el.controller) — non-enumerable
+  element: HTMLElement;                  // the host <web-daterangepicker> — non-enumerable
+  presentation: 'floating' | 'modal' | 'fullscreen'; // inline pickers report 'floating'
+  isModal: boolean;
+  isFullscreen: boolean;
+}
+```
+
+### SelectEventDetail
+
+Detail of `select` / `change` (alias `ChangeEventDetail`), and the argument of `onSelect` / `onChange`.
+
+```typescript
+interface SelectEventDetail extends PickerContext {
   date?: Date;                              // Single mode
-  dateRange?: DateRange;                    // Range mode
+  dateRange?: DateRange | null;             // Range mode
   formattedValue: string;                   // Always present
 
-  // 'allow' mode
+  // 'allow' handling
   enabledDates?: Date[];
   disabledDates?: Date[];
   getEnabledDateCount?: () => number;
   getTotalDays?: () => number;
 
-  // 'split' mode
+  // 'split' handling, or N ranges from beforeSelectCallback
   dateRanges?: DateRange[];
 
-  // 'split' or 'individual' mode
+  // multiple mode; 'split' / 'individual' handling
   dates?: Date[];
 }
 ```
+
+### MonthChangeEventDetail / ReadyEventDetail
+
+```typescript
+interface MonthChangeEventDetail extends PickerContext {
+  monthIndex: number;                               // the column that changed
+  year: number;
+  month: number;                                    // 0-11
+  visibleMonths: { year: number; month: number }[]; // every column
+}
+
+interface ReadyEventDetail extends PickerContext {}
+```
+
+### BeforeSelectContext / BeforeSelectResult
+
+```typescript
+interface BeforeSelectContext extends PickerContext {
+  mode: 'single' | 'range' | 'multiple';
+  date?: Date;              // single mode
+  range?: DateRange;        // range mode (the contiguous envelope)
+  subRanges?: DateRange[];  // range mode, 'split' handling: enabled-only segments
+  enabledDates?: Date[];    // range mode, 'split' / 'individual' handling
+  markRangeInvalid(): void; // with `return false`: keep the rejected range visible, error-styled
+}
+
+// nothing = accept · false = reject · Date / DateRange = adjust · DateRange[] = N ranges · null = clear
+type BeforeSelectResult = void | false | null | Date | DateRange | DateRange[];
+```
+
+### MonthChangeContext / MonthData
+
+```typescript
+interface MonthChangeContext extends PickerContext {
+  year: number;
+  month: number;            // 0-11
+  monthIndex: number;
+  firstVisibleDate: Date;
+  lastVisibleDate: Date;
+}
+
+interface MonthData {
+  metadata?: Map<string, DayMetadata>;   // keyed 'YYYY-MM-DD'
+  monthHeaders?: Map<string, string>;    // keyed 'YYYY-MM'
+}
+```
+
+### DayContext
+
+Argument of `getDateMetadataCallback`, `renderDayCallback`, `renderDayContentCallback`,
+`getBadgeTooltipCallback`, `getDayTooltipCallback`.
+
+```typescript
+interface DayContext extends PickerContext {
+  date: Date;
+  dateString: string;          // local YYYY-MM-DD
+  dayNumber: number;
+  isDisabled: boolean;
+  isSelected?: boolean;
+  isStartDate?: boolean;
+  isEndDate?: boolean;
+  isInRange?: boolean;
+  isToday: boolean;
+  isWeekend: boolean;
+  monthIndex?: number;
+  cellElement?: HTMLElement;   // the default-rendered day cell (augmentation pattern)
+}
+```
+
+### Action types
+
+```typescript
+type DateRangePickerAction = 'today' | 'now' | 'clear' | 'apply';
+type DateRangePickerActionItem = ActionItem<PickerContext, DateRangePickerAction>;               // core /actions
+type DateRangePickerActionEventDetail = ActionEventDetail<PickerContext, DateRangePickerAction>; // PickerContext + { action, id, item, source, sourceEvent, triggerElement, dataset }
+```
+
+See [Action Buttons](#action-buttons) for the fields.
 
 ### DecoratedDate
 
@@ -1178,10 +1374,10 @@ picker.badgeTooltipMember = 'description';
 picker.specialDates = myHolidays;
 ```
 
-### DateInfo
+### DayMetadata
 
 ```typescript
-interface DateInfo {
+interface DayMetadata {
   isDisabled?: boolean;      // Override disabled state for this date
   badgeClass?: string;       // CSS class applied to badge cell
   dayClass?: string;         // CSS class applied to day cell
@@ -1217,22 +1413,24 @@ interface LocaleStrings {
 }
 ```
 
-### SummaryCallbackData
+### SummaryContext
+
+Argument of `renderSummaryCallback`.
 
 ```typescript
-interface SummaryCallbackData {
+interface SummaryContext extends PickerContext {
   // Basic counts
   days: number;           // Total days selected
   nights: number;         // Total nights (days - 1)
 
-  // Simple range (when rangeDisabledHandling is 'allow' or 'block')
+  // Simple range (when disabledDatesHandling is 'allow' or 'block')
   startDate: Date | null;
   endDate: Date | null;
 
-  // Multiple ranges (when rangeDisabledHandling is 'split')
+  // Multiple ranges (when disabledDatesHandling is 'split')
   dateRanges?: DateRange[];
 
-  // Individual dates (when rangeDisabledHandling is 'individual' or 'split')
+  // Individual dates (multiple mode; 'individual' or 'split' handling)
   dates?: Date[];
 
   // For 'allow' mode - breakdown of enabled vs disabled
@@ -1240,8 +1438,8 @@ interface SummaryCallbackData {
   disabledDates?: Date[];
 
   // Context
-  selectionMode: 'single' | 'range';
-  rangeDisabledHandling?: 'allow' | 'block' | 'split' | 'individual';
+  selectionMode: 'single' | 'range' | 'multiple';
+  disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
   localeStrings: LocaleStrings;
 
   // Preview flag (true when dragging)
@@ -1461,30 +1659,27 @@ The component uses `Intl.Locale` API with `weekInfo` for automatic week start de
 
 ## Advanced Usage Examples
 
-### Custom Date Styling with `getDateInfo`
+### Custom Date Styling with `getDateMetadataCallback`
 
 ```javascript
 const picker = document.querySelector('web-daterangepicker');
 
 // Mark weekends with a custom class
-picker.getDateInfo = (date) => {
-  const day = date.getDay();
-  if (day === 0 || day === 6) {
+picker.getDateMetadataCallback = (ctx) => {
+  if (ctx.isWeekend) {
     return {
-      class: 'weekend-day',
-      label: '⭐',
-      tooltip: 'Weekend!'
+      dayClass: 'weekend-day',
+      badgeText: '⭐',
+      dayTooltip: 'Weekend!'
     };
   }
   return null;
 };
-```
 
-```css
-/* Add custom styling */
-.drp-date-picker__day.weekend-day {
-  background-color: #fef3c7;
-}
+// Shadow DOM: inject the matching CSS
+picker.getCustomStylesCallback = () => `
+  .drp__day.weekend-day { background-color: #fef3c7; }
+`;
 ```
 
 ### Dynamic Date Restrictions
@@ -1498,8 +1693,8 @@ const bookedDates = await fetchBookedDates();
 ### Handling Range with Split Mode
 
 ```javascript
-picker.setAttribute('range-disabled-mode', 'split');
-picker.addEventListener('date-select', (e) => {
+picker.setAttribute('disabled-dates-handling', 'split');
+picker.addEventListener('select', (e) => {
   const { dateRanges, dates } = e.detail;
 
   console.log(`Selected ${dateRanges.length} separate ranges`);
@@ -1578,15 +1773,15 @@ Use `date-format-mask` for validation (English tokens) and `display-format-mask`
 const picker = document.querySelector('web-daterangepicker');
 
 // Override specific strings while keeping rest of locale
-picker.picker.options.customStrings = {
+picker.customStrings = {
   today: 'Ahora',          // Custom "Today"
   clear: 'Borrar todo',    // Custom "Clear"
   apply: 'Confirmar'       // Custom "Apply"
   // Other strings inherited from locale
 };
 
-// Or in DateRangePicker:
-const picker = new DateRangePicker(input, {
+// Or on the engine (advanced standalone use):
+const engine = new DateRangePickerEngine(input, {
   locale: 'es',
   customStrings: {
     today: 'Ahora',
@@ -1619,7 +1814,7 @@ const picker = new DateRangePicker(input, {
 <script>
   const picker = document.getElementById('spanish-picker');
 
-  picker.addEventListener('date-select', (e) => {
+  picker.addEventListener('select', (e) => {
     const { dateRange, formattedValue } = e.detail;
     console.log('Rango seleccionado:', formattedValue);
     console.log('Desde:', dateRange.start);
@@ -1631,7 +1826,7 @@ const picker = new DateRangePicker(input, {
 #### Complete German Example with Custom Strings
 
 ```javascript
-const picker = new DateRangePicker(inputElement, {
+const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   locale: 'de',
   dateFormatMask: 'DD.MM.YYYY',
@@ -1661,105 +1856,96 @@ const picker = new DateRangePicker(inputElement, {
 
 ### Custom Summary Formatting
 
-The `formatSummaryCallback` option allows you to completely customize the summary display below the calendar. The callback receives comprehensive data about the selection and returns an HTML string.
+The `renderSummaryCallback` property allows you to completely customize the summary display below the calendar. The callback receives a `SummaryContext` — comprehensive data about the selection plus the picker context (`controller`, `element`, presentation flags) — and returns an HTML string (inserted unescaped: sanitize user data).
 
 #### Basic Example: Show Only Nights
 
 ```javascript
-const picker = new DateRangePicker(input, {
-  selectionMode: 'range',
-  formatSummaryCallback: (data) => {
-    return `<strong>${data.nights}</strong> ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}`;
-  }
-});
+// <web-daterangepicker selection-mode="range">
+const picker = document.querySelector('web-daterangepicker');
+picker.renderSummaryCallback = (ctx) => {
+  return `<strong>${ctx.nights}</strong> ${ctx.nights === 1 ? ctx.localeStrings.night : ctx.localeStrings.nights}`;
+};
 ```
 
 #### Example: Add Custom Pricing
 
 ```javascript
-const picker = new DateRangePicker(input, {
-  selectionMode: 'range',
-  formatSummaryCallback: (data) => {
-    const pricePerNight = 150;
-    const total = data.nights * pricePerNight;
+// <web-daterangepicker selection-mode="range">
+const picker = document.querySelector('web-daterangepicker');
+picker.renderSummaryCallback = (ctx) => {
+  const pricePerNight = 150;
+  const total = ctx.nights * pricePerNight;
 
-    return `
-      <div style="display: flex; justify-content: space-between; width: 100%;">
-        <span>${data.nights} ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
-        <span style="font-weight: bold;">$${total}</span>
-      </div>
-    `;
-  }
-});
+  return `
+    <div style="display: flex; justify-content: space-between; width: 100%;">
+      <span>${ctx.nights} ${ctx.nights === 1 ? ctx.localeStrings.night : ctx.localeStrings.nights}</span>
+      <span style="font-weight: bold;">$${total}</span>
+    </div>
+  `;
+};
 ```
 
 #### Example: Handle Multiple Ranges (Split Mode)
 
 ```javascript
-const picker = new DateRangePicker(input, {
-  selectionMode: 'range',
-  rangeDisabledHandling: 'split',
-  disabledWeekdays: [0, 6], // Disable weekends
-  formatSummaryCallback: (data) => {
-    if (data.dateRanges && data.dateRanges.length > 1) {
-      // Multiple ranges
-      return `
-        <div>
-          <div>${data.dateRanges.length} separate periods</div>
-          <div>${data.days} ${data.localeStrings.days} total</div>
-        </div>
-      `;
-    } else {
-      // Single range
-      return `${data.days} ${data.localeStrings.days}, ${data.nights} ${data.localeStrings.nights}`;
-    }
+// <web-daterangepicker selection-mode="range" disabled-dates-handling="split" disabled-weekdays="0,6">
+const picker = document.querySelector('web-daterangepicker');
+picker.renderSummaryCallback = (ctx) => {
+  if (ctx.dateRanges && ctx.dateRanges.length > 1) {
+    // Multiple ranges
+    return `
+      <div>
+        <div>${ctx.dateRanges.length} separate periods</div>
+        <div>${ctx.days} ${ctx.localeStrings.days} total</div>
+      </div>
+    `;
+  } else {
+    // Single range
+    return `${ctx.days} ${ctx.localeStrings.days}, ${ctx.nights} ${ctx.localeStrings.nights}`;
   }
-});
+};
 ```
 
 #### Example: Show Enabled vs Disabled Count (Allow Mode)
 
 ```javascript
-const picker = new DateRangePicker(input, {
-  selectionMode: 'range',
-  rangeDisabledHandling: 'allow',
-  disabledWeekdays: [0, 6],
-  formatSummaryCallback: (data) => {
-    if (data.enabledDates && data.disabledDates) {
-      return `
-        <div style="font-size: 0.9em;">
-          <div><strong>${data.enabledDates.length}</strong> weekdays</div>
-          <div style="opacity: 0.7;">${data.disabledDates.length} weekends (excluded)</div>
-        </div>
-      `;
-    }
-    return `${data.days} ${data.localeStrings.days}`;
+// <web-daterangepicker selection-mode="range" disabled-dates-handling="allow" disabled-weekdays="0,6">
+const picker = document.querySelector('web-daterangepicker');
+picker.renderSummaryCallback = (ctx) => {
+  if (ctx.enabledDates && ctx.disabledDates) {
+    return `
+      <div style="font-size: 0.9em;">
+        <div><strong>${ctx.enabledDates.length}</strong> weekdays</div>
+        <div style="opacity: 0.7;">${ctx.disabledDates.length} weekends (excluded)</div>
+      </div>
+    `;
   }
-});
+  return `${ctx.days} ${ctx.localeStrings.days}`;
+};
 ```
 
 #### Example: Preview Indicator
 
 ```javascript
-const picker = new DateRangePicker(input, {
-  selectionMode: 'range',
-  formatSummaryCallback: (data) => {
-    const prefix = data.isPreview ?
-      `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+// <web-daterangepicker selection-mode="range">
+const picker = document.querySelector('web-daterangepicker');
+picker.renderSummaryCallback = (ctx) => {
+  const prefix = ctx.isPreview ?
+    `<span style="opacity: 0.7;">${ctx.localeStrings.preview}: </span>` : '';
 
-    return `
-      ${prefix}
-      <span>${data.days} ${data.days === 1 ? data.localeStrings.day : data.localeStrings.days}</span>
-      <span>, </span>
-      <span>${data.nights} ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
-    `;
-  }
-});
+  return `
+    ${prefix}
+    <span>${ctx.days} ${ctx.days === 1 ? ctx.localeStrings.day : ctx.localeStrings.days}</span>
+    <span>, </span>
+    <span>${ctx.nights} ${ctx.nights === 1 ? ctx.localeStrings.night : ctx.localeStrings.nights}</span>
+  `;
+};
 ```
 
-#### SummaryCallbackData Properties
+#### SummaryContext Properties
 
-The callback receives an object with the following properties:
+The callback receives a context with the following properties (plus `controller` / `element` / presentation flags):
 
 | Property | Type | When Available | Description |
 |----------|------|----------------|-------------|
@@ -1767,8 +1953,8 @@ The callback receives an object with the following properties:
 | `nights` | `number` | Always | Total nights (days - 1) |
 | `startDate` | `Date \| null` | Always | Start date of selection |
 | `endDate` | `Date \| null` | Always | End date of selection |
-| `selectionMode` | `'single' \| 'range'` | Always | Current selection mode |
-| `rangeDisabledHandling` | `string` | Always | Current disabled handling mode |
+| `selectionMode` | `'single' \| 'range' \| 'multiple'` | Always | Current selection mode |
+| `disabledDatesHandling` | `string` | Always | Current disabled handling mode |
 | `localeStrings` | `LocaleStrings` | Always | Localized UI strings |
 | `isPreview` | `boolean` | Always | True when dragging (preview) |
 | `dateRanges` | `DateRange[]` | Split mode | Array of separate ranges |
@@ -2011,6 +2197,27 @@ If you're using a design system (Material UI, Bootstrap, Tailwind, etc.), apply 
 ---
 
 ## Migration Guide
+
+### To v2.0: Interaction Model (web-components-core rc15)
+
+Callbacks, events and action buttons follow the shared KeenMate interaction
+model. No aliases — rename on upgrade. The full table is in
+[CHANGELOG.md](./CHANGELOG.md); the essentials:
+
+| Old | New |
+|-----|-----|
+| `date-select` event / `onDateSelect = (e) => e.detail…` | `select` event / `onSelect = (detail) => …` (every `on*` twin gets the detail) |
+| `custom-action` event, `detail.data` | `action` event (every button + `data-action` trigger), `detail.id` / `detail.dataset` |
+| `ctx.picker`, `el.picker` | `ctx.controller` / `ctx.element`, `el.controller` |
+| `{ action: 'custom', text, onClick }` | `{ id: 'my-id', text, onClick(detail) }` |
+| `isVisibleCallback` / `isDisabledCallback` | `getIsVisibleCallback` / `getIsDisabledCallback` |
+| `beforeDateSelectCallback` → `{ action: 'accept' \| 'adjust' \| 'restore' \| 'clear', … }` | `beforeSelectCallback(ctx)` → nothing / `false` / `Date` / `DateRange` / `DateRange[]` / `null`; messages via `ctx.controller.showMessage(text, { type })`; `ctx.markRangeInvalid()` |
+| `beforeMonthChangedCallback` → `{ action, metadata, monthHeaders }` | `beforeMonthChangeCallback(ctx)` → `false` blocks; data via `getMonthDataCallback(ctx)` → `{ metadata?, monthHeaders? }` |
+| `badgeTooltipCallback` / `dayTooltipCallback` | `getBadgeTooltipCallback` / `getDayTooltipCallback` |
+| `formatSummaryCallback` | `renderSummaryCallback` |
+| `customStylesCallback()` | `getCustomStylesCallback(ctx)` |
+| `DayContext.element` | `DayContext.cellElement` |
+| `<button data-action="custom" data-x="1">` → `detail.data` | `<button data-action="custom" data-id="foo" data-x="1">` → `detail.id`, `detail.dataset` |
 
 ### From v1.0.0-rc06 and Earlier: Calendar Trigger Modes
 

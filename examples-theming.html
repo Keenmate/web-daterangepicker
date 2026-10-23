@@ -519,7 +519,7 @@ web-daterangepicker.theme-selection-hover {
       (<code>dayClass: 'holiday' | 'event'</code> and <code>badgeClass: 'badge-number' | 'badge-count' | 'badge-text'</code>),
       each backed by overridable CSS variables. Set <code>dayClass</code> / <code>badgeClass</code> on your data;
       override the variables on the host to recolor every day or badge using that classifier.
-      No <code>customStylesCallback</code> required &mdash; the rules already exist in shipped CSS.
+      No <code>getCustomStylesCallback</code> required &mdash; the rules already exist in shipped CSS.
     </p>
 
     <label>Default (red holidays, green events):</label>
@@ -567,7 +567,7 @@ web-daterangepicker.theme-classifier-corporate {
 
     <div class="note info">
       <strong>Custom classifier names</strong> (e.g., <code>dayClass: 'salsa'</code>) live outside this convention &mdash;
-      you ship the CSS via <code>customStylesCallback</code> instead. See the
+      you ship the CSS via <code>getCustomStylesCallback</code> instead. See the
       <a href="examples-badges-tooltips.html">Badges &amp; Tooltips examples</a> for the custom-classifier demo.
     </div>
   </div>
@@ -1707,7 +1707,7 @@ function switchTheme(newTheme) {
         picker.setAttribute('commit-mode', 'apply');
       }
 
-      picker.customStylesCallback = richDemoStyles;
+      picker.getCustomStylesCallback = richDemoStyles;
       picker.specialDates = SPECIAL_DATES;
 
       // Dynamic weekday/weekend pricing for every non-special date.
@@ -1727,7 +1727,7 @@ function switchTheme(newTheme) {
       };
 
       // Rich HTML tooltip when an event date is hovered.
-      picker.dayTooltipCallback = (data) => RICH_TOOLTIPS[data.dateString] || null;
+      picker.getDayTooltipCallback = (data) => RICH_TOOLTIPS[data.dateString] || null;
     }
 
     document.querySelectorAll('web-daterangepicker[data-rich-demo]').forEach(setupRichDemo);
@@ -1944,11 +1944,11 @@ function switchTheme(newTheme) {
 
       if (floatingPicker) {
         floatingPicker.specialDates = specialDates;
-        floatingPicker.customStylesCallback = customStyles;
+        floatingPicker.getCustomStylesCallback = customStyles;
       }
       if (inlinePicker) {
         inlinePicker.specialDates = specialDates;
-        inlinePicker.customStylesCallback = customStyles;
+        inlinePicker.getCustomStylesCallback = customStyles;
       }
     });
   </script>
