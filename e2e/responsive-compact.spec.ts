@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator } from './fixtures';
 
 /**
- * Container-responsive compaction (`compact-below`, core rc09 `resized` hook).
+ * Container-responsive compaction (`compact-below`, core `sizeChanged` hook).
  *
  * The picker collapses to a single month and sheds its Today/Clear buttons when
  * the element's OWN box drops below the threshold — keyed on the element box (a

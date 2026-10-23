@@ -24,7 +24,7 @@ import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
-import { presentationContext, registerOverlay, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
+import { createPresentationContext, registerOverlay, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
 import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -2593,7 +2593,7 @@ class DateRangePicker {
         document.removeEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
 
         // Leave the single-active-overlay group.
-        this.overlayCoord?.dispose();
+        this.overlayCoord?.destroy();
         this.overlayCoord = null;
 
         // Drop every input-element listener at once. The input is reused across a
@@ -2647,12 +2647,12 @@ class DateRangePicker {
      */
     setPresentation(next: 'floating' | 'modal' | 'fullscreen') { return UI.setPresentation(this, next); }
     /**
-     * Presentation render-context flags (core `presentationContext`, rc08) spread
+     * Presentation render-context flags (core `createPresentationContext`, rc08) spread
      * into every render-facing callback context so a single callback can vary its
      * output between the desktop popover and the phone full-screen sheet — e.g.
      * `renderDayCallback: ({ isFullscreen }) => …`. Reflects the OPEN chrome.
      */
-    presentationCtx(): PresentationContext { return presentationContext(this.presentation); }
+    presentationCtx(): PresentationContext { return createPresentationContext(this.presentation); }
     /**
      * True on pointing devices that can hover (desktop mouse). Touch-primary
      * devices — phones in the full-screen sheet, tablets — report `(hover: none)`;

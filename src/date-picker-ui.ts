@@ -7,7 +7,7 @@
 
 // All positioning goes through core `@keenmate/web-components-core/positioning`:
 // `anchor()` (the calendar popover + day/badge tooltips) with its first-class
-// `fixedContainingBlock` (the narrowed containing-block heuristic) + `onDrift` (the
+// `shouldUseFixedContainingBlock` (the narrowed containing-block heuristic) + `onDrift` (the
 // drift diagnostic) options — core owns both. This file keeps only the
 // daterangepicker-branded warning copy (see warnDrift). daterangepicker no longer
 // depends on `@floating-ui/dom` directly.
@@ -250,7 +250,7 @@ function setupFloatingAnchor(picker: any) {
         // Narrow the containing-block heuristic to what browsers honour for
         // `position: fixed` (ignore contain/container-type — the pure-admin
         // `.pa-layout__main` case), resolved from the FLOATING element (the calendar).
-        fixedContainingBlock: true,
+        shouldUseFixedContainingBlock: true,
         // The calendar's OWN size changes must not re-trigger a reposition
         // (resize→reposition→re-hover loop); reposition only on scroll/ancestor moves.
         autoUpdateOptions: { elementResize: false },
@@ -651,12 +651,12 @@ export function showTooltip(picker: any, element: HTMLElement, content: string) 
     picker.tooltip.classList.add('drp__tooltip--visible');
 
     // Position via core anchor() — offset/flip/shift + arrow, plus the narrowed
-    // fixed-CB heuristic (`fixedContainingBlock`), resolved from the FLOATING element
+    // fixed-CB heuristic (`shouldUseFixedContainingBlock`), resolved from the FLOATING element
     // (the tooltip), NOT the reference `element`: a badge cell is itself a
     // fixed-positioning containing block (`transform` on hover), so measuring the
     // reference would return badge-relative coordinates that render off-screen.
     // The day/badge tooltip reuses ONE shared element across cells (event
-    // delegation), so replace any prior anchor. autoUpdate:false = single compute,
+    // delegation), so replace any prior anchor. shouldAutoUpdate:false = single compute,
     // matching the previous one-shot behaviour (the tooltip lives only while hovered).
     picker.tooltipAnchor?.destroy();
     picker.tooltipAnchor = anchor(picker.tooltip, element, {
@@ -665,8 +665,8 @@ export function showTooltip(picker: any, element: HTMLElement, content: string) 
         offset: 6,
         shift: 5,
         arrow: { element: picker.tooltipArrow },
-        fixedContainingBlock: true,
-        autoUpdate: false,
+        shouldUseFixedContainingBlock: true,
+        shouldAutoUpdate: false,
     });
 }
 

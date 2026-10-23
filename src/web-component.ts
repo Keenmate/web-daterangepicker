@@ -152,11 +152,11 @@ const INPUTS: readonly InputDef[] = [
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property.' },
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`).' },
-  { configKey: 'disabled',                     attribute: 'disabled',                      converter: toBool('presence'), reflect: true, on: 'update', description: 'Disable the input.' },
+  { configKey: 'disabled',                     attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the input.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), on: 'update', description: 'Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating/modal only).' },
-  { configKey: 'enableTransitions',            attribute: 'enable-transitions',            converter: toBool('presence'), reflect: true, on: 'update', description: 'Opt into calendar open/close CSS transitions.' },
-  { configKey: 'mobilePresentation',           attribute: 'mobile-presentation',           converter: toEnum(MOBILE_PRESENTATIONS, { default: 'auto' }), reflect: true, on: 'update', description: 'How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment.' },
+  { configKey: 'enableTransitions',            attribute: 'enable-transitions',            converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Opt into calendar open/close CSS transitions.' },
+  { configKey: 'mobilePresentation',           attribute: 'mobile-presentation',           converter: toEnum(MOBILE_PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment.' },
   { configKey: 'fullscreenAutofocus',          attribute: 'fullscreen-autofocus',          converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
   { configKey: 'fullscreenTitle',              attribute: 'fullscreen-title',              converter: toText({ isNullable: true }), on: 'update', description: 'Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button.' },
   { configKey: 'fullscreenInput',              attribute: 'fullscreen-input',              converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
@@ -274,7 +274,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   // <form> and submit under `name`; the host itself never calls setFormValue.
   #hiddenInputs: HTMLInputElement[] = [];
 
-  // Container-responsive compaction (core rc09 `resized` hook). `#narrowMax` is the
+  // Container-responsive compaction (core `sizeChanged` hook). `#narrowMax` is the
   // px threshold derived from `compact-below` (0 = disabled); `#isNarrow` is the
   // current state. When narrow, #assembleConfig layers a compact override (1 month,
   // no Today/Clear) on top of the pristine base config — the config itself is never
@@ -406,7 +406,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     this.#ensureInput();
 
     // Seed the responsive-compaction state from the current box BEFORE assembling
-    // config: `resized()` fires only after layout, so the first build must measure
+    // config: `sizeChanged()` fires only after layout, so the first build must measure
     // directly, otherwise a narrow container would flash the wide layout then rebuild.
     this.#measureNarrow();
 
@@ -802,7 +802,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     this.#picker.setPresentation(resolvePresentation(mode, env, { tablet: 'modal' }));
   }
 
-  // ── container-responsive compaction (SPEC §12.9, core `resized` hook) ──────
+  // ── container-responsive compaction (SPEC §12.9, core `sizeChanged` hook) ──────
 
   /**
    * React to THIS element's own box changing (core's shared, per-element
@@ -818,7 +818,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
    * hook subscribes the element to the observer (core wires it on connect and
    * tears it down on disconnect) — cheap even for pickers that never opt in.
    */
-  protected override resized({ width }: ElementSize): void {
+  protected override sizeChanged({ width }: ElementSize): void {
     if (width <= 0) return;                       // detached / pre-layout measure
     const narrow = this.#narrowMax > 0 && width < this.#narrowMax;
     if (narrow === this.#isNarrow) return;        // no threshold cross → nothing to do

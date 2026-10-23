@@ -47,6 +47,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Internal: follows the web-components-core naming review** (rc15). Core option and hook
+  renames, no consumer-facing change: `shouldUseFixedContainingBlock`, `shouldAutoUpdate`,
+  `createPresentationContext`, `OverlayHandle.destroy()`, the `sizeChanged()` hook (was
+  `resized()`), `shouldReflect` on input rows. Core dependency points at the local checkout
+  until rc15 is published.
+
 - **Dark / light from the page works in Firefox and Safari.** `dark-mode.css` no longer uses
   `:host-context()` (Firefox doesn't support it, Safari only partly). It reads the
   `data-context-theme` attribute that `@keenmate/web-components-core` 1.0.0-rc13 sets on the host:
