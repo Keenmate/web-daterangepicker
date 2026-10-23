@@ -35,7 +35,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 - `main.css` — entry point. Declares `@layer variables, component, overrides;` and imports every partial into its layer.
 - `variables.css` — all `--drp-*` custom properties (the theming surface).
 - `base.css`, `calendar-grid.css`, `header-navigation.css`, `summary-actions.css`, `badges.css`, `loading.css`, `message.css`, `tooltips.css`, `modifiers.css`, `time-picker.css`, `clock-picker.css`, `wheel-picker.css`, `compact-picker.css`, `modal.css` — feature partials (layer: `component`).
-- `dark-mode.css` — `:host-context()` framework class + `:host([data-theme])` per-instance overrides (layer: `overrides`).
+- `dark-mode.css` — page signal via `:host([data-context-theme])` (set by web-components-core's theme context) + `:host([data-theme])` per-instance overrides (layer: `overrides`).
 
 ### Component Features
 

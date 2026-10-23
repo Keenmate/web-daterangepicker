@@ -242,7 +242,7 @@ class DateRangePicker {
             specialDates: options.specialDates,
             getDateMetadataCallback: options.getDateMetadataCallback,
             disabledDatesHandling: options.disabledDatesHandling || 'allow',
-            shouldHighlightDisabledInRange: options.shouldHighlightDisabledInRange !== undefined ? options.shouldHighlightDisabledInRange : true,
+            shouldHighlightDisabledInRange: options.shouldHighlightDisabledInRange ?? true,
             locale: options.locale || 'auto',
             displayFormatMask: options.displayFormatMask,
             customStrings: options.customStrings,
@@ -267,18 +267,18 @@ class DateRangePicker {
             dayTooltipMember: options.dayTooltipMember,
             isDisabledMember: options.isDisabledMember,
             commitMode: options.commitMode || 'selection',
-            shouldCloseOnScroll: options.shouldCloseOnScroll !== undefined ? options.shouldCloseOnScroll : true,
+            shouldCloseOnScroll: options.shouldCloseOnScroll ?? true,
             actionButtons: options.actionButtons,
-            isTodayButtonShown: options.isTodayButtonShown !== undefined ? options.isTodayButtonShown : true,
-            isClearButtonShown: options.isClearButtonShown !== undefined ? options.isClearButtonShown : true,
-            isSummaryShown: options.isSummaryShown !== undefined ? options.isSummaryShown : true,
+            isTodayButtonShown: options.isTodayButtonShown ?? true,
+            isClearButtonShown: options.isClearButtonShown ?? true,
+            isSummaryShown: options.isSummaryShown ?? true,
             pickerMode: options.pickerMode || 'date',
             timeFormatMask: options.timeFormatMask || 'HH:mm',
             displayTimeFormatMask: options.displayTimeFormatMask,
             timeStep: options.timeStep && options.timeStep > 0 ? options.timeStep : 1,
             hourCycle: options.hourCycle,
             isSecondsShown: options.isSecondsShown,
-            isNowButtonShown: options.isNowButtonShown !== undefined ? options.isNowButtonShown : true,
+            isNowButtonShown: options.isNowButtonShown ?? true,
             timeDisplay: options.timeDisplay || 'rolls',
             fullscreenAutofocus: options.fullscreenAutofocus || false,
             fullscreenInput: options.fullscreenInput || false,
@@ -322,13 +322,13 @@ class DateRangePicker {
         // Multiple mode collects several dates, so it can't commit-and-close on each
         // pick — default it to `apply` (the Apply button is its commit path) unless the
         // caller set commitMode explicitly.
-        if (this.options.selectionMode === 'multiple' && options.commitMode === undefined) {
+        if (this.options.selectionMode === 'multiple' && options.commitMode == null) {
             this.options.commitMode = 'apply';
         }
         // Time/datetime default to `apply` too, so each roll-click doesn't auto-commit
         // and close; honors an explicit caller value. `apply` renders the Apply button,
         // which is the only commit path once selection is staged.
-        if (this.options.pickerMode !== 'date' && options.commitMode === undefined) {
+        if (this.options.pickerMode !== 'date' && options.commitMode == null) {
             this.options.commitMode = 'apply';
         }
 
@@ -371,10 +371,12 @@ class DateRangePicker {
         // so the field is populated for any later picker-mode flip via updateOptions.
         this.timeFormatOptions = this.parseTimeFormat(this.options.timeFormatMask);
         // Derive hourCycle and isSecondsShown from the time mask if not explicitly set.
-        if (this.options.hourCycle === undefined) {
+        // `== null` so a cleared nullable input (null, the null-clear signal) counts as
+        // "not set" — same as an absent/undefined value — and the mask-derived default wins.
+        if (this.options.hourCycle == null) {
             this.options.hourCycle = this.timeFormatOptions.is12Hour ? 'h12' : 'h24';
         }
-        if (this.options.isSecondsShown === undefined) {
+        if (this.options.isSecondsShown == null) {
             this.options.isSecondsShown = this.timeFormatOptions.hasSeconds;
         }
 
@@ -810,7 +812,7 @@ class DateRangePicker {
 
         buttons.forEach(button => {
             // One context object per button, shared by all of this button's callbacks
-            const ctx: ActionButtonContext = { picker: this, controller: this.getController(), action: button.action, button };
+            const ctx: ActionButtonContext = { picker: this, controller: this.getController(), ...this.presentationCtx(), action: button.action, button };
 
             // Priority 1: Check dynamic visibility callback
             if (button.isVisibleCallback !== undefined) {
@@ -936,7 +938,7 @@ class DateRangePicker {
             if (!actionConfig) return;
 
             const tooltipText = actionConfig.getTooltipCallback
-                ? actionConfig.getTooltipCallback({ picker: this, controller: this.getController(), action: actionConfig.action, button: actionConfig })
+                ? actionConfig.getTooltipCallback({ picker: this, controller: this.getController(), ...this.presentationCtx(), action: actionConfig.action, button: actionConfig })
                 : actionConfig.tooltip;
             if (!tooltipText) return;
 
@@ -1091,15 +1093,14 @@ class DateRangePicker {
     }
 
     /**
-     * Build the standardized {@link SelectEventDetail} for a selection — the
-     * payload handed to `onSelect` as its second argument and mirrored by the web
-     * component's `date-select`/`change` events. Centralizing it here means a
-     * core-class consumer (`new DateRangePicker(el, { onSelect })`) gets the same
-     * rich breakdown (`enabledDates`/`disabledDates`/`dateRanges`/`dates` per
-     * `disabledDatesHandling`) that a web-component listener gets, instead of only
-     * the bare positional selection. `formattedValue` is composed from
-     * {@link formatDate}; the web component overrides it with the input's display
-     * string when it re-emits.
+     * Build the standardized {@link SelectEventDetail} for a selection — the single
+     * payload handed to `onSelect` and re-emitted by the web component's
+     * `date-select`/`change` events. Centralizing it here means a core-class consumer
+     * (`new DateRangePicker(el, { onSelect })`) gets the exact same rich breakdown
+     * (`enabledDates`/`disabledDates`/`dateRanges`/`dates` per `disabledDatesHandling`)
+     * that a web-component listener gets. `formattedValue` is composed from
+     * {@link formatDate}; the web component prefers the input's live display string
+     * when it re-emits (except for the multi-piece joined forms, which it keeps).
      */
     buildSelectDetail(selection: Date | DateRange | DateRange[] | Date[]): SelectEventDetail {
         const formatRange = (r: DateRange) => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`;
@@ -1586,6 +1587,7 @@ class DateRangePicker {
                     await Promise.resolve(customOnClick({
                         picker: this,
                         controller: this.getController(),
+                        ...this.presentationCtx(),
                         action: buttonConfig.action,
                         button: buttonConfig,
                         data: dataAttributes
@@ -2555,7 +2557,7 @@ class DateRangePicker {
     private fireCustomActionEvent(data: Record<string, string>): void {
         // Fire on calendar element (internal). Detail wraps the data-* map under `data`
         // and carries the picker instance, matching CustomActionEventDetail.
-        const detail: CustomActionEventDetail = { data, picker: this };
+        const detail: CustomActionEventDetail = { data, picker: this, controller: this.getController() };
         this.calendar.dispatchEvent(new CustomEvent('custom-action', {
             detail,
             bubbles: true,

@@ -105,7 +105,7 @@
      ==========================================================================
      Color variables follow this priority chain:
        1. External override: --drp-accent-color: #custom
-       2. Base theme value: var(--base-accent-color)
+       2. Base theme value: var(--base-primary-color)
        3. Hardcoded default fallback */
 
   /* Core Colors
@@ -130,8 +130,8 @@
   --drp-primary-bg-hover: var(--base-active-bg, color-mix(in srgb, var(--drp-text-primary) 14%, var(--base-main-bg, light-dark(#ffffff, #1a1a1a))));
 
   /* Accent Colors */
-  --drp-accent-color: var(--base-accent-color, #3b82f6);
-  --drp-accent-color-hover: var(--base-accent-color-hover, #2563eb);
+  --drp-accent-color: var(--base-primary-color, #3b82f6);
+  --drp-accent-color-hover: var(--base-primary-color-hover, #2563eb);
 
   /* Text Colors
      Light mode = the original dark-on-light palette. Dark mode = the same
@@ -140,15 +140,13 @@
      the accent color is the same blue in both, and white-on-blue reads in both. */
   --drp-text-primary: var(--base-text-color-1, light-dark(#111827, #f5f5f5));
   --drp-text-secondary: var(--base-text-color-3, light-dark(#6b7280, #a3a3a3));
-  --drp-text-color-on-accent: var(--base-text-color-on-accent, #ffffff);
+  --drp-text-color-on-accent: var(--base-on-primary-text-color, #ffffff);
   --drp-button-accent-text-color: var(--drp-text-color-on-accent);
 
   /* Tooltip Colors
      Tooltips invert relative to the page: dark tooltip on light page, light
-     tooltip on dark page. New --base-inverse-bg is a second-tier fallback so
-     consumers theming multiple KeenMate components can declare one shared
-     inverse surface. */
-  --drp-tooltip-bg: var(--base-tooltip-bg, var(--base-inverse-bg, light-dark(#111827, #f5f5f5)));
+     tooltip on dark page. Themed via the shared --base-tooltip-bg. */
+  --drp-tooltip-bg: var(--base-tooltip-bg, light-dark(#111827, #f5f5f5));
   --drp-tooltip-text-color: var(--base-tooltip-text-color, light-dark(#ffffff, #1a1a1a));
 
   /* Loader — the default visual is a spinner, but the tokens are named
@@ -173,7 +171,7 @@
 
   /* Picker popup elevation. Prefers the shared --base token (light-dark aware —
      deepens on dark themes); the flat two-layer shadow is the standalone fallback. */
-  --drp-shadow-xl: var(--base-dropdown-box-shadow, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1));
+  --drp-shadow-xl: var(--base-dropdown-box-shadow, 0 20px 25px -5px var(--base-shadow-color, rgba(0, 0, 0, 0.1)), 0 8px 10px -6px var(--base-shadow-color, rgba(0, 0, 0, 0.1)));
 
   /* ==========================================================================
      TRANSITIONS & ANIMATIONS
@@ -290,7 +288,7 @@
      INPUT FIELD SEMANTIC VARIABLES
      ========================================================================== */
   --drp-input-bg: var(--base-input-bg, var(--drp-dropdown-bg, light-dark(#ffffff, #1a1a1a)));
-  --drp-input-color: var(--base-input-color, var(--drp-text-primary));
+  --drp-input-color: var(--base-input-text-color, var(--drp-text-primary));
   /* Input field borders - uses theme-designer --base-input-border (full border) */
   --drp-input-border: var(--base-input-border, var(--drp-border));
   --drp-input-border-hover: var(--base-input-border-hover, var(--drp-border-width-base) solid var(--drp-accent-color));
@@ -299,7 +297,7 @@
   --drp-input-bg-disabled: var(--base-input-bg-disabled, var(--drp-primary-bg));
 
   /* Input Focus State */
-  --drp-input-focus-shadow-color: rgba(59, 130, 246, 0.1);
+  --drp-input-focus-shadow-color: var(--base-input-shadow-color-focus, rgba(59, 130, 246, 0.1));
   --drp-input-focus-shadow-size: 3px;
   --drp-input-icon-opacity: 0.6;
 
@@ -309,8 +307,8 @@
   --drp-input-clear-size: calc(2.4 * var(--drp-rem));
   --drp-input-clear-icon-size: calc(1.4 * var(--drp-rem));
   --drp-input-clear-inset: calc(0.6 * var(--drp-rem));
-  --drp-input-clear-color: var(--base-input-clear-color, var(--drp-text-secondary));
-  --drp-input-clear-bg-hover: var(--base-input-clear-bg-hover, var(--drp-primary-bg));
+  --drp-input-clear-color: var(--base-input-icon-color, var(--drp-text-secondary));
+  --drp-input-clear-bg-hover: var(--base-input-icon-bg-hover, var(--drp-primary-bg));
   /* ==========================================================================
      ICONS
      ==========================================================================

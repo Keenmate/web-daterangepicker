@@ -6,6 +6,24 @@
   <title>Data & API — Date Range Picker</title>
   <link rel="stylesheet" href="examples-shared.css">
   <style>
+    /* The DateRangePicker *class* renders its calendar into LIGHT DOM (unlike the
+       <web-daterangepicker> element, which is shadow-isolated). So this page's global
+       `* { margin:0; padding:0 }` reset in examples-shared.css leaks straight into the
+       calendar and flattens all of the component's own spacing. The component declares
+       that spacing inside `@layer component`, and an UNLAYERED page rule (the reset)
+       beats any layer regardless of specificity — so without this the fullscreen sheet
+       has no content gutter, the nav/✕ buttons hug the edges, and the floating/inline
+       calendars look cramped too. `revert-layer`, scoped to the picker subtree, defers
+       margin/padding on those elements back down to the component's own layers (and to
+       the UA default where the component sets nothing). Shadow-DOM pages are unaffected:
+       the reset never crosses the boundary, and `.drp__picker` doesn't exist in their
+       light DOM, so this rule is a harmless no-op there. */
+    .drp__picker,
+    .drp__picker * {
+      margin: revert-layer;
+      padding: revert-layer;
+    }
+
     /* Page-specific bespoke widget only — the real light-DOM <input> elements that
        the DateRangePicker class attaches to (this page demonstrates JS instantiation
        against plain inputs). Everything else (cards, code blocks, copy buttons,
@@ -196,21 +214,31 @@ const picker = new DateRangePicker(inputElement, options);</pre>
 
     <div class="code-block">
       <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePicker } from '@keenmate/web-daterangepicker';
+      <pre>import {
+  DateRangePicker, observeEnvironment, classifyDevice
+} from '@keenmate/web-daterangepicker';
 
 const inputElement = document.getElementById('input-1');
 
 const picker = new DateRangePicker(inputElement, {
   selectionMode: 'single',
   dateFormatMask: 'YYYY-MM-DD',
-  onSelect: (date) => {
-    // Single mode: date is a Date object directly
-    console.log('Selected date:', date);
+  onSelect: (detail) => {
+    // Single mode: detail.date is the selected Date
+    console.log('Selected date:', detail.date);
     // Get formatted value from the input element
     document.getElementById('output-1').textContent =
       `Selected: ${inputElement.value}`;
   }
-});</pre>
+});
+
+// The &lt;web-daterangepicker&gt; element adapts its presentation to the
+// device automatically; the raw class does not. Without this, the
+// calendar stays a floating popover on phones and overlaps the page.
+// Mirror the element's ladder: phone → fullscreen, tablet → modal,
+// desktop → floating. observeEnvironment fires now and on every flip.
+const BY_DEVICE = { mobile: 'fullscreen', tablet: 'modal', desktop: 'floating' };
+observeEnvironment(env => picker.setPresentation(BY_DEVICE[classifyDevice(env)]));</pre>
     </div>
   </div>
 
@@ -237,8 +265,8 @@ const picker = new DateRangePicker(inputElement, {
   monthLayout: 'horizontal',
   dateFormatMask: 'YYYY-MM-DD',
   onSelect: (detail) => {
-    // Range mode: detail is { start: Date, end: Date }
-    const { start, end } = detail;
+    // Range mode: detail.dateRange is { start: Date, end: Date }
+    const { start, end } = detail.dateRange;
     const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
 
     document.getElementById('output-2').innerHTML =
@@ -352,10 +380,10 @@ const picker = new DateRangePicker(null, {
   selectionMode: 'single',
   positioningMode: 'inline',
   container: document.getElementById('inline-container'),
-  onSelect: (date) => {
-    // Single mode: date is a Date object directly
+  onSelect: (detail) => {
+    // Single mode: detail.date is the selected Date
     document.getElementById('output-5').textContent =
-      `Selected: ${date.toLocaleDateString()}`;
+      `Selected: ${detail.date.toLocaleDateString()}`;
   }
 });</pre>
     </div>
@@ -1661,8 +1689,10 @@ const picker = new DateRangePicker(inputElement, {
 
   // Callbacks
   onSelect: (detail) => {
-    // Single mode: detail is Date object
-    // Range mode: detail is { start: Date, end: Date }
+    // detail is the standardized SelectEventDetail:
+    //   single mode  → detail.date
+    //   range mode   → detail.dateRange ({ start, end })
+    //   multiple     → detail.dates / detail.dateRanges
     console.log('Selected:', detail);
   },
 
@@ -2037,31 +2067,47 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
 
   <!-- JS-instantiation demos (DateRangePicker class against plain inputs) -->
   <script type="module">
-    import { DateRangePicker } from './src/index.ts';
+    import { DateRangePicker, observeEnvironment, classifyDevice } from './src/index.ts';
     // IMPORTANT: Import styles globally for DateRangePicker class to work
     import './src/css/main.css';
 
+    // Device-adaptive presentation for the raw DateRangePicker class.
+    // The <web-daterangepicker> element does this automatically, but the class
+    // does NOT: a floating picker stays a floating popover on every device, so on
+    // a phone the calendar overlaps the content below it (the output box and code
+    // block) instead of opening as a clean full-screen sheet. Mirror the element's
+    // ladder here — phone → fullscreen, tablet → modal, desktop → floating — by
+    // reacting to the same environment signal the component reacts to.
+    const PRESENTATION_BY_DEVICE = { mobile: 'fullscreen', tablet: 'modal', desktop: 'floating' };
+    const makeAdaptive = (picker) => {
+      // Fires immediately with the current device, then again on each device flip.
+      // setPresentation() records the mode when the calendar is closed and swaps it
+      // live when it's open, so a resize across a breakpoint is handled either way.
+      observeEnvironment((env) => picker.setPresentation(PRESENTATION_BY_DEVICE[classifyDevice(env)]));
+      return picker;
+    };
+
     // Example 1: Basic Single Date Picker
     const input1 = document.getElementById('input-1');
-    const picker1 = new DateRangePicker(input1, {
+    const picker1 = makeAdaptive(new DateRangePicker(input1, {
       selectionMode: 'single',
       dateFormatMask: 'YYYY-MM-DD',
-      onSelect: (date) => {
-        // Single mode: date is a Date object
+      onSelect: (detail) => {
+        // Single mode: detail.date is the selected Date
         document.getElementById('output-1').textContent =
           `Selected: ${input1.value}`;
       }
-    });
+    }));
 
     // Example 2: Date Range Picker
-    const picker2 = new DateRangePicker(document.getElementById('input-2'), {
+    const picker2 = makeAdaptive(new DateRangePicker(document.getElementById('input-2'), {
       selectionMode: 'range',
       visibleMonthsCount: 2,
       monthLayout: 'horizontal',
       dateFormatMask: 'YYYY-MM-DD',
       onSelect: (detail) => {
-        // In range mode, detail is { start: Date, end: Date }
-        const { start, end } = detail;
+        // In range mode, detail.dateRange is { start: Date, end: Date }
+        const { start, end } = detail.dateRange;
         const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
 
         document.getElementById('output-2').innerHTML =
@@ -2069,7 +2115,7 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
           `End: ${end.toLocaleDateString()}<br>` +
           `Nights: ${nights}`;
       }
-    });
+    }));
 
     // Example 3: With Date Restrictions
     const today = new Date();
@@ -2077,65 +2123,65 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
     const input3 = document.getElementById('input-3');
-    const picker3 = new DateRangePicker(input3, {
+    const picker3 = makeAdaptive(new DateRangePicker(input3, {
       selectionMode: 'single',
       dateFormatMask: 'YYYY-MM-DD',
       minDate: firstDay,
       maxDate: lastDay,
       disabledWeekdays: [0, 6],
-      onSelect: (date) => {
+      onSelect: (detail) => {
         document.getElementById('output-3').textContent =
           `Selected business day: ${input3.value}`;
       }
-    });
+    }));
 
     // Example 4: Different Formats
     const input4a = document.getElementById('input-4a');
-    const picker4a = new DateRangePicker(input4a, {
+    const picker4a = makeAdaptive(new DateRangePicker(input4a, {
       selectionMode: 'single',
       dateFormatMask: 'DD.MM.YYYY',
-      onSelect: (date) => {
+      onSelect: (detail) => {
         document.getElementById('output-4a').textContent =
           `Selected: ${input4a.value}`;
       }
-    });
+    }));
 
     const input4b = document.getElementById('input-4b');
-    const picker4b = new DateRangePicker(input4b, {
+    const picker4b = makeAdaptive(new DateRangePicker(input4b, {
       selectionMode: 'single',
       dateFormatMask: 'MM/DD/YYYY',
-      onSelect: (date) => {
+      onSelect: (detail) => {
         document.getElementById('output-4b').textContent =
           `Selected: ${input4b.value}`;
       }
-    });
+    }));
 
     // Example 5: Inline Calendar
     const picker5 = new DateRangePicker(null, {
       selectionMode: 'single',
       positioningMode: 'inline',
       container: document.getElementById('inline-container'),
-      onSelect: (date) => {
-        // Single mode: date is a Date object directly
+      onSelect: (detail) => {
+        // Single mode: detail.date is the selected Date
         document.getElementById('output-5').textContent =
-          `Selected: ${date.toLocaleDateString()}`;
+          `Selected: ${detail.date.toLocaleDateString()}`;
       }
     });
 
     // Example 6: Grid Layout
     const input6 = document.getElementById('input-6');
-    const picker6 = new DateRangePicker(input6, {
+    const picker6 = makeAdaptive(new DateRangePicker(input6, {
       selectionMode: 'single',
       visibleMonthsCount: 6,
       monthLayout: 'grid',
       gridRows: 2,
       gridColumns: 3,
       dateFormatMask: 'YYYY-MM-DD',
-      onSelect: (date) => {
+      onSelect: (detail) => {
         document.getElementById('output-6').textContent =
           `Selected: ${input6.value}`;
       }
-    });
+    }));
 
     // Example 7: Dynamic Creation
     let pickerCount = 0;
@@ -2166,13 +2212,13 @@ picker.addEventListener('date-select', (event: CustomEvent&lt;DateSelectDetail&g
       container.appendChild(output);
       document.getElementById('dynamic-pickers').appendChild(container);
 
-      const picker = new DateRangePicker(input, {
+      const picker = makeAdaptive(new DateRangePicker(input, {
         selectionMode: 'single',
         dateFormatMask: 'YYYY-MM-DD',
-        onSelect: (date) => {
+        onSelect: (detail) => {
           output.textContent = `Selected: ${input.value}`;
         }
-      });
+      }));
     });
 
     // Copy code functionality (shared across all demos on this page)

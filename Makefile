@@ -1,4 +1,4 @@
-.PHONY: help setup dev kill-port build package publish publish-rc publish-dry clean clean-dist preview test test-e2e test-e2e-ui test-e2e-headed test-e2e-install lint image-build image-run image-stop image-clean
+.PHONY: help setup dev kill-port build package publish publish-rc publish-dry clean clean-dist preview test test-e2e test-e2e-all test-e2e-ui test-e2e-headed test-e2e-install lint image-build image-run image-stop image-clean
 
 # Use bash-compatible commands for Git Bash on Windows
 SHELL := /bin/bash
@@ -97,13 +97,16 @@ test-e2e: ## Run Playwright e2e tests (headless)
 	@echo "Running e2e tests..."
 	npm run test:e2e
 
+test-e2e-all: ## Run e2e on chromium, firefox and webkit
+	npm run test:e2e:all
+
 test-e2e-ui: ## Run Playwright e2e tests in interactive UI mode
 	npm run test:e2e:ui
 
 test-e2e-headed: ## Run Playwright e2e tests headed (watch the browser)
 	npm run test:e2e:headed
 
-test-e2e-install: ## One-time: install the chromium browser binary for Playwright
+test-e2e-install: ## One-time: install the chromium, firefox and webkit binaries for Playwright
 	npm run test:e2e:install
 
 check-version: ## Show current package version

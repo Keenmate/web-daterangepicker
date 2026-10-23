@@ -46,8 +46,8 @@ const picker = new DateRangePicker(inputElement, {
   visibleMonthsCount: 2,
   dateFormatMask: 'YYYY-MM-DD',
   onSelect: (detail) => {
-    // Range mode: detail is { start: Date, end: Date }
-    console.log('Range:', detail.start, 'to', detail.end);
+    // Range mode: detail.dateRange is { start: Date, end: Date }
+    console.log('Range:', detail.dateRange.start, 'to', detail.dateRange.end);
   }
 });
 ```

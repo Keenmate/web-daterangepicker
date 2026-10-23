@@ -251,7 +251,7 @@ When instantiating `DateRangePicker` directly (not using web component), pass th
 | `visibleMonthsCount` | `number` | `1` or `2` | Number of months to display |
 | `dateFormatMask` | `string` | `'YYYY-MM-DD'` | Date format pattern |
 | `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How calendar is triggered: `'focus'` (on input focus), `'typing'` (when typing starts), `'manual'` (button/code only) |
-| `onSelect` | `(date: Date \| DateRange) => void` | `undefined` | Callback when date is selected |
+| `onSelect` | `(detail: SelectEventDetail) => void` | `undefined` | Fires on selection/apply with the standardized detail (same payload as the `date-select` event) |
 | `container` | `HTMLElement` | `document.body` | Where to append calendar (for web component, uses shadow root) |
 | `positioningMode` | `'inline' \| 'floating'` | `'floating'` | Display mode |
 | `monthLayout` | `'horizontal' \| 'grid'` | `'horizontal'` | Multi-month layout mode |
@@ -292,8 +292,8 @@ const picker = new DateRangePicker(inputElement, {
   specialDates: [
     { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
   ],
-  onSelect: (dateRange) => {
-    console.log('Selected:', dateRange);
+  onSelect: (detail) => {
+    console.log('Selected:', detail.dateRange);
   }
 });
 
@@ -308,8 +308,8 @@ const pickerES = new DateRangePicker(inputElement, {
     clear: 'Borrar',
     preview: 'Previsualización'
   },
-  onSelect: (date) => {
-    console.log('Fecha seleccionada:', date);
+  onSelect: (detail) => {
+    console.log('Fecha seleccionada:', detail.date);
   }
 });
 ```
@@ -1072,7 +1072,7 @@ interface DatePickerOptions {
   monthsToShow?: number;
   format?: string;
   calendarTrigger?: 'auto' | 'button';
-  onSelect?: (date: Date | DateRange) => void;
+  onSelect?: (detail: SelectEventDetail) => void;
   container?: HTMLElement;
   display?: 'inline' | 'floating';
   layout?: 'horizontal' | 'grid';
@@ -1641,8 +1641,8 @@ const picker = new DateRangePicker(inputElement, {
     preview: 'Vorschau'
   },
   weekStartDay: 1, // Monday (automatically detected for 'de', but can override)
-  onSelect: (date) => {
-    console.log('Ausgewähltes Datum:', date);
+  onSelect: (detail) => {
+    console.log('Ausgewähltes Datum:', detail.date);
   }
 });
 ```

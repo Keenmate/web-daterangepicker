@@ -69,7 +69,7 @@ declaration drives all of them:
 ```css
 :root {
   /* Base layer — single source of truth */
-  --base-accent-color: #3b82f6;
+  --base-primary-color: #3b82f6;
   --base-main-bg: #ffffff;
   --base-hover-bg: #f3f4f6;
   --base-text-color-1: #111827;
@@ -169,15 +169,19 @@ palette — no JavaScript involved.
 |---|---|
 | **OS preference** | `<html style="color-scheme: light dark">` — `light-dark()` then picks the OS branch |
 | **Page-level scheme** | `<body style="color-scheme: dark">` |
-| **Framework class on an ancestor** | `<html data-theme="dark">`, `<html data-bs-theme="dark">` (Bootstrap 5.3+), or `<html class="dark">` (Tailwind) |
+| **Page signal** | `<html data-theme="dark">`, `<html data-bs-theme="dark">` (Bootstrap 5.3+), or `<html class="dark">` (Tailwind); also on `<body>`. For a themed section, put the signal on a wrapper and add `theme-source="closest"` (or a selector) to the picker |
 | **Per-instance attribute** | `<web-daterangepicker data-theme="dark">` on a single component |
 | **Explicit light override** | `data-theme="light"`, `data-bs-theme="light"`, or `.light` to force one widget back to light on an otherwise-dark page |
 
 The first signal (OS preference / page scheme) is handled by `light-dark()`
-in every color fallback. The latter three signals (framework class /
+in every color fallback. The latter three signals (page signal /
 per-instance attribute / explicit light) are handled by override blocks
-in `src/css/dark-mode.css` that re-declare the affected `--drp-*`
-variables inside `:host-context(...)` / `:host(...)` selectors. The
+in `src/css/dark-mode.css` that set `color-scheme` and re-declare the
+affected `--drp-*` variables inside `:host(...)` selectors. The page signal
+is detected once per page by `@keenmate/web-components-core` and mirrored
+onto the host as `data-context-theme` (no `:host-context()`, so it works in
+Firefox and Safari); `setThemeMode('light' | 'dark' | 'auto')` from the core
+forces every Keenmate component at once. The
 auto-script for C-BV-9 flags this pattern; see
 [VALIDATION-NOTES.md → C-BV-9](../VALIDATION-NOTES.md) for the
 accepted-deviation rationale.

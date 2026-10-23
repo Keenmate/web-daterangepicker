@@ -48,12 +48,14 @@ bulk metadata loading per month.
 
 What makes it different from the rest of the date-picker ecosystem:
 
-- **No JavaScript dark-mode detection.** The picker reacts to five
-  separate CSS-only signals (OS `prefers-color-scheme`, page-level
-  `color-scheme`, framework class on an ancestor, per-instance
-  `data-theme` attribute, explicit `light` override) via `light-dark()`
-  and `:host-context(...)` selectors. Set whichever your page already
-  uses; it flips automatically.
+- **Dark mode from whatever your page already uses.** The picker reacts
+  to five signals: OS `prefers-color-scheme`, page-level `color-scheme`,
+  a framework signal on `<html>` / `<body>` (`data-theme`,
+  `data-bs-theme`, `.dark`), a per-instance `data-theme` attribute, and
+  an explicit `light` override. Colours resolve through `light-dark()`;
+  the framework signal is detected once per page by web-components-core
+  and shared by every Keenmate component, so it works in Firefox and
+  Safari too.
 - **Theme Designer integration.** Optional. If you use the KeenMate
   Theme Designer at [theme-designer.keenmate.dev](https://theme-designer.keenmate.dev),
   the picker reads the cross-component `--base-*` taxonomy so one

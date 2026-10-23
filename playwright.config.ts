@@ -40,6 +40,21 @@ export default defineConfig({
                 ...devices['Desktop Chrome'],
                 viewport: { width: 1440, height: 1024 }
             }
+        },
+        {
+            // Same suite on Gecko and WebKit (Safari's engine): `npm run test:e2e:all`.
+            name: 'firefox',
+            use: {
+                ...devices['Desktop Firefox'],
+                viewport: { width: 1440, height: 1024 }
+            }
+        },
+        {
+            name: 'webkit',
+            use: {
+                ...devices['Desktop Safari'],
+                viewport: { width: 1440, height: 1024 }
+            }
         }
     ],
 

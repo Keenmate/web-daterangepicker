@@ -378,7 +378,7 @@ export async function onDragEnd(picker: any, event: PointerEvent) {
                 picker.pendingSelection = selection;
             } else {
                 if (picker.options.onSelect) {
-                    picker.options.onSelect(selection, picker.buildSelectDetail(selection));
+                    picker.options.onSelect(picker.buildSelectDetail(selection));
                 }
             }
         }
@@ -987,7 +987,7 @@ async function commitTypedRange(picker: any) {
         if (picker.requiresApplyButton()) {
             picker.pendingSelection = selection;
         } else if (picker.options.onSelect) {
-            picker.options.onSelect(selection, picker.buildSelectDetail(selection));
+            picker.options.onSelect(picker.buildSelectDetail(selection));
         }
 
         picker.renderCalendar();

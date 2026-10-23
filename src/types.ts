@@ -148,8 +148,9 @@ export interface BeforeSelectResult {
    * Only applies to range mode with action 'restore'.
    *
    * @example
-   * beforeDateSelectCallback: (range) => {
-   *   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+   * beforeDateSelectCallback: (ctx) => {
+   *   const { start, end } = ctx.range;
+   *   const nights = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
    *   if (nights > 7) {
    *     return {
    *       action: 'restore',
@@ -172,7 +173,10 @@ export type AsyncValidationResult = BeforeSelectResult;
  * Context passed to beforeMonthChangedCallback
  * Provides information about the target month being navigated to
  */
-export interface MonthChangeContext extends PickerContext {
+export interface MonthChangeContext extends PickerContext, PresentationContext {
+  /** Typed facade for reading the selection and driving the picker (see {@link DateRangePickerController}). */
+  controller: DateRangePickerController;
+
   /** Target year (e.g., 2025) */
   year: number;
 
@@ -271,7 +275,7 @@ export interface ActionButton {
  * Context passed to every ActionButton callback (onClick, isVisibleCallback,
  * isDisabledCallback, getTextCallback, getClassCallback, getTooltipCallback).
  */
-export interface ActionButtonContext extends PickerContext {
+export interface ActionButtonContext extends PickerContext, PresentationContext {
   /** The action identifier of the button this callback belongs to */
   action: ActionButton['action'];
   /** The button's own configuration object */
@@ -354,13 +358,13 @@ export interface DatePickerOptions {
   overlayGroup?: string;
   /**
    * Fire-and-forget notification that a date/range/time was selected (or applied).
-   * The first argument is the raw selection (kept for backward compatibility); the
-   * second is the standardized {@link SelectEventDetail} — the same payload the
+   * Receives the standardized {@link SelectEventDetail} — the exact same payload the
    * web component's `date-select`/`change` CustomEvents carry (formatted value plus
-   * the enabled/disabled/split breakdown for range `disabledDatesHandling`). New
-   * code should read `detail`; existing one-argument handlers keep working.
+   * the enabled/disabled/split breakdown for range `disabledDatesHandling`). The raw
+   * selection is reachable from the detail itself: `detail.date` (single), `detail.dateRange`
+   * (range), `detail.dates` (multiple / individual), `detail.dateRanges` (split / multi-range).
    */
-  onSelect?: (date: Date | DateRange | DateRange[] | Date[], detail?: SelectEventDetail) => void;
+  onSelect?: (detail: SelectEventDetail) => void;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
   /**
    * How the calendar is presented. Default: `floating`.
@@ -633,15 +637,16 @@ export interface DatePickerOptions {
    * @returns BeforeSelectResult or Promise<BeforeSelectResult> with action to take
    *
    * @example Single mode - check against API
-   * beforeDateSelectCallback: async (date) => {
-   *   const response = await fetch(`/api/check-date/${date.toISOString()}`);
+   * beforeDateSelectCallback: async (ctx) => {
+   *   const response = await fetch(`/api/check-date/${ctx.date.toISOString()}`);
    *   const { available } = await response.json();
    *   return available ? { action: 'accept' } : { action: 'restore', message: 'Date unavailable' };
    * }
    *
    * @example Range mode - adjust to business rules
-   * beforeDateSelectCallback: async (range) => {
-   *   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+   * beforeDateSelectCallback: async (ctx) => {
+   *   const { start, end } = ctx.range;
+   *   const nights = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
    *   if (nights < 2) {
    *     return { action: 'restore', message: 'Minimum 2 nights required' };
    *   }
@@ -913,7 +918,10 @@ export interface UnifiedHeaderContext extends PickerContext, PresentationContext
  * Context passed to beforeDateSelectCallback — the proposed selection.
  * `date` is populated in single mode, `range` in range mode.
  */
-export interface SelectionContext extends PickerContext {
+export interface SelectionContext extends PickerContext, PresentationContext {
+  /** Typed facade for reading the selection and driving the picker (see {@link DateRangePickerController}). */
+  controller: DateRangePickerController;
+
   /** Selection mode this proposal came from */
   mode: 'single' | 'range' | 'multiple';
   /** Proposed date (single mode) */
@@ -958,4 +966,11 @@ export interface CustomActionEventDetail {
   data: Record<string, string>;
   /** The DateRangePicker core instance */
   picker: DateRangePicker;
+  /**
+   * Typed facade for reading the selection and driving the picker (see
+   * {@link DateRangePickerController}). Mirrors `ActionButtonContext.controller`
+   * so a handler wired via the DOM `custom-action` event has the same surface as
+   * one wired via `ActionButton.onClick`.
+   */
+  controller: DateRangePickerController;
 }

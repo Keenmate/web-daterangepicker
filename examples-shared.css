@@ -882,4 +882,14 @@ html {
     .example-section {
         padding: 1.5rem;
     }
+
+    /* Reference tables carry wide <code> signatures that can't shrink below
+       their content width. On narrow viewports let the table scroll on its own
+       axis (display:block turns it into a scroll container) instead of pushing
+       past the body and widening the whole page. */
+    .reference-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 }

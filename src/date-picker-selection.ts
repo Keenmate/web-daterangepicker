@@ -36,9 +36,9 @@ async function callBeforeSelectCallback(
 
         let ctx: SelectionContext;
         if (selection instanceof Date) {
-            ctx = { picker, mode: picker.options.selectionMode, date: selection };
+            ctx = { picker, controller: picker.getController(), ...picker.presentationCtx(), mode: picker.options.selectionMode, date: selection };
         } else {
-            ctx = { picker, mode: picker.options.selectionMode, range: selection };
+            ctx = { picker, controller: picker.getController(), ...picker.presentationCtx(), mode: picker.options.selectionMode, range: selection };
             // Split/individual handling carves the contiguous envelope into
             // enabled-only pieces at summary time. Surface those same pieces here
             // (read-only) so the callback can validate the split without
@@ -395,7 +395,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         if (picker.requiresApplyButton()) {
             picker.pendingSelection = payload;
         } else {
-            if (picker.options.onSelect) picker.options.onSelect(payload, picker.buildSelectDetail(payload));
+            if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(payload));
         }
 
         // Auto-close handling
@@ -498,7 +498,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
             if (picker.requiresApplyButton()) {
                 picker.pendingSelection = selection;
             } else {
-                if (picker.options.onSelect) picker.options.onSelect(selection, picker.buildSelectDetail(selection));
+                if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(selection));
             }
 
             // Auto-close handling. Floating closes on range-completion; modal and
@@ -539,7 +539,7 @@ export function selectToday(picker: any) {
     if (picker.requiresApplyButton()) {
         picker.pendingSelection = payload;
     } else {
-        if (picker.options.onSelect) picker.options.onSelect(payload, picker.buildSelectDetail(payload));
+        if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(payload));
     }
 
     picker.renderCalendar();
@@ -610,7 +610,7 @@ function commitTimeSelection(picker: any) {
     if (picker.requiresApplyButton()) {
         picker.pendingSelection = payload;
     } else if (picker.options.onSelect) {
-        picker.options.onSelect(payload, picker.buildSelectDetail(payload));
+        picker.options.onSelect(picker.buildSelectDetail(payload));
     }
     picker.renderCalendar();
 }
@@ -976,7 +976,7 @@ export function apply(picker: any) {
     // Fire deferred callback if there was a pending selection
     if (picker.pendingSelection) {
         if (picker.options.onSelect) {
-            picker.options.onSelect(picker.pendingSelection, picker.buildSelectDetail(picker.pendingSelection));
+            picker.options.onSelect(picker.buildSelectDetail(picker.pendingSelection));
         }
         picker.pendingSelection = null;
     }

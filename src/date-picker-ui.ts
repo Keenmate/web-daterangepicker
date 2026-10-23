@@ -341,9 +341,14 @@ function enterFullscreen(picker: any) {
     armGhostClickGuard(picker);
     picker.calendar.classList.add('drp__picker--fullscreen');
     // Rescale every size token to the touch scale by overriding --drp-rem on the
-    // HOST (see fullscreen.css) — a sheet-level override can't reach the :host-
-    // resolved tokens. No-op when not in a shadow root (standalone light-DOM use).
-    (picker.calendar.getRootNode() as ShadowRoot)?.host?.setAttribute('data-drp-fullscreen', '');
+    // element that DECLARES the tokens — a sheet-level override can't reach the
+    // already-resolved tokens. In the web component that owner is the shadow host;
+    // for the standalone light-DOM class the tokens live on :root (variables.css
+    // declares them on `:host, :root`), so fall back to <html>. fullscreen.css
+    // matches both with `:host([data-drp-fullscreen]), :root[data-drp-fullscreen]`.
+    // Remember the exact element so exit removes the attribute from the same node.
+    picker.fullscreenScaleHost = (picker.calendar.getRootNode() as ShadowRoot)?.host ?? document.documentElement;
+    picker.fullscreenScaleHost?.setAttribute('data-drp-fullscreen', '');
     buildFullscreenHeader(picker);
     lockBodyScroll();
     // Shrink the fixed sheet above the soft keyboard (writes inline height/top —
@@ -368,7 +373,9 @@ function exitFullscreen(picker: any) {
     }
     popOverlayHistory(picker);
     picker.calendar.classList.remove('drp__picker--fullscreen', 'drp__picker--fs-merged-header');
-    (picker.calendar.getRootNode() as ShadowRoot)?.host?.removeAttribute('data-drp-fullscreen');
+    // Remove from the SAME element enterFullscreen tagged (shadow host or <html>).
+    (picker.fullscreenScaleHost ?? (picker.calendar.getRootNode() as ShadowRoot)?.host)?.removeAttribute('data-drp-fullscreen');
+    picker.fullscreenScaleHost = null;
     restoreRelocatedInput(picker);
     if (picker.fullscreenHeader) {
         picker.fullscreenHeader.remove();

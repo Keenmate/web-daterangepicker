@@ -47,12 +47,16 @@
 
 /* Re-scale the whole calendar for touch: override --drp-rem so every size token
    (`calc(N × --drp-rem)`) grows together — bigger day cells, text, spacing, and
-   nav buttons. This MUST sit on the host, not on the sheet: the size tokens are
-   declared on :host and resolve `var(--drp-rem)` there, so an override on the
-   sheet (a shadow descendant) inherits already-resolved values and does nothing.
-   `data-drp-fullscreen` is toggled on the host in enterFullscreen/exitFullscreen.
-   The `component` layer beats the base `:host` token declarations in `variables`. */
-:host([data-drp-fullscreen]) {
+   nav buttons. This MUST sit on the element that DECLARES the tokens, not on the
+   sheet: the size tokens resolve `var(--drp-rem)` where they're declared, so an
+   override on the sheet (a descendant) inherits already-resolved values and does
+   nothing. variables.css declares the tokens on `:host, :root`, so both owners are
+   covered: the shadow host for the web component, and <html> (:root) for the
+   standalone light-DOM class. `data-drp-fullscreen` is toggled on the matching
+   element in enterFullscreen/exitFullscreen. The `component` layer beats the base
+   token declarations in the `variables` layer. */
+:host([data-drp-fullscreen]),
+:root[data-drp-fullscreen] {
   --drp-rem: var(--drp-fullscreen-rem);
 }
 

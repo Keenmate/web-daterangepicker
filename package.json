@@ -53,10 +53,11 @@
     "publish:dry": "npm run build && npm publish --dry-run",
     "clean": "rimraf dist *.tgz",
     "clean:dist": "rimraf dist",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium",
+    "test:e2e:all": "playwright test --workers=4",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium firefox webkit"
   },
   "keywords": [
     "datepicker",
@@ -92,6 +93,6 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "@keenmate/web-components-core": "^1.0.0-rc10"
+    "@keenmate/web-components-core": "^1.0.0-rc13"
   }
 }

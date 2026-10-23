@@ -94,6 +94,8 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
 
             const context: MonthChangeContext = {
                 picker,
+                controller: picker.getController(),
+                ...picker.presentationCtx(),
                 year: targetYear,
                 month: targetMonth,
                 monthIndex: anchorIndex,
@@ -157,6 +159,8 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
 
                 const context: MonthChangeContext = {
                     picker,
+                    controller: picker.getController(),
+                    ...picker.presentationCtx(),
                     year: targetYear,
                     month: targetMonth,
                     monthIndex: i,
@@ -308,6 +312,8 @@ export async function handleBeforeMonthChange(
         // Build context object
         const context: MonthChangeContext = {
             picker,
+            controller: picker.getController(),
+            ...picker.presentationCtx(),
             year: targetYear,
             month: targetMonth,
             monthIndex: monthIndex,

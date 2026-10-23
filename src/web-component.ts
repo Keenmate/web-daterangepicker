@@ -338,12 +338,14 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
       if (this.#isNarrow !== prev) this.#rebuildPreservingSelection();
     }
 
-    // Everything else goes to the live picker as an in-place patch; null clears
-    // (matches the old `undefined` semantics), NON_PICKER_KEYS are handled above.
+    // Everything else goes to the live picker as an in-place patch. Forward `null`
+    // verbatim — it's the clear signal under core's null-clear contract (SPEC §6.1);
+    // the picker resolves it per field (`?? default` / falsy reads). NON_PICKER_KEYS
+    // are handled above.
     const pickerPartial: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(partial)) {
       if (NON_PICKER_KEYS.has(key)) continue;
-      pickerPartial[key] = value === null ? undefined : value;
+      pickerPartial[key] = value;
     }
     if (this.#picker && Object.keys(pickerPartial).length > 0) {
       if (!this.#picker.updateOptions(pickerPartial as Partial<DatePickerOptions>)) this.#rebuildPicker();
@@ -519,13 +521,12 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
    * picker doesn't own, plus the runtime wiring (onSelect bridge + container).
    */
   #assembleConfig(): Record<string, unknown> {
-    const cfg: Record<string, unknown> = { ...this.config };
-    // Drop element-only keys and normalize "unset" (null) → absent, so the picker
-    // sees exactly what the old hand-coded parser handed it (undefined).
-    for (const key of NON_PICKER_KEYS) delete cfg[key];
-    for (const key of Object.keys(cfg)) {
-      if (cfg[key] === null) delete cfg[key];
-    }
+    // Canonical engine-config assembly (core SPEC §6.1 null-clear contract): a shallow
+    // copy of the merged config with element-only keys removed and every `null` kept —
+    // a cleared nullable input reaches the picker as `null` (the clear signal), which the
+    // picker resolves per field (`?? default` / falsy reads). Replaces the old per-component
+    // delete-null loop.
+    const cfg = this.engineConfig(NON_PICKER_KEYS);
 
     // Container-responsive compaction: layer the compact override on top of the
     // pristine base (this.config is never mutated, so widening restores it verbatim).
@@ -535,72 +536,33 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
       cfg.isClearButtonShown = false;
     }
 
-    cfg.onSelect = (date: Date | DateRange | DateRange[] | Date[]) => this.#handleDateSelect(date);
+    cfg.onSelect = (detail: SelectEventDetail) => this.#handleDateSelect(detail);
     cfg.container = this.#shadow as unknown as HTMLElement;
     return cfg;
   }
 
   // ── event bridge ──────────────────────────────────────────────────────────
 
-  #handleDateSelect(date: Date | DateRange | DateRange[] | Date[]): void {
+  #handleDateSelect(detail: SelectEventDetail): void {
     // A calendar/drag selection writes into input.value — reflect it on the clear ✕.
     this.#updateInputClear();
-    const detail: SelectEventDetail = {
-      date: date instanceof Date ? date : undefined,
-      dateRange: date instanceof Date ? undefined : (Array.isArray(date) ? undefined : date),
-      formattedValue: this.#inputElement?.value || '',
-    };
 
     const picker = this.#picker;
-    if (!picker) {
-      this.#emitSelect(detail);
-      return;
-    }
-
     // Deferred until Apply — don't fire yet (apply() re-invokes onSelect later).
-    if (picker.requiresApplyButton() && picker.hasPendingSelection) return;
+    if (picker && picker.requiresApplyButton() && picker.hasPendingSelection) return;
 
-    const handling = picker.options.disabledDatesHandling;
-
-    if (!(date instanceof Date) && !Array.isArray(date) && 'start' in date && 'end' in date) {
-      const start = date.start;
-      const end = date.end;
-      switch (handling) {
-        case 'allow':
-          detail.enabledDates = picker.getEnabledDatesInRange(start, end);
-          detail.disabledDates = picker.getDisabledDatesInRange(start, end);
-          detail.getEnabledDateCount = () => detail.enabledDates!.length;
-          detail.getTotalDays = () => {
-            const msPerDay = 1000 * 60 * 60 * 24;
-            return Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1;
-          };
-          break;
-        case 'split':
-          detail.dateRanges = picker.splitRangeByDisabled(start, end);
-          detail.dates = picker.getEnabledDatesInRange(start, end);
-          if (detail.dateRanges.length > 0) {
-            detail.formattedValue = detail.dateRanges
-              .map((r) => `${picker.formatDate(r.start)} - ${picker.formatDate(r.end)}`)
-              .join(', ');
-          }
-          break;
-        case 'individual':
-          detail.dates = picker.getEnabledDatesInRange(start, end);
-          detail.dateRange = null;
-          if (detail.dates.length > 0) {
-            detail.formattedValue = detail.dates.map((d) => picker.formatDate(d)).join(', ');
-          }
-          break;
-        case 'block':
-          detail.dates = picker.getEnabledDatesInRange(start, end);
-          break;
-      }
-    } else if (Array.isArray(date) && date.length > 0 && typeof date[0] === 'object' && 'start' in (date[0] as object)) {
-      const ranges = date as DateRange[];
-      detail.dateRanges = ranges;
-      detail.formattedValue = ranges
-        .map((r) => `${picker.formatDate(r.start)} - ${picker.formatDate(r.end)}`)
-        .join(', ');
+    // `detail` is the canonical payload the core built via buildSelectDetail() — the
+    // SAME object the public `onSelect` callback receives (date(s)/range(s) plus the
+    // enabled/disabled/split breakdown per `disabledDatesHandling`). The host layers
+    // on only one thing: it prefers the input's live display text for `formattedValue`
+    // ("what the user sees" — e.g. "3 selection(s)" in multiple mode), EXCEPT for the
+    // multi-piece joined forms (split / individual / multi-range) that a single input
+    // field can't represent, where the core's joined string is kept.
+    const joined =
+      detail.dateRanges != null ||
+      (detail.dates != null && picker?.options.disabledDatesHandling === 'individual');
+    if (!joined && this.#inputElement) {
+      detail.formattedValue = this.#inputElement.value || detail.formattedValue;
     }
 
     this.#emitSelect(detail);

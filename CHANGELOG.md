@@ -47,13 +47,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Unified `onSelect` onto the standardized event detail (parity with web-multiselect
-  v2.2.0).** The core-class `onSelect` notification now receives the standardized
-  `SelectEventDetail` as an additive second argument — the same payload (formatted value
-  plus the enabled/disabled/split breakdown per `disabledDatesHandling`) the web component's
-  `date-select`/`change` CustomEvents carry — so a core-class consumer no longer gets only
-  the bare positional selection. Built centrally by `picker.buildSelectDetail()`. Fully
-  backward compatible: existing one-argument `onSelect(date)` handlers keep working.
+- **Dark / light from the page works in Firefox and Safari.** `dark-mode.css` no longer uses
+  `:host-context()` (Firefox doesn't support it, Safari only partly). It reads the
+  `data-context-theme` attribute that `@keenmate/web-components-core` 1.0.0-rc13 sets on the host:
+  the page's theme (`data-theme`, `data-bs-theme`, `.dark` / `.light` on `<html>` or `<body>`) is
+  detected once and shared by every Keenmate component. Each block now also sets `color-scheme`,
+  so the `light-dark()` colours the blocks don't re-declare (messages, range tints) follow a
+  class-only signal too. A per-instance `data-theme` now wins over the page in both directions
+  (before, a page set to light beat a picker set to dark). **Behaviour change:** a signal on a
+  wrapper element is read only with `theme-source="closest"` (or a selector) on the picker;
+  `setThemeMode()` from the core forces every component. Core dependency `^1.0.0-rc13`. New
+  `e2e/theme-signals.spec.ts`; Playwright `firefox` / `webkit` projects (`npm run test:e2e:all`).
+
+- **Input focus halo follows the theme**: `--drp-input-focus-shadow-color` reads
+  `--base-input-shadow-color-focus` (base-css-variables 2.0.0-rc02), falling back to the old
+  `rgba(59, 130, 246, 0.1)`, so the halo matches pure-admin's focused inputs.
+- **Reads `--base-primary-*` (was `--base-accent-*`)**, following `@keenmate/base-css-variables`
+  2.0.0, which drops the `accent` names: `--base-primary-color[-hover|-active]`,
+  `--base-primary-bg-subtle[-hover]` (was `-color-light[-hover]`) and `--base-on-primary-text-color`
+  (was `--base-text-color-on-accent`). The component's own `--*-accent-*` tokens keep their names.
+  Docs, examples and manifest updated.
+- **Tooltip background no longer falls back through `--base-inverse-bg`** (removed in
+  `@keenmate/base-css-variables` 2.0.0): it reads `--base-tooltip-bg` directly, then the
+  component's own default. No visual change — `--base-tooltip-bg` is always defined by the contract.
+- **Reads the 2.0.0 type-stating names:** `--base-outline-width` / `--base-focused-outline` /
+  `--base-highlighted-outline` (were `-ring`), `--base-*-text-color` (was `-text`),
+  `--base-on-<role>-text-color` (was `--base-text-on-<role>`), `--base-input-text-color` (was
+  `--base-input-color`), `--base-input-icon-color` / `-icon-bg-hover` (were `--base-input-clear-*`),
+  `--base-tooltip-text-color` (the `--base-tooltip-color` duplicate is gone) — whichever of these
+  the component uses.
+- **BREAKING: `onSelect` now takes a single `SelectEventDetail` argument** (parity with
+  web-multiselect v2.2.0; the raw-positional form is dropped for the 2.0 major). The
+  core-class `onSelect` notification receives exactly the standardized `SelectEventDetail`
+  — the same payload (formatted value plus the enabled/disabled/split breakdown per
+  `disabledDatesHandling`) the web component's `date-select`/`change` CustomEvents carry,
+  built centrally by `picker.buildSelectDetail()`. The raw selection is reachable from the
+  detail: `detail.date` (single), `detail.dateRange` (range), `detail.dates` (multiple /
+  individual), `detail.dateRanges` (split / multi-range).
+  - **Migration:** `onSelect: (date) => …` → `onSelect: (detail) => …` reading
+    `detail.date`; `onSelect: (range) => range.start` → `onSelect: (detail) => detail.dateRange.start`.
+  - Internally this also collapsed the web component's duplicated detail-building switch —
+    the bridge now re-emits the core's canonical detail verbatim (only overriding
+    `formattedValue` with the input's live display text, except for the joined multi-piece
+    forms), so the `onSelect` payload and the DOM event detail can no longer drift.
+
+- **Aligned the callback/event context shapes so the same thing is named the same
+  everywhere (parity with web-multiselect's `ActionContext`).** Every app-facing
+  context now extends `PresentationContext` and carries the typed `controller`
+  facade, not just the action-button context:
+  - `SelectionContext` (`beforeDateSelectCallback`) and `MonthChangeContext`
+    (`beforeMonthChangedCallback`) gained `controller: DateRangePickerController`
+    and the `PresentationContext` fields — so these hooks can read the selection /
+    drive the picker through the blessed facade and branch on presentation
+    (floating / modal / fullscreen), like the render callbacks already could.
+  - `ActionButtonContext` now also extends `PresentationContext`.
+  - The DOM `custom-action` event's `detail` gained `controller`, so a handler
+    wired via `onCustomAction` has the same surface as one wired via
+    `ActionButton.onClick` (previously it got only `data` + `picker`).
+  All additive — no existing handler breaks. Also fixed three stale
+  `beforeDateSelectCallback` JSDoc examples that still used the pre-context
+  positional `(date)` / `(range)` signature (now `(ctx)` reading `ctx.date` /
+  `ctx.range`).
 
 - **Environment signal re-exported for device-adaptive configuration.**
   `getEnvironment`, `observeEnvironment`, `observeViewport`, `classifyDevice`,
@@ -175,6 +229,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that looked oversized because it alone used `--drp-fullscreen-rem` directly. The rem
   override now lives on the host (`:host([data-drp-fullscreen])`, toggled in
   enter/exitFullscreen), so the **whole** calendar scales together (~1.2×) as intended.
+- **Full-screen scaling now also works for the standalone `DateRangePicker` class
+  (light DOM), not just the `<web-daterangepicker>` element.** The scale-up toggled
+  `data-drp-fullscreen` via `getRootNode().host` — which is `undefined` outside a shadow
+  root, so for a class instance attached to a plain `<input>` the attribute was never set
+  and the sheet stayed at base (10px) scale while the full-screen chrome (✕, content
+  gutters) used `--drp-fullscreen-rem` (12px). That scale *mismatch* left the ✕ misplaced
+  and the month-nav row not lining up with the day-grid gutters. `enterFullscreen` now
+  falls back to `document.documentElement` (where the `--drp-*` tokens live via the
+  `:host, :root` declaration), and `fullscreen.css` matches both owners with
+  `:host([data-drp-fullscreen]), :root[data-drp-fullscreen]`, so content and chrome scale
+  together in both DOM modes.
 - **Full-screen close (✕) is vertically centred on the month-nav row again.** With the
   merged (no-title) header, the ✕ floats into the nav row; its downward nudge was tuned
   to the old (unscaled) layout and left it ~12px too low once scaling was fixed. It now
