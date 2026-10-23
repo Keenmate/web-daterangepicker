@@ -8,8 +8,9 @@ import { logging } from './logger';
 // Export the web component
 export { WebDaterangepickerElement } from './web-component';
 
-// Export the base class if users want direct access
-export { DateRangePicker } from './date-picker';
+// The internal engine, for advanced standalone use (no element). Not part of the
+// callback / event surface — contexts expose the public `controller` facade.
+export { DateRangePickerEngine } from './date-picker';
 
 // Device / viewport detection — re-exported from the core so consumers get the
 // same "what device am I on" signal the component itself reacts to
@@ -37,14 +38,18 @@ export type {
 
 // Export types
 export type {
-    DatePickerOptions, DateRange, FormatOptions, MonthDisplay, DatePickerEventDetail,
+    DatePickerOptions, DateRange, FormatOptions, MonthDisplay,
     // Shared callback/event context vocabulary
-    PickerContext, DateRangePickerController, PresentationContext, DayContext, MonthHeaderContext, UnifiedHeaderContext,
-    SelectionContext, MonthChangeContext, SummaryContext, ActionButtonContext,
-    SelectEventDetail, CustomActionEventDetail, LoaderTarget, LockAspect,
+    PickerContext, DateRangePickerController, ShowMessageOptions, MessageType, PresentationContext,
+    DayContext, MonthHeaderContext, UnifiedHeaderContext, SummaryContext,
+    BeforeSelectContext, BeforeSelectResult, MonthChangeContext, BeforeMonthChangeResult, MonthData,
+    // Action buttons (core ActionItem)
+    DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail,
+    // Event details
+    SelectEventDetail, ChangeEventDetail, MonthChangeEventDetail, ReadyEventDetail,
+    LoaderTarget, LockAspect,
     // Supporting types
-    DayMetadata, DecoratedDate, ActionButton, BeforeSelectResult,
-    BeforeMonthChangeResult, LocaleStrings
+    DayMetadata, DecoratedDate, LocaleStrings
 } from './types';
 
 // Form-value serialization types (for typing getValueFormatCallback / value-format)

@@ -25,13 +25,13 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">beforeDateSelectCallback — rejects 2026-06-13 with action: 'restore'</div>
+        <div class="fixture-label">beforeSelectCallback — rejects 2026-06-13 (returns false)</div>
         <web-daterangepicker id="before-select" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">beforeMonthChangedCallback — blocks navigation to August 2026</div>
+        <div class="fixture-label">beforeMonthChangeCallback — blocks navigation to August 2026</div>
         <web-daterangepicker id="before-month" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
@@ -43,7 +43,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">beforeDateSelectCallback — returns adjustedRanges: splits a range at 2026-06-15</div>
+        <div class="fixture-label">beforeSelectCallback — returns DateRange[]: splits a range at 2026-06-15</div>
         <web-daterangepicker id="split-ranges" selection-mode="range"
             initial-date="2026-06-10"></web-daterangepicker>
     </div>
@@ -55,7 +55,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">beforeDateSelectCallback receives ctx.subRanges / ctx.enabledDates (split handling)</div>
+        <div class="fixture-label">beforeSelectCallback receives ctx.subRanges / ctx.enabledDates (split handling)</div>
         <web-daterangepicker id="split-inspect" selection-mode="range"
             initial-date="2026-06-10" disabled-weekdays="0,6"
             disabled-dates-handling="split"></web-daterangepicker>
@@ -78,16 +78,16 @@
             return `❄ ${monthName} ${year} ❄`;
         };
 
-        document.getElementById('before-select').beforeDateSelectCallback = (ctx) => {
+        document.getElementById('before-select').beforeSelectCallback = (ctx) => {
             if (ctx.date instanceof Date && ctx.date.getDate() === 13) {
-                return { action: 'restore', message: 'Unlucky day' };
+                ctx.controller.showMessage('Unlucky day', { type: 'error' });
+                return false;
             }
-            return { action: 'accept' };
         };
 
-        document.getElementById('before-month').beforeMonthChangedCallback = ({ month }) => {
+        document.getElementById('before-month').beforeMonthChangeCallback = ({ month }) => {
             // Block August (month index 7) navigation.
-            return month === 7 ? { action: 'block' } : { action: 'accept' };
+            if (month === 7) return false;
         };
 
         document.getElementById('metadata').getDateMetadataCallback = ({ date }) => {
@@ -101,34 +101,29 @@
         // Return N ranges: carve the proposed range into [start..14] and [16..end],
         // dropping 2026-06-15. Exercises the adjustedRanges result path.
         const splitAt15 = (ctx) => {
-            if (!ctx.range) return { action: 'accept' };
+            if (!ctx.range) return;
             const { start, end } = ctx.range;
             const hole = new Date(2026, 5, 15);
             if (start <= hole && end >= hole) {
-                return {
-                    action: 'adjust',
-                    message: 'Split around Jun 15',
-                    adjustedRanges: [
-                        { start, end: new Date(2026, 5, 14) },
-                        { start: new Date(2026, 5, 16), end }
-                    ]
-                };
+                ctx.controller.showMessage('Split around Jun 15', { type: 'info' });
+                return [
+                    { start, end: new Date(2026, 5, 14) },
+                    { start: new Date(2026, 5, 16), end }
+                ];
             }
-            return { action: 'accept' };
         };
-        document.getElementById('split-ranges').beforeDateSelectCallback = splitAt15;
-        document.getElementById('split-apply').beforeDateSelectCallback = splitAt15;
+        document.getElementById('split-ranges').beforeSelectCallback = splitAt15;
+        document.getElementById('split-apply').beforeSelectCallback = splitAt15;
 
         // Stash the split-aware context fields so the test can inspect them.
         const splitInspect = document.getElementById('split-inspect');
-        splitInspect.beforeDateSelectCallback = (ctx) => {
+        splitInspect.beforeSelectCallback = (ctx) => {
             const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             splitInspect._lastCtx = {
                 hasSubRanges: Array.isArray(ctx.subRanges),
                 subRanges: (ctx.subRanges || []).map(r => ({ start: iso(r.start), end: iso(r.end) })),
                 enabledDates: (ctx.enabledDates || []).map(iso),
             };
-            return { action: 'accept' };
         };
     </script>
     <script type="module" src="/src/index.ts"></script>

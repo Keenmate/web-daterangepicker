@@ -19,7 +19,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">invalid-range error styling via beforeDateSelectCallback restore + showInvalidRange</div>
+        <div class="fixture-label">invalid-range error styling via beforeSelectCallback: markRangeInvalid() + false</div>
         <web-daterangepicker id="invalid-range" selection-mode="range"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
@@ -45,11 +45,12 @@
             { date: '2026-06-20', badgeText: 'B', badgeTooltip: 'Special badge tooltip' }
         ];
 
-        document.getElementById('invalid-range').beforeDateSelectCallback = (ctx) => {
+        document.getElementById('invalid-range').beforeSelectCallback = (ctx) => {
             if (ctx.range && 'start' in ctx.range) {
-                return { action: 'restore', message: 'Reject', showInvalidRange: true };
+                ctx.markRangeInvalid();
+                ctx.controller.showMessage('Reject', { type: 'error' });
+                return false;
             }
-            return { action: 'accept' };
         };
     </script>
     <script type="module" src="/src/index.ts"></script>

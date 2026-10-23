@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — BREAKING (interaction model, web-components-core rc15)
+
+Callbacks, events and action buttons follow the shared KeenMate interaction model
+(web-components-core `/actions`). No aliases — rename on upgrade.
+
+**Events**
+
+| Old | New |
+|---|---|
+| `date-select` event | `select` (`change` still fires right after, same detail) |
+| `custom-action` event, `{ data, picker, controller }` | `action` event — fires for EVERY button (built-ins too) and every `data-action` trigger; detail `{ action, id, item, source, sourceEvent, triggerElement, dataset, controller, element, presentation… }` |
+| — | `month-change` event (after any navigation): `{ monthIndex, year, month, visibleMonths }` |
+| `ready` detail `undefined` | `{ controller, element }` |
+| `el.onDateSelect = (e) => e.detail…` | `el.onSelect = (detail) => …` — every `on*` twin (`onSelect`, `onChange`, `onAction`, `onMonthChange`, `onReady`) now receives the **detail**, not the CustomEvent |
+| events `composed: true` | `composed: false` (bubbling on the host; listeners on the element or its ancestors are unaffected) |
+
+Every detail carries `controller` + `element` (non-enumerable — `JSON.stringify(detail)`
+and LiveView `pushEvent` see only the data).
+
+**Contexts** — `ctx.picker` (the raw engine) is gone; every callback context carries
+`controller` (the public facade, also `el.controller`), `element` (the host) and the
+presentation flags. `DayContext.element` (the day cell) → `cellElement`.
+`SummaryContext.rangeDisabledHandling` → `disabledDatesHandling` (now matches the runtime).
+
+**Action buttons** — `ActionButton` → core `ActionItem` (`DateRangePickerActionItem`):
+
+| Old | New |
+|---|---|
+| `{ action: 'custom', text, onClick }` | `{ id: 'my-id', text, onClick }` (`action` only for built-ins: `today` / `now` / `clear` / `apply`; string shorthand `'today'`) |
+| `isVisibleCallback` / `isDisabledCallback` | `getIsVisibleCallback` / `getIsDisabledCallback` |
+| `onClick(ctx)` — custom buttons only, ran AFTER `custom-action` | `onClick(detail)` for every button; order: `beforeActionCallback` → `onClick` → `action` event → built-in |
+| — | `icon`, `isDanger`, `isActive` (+ `getIsActiveCallback`, renders `aria-pressed`), `getIconCallback` |
+| — | `beforeActionCallback(detail)` — `false` cancels the click entirely (async OK; the button is busy meanwhile) |
+| `<button data-action="custom" data-x="…">` in `showMessage` HTML → `detail.data` | `data-action="custom" data-id="…"` → `action` event with `source: 'message'`, other `data-*` in `detail.dataset` |
+
+Internal controls (nav arrows, month/year toggles, message ✕) moved to `data-drp-action`, so
+consumer markup can't trigger them.
+
+**Callbacks**
+
+| Old | New |
+|---|---|
+| `beforeDateSelectCallback` → `{ action: 'accept' \| 'adjust' \| 'restore' \| 'clear', adjusted*, message, showInvalidRange }` | `beforeSelectCallback(ctx)` → nothing (accept), `false` (reject), a `Date` / `DateRange` (adjust), `DateRange[]` (N ranges), `null` (clear). Messages via `ctx.controller.showMessage(text, { type })`; `ctx.markRangeInvalid()` replaces `showInvalidRange` |
+| `beforeMonthChangedCallback` → `{ action: 'accept' \| 'block', metadata, monthHeaders, message }` | `beforeMonthChangeCallback(ctx)` → `false` blocks; data loading moved to **`getMonthDataCallback(ctx)`** → `{ metadata?, monthHeaders? }` (initial open + every navigation) |
+| `badgeTooltipCallback` / `dayTooltipCallback` | `getBadgeTooltipCallback` / `getDayTooltipCallback` |
+| `formatSummaryCallback` | `renderSummaryCallback` |
+| `customStylesCallback()` | `getCustomStylesCallback(ctx)` |
+| `getValueFormatCallback(selection)` | `getValueFormatCallback(ctx)` — same fields + context |
+| `controller.showMessage(content, type, autoHide)` | `controller.showMessage(content, { type, autoHideMs })`; controller gains `selectNow`, `showLoader`, `hideLoader` |
+
+**Removed:** `el.picker` (use `el.controller`); types `ActionButton`, `ActionButtonContext`,
+`CustomActionEventDetail`, `SelectionContext` (→ `BeforeSelectContext`), `DatePickerEventDetail`
+(→ `SelectEventDetail`), `AsyncValidationResult`. The engine class `DateRangePicker` is
+exported as `DateRangePickerEngine` (advanced standalone use only).
+
+### Fixed
+
+- Several custom action buttons no longer all show the first one's tooltip.
+- `onClick` on a built-in button (`today` / `now` / `clear` / `apply`) is no longer ignored.
+- Action button text is set as plain text (it was injected as HTML).
+
 ### Added
 
 - **Build-time variable-manifest validator + gate (parity with web-multiselect v2.0.1).**

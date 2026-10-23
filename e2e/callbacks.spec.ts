@@ -4,8 +4,8 @@ import { test, expect, Page, Locator } from './fixtures';
  * Custom rendering + lifecycle callbacks:
  *   - renderDayContentCallback augments a day cell
  *   - getMonthHeaderCallback rewrites the per-month header text
- *   - beforeDateSelectCallback can restore (reject) a selection
- *   - beforeMonthChangedCallback can block navigation
+ *   - beforeSelectCallback can reject a selection (returns false)
+ *   - beforeMonthChangeCallback can block navigation (returns false)
  *   - getDateMetadataCallback can disable a date dynamically
  *
  * Fixture: test/callbacks.html
@@ -64,10 +64,10 @@ test('getMonthHeaderCallback overrides the month-year header text', async ({ pag
 });
 
 // =============================================================================
-// beforeDateSelectCallback
+// beforeSelectCallback
 // =============================================================================
 
-test('beforeDateSelectCallback action:"restore" rejects the selection (input stays empty)', async ({ page }) => {
+test('beforeSelectCallback returning false rejects the selection (input stays empty)', async ({ page }) => {
     const p = await open(page, 'before-select');
 
     // Day 13 is configured for rejection.
@@ -77,7 +77,7 @@ test('beforeDateSelectCallback action:"restore" rejects the selection (input sta
     await expect(inputOf(p)).toHaveValue('');
 });
 
-test('beforeDateSelectCallback accepts non-rejected days normally', async ({ page }) => {
+test('beforeSelectCallback accepts non-rejected days normally', async ({ page }) => {
     const p = await open(page, 'before-select');
 
     await dayByDate(p, '2026-06-14').click();
@@ -85,10 +85,10 @@ test('beforeDateSelectCallback accepts non-rejected days normally', async ({ pag
 });
 
 // =============================================================================
-// beforeMonthChangedCallback
+// beforeMonthChangeCallback
 // =============================================================================
 
-test('beforeMonthChangedCallback action:"block" prevents navigation to the target month', async ({ page }) => {
+test('beforeMonthChangeCallback returning false prevents navigation to the target month', async ({ page }) => {
     const p = await open(page, 'before-month');
 
     // June → July is allowed.
@@ -113,10 +113,10 @@ test('getDateMetadataCallback can mark an individual date disabled via {isDisabl
 });
 
 // =============================================================================
-// beforeDateSelectCallback → adjustedRanges (multi-range result)
+// beforeSelectCallback → DateRange[] (multi-range result)
 // =============================================================================
 
-test('beforeDateSelectCallback adjustedRanges splits one selection into two rendered ranges', async ({ page }) => {
+test('beforeSelectCallback returning DateRange[] splits one selection into two rendered ranges', async ({ page }) => {
     const p = await open(page, 'split-ranges');
 
     // Select Jun 10 → Jun 20; the callback carves out Jun 15.
@@ -272,7 +272,7 @@ test('programmatic el.selectedRanges = [2 ranges] renders both ranges in range m
     expect([env.s, env.e]).toEqual(['2026-06-05', '2026-06-24']);
 });
 
-test('beforeDateSelectCallback receives ctx.subRanges and ctx.enabledDates in split mode', async ({ page }) => {
+test('beforeSelectCallback receives ctx.subRanges and ctx.enabledDates in split mode', async ({ page }) => {
     const p = await open(page, 'split-inspect');
 
     // 06-10 (Wed) → 06-18 (Thu); Sat 06-13 + Sun 06-14 are disabled weekends.

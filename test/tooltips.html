@@ -20,7 +20,7 @@
     <p>Targeted by <code>e2e/tooltips.spec.ts</code>.</p>
 
     <div class="fixture">
-        <div class="fixture-label">day-cell tooltip via dayTooltipCallback</div>
+        <div class="fixture-label">day-cell tooltip via getDayTooltipCallback</div>
         <web-daterangepicker id="day-tip" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
@@ -49,7 +49,7 @@
     <script type="module">
         await customElements.whenDefined('web-daterangepicker');
 
-        document.getElementById('day-tip').dayTooltipCallback = ({ dayNumber }) =>
+        document.getElementById('day-tip').getDayTooltipCallback = ({ dayNumber }) =>
             dayNumber === 15 ? 'Special day 15' : null;
 
         document.getElementById('action-tip').actionButtons = [
@@ -64,7 +64,7 @@
             { date: '2026-06-15', badgeText: '★', badgeTooltip: 'Badge tooltip content' }
         ];
 
-        document.getElementById('tip-overflow').dayTooltipCallback = ({ dayNumber }) =>
+        document.getElementById('tip-overflow').getDayTooltipCallback = ({ dayNumber }) =>
             dayNumber === 28 ? 'Bottom-edge tooltip' : null;
     </script>
     <script type="module" src="/src/index.ts"></script>

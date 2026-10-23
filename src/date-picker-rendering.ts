@@ -135,25 +135,23 @@ export function renderNormalView(picker: any, monthIndex: number) {
     const monthYear = monthContainer.querySelector('.drp__month-year');
     if (monthYear) {
         // Priority order:
-        // 1. monthHeaders from beforeMonthChangedCallback result
+        // 1. monthHeaders from getMonthDataCallback
         // 2. getMonthHeaderCallback
         // 3. Default format
         const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
         let headerText: string;
 
         if (picker.monthHeadersCache?.has(monthKey)) {
-            // Use cached header from beforeMonthChangedCallback
+            // Use cached header from getMonthDataCallback
             headerText = picker.monthHeadersCache.get(monthKey)!;
         } else if (picker.options.getMonthHeaderCallback) {
             // Use callback to generate header
-            headerText = picker.options.getMonthHeaderCallback({
-                picker,
-                ...picker.presentationCtx(),
+            headerText = picker.options.getMonthHeaderCallback(picker.ctx({
                 month: date,
                 monthIndex: monthIndex,
                 monthName: monthName,
                 year: year
-            });
+            }));
         } else {
             // Default format
             headerText = `${monthName} ${year}`;
@@ -177,14 +175,12 @@ export function renderNormalView(picker: any, monthIndex: number) {
 
         // Use callback if provided, otherwise use default format
         if (picker.options.getUnifiedHeaderCallback) {
-            const headerText = picker.options.getUnifiedHeaderCallback({
-                picker,
-                ...picker.presentationCtx(),
+            const headerText = picker.options.getUnifiedHeaderCallback(picker.ctx({
                 firstMonth,
                 lastMonth,
                 anchorMonth,
                 monthNames: picker.monthNames
-            });
+            }));
             picker.unifiedRangeDisplay.textContent = headerText;
         } else {
             // Default format: "Jan 2025 - Jun 2025" or "Dec 2024 - Jan 2025"
@@ -378,11 +374,10 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             // Get base tooltip from dateInfo
             let badgeTooltip = dateInfo?.badgeTooltip || '';
 
-            // Override with badgeTooltipCallback if provided
-            if (picker.options.badgeTooltipCallback && dateInfo?.badgeText) {
-                // Build DayRenderContext for callback (minimal version for badge context)
-                const dayRenderData = {
-                    ...picker.presentationCtx(),
+            // Override with getBadgeTooltipCallback if provided
+            if (picker.options.getBadgeTooltipCallback && dateInfo?.badgeText) {
+                // DayContext for the callback (minimal version for badge context; no cell yet)
+                const dayRenderData = picker.ctx({
                     date: dayData.date,
                     dateString: Validation.formatDateKey(dayData.date),
                     dayNumber: dayData.day,
@@ -393,12 +388,10 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                     isInRange: false,
                     isToday: Validation.isToday(dayData.date),
                     isWeekend: dayData.date.getDay() === 0 || dayData.date.getDay() === 6,
-                    monthIndex: monthIndex,
-                    element: null as any, // Not available during string rendering
-                    picker: picker
-                };
+                    monthIndex: monthIndex
+                });
 
-                const callbackTooltip = picker.options.badgeTooltipCallback(dayRenderData);
+                const callbackTooltip = picker.options.getBadgeTooltipCallback(dayRenderData);
                 if (callbackTooltip !== null) {
                     badgeTooltip = callbackTooltip;
                 }
@@ -532,11 +525,10 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             // Get day tooltip - start with dateInfo, then override with callback if provided
             let dayTooltip = dateInfo?.dayTooltip || '';
 
-            // Override with dayTooltipCallback if provided
-            if (picker.options.dayTooltipCallback) {
-                // Build DayRenderContext for callback
-                const dayRenderData = {
-                    ...picker.presentationCtx(),
+            // Override with getDayTooltipCallback if provided
+            if (picker.options.getDayTooltipCallback) {
+                // DayContext for the callback (no cell yet — string rendering)
+                const dayRenderData = picker.ctx({
                     date: dayData.date,
                     dateString: dateStr,
                     dayNumber: dayData.day,
@@ -547,12 +539,10 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
                     isInRange: isInRange,
                     isToday: picker.isToday(dayData.date),
                     isWeekend: dayData.date.getDay() === 0 || dayData.date.getDay() === 6,
-                    monthIndex: monthIndex,
-                    element: null as any, // Not available during string rendering
-                    picker: picker
-                };
+                    monthIndex: monthIndex
+                });
 
-                const callbackTooltip = picker.options.dayTooltipCallback(dayRenderData);
+                const callbackTooltip = picker.options.getDayTooltipCallback(dayRenderData);
                 if (callbackTooltip !== null) {
                     dayTooltip = callbackTooltip;
                 }
@@ -619,8 +609,7 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
         const isEndDate = picker.options.selectionMode === 'range' && picker.isRangeEnd(date);
         const isInRange = picker.options.selectionMode === 'range' && picker.isInCommittedRange(date);
 
-        const renderData = {
-            ...picker.presentationCtx(),
+        const renderData = picker.ctx({
             date: date,
             dateString: dateStr,
             dayNumber: dayNumber,
@@ -632,9 +621,8 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
             isToday: isToday,
             isWeekend: isWeekend,
             monthIndex: monthIndex,
-            element: element,
-            picker: picker
-        };
+            cellElement: element
+        });
 
         // Priority: renderDayCallback (full replacement) > renderDayContentCallback (augmentation)
         if (picker.options.renderDayCallback) {
@@ -1418,10 +1406,8 @@ export function updateSummary(picker: any) {
         summary.className = 'drp__summary drp__summary--visible';
 
         // Check if custom formatter exists
-        if (picker.options.formatSummaryCallback) {
-            const callbackData: any = {
-                picker,
-                ...picker.presentationCtx(),
+        if (picker.options.renderSummaryCallback) {
+            const callbackData: any = picker.ctx({
                 days,
                 nights,
                 startDate: picker._selectedStartDate,
@@ -1430,7 +1416,7 @@ export function updateSummary(picker: any) {
                 disabledDatesHandling: picker.options.disabledDatesHandling,
                 localeStrings: picker.localeStrings,
                 isPreview: false
-            };
+            });
 
             // Add mode-specific data
             if (enabledDates) callbackData.enabledDates = enabledDates;
@@ -1438,7 +1424,7 @@ export function updateSummary(picker: any) {
             if (dates) callbackData.dates = dates;
             if (dateRanges) callbackData.dateRanges = dateRanges;
 
-            summary.innerHTML = picker.options.formatSummaryCallback(callbackData);
+            summary.innerHTML = picker.options.renderSummaryCallback(callbackData);
         } else {
             // Default format
             summary.innerHTML = `
@@ -1519,10 +1505,8 @@ export function updateSummaryWithPreview(picker: any) {
         summary.className = 'drp__summary drp__summary--visible';
 
         // Check if custom formatter exists
-        if (picker.options.formatSummaryCallback) {
-            const callbackData: any = {
-                picker,
-                ...picker.presentationCtx(),
+        if (picker.options.renderSummaryCallback) {
+            const callbackData: any = picker.ctx({
                 days,
                 nights,
                 startDate: picker.dragPreviewStart,
@@ -1531,7 +1515,7 @@ export function updateSummaryWithPreview(picker: any) {
                 disabledDatesHandling: picker.options.disabledDatesHandling,
                 localeStrings: picker.localeStrings,
                 isPreview: true
-            };
+            });
 
             // Add mode-specific data
             if (enabledDates) callbackData.enabledDates = enabledDates;
@@ -1539,7 +1523,7 @@ export function updateSummaryWithPreview(picker: any) {
             if (dates) callbackData.dates = dates;
             if (dateRanges) callbackData.dateRanges = dateRanges;
 
-            summary.innerHTML = picker.options.formatSummaryCallback(callbackData);
+            summary.innerHTML = picker.options.renderSummaryCallback(callbackData);
         } else {
             // Default format with preview label
             summary.innerHTML = `

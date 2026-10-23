@@ -952,7 +952,7 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
 
 /**
  * A typed range just became complete — run the same validation gate as click /
- * drag so beforeDateSelectCallback fires and its result (adjustedRanges, adjust,
+ * drag so beforeSelectCallback fires and its result (adjustedRanges, adjust,
  * restore, clear) is honored. Async; guarded against overlapping runs.
  */
 async function commitTypedRange(picker: any) {

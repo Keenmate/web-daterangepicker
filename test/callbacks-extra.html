@@ -19,7 +19,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">customStylesCallback — injects a stylesheet into the shadow DOM</div>
+        <div class="fixture-label">getCustomStylesCallback — injects a stylesheet into the shadow DOM</div>
         <web-daterangepicker id="custom-styles" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
@@ -75,7 +75,7 @@
             return span;
         };
 
-        document.getElementById('custom-styles').customStylesCallback = () =>
+        document.getElementById('custom-styles').getCustomStylesCallback = () =>
             '.my-flag { outline: 2px solid magenta; }';
 
         document.getElementById('specials').specialDates = [

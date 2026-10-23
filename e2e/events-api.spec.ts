@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator } from './fixtures';
 
 /**
- * Public events (`change`, `custom-action`) and the programmatic property API
+ * Public events (`change`, `action`) and the programmatic property API
  * (`value`, `disabled`, `isOpen`, `updateOptions`). Event listeners are wired
  * from the spec via `page.evaluate` and stash collected detail on the picker
  * element under a known property — the spec then reads that property back.
@@ -73,24 +73,21 @@ test('change event does NOT fire when the calendar opens (only on selection)', a
 });
 
 // =============================================================================
-// custom-action event
+// action event
 // =============================================================================
 
-test('custom-action event fires when the custom action button is clicked', async ({ page }) => {
+test('action event fires once when a custom action button is clicked', async ({ page }) => {
     const p = pickerById(page, 'custom');
 
-    await captureEvent(p, 'custom-action');
+    await captureEvent(p, 'action');
     await inputOf(p).click();
     await expect(calendarOf(p)).toBeVisible();
 
-    // The custom button (action: 'custom', text: 'Reset') is the second action button.
-    await p.locator('.drp__button[data-action="custom"]').click();
+    // The custom button ({ id: 'reset', text: 'Reset' }) renders data-action="custom" data-id="reset".
+    await p.locator('.drp__button[data-action="custom"][data-id="reset"]').click();
 
-    const events = await getCaptured(p, 'custom-action');
-    // The picker dispatches a single composed+bubbling event on the
-    // calendar; that one event crosses the shadow boundary and is what the
-    // outside listener sees. (Used to double-fire because the web-component
-    // also manually re-emitted — see FINDINGS.md #1, fixed.)
+    const events = await getCaptured(p, 'action');
+    // Dispatched once, on the host (not composed, not re-emitted).
     expect(events.length).toBe(1);
 });
 
@@ -155,22 +152,23 @@ test('updateOptions on a non-structural key preserves the existing selection', a
     await dayByDate(p, '2026-06-15').click();
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
 
-    // Now toggle a non-structural option (should-highlight-disabled-in-range).
-    const applied = await p.evaluate((el: any) =>
-        el.picker.updateOptions({ shouldHighlightDisabledInRange: false })
-    );
-    expect(applied).toBe(true);
+    // Now toggle a non-structural option (should-highlight-disabled-in-range) on the element.
+    await p.evaluate(async (el: any) => {
+        el.shouldHighlightDisabledInRange = false;
+        await el.whenSettled();
+    });
 
     // Selection still there.
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
 });
 
-test('updateOptions on a structural key returns false (caller does full rebuild)', async ({ page }) => {
+test('a structural key rebuilds the calendar (3 month columns after visibleMonthsCount = 3)', async ({ page }) => {
     const p = pickerById(page, 'updateopts');
 
+    await p.evaluate(async (el: any) => {
+        el.visibleMonthsCount = 3;
+        await el.whenSettled();
+    });
     await inputOf(p).click();
-    const applied = await p.evaluate((el: any) =>
-        el.picker.updateOptions({ visibleMonthsCount: 3 })
-    );
-    expect(applied).toBe(false);
+    await expect(p.locator('.drp__days')).toHaveCount(3);
 });

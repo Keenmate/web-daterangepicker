@@ -182,7 +182,7 @@ export function open(picker: any) {
         picker.renderCalendar();
         picker.isFirstRender = false;
 
-        // Call beforeMonthChangedCallback for initial month load
+        // Load getMonthDataCallback data for the initial months
         handleInitialMonthLoad(picker);
     } else if (picker.options.pickerMode !== 'date') {
         // Time/datetime modes: re-render every open so committed values get the
@@ -228,7 +228,7 @@ export function teardownPresentationChrome(picker: any) {
 /**
  * Floating mode: anchor positioning + auto-reposition on scroll/resize.
  * elementResize disabled so the calendar's *own* size changes (e.g. a custom
- * formatSummaryCallback rendering 2 vs 3 lines on hover) don't re-run position().
+ * renderSummaryCallback rendering 2 vs 3 lines on hover) don't re-run position().
  * With a flipped placement the new top would be inputTop − newHeight − offset,
  * sliding the calendar upward and the hovered day with it — which lands the cursor
  * on a different day, re-fires hover, and loops. Anchor once, let it grow downward.

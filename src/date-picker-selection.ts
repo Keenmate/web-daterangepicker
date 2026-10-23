@@ -5,12 +5,21 @@
  */
 
 import { showLoader, hideLoader, showMessage, hideMessage } from './date-picker-ui';
-import type { BeforeSelectResult, DateRange, SelectionContext } from './types';
+import { runBeforeCallback } from '@keenmate/web-components-core';
+import type { BeforeSelectContext, DateRange } from './types';
 import { validationLogger, selectionLogger } from './logger';
 import log from './logger';
 
+function isDateRange(v: unknown): v is DateRange {
+    return !!v && typeof v === 'object' && (v as DateRange).start instanceof Date && (v as DateRange).end instanceof Date;
+}
+
 /**
- * Call beforeDateSelectCallback (supports both single and range modes)
+ * Run `beforeSelectCallback` (single and range modes) through the core `before*`
+ * contract: nothing = accept, `false` = reject (restore the previous selection),
+ * a `Date` / `DateRange` = adjust, a `DateRange[]` = replace with N ranges,
+ * `null` = clear. A message the callback showed (via `ctx.controller.showMessage`)
+ * stays visible — reported back as `message` so callers don't hide it.
  */
 async function callBeforeSelectCallback(
     picker: any,
@@ -26,105 +35,74 @@ async function callBeforeSelectCallback(
     invalidStart?: Date;
     invalidEnd?: Date;
 }> {
-    if (!picker.options.beforeDateSelectCallback) {
+    const fn = picker.options.beforeSelectCallback;
+    if (!fn) {
         return { isValid: true };
     }
 
-    try {
-        picker.isValidating = true;
-        showLoader(picker);
-
-        let ctx: SelectionContext;
-        if (selection instanceof Date) {
-            ctx = { picker, controller: picker.getController(), ...picker.presentationCtx(), mode: picker.options.selectionMode, date: selection };
-        } else {
-            ctx = { picker, controller: picker.getController(), ...picker.presentationCtx(), mode: picker.options.selectionMode, range: selection };
-            // Split/individual handling carves the contiguous envelope into
-            // enabled-only pieces at summary time. Surface those same pieces here
-            // (read-only) so the callback can validate the split without
-            // re-deriving it. The return contract stays single-range.
-            const handling = picker.options.disabledDatesHandling;
-            if (handling === 'split' || handling === 'individual') {
-                ctx.enabledDates = picker.getEnabledDatesInRange(selection.start, selection.end);
-                if (handling === 'split') {
-                    ctx.subRanges = picker.splitRangeByDisabled(selection.start, selection.end);
-                }
+    const isRange = !(selection instanceof Date);
+    let isRangeMarkedInvalid = false;
+    const fields: Omit<BeforeSelectContext, 'controller' | 'element' | 'presentation' | 'isFullscreen' | 'isModal'> = {
+        mode: picker.options.selectionMode,
+        markRangeInvalid: () => { isRangeMarkedInvalid = true; },
+    };
+    if (selection instanceof Date) {
+        fields.date = selection;
+    } else {
+        fields.range = selection;
+        // Split/individual handling carves the contiguous envelope into enabled-only
+        // pieces at summary time. Surface those same pieces here (read-only).
+        const handling = picker.options.disabledDatesHandling;
+        if (handling === 'split' || handling === 'individual') {
+            fields.enabledDates = picker.getEnabledDatesInRange(selection.start, selection.end);
+            if (handling === 'split') {
+                fields.subRanges = picker.splitRangeByDisabled(selection.start, selection.end);
             }
         }
-        const result: BeforeSelectResult = await Promise.resolve(picker.options.beforeDateSelectCallback(ctx));
-
-        hideLoader(picker);
-        picker.isValidating = false;
-
-        // A callback may return N independent ranges (range mode only) to replace
-        // the single proposed envelope — valid with 'accept' or 'adjust'.
-        const isRangeSelection = !(selection instanceof Date);
-        const hasAdjustedRanges = isRangeSelection
-            && Array.isArray(result.adjustedRanges) && result.adjustedRanges.length > 0;
-
-        switch (result.action) {
-            case 'accept':
-                // Clear any previous message on successful selection
-                hideMessage(picker);
-                if (hasAdjustedRanges) {
-                    return { isValid: true, adjustedRanges: result.adjustedRanges };
-                }
-                return { isValid: true };
-
-            case 'adjust':
-                if (hasAdjustedRanges) {
-                    // Multi-range replacement takes precedence over start/end pair.
-                    if (result.message) {
-                        showMessage(picker, result.message, 'info');
-                    }
-                    return { isValid: true, adjustedRanges: result.adjustedRanges, message: result.message };
-                }
-                if (selection instanceof Date && result.adjustedDate) {
-                    // Single mode adjustment - show info message if provided
-                    if (result.message) {
-                        showMessage(picker, result.message, 'info');
-                    }
-                    return { isValid: true, adjustedDate: result.adjustedDate, message: result.message };
-                } else if (typeof selection === 'object' && 'start' in selection && result.adjustedStartDate && result.adjustedEndDate) {
-                    // Range mode adjustment - show info message if provided
-                    if (result.message) {
-                        showMessage(picker, result.message, 'info');
-                    }
-                    return {
-                        isValid: true,
-                        adjustedStart: result.adjustedStartDate,
-                        adjustedEnd: result.adjustedEndDate,
-                        message: result.message
-                    };
-                }
-                return { isValid: false, message: result.message || 'Invalid adjustment' };
-
-            case 'restore':
-                // Handle showInvalidRange - return the proposed range for visual feedback
-                if (result.showInvalidRange && typeof selection === 'object' && 'start' in selection) {
-                    return {
-                        isValid: false,
-                        message: result.message,
-                        showInvalidRange: true,
-                        invalidStart: selection.start,
-                        invalidEnd: selection.end
-                    };
-                }
-                return { isValid: false, message: result.message };
-
-            case 'clear':
-                picker.clearSelection();
-                return { isValid: false, message: result.message };
-
-            default:
-                return { isValid: false, message: 'Unknown validation action' };
-        }
-    } catch (error) {
-        hideLoader(picker);
-        picker.isValidating = false;
-        log.error('beforeDateSelectCallback error:', error);
-        return { isValid: false, message: 'Validation error occurred' };
     }
+    const ctx = picker.ctx(fields) as BeforeSelectContext;
+
+    // A fresh attempt clears the previous feedback; a message the callback shows
+    // now is detected via the engine's message counter.
+    hideMessage(picker);
+    const messageSeq = picker.messageSeq;
+    picker.isValidating = true;
+    showLoader(picker);
+    let gate;
+    try {
+        gate = await runBeforeCallback<BeforeSelectContext, unknown>(fn, ctx, 'beforeSelectCallback');
+    } finally {
+        hideLoader(picker);
+        picker.isValidating = false;
+    }
+    const message = picker.messageSeq !== messageSeq ? 'shown-by-callback' : undefined;
+
+    if (gate.isCancelled) {
+        if (isRangeMarkedInvalid && !(selection instanceof Date)) {
+            return { isValid: false, message, showInvalidRange: true, invalidStart: selection.start, invalidEnd: selection.end };
+        }
+        return { isValid: false, message };
+    }
+    if (!gate.hasValue) {
+        return { isValid: true, message };
+    }
+
+    const value = gate.value;
+    if (value === null) {
+        picker.clearSelection();
+        return { isValid: false, message };
+    }
+    if (!isRange && value instanceof Date) {
+        return { isValid: true, adjustedDate: value, message };
+    }
+    if (isRange && Array.isArray(value) && value.length > 0 && value.every(isDateRange)) {
+        return { isValid: true, adjustedRanges: value, message };
+    }
+    if (isRange && isDateRange(value)) {
+        return { isValid: true, adjustedStart: value.start, adjustedEnd: value.end, message };
+    }
+    log.warn('beforeSelectCallback returned an unsupported value — ignored (accepting the proposal):', value);
+    return { isValid: true, message };
 }
 
 /**
@@ -299,7 +277,7 @@ export async function validateRangeAsync(
         }
     }
 
-    // 2. Async validation: call beforeDateSelectCallback if provided
+    // 2. Async validation: call beforeSelectCallback if provided
     const callbackResult = await callBeforeSelectCallback(picker, { start: startDate, end: endDate });
     if (!callbackResult.isValid) {
         // Pass through showInvalidRange fields if present
@@ -365,10 +343,10 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
     }
 
     if (picker.options.selectionMode === 'single') {
-        // Call beforeDateSelectCallback if provided
+        // Call beforeSelectCallback if provided
         const callbackResult = await callBeforeSelectCallback(picker, date);
         if (!callbackResult.isValid) {
-            selectionLogger.debug('Single mode selection prevented by beforeDateSelectCallback');
+            selectionLogger.debug('Single mode selection prevented by beforeSelectCallback');
             return;
         }
 

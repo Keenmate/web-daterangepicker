@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, ActionButton, ActionButtonContext, LoaderTarget, LockAspect, CustomActionEventDetail, SelectEventDetail, DateRangePickerController } from './types';
+import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, SelectEventDetail, DateRangePickerController } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -24,13 +24,14 @@ import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
-import { createPresentationContext, registerOverlay, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
+import { createPresentationContext, registerOverlay, withComponentContext, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
+import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
 
 
-class DateRangePicker {
+class DateRangePickerEngine {
     // Static flag to track if styles have been injected
     private static stylesInjected: boolean = false;
     input: HTMLInputElement | null;
@@ -166,6 +167,8 @@ class DateRangePicker {
     // Action button tooltips
     private actionButtonTooltipInstances: TooltipHandle[] = [];
     actionsContainer: HTMLElement | null = null;
+    /** Rendered footer button → the item it was built from (click + tooltip lookup). */
+    private actionButtonItems = new WeakMap<HTMLElement, DateRangePickerActionItem>();
 
     // Event managers (Pub/Sub pattern)
     scrollEvents: ScrollEventManager;
@@ -223,6 +226,10 @@ class DateRangePicker {
             calendarOpenTrigger: options.calendarOpenTrigger || 'focus',
             overlayGroup: options.overlayGroup || undefined,
             onSelect: options.onSelect || undefined,
+            onAction: options.onAction || undefined,
+            onMonthChange: options.onMonthChange || undefined,
+            hostElement: options.hostElement || undefined,
+            controller: options.controller || undefined,
             container: this.containerElement,
             positioningMode: options.positioningMode || 'floating',
             monthLayout: options.monthLayout || 'horizontal',
@@ -248,17 +255,19 @@ class DateRangePicker {
             customStrings: options.customStrings,
             monthNames: options.monthNames,
             weekdayNames: options.weekdayNames,
-            formatSummaryCallback: options.formatSummaryCallback,
-            beforeDateSelectCallback: options.beforeDateSelectCallback,
-            beforeMonthChangedCallback: options.beforeMonthChangedCallback,
+            renderSummaryCallback: options.renderSummaryCallback,
+            beforeSelectCallback: options.beforeSelectCallback,
+            beforeMonthChangeCallback: options.beforeMonthChangeCallback,
+            getMonthDataCallback: options.getMonthDataCallback,
+            beforeActionCallback: options.beforeActionCallback,
             showDebugInfo: options.showDebugInfo || false,
             rollingYearRange: options.rollingYearRange,
             rollingMonthRange: options.rollingMonthRange,
-            customStylesCallback: options.customStylesCallback,
+            getCustomStylesCallback: options.getCustomStylesCallback,
             renderDayCallback: options.renderDayCallback,
             renderDayContentCallback: options.renderDayContentCallback,
-            badgeTooltipCallback: options.badgeTooltipCallback,
-            dayTooltipCallback: options.dayTooltipCallback,
+            getBadgeTooltipCallback: options.getBadgeTooltipCallback,
+            getDayTooltipCallback: options.getDayTooltipCallback,
             dateMember: options.dateMember,
             badgeTextMember: options.badgeTextMember,
             badgeClassMember: options.badgeClassMember,
@@ -499,7 +508,7 @@ class DateRangePicker {
         // Listen for sibling pickers becoming active so this one can deactivate.
         // (The keydown listener lives on document, so without this, every picker
         // on the page would respond to arrow keys at once.)
-        document.addEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        document.addEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
 
         // Join the single-active-overlay group (scoped by `overlay-group`, default ungrouped):
         // when another KM overlay in the same group (or an external popover) opens, close this
@@ -526,7 +535,7 @@ class DateRangePicker {
             // any picker calls setCalendarActive() and deactivates the others.
             this.isFirstRender = false;
 
-            // Call beforeMonthChangedCallback for initial month load
+            // Load getMonthDataCallback data for the initial months
             Navigation.handleInitialMonthLoad(this);
         }
         // Note: for floating mode, renderCalendar() is called on first open() instead of here
@@ -807,66 +816,28 @@ class DateRangePicker {
         // Store container reference for re-rendering
         this.actionsContainer = container;
 
-        // Use custom action buttons if provided, otherwise use default buttons
-        const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
-
-        buttons.forEach(button => {
-            // One context object per button, shared by all of this button's callbacks
-            const ctx: ActionButtonContext = { picker: this, controller: this.getController(), ...this.presentationCtx(), action: button.action, button };
-
-            // Priority 1: Check dynamic visibility callback
-            if (button.isVisibleCallback !== undefined) {
-                if (!button.isVisibleCallback(ctx)) {
-                    return; // Skip this button
-                }
-            }
-            // Priority 2: Check static visibility flag
-            else if (button.isVisible !== undefined) {
-                if (!button.isVisible) {
-                    return; // Skip this button
-                }
-            }
-            // Priority 3: Default to visible (no check needed)
+        // Core ActionItem resolution (SPEC §12.12): get*Callback > static > built-in default.
+        const ctx = this.ctx({});
+        this.getActionItems().forEach((item, index) => {
+            const resolved = resolveActionItem(item, ctx, this.getBuiltInItemDefaults(item.action));
+            if (!resolved.isVisible) return;
 
             const buttonEl = document.createElement('button');
-            buttonEl.className = `drp__button drp__button--${button.action}`;
-
-            // Apply CSS classes (priority: callback → static → none)
-            const cssClasses = button.getClassCallback
-                ? button.getClassCallback(ctx)
-                : button.cssClass;
-            if (cssClasses) {
-                if (Array.isArray(cssClasses)) {
-                    buttonEl.classList.add(...cssClasses);
-                } else {
-                    buttonEl.classList.add(cssClasses);
-                }
+            buttonEl.type = 'button';
+            buttonEl.className = `drp__button drp__button--${resolved.action}`;
+            if (resolved.cssClass) buttonEl.classList.add(...resolved.cssClass.split(' '));
+            if (resolved.isDanger) buttonEl.classList.add('drp__button--danger');
+            if (resolved.isActive) {
+                buttonEl.classList.add('drp__button--active');
+                buttonEl.setAttribute('aria-pressed', 'true');
             }
+            buttonEl.textContent = resolved.text;
+            if (resolved.isDisabled) buttonEl.disabled = true;
 
-            // Apply text (priority: callback → static)
-            const buttonText = button.getTextCallback
-                ? button.getTextCallback(ctx)
-                : button.text;
-            buttonEl.innerHTML = buttonText;
-
-            // Tooltip will be handled by attachActionButtonTooltips() after rendering
-
-            // Apply disabled state (priority: callback → static → false)
-            const isDisabled = button.isDisabledCallback
-                ? button.isDisabledCallback(ctx)
-                : (button.isDisabled ?? false);
-            if (isDisabled) {
-                buttonEl.disabled = true;
-            }
-
-            buttonEl.dataset.action = button.action;
-
-            // Store custom onClick handler + config if provided (config is needed to
-            // build the ActionButtonContext when the click fires later)
-            if (button.onClick) {
-                (buttonEl as any)._customOnClick = button.onClick;
-                (buttonEl as any)._buttonConfig = button;
-            }
+            buttonEl.dataset.action = resolved.action;
+            if (resolved.id) buttonEl.dataset.id = resolved.id;
+            buttonEl.dataset.buttonIndex = String(index);
+            this.actionButtonItems.set(buttonEl, item);
 
             container.appendChild(buttonEl);
         });
@@ -875,77 +846,67 @@ class DateRangePicker {
         this.attachActionButtonTooltips();
     }
 
+    /** The configured footer items (string shorthand expanded), or the built-ins for the mode. */
+    private getActionItems(): DateRangePickerActionItem[] {
+        return this.options.actionButtons
+            ? normalizeActionItems<DateRangePickerActionItem>(this.options.actionButtons)
+            : this.getDefaultButtons();
+    }
+
+    /** Built-in label for a built-in action (used when the item sets no `text`). */
+    private getBuiltInItemDefaults(action: DateRangePickerActionItem['action']): { text?: string } | undefined {
+        switch (action) {
+            case 'today': return { text: this.localeStrings.today };
+            case 'now': return { text: this.localeStrings.now };
+            case 'clear': return { text: this.localeStrings.clear };
+            case 'apply': return { text: this.localeStrings.apply };
+            default: return undefined;
+        }
+    }
+
     /**
      * Get default buttons based on options
      */
-    private getDefaultButtons(): ActionButton[] {
-        const buttons: ActionButton[] = [];
+    private getDefaultButtons(): DateRangePickerActionItem[] {
+        const buttons: DateRangePickerActionItem[] = [];
 
         // Today button — date and datetime modes only. Time-only has no day to navigate to.
-        if (this.options.isTodayButtonShown && this.options.pickerMode !== 'time') {
-            buttons.push({
-                action: 'today',
-                text: this.localeStrings.today
-            });
-        }
+        if (this.options.isTodayButtonShown && this.options.pickerMode !== 'time') buttons.push({ action: 'today' });
 
         // Now button — time and datetime modes only.
-        if (this.options.isNowButtonShown && this.options.pickerMode !== 'date') {
-            buttons.push({
-                action: 'now',
-                text: this.localeStrings.now
-            });
-        }
+        if (this.options.isNowButtonShown && this.options.pickerMode !== 'date') buttons.push({ action: 'now' });
 
         // Clear button
-        if (this.options.isClearButtonShown) {
-            buttons.push({
-                action: 'clear',
-                text: this.localeStrings.clear
-            });
-        }
+        if (this.options.isClearButtonShown) buttons.push({ action: 'clear' });
 
         // Apply button — only in `apply` commit mode (the staged-selection commit path).
-        if (this.options.commitMode === 'apply') {
-            buttons.push({
-                action: 'apply',
-                text: this.localeStrings.apply
-            });
-        }
+        if (this.options.commitMode === 'apply') buttons.push({ action: 'apply' });
 
         return buttons;
     }
 
     /**
-     * Attach Floating UI tooltips to action buttons.
-     * Each tooltip is a self-contained Tooltip instance owning its element,
-     * hover delays, and autoUpdate cleanup. `destroyAllActionButtonTooltips`
-     * disposes them all.
+     * Attach Floating UI tooltips to action buttons. Each rendered button maps back
+     * to ITS item (not the first item with the same action), so several custom
+     * buttons each get their own tooltip.
      */
     private attachActionButtonTooltips(): void {
         if (!this.actionsContainer) return;
 
-        const buttons: ActionButton[] = this.options.actionButtons || this.getDefaultButtons();
         const container = this.options.container || document.body;
+        const ctx = this.ctx({});
         const renderedButtons = this.actionsContainer.querySelectorAll('.drp__button');
 
         renderedButtons.forEach((button: Element, index: number) => {
             const buttonElement = button as HTMLElement;
-            const action = buttonElement.dataset.action;
-            if (!action) return;
+            const item = this.actionButtonItems.get(buttonElement);
+            if (!item) return;
 
-            const actionConfig = buttons.find(btn => btn.action === action);
-            if (!actionConfig) return;
-
-            const tooltipText = actionConfig.getTooltipCallback
-                ? actionConfig.getTooltipCallback({ picker: this, controller: this.getController(), ...this.presentationCtx(), action: actionConfig.action, button: actionConfig })
-                : actionConfig.tooltip;
+            const tooltipText = resolveActionItem(item, ctx).tooltip;
             if (!tooltipText) return;
 
             buttonElement.dataset.tooltipId = `action-${index}`;
             // Core createTooltip (SPEC §12.2): per-trigger hover tooltip with delay.
-            // Behaviour-equivalent to the former local Tooltip class — same 'drp__tooltip'
-            // styling, 300/100ms show/hide delays, top placement, floating-ui default platform.
             this.actionButtonTooltipInstances.push(createTooltip({
                 trigger: buttonElement,
                 content: tooltipText,
@@ -1003,7 +964,7 @@ class DateRangePicker {
     getDayMetadata(date: Date): DayMetadata | null {
         const dateKey = Validation.formatDateKey(date);
 
-        // 1. Check bulk metadata cache FIRST (highest priority - from beforeMonthChangedCallback)
+        // 1. Check bulk metadata cache FIRST (highest priority - from getMonthDataCallback)
         if (this.bulkMetadataCache && this.bulkMetadataCache.has(dateKey)) {
             const cachedInfo = this.bulkMetadataCache.get(dateKey)!;
             return {
@@ -1014,16 +975,14 @@ class DateRangePicker {
 
         // 2. Check callback SECOND (per-day callback)
         if (this.options.getDateMetadataCallback) {
-            const customInfo = this.options.getDateMetadataCallback({
-                picker: this,
-                ...this.presentationCtx(),
+            const customInfo = this.options.getDateMetadataCallback(this.ctx({
                 date,
                 dateString: dateKey,
                 dayNumber: date.getDate(),
                 isDisabled: this.isDateDisabled(date),
                 isToday: Validation.isToday(date),
                 isWeekend: date.getDay() === 0 || date.getDay() === 6
-            });
+            }));
             if (customInfo) {
                 return {
                     ...customInfo,
@@ -1103,6 +1062,10 @@ class DateRangePicker {
      * when it re-emits (except for the multi-piece joined forms, which it keeps).
      */
     buildSelectDetail(selection: Date | DateRange | DateRange[] | Date[]): SelectEventDetail {
+        return this.ctx(this.buildSelectFields(selection));
+    }
+
+    private buildSelectFields(selection: Date | DateRange | DateRange[] | Date[]): Omit<SelectEventDetail, keyof PickerContext> {
         const formatRange = (r: DateRange) => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`;
 
         // Single date.
@@ -1122,7 +1085,7 @@ class DateRangePicker {
 
         // Single range — apply the disabled-dates breakdown for the active handling.
         const { start, end } = selection;
-        const detail: SelectEventDetail = { dateRange: selection, formattedValue: formatRange(selection) };
+        const detail: Omit<SelectEventDetail, keyof PickerContext> = { dateRange: selection, formattedValue: formatRange(selection) };
         switch (this.options.disabledDatesHandling) {
             case 'allow':
                 detail.enabledDates = this.getEnabledDatesInRange(start, end);
@@ -1235,12 +1198,12 @@ class DateRangePicker {
 
             // Conditionally make range display interactive
             const rangeClass = this.options.isUnifiedHeaderInteractive ? '' : ' drp__unified-range--static';
-            const rangeAction = this.options.isUnifiedHeaderInteractive ? ' data-action="toggle-unified-rolling"' : '';
+            const rangeAction = this.options.isUnifiedHeaderInteractive ? ' data-drp-action="toggle-unified-rolling"' : '';
 
             this.unifiedHeader.innerHTML = `
-                <button class="drp__nav drp__nav--prev" data-action="unified-prev"></button>
+                <button class="drp__nav drp__nav--prev" data-drp-action="unified-prev"></button>
                 <div class="drp__unified-range${rangeClass}"${rangeAction}></div>
-                <button class="drp__nav drp__nav--next" data-action="unified-next"></button>
+                <button class="drp__nav drp__nav--next" data-drp-action="unified-next"></button>
             `;
 
             // Create unified rolling selector
@@ -1290,9 +1253,9 @@ class DateRangePicker {
                     <div class="drp__month-year"></div>
                 </div>`
                 : `<div class="drp__header">
-                    <button class="drp__nav drp__nav--prev" data-action="prev" data-month-index="${i}"></button>
-                    <div class="drp__month-year" data-action="toggle-rolling" data-month-index="${i}"></div>
-                    <button class="drp__nav drp__nav--next" data-action="next" data-month-index="${i}"></button>
+                    <button class="drp__nav drp__nav--prev" data-drp-action="prev" data-month-index="${i}"></button>
+                    <div class="drp__month-year" data-drp-action="toggle-rolling" data-month-index="${i}"></div>
+                    <button class="drp__nav drp__nav--next" data-drp-action="next" data-month-index="${i}"></button>
                 </div>`;
 
             monthCalendar.innerHTML = `
@@ -1414,7 +1377,7 @@ class DateRangePicker {
         this.messageElement.className = 'drp__message';
         this.messageElement.innerHTML = `
             <span class="drp__message-text"></span>
-            <button class="drp__message-close" data-action="close-message">&times;</button>
+            <button class="drp__message-close" data-drp-action="close-message">&times;</button>
         `;
         this.calendar.appendChild(this.messageElement);
 
@@ -1559,42 +1522,17 @@ class DateRangePicker {
                 if (this.currentTooltipTarget) this.hideTooltip();
             }
 
-            const action = target.dataset.action;
-            const monthIndexAttr = target.dataset.monthIndex;
-            const monthIndex = monthIndexAttr ? parseInt(monthIndexAttr) : 0;
-
-            // Check for custom action first (using closest to handle clicks on child elements)
-            const customActionBtn = target.closest('[data-action="custom"]') as HTMLElement | null;
-            if (customActionBtn) {
-                // Custom / preset buttons are an 'actions' interaction — drop when locked.
-                if (this.isAspectLocked('actions')) return;
-                // Collect all data-* attributes (except data-action)
-                const dataAttributes: Record<string, string> = {};
-                for (const [key, value] of Object.entries(customActionBtn.dataset)) {
-                    if (key !== 'action') {
-                        dataAttributes[key] = value;
-                    }
-                }
-
-                // Fire custom-action event
-                this.fireCustomActionEvent(dataAttributes);
-
-                // Still call onClick callback if provided
-                const customOnClick = (customActionBtn as any)._customOnClick;
-                if (customOnClick) {
-                    const buttonConfig: ActionButton = (customActionBtn as any)._buttonConfig
-                        || { action: 'custom', text: '' };
-                    await Promise.resolve(customOnClick({
-                        picker: this,
-                        controller: this.getController(),
-                        ...this.presentationCtx(),
-                        action: buttonConfig.action,
-                        button: buttonConfig,
-                        data: dataAttributes
-                    }));
-                }
+            // Action items: footer buttons and consumer HTML (message / summary / custom
+            // renderers) carrying `data-action`. Internal controls use `data-drp-action`.
+            const actionTrigger = target.closest('[data-action]') as HTMLElement | null;
+            if (actionTrigger && this.calendar.contains(actionTrigger)) {
+                await this.activateAction(actionTrigger, e);
                 return;
             }
+
+            const action = target.dataset.drpAction;
+            const monthIndexAttr = target.dataset.monthIndex;
+            const monthIndex = monthIndexAttr ? parseInt(monthIndexAttr) : 0;
 
             // Check if navigation button is disabled (respects rollingYearRange/rollingMonthRange boundaries)
             if (action === 'prev' || action === 'next' || action === 'unified-prev' || action === 'unified-next') {
@@ -1606,15 +1544,13 @@ class DateRangePicker {
 
             // === Lock gating (user clicks only; the programmatic API bypasses locks) ===
             // Bucket the click by the interaction family it drives and drop it if that
-            // family is locked. Custom action buttons were already handled (and gated) above.
+            // family is locked. Action items were already handled (and gated) above.
             const NAV_ACTIONS = ['prev', 'next', 'unified-prev', 'unified-next', 'toggle-rolling', 'toggle-unified-rolling'];
-            const SEL_ACTIONS = ['today', 'now', 'clear'];
             const isTimeTarget = !!target.closest('[data-hour],[data-hour12],[data-minute],[data-second],[data-ampm],[data-clock-hour],[data-clock-hour12],[data-clock-minute],[data-clock-step],[data-clock-ampm],[data-wheel-value],[data-compact-field],[data-compact-ampm]');
             const isDayTarget = !!target.closest('.drp__day:not(.drp__day--disabled)');
             const isRollingTarget = !!target.closest('[data-year],[data-month]');
             if (this.isAspectLocked('navigation') && ((action && NAV_ACTIONS.includes(action)) || isRollingTarget)) return;
-            if (this.isAspectLocked('selection') && ((action && SEL_ACTIONS.includes(action)) || isTimeTarget || isDayTarget)) return;
-            if (this.isAspectLocked('actions') && action === 'apply') return;
+            if (this.isAspectLocked('selection') && (isTimeTarget || isDayTarget)) return;
 
             if (action === 'prev') this.prevMonth(monthIndex);
             else if (action === 'next') this.nextMonth(monthIndex);
@@ -1622,10 +1558,6 @@ class DateRangePicker {
             else if (action === 'unified-next') this.unifiedNextMonth();
             else if (action === 'toggle-rolling') this.toggleRollingSelector(monthIndex);
             else if (action === 'toggle-unified-rolling') this.toggleUnifiedRollingSelector();
-            else if (action === 'today') this.selectToday();
-            else if (action === 'now') this.selectNow();
-            else if (action === 'clear') this.clearSelection();
-            else if (action === 'apply') this.apply();
             else if (action === 'close-message') this.hideMessage();
             else if (target.closest('[data-hour], [data-hour12]')) {
                 const el = target.closest('[data-hour], [data-hour12]') as HTMLElement;
@@ -2552,17 +2484,44 @@ class DateRangePicker {
     }
 
     /**
-     * Fire a custom-action event with the provided data attributes
+     * Run one action-item activation through core `runAction` (SPEC §12.12):
+     * `beforeActionCallback` → item `onClick` → `action` event (`onAction`) →
+     * built-in behaviour. A footer button maps back to its item; consumer HTML
+     * (`data-action="custom" data-id="…"` in a message / summary / custom render)
+     * gets a synthetic item. `data-action` may also name a built-in (`today`, …).
      */
-    private fireCustomActionEvent(data: Record<string, string>): void {
-        // Fire on calendar element (internal). Detail wraps the data-* map under `data`
-        // and carries the picker instance, matching CustomActionEventDetail.
-        const detail: CustomActionEventDetail = { data, picker: this, controller: this.getController() };
-        this.calendar.dispatchEvent(new CustomEvent('custom-action', {
+    private async activateAction(trigger: HTMLElement, sourceEvent?: Event): Promise<void> {
+        const configured = this.actionButtonItems.get(trigger);
+        const action = (configured?.action ?? trigger.dataset.action ?? 'custom') as DateRangePickerAction | 'custom';
+        // Locks: every action is an 'actions' interaction; the selection built-ins
+        // additionally respect the 'selection' lock.
+        if (this.isAspectLocked('actions')) return;
+        if ((action === 'today' || action === 'now' || action === 'clear') && this.isAspectLocked('selection')) return;
+
+        const id = configured?.id ?? trigger.dataset.id;
+        const item: DateRangePickerActionItem = configured ?? { action, id, text: trigger.textContent?.trim() ?? '' };
+        const source: ActionSource = configured ? 'action-buttons'
+            : trigger.closest('.drp__message') ? 'message'
+            : trigger.closest('.drp__summary') ? 'summary'
+            : 'calendar';
+        const detail = this.ctx({
+            action, id, item, source, sourceEvent, triggerElement: trigger, dataset: readActionDataset(trigger),
+        }) as DateRangePickerActionEventDetail;
+
+        await runAction({
             detail,
-            bubbles: true,
-            composed: true  // Cross shadow DOM boundary
-        }));
+            beforeActionCallback: this.options.beforeActionCallback,
+            emitAction: (d) => this.options.onAction?.(d),
+            runBuiltIn: (d) => this.runBuiltInAction(d.action),
+        });
+    }
+
+    /** The built-in behaviour of a footer action (no-op for custom actions). */
+    private runBuiltInAction(action: DateRangePickerAction | 'custom'): void {
+        if (action === 'today') this.selectToday();
+        else if (action === 'now') this.selectNow();
+        else if (action === 'clear') this.clearSelection();
+        else if (action === 'apply') this.apply();
     }
 
     /**
@@ -2573,7 +2532,7 @@ class DateRangePicker {
     setCalendarActive() {
         if (this.isCalendarActive) return; // already active, don't re-broadcast
         this.isCalendarActive = true;
-        document.dispatchEvent(new CustomEvent(DateRangePicker.ACTIVE_EVENT, { detail: this }));
+        document.dispatchEvent(new CustomEvent(DateRangePickerEngine.ACTIVE_EVENT, { detail: this }));
     }
 
     static readonly ACTIVE_EVENT = 'drp-picker-activated';
@@ -2590,7 +2549,7 @@ class DateRangePicker {
         this.clickEvents.destroy();
 
         // Stop listening for cross-picker activation broadcasts
-        document.removeEventListener(DateRangePicker.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
 
         // Leave the single-active-overlay group.
         this.overlayCoord?.destroy();
@@ -2653,6 +2612,17 @@ class DateRangePicker {
      * `renderDayCallback: ({ isFullscreen }) => …`. Reflects the OPEN chrome.
      */
     presentationCtx(): PresentationContext { return createPresentationContext(this.presentation); }
+
+    /**
+     * Attach the picker context (core interaction model) to `fields`: `controller` +
+     * `element` (non-enumerable — `JSON.stringify` / logs see only the data) and the
+     * presentation flags. Every callback ctx and event detail goes through here.
+     */
+    ctx<T extends object>(fields: T): T & PickerContext {
+        const element = this.options.hostElement ?? this.input ?? this.calendar;
+        const controller = this.options.controller ?? this.getController();
+        return withComponentContext(fields, controller, element, this.presentationCtx()) as T & PickerContext;
+    }
     /**
      * True on pointing devices that can hover (desktop mouse). Touch-primary
      * devices — phones in the full-screen sheet, tablets — report `(hover: none)`;
@@ -2669,7 +2639,9 @@ class DateRangePicker {
     position() { return UI.position(this); }
     showTooltip(element: HTMLElement, content: string) { return UI.showTooltip(this, element, content); }
     hideTooltip() { return UI.hideTooltip(this); }
-    showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { return UI.showMessage(this, content, type, autoHide); }
+    /** Bumped by every public showMessage — lets beforeSelectCallback detect a message the consumer showed. */
+    messageSeq = 0;
+    showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { this.messageSeq++; return UI.showMessage(this, content, type, autoHide); }
     hideMessage() { return UI.hideMessage(this); }
     toggleMessage(content?: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { return UI.toggleMessage(this, content, type, autoHide); }
     showSummary(content: string) { return UI.showSummary(this, content); }
@@ -2697,7 +2669,39 @@ class DateRangePicker {
     set readonly(value: boolean) { if (value) Lock.lock(this); else Lock.unlock(this); }
 
     // Rendering methods - wrappers for pure functions
-    renderCalendar() { return Rendering.renderCalendar(this); }
+    renderCalendar() {
+        const result = Rendering.renderCalendar(this);
+        this.notifyMonthChange();
+        return result;
+    }
+
+    /** Visible months at the last `month-change` check (`null` until the first render). */
+    private lastVisibleMonthsKey: string | null = null;
+
+    /**
+     * Fire `onMonthChange` when the visible months differ from the last render.
+     * Every navigation path (buttons, keyboard, rolling selectors, unified nav,
+     * programmatic) ends in a render, so detecting it here can't miss one. The
+     * first render only records the baseline.
+     */
+    private notifyMonthChange(): void {
+        const months: Date[] = this._monthDates ?? [];
+        const key = months.map((m) => `${m.getFullYear()}-${m.getMonth()}`).join('|');
+        const previous = this.lastVisibleMonthsKey;
+        this.lastVisibleMonthsKey = key;
+        if (previous === null || previous === key || !this.options.onMonthChange) return;
+        const before = previous.split('|');
+        const changed = Math.max(0, months.findIndex((m, i) => before[i] !== `${m.getFullYear()}-${m.getMonth()}`));
+        const monthIndex = this.options.isUnifiedNavigationEnabled ? (this.options.unifiedNavigationAnchorIndex ?? 0) : changed;
+        const column = months[monthIndex] ?? months[0];
+        if (!column) return;
+        this.options.onMonthChange(this.ctx({
+            monthIndex,
+            year: column.getFullYear(),
+            month: column.getMonth(),
+            visibleMonths: months.map((m) => ({ year: m.getFullYear(), month: m.getMonth() })),
+        }));
+    }
     renderNormalView(monthIndex: number) { return Rendering.renderNormalView(this, monthIndex); }
     renderDays(monthIndex: number, date: Date) { return Rendering.renderDays(this, monthIndex, date); }
     renderRollingSelector(monthIndex: number) { return Rendering.renderRollingSelector(this, monthIndex); }
@@ -2731,10 +2735,10 @@ class DateRangePicker {
     apply() { return Selection.apply(this); }
 
     /**
-     * The typed, curated imperative facade handed to callbacks via
-     * `context.controller` (see {@link DateRangePickerController}). Memoized so its
-     * identity is stable across calls. The raw instance stays reachable via
-     * `context.picker` for anything not on the facade.
+     * The engine's own facade (see {@link DateRangePickerController}), memoized.
+     * Contexts use the host's controller when one was passed (`options.controller`,
+     * set by `<web-daterangepicker>` so it survives rebuilds); this is the fallback
+     * for a standalone engine.
      */
     getController(): DateRangePickerController {
         const picker = this;
@@ -2750,6 +2754,7 @@ class DateRangePicker {
             getSelectedDatetime: () => picker.selectedDatetime,
             get isOpen() { return picker.isOpen; },
             selectToday: () => { picker.selectToday(); },
+            selectNow: () => { picker.selectNow(); },
             clearSelection: () => { picker.clearSelection(); },
             apply: () => { picker.apply(); },
             open: () => { picker.open(); },
@@ -2760,10 +2765,12 @@ class DateRangePicker {
             nextMonth: (monthIndex = picker.activeMonthIndex) => { picker.nextMonth(monthIndex); },
             lock: (aspects) => { picker.lock(aspects); },
             unlock: (aspects) => { picker.unlock(aspects); },
-            showMessage: (content, type, autoHide) => { picker.showMessage(content, type, autoHide); },
+            showMessage: (content, opts) => { picker.showMessage(content, opts?.type, opts?.autoHideMs); },
             hideMessage: () => { picker.hideMessage(); },
             showSummary: (content) => { picker.showSummary(content); },
             hideSummary: () => { picker.hideSummary(); },
+            showLoader: (target) => { picker.showLoader(target); },
+            hideLoader: (target) => { picker.hideLoader(target); },
         });
     }
     selectHour(hour: number, is12Hour: boolean) { return Selection.selectHour(this, hour, is12Hour); }
@@ -2817,7 +2824,7 @@ class DateRangePicker {
      */
     static injectGlobalStyles(force: boolean = false): void {
         // Only inject once unless forced
-        if (DateRangePicker.stylesInjected && !force) {
+        if (DateRangePickerEngine.stylesInjected && !force) {
             drpLogger.debug('Styles already injected, skipping');
             return;
         }
@@ -2830,7 +2837,7 @@ class DateRangePicker {
         // Inject into document head
         document.head.appendChild(styleElement);
 
-        DateRangePicker.stylesInjected = true;
+        DateRangePickerEngine.stylesInjected = true;
         drpLogger.info('Global styles injected successfully');
     }
 
@@ -2861,4 +2868,4 @@ class DateRangePicker {
 }
 
 // Export the class
-export { DateRangePicker };
+export { DateRangePickerEngine };

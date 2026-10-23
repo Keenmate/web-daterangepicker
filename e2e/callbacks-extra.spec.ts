@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator } from './fixtures';
 
 /**
- * renderDayCallback (full replacement), customStylesCallback,
+ * renderDayCallback (full replacement), getCustomStylesCallback,
  * specialDates with default + custom *Member mapping,
  * getUnifiedHeaderCallback.
  *
@@ -46,10 +46,10 @@ test('renderDayCallback returning an HTMLElement fully replaces the day content'
 });
 
 // =============================================================================
-// customStylesCallback
+// getCustomStylesCallback
 // =============================================================================
 
-test('customStylesCallback adds a <style class="drp-custom-styles"> inside the shadow root', async ({ page }) => {
+test('getCustomStylesCallback adds a <style class="drp-custom-styles"> inside the shadow root', async ({ page }) => {
     const p = pickerById(page, 'custom-styles');
 
     // Style element should be present in the shadow root.

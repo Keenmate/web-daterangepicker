@@ -42,7 +42,7 @@ import {
   type ElementSize,
   type MobilePresentation,
 } from '@keenmate/web-components-core';
-import { DateRangePicker } from './date-picker';
+import { DateRangePickerEngine } from './date-picker';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList } from './converters';
 import {
   serializeFormValue, isoDate, isoDateTime, isoTime,
@@ -50,9 +50,10 @@ import {
 } from './form-value';
 import type {
   DatePickerOptions, DateRange, DecoratedDate, DayContext, DayMetadata, BeforeSelectResult,
-  ActionButton, LocaleStrings, SelectionContext, MonthChangeContext, BeforeMonthChangeResult,
-  SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
-  SelectEventDetail, CustomActionEventDetail, SelectedTime, MonthDisplay,
+  DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, LocaleStrings,
+  BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthData, MonthChangeEventDetail,
+  ReadyEventDetail, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
+  SelectEventDetail, SelectedTime, MonthDisplay, PickerContext,
 } from './types';
 import styles from './css/main.css?inline';
 
@@ -147,7 +148,7 @@ const INPUTS: readonly InputDef[] = [
 - \`iso\` (default) — one field; a single date/time as-is, a range as \`start/end\`, multiple joined by \`,\`.
 - \`json\` — one field; \`JSON.stringify\` of the selection (scalar/object for single/range, array for multiple).
 - \`array\` — multiple \`name[]\` fields, one per date; a range contributes \`start\` and \`end\`.` },
-  { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(selection: FormValueSelection) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot and returns the single hidden-input value. Overrides `value-format`. Property-only.' },
+  { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(ctx: FormValueSelection & PickerContext) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value. Overrides `value-format`. Property-only.' },
 
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property.' },
@@ -162,45 +163,48 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'fullscreenInput',              attribute: 'fullscreen-input',              converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
   { configKey: 'showDebugInfo',                attribute: 'show-debug-info',               converter: toBool('presence'), on: 'update', description: 'Enable the picker’s debug logging.' },
   { configKey: 'compactBelow',                 attribute: 'compact-below',                 converter: toInt({ min: 0 }), on: 'update', description: 'Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change.' },
-  { configKey: 'deferRender',                  attribute: 'defer',                         converter: toBool('presence'), on: 'reinit', description: 'Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `customStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes.' },
+  { configKey: 'deferRender',                  attribute: 'defer',                         converter: toBool('presence'), on: 'reinit', description: 'Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `getCustomStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes.' },
 
   // ── Complex property data (property-only) ─────────────────────────────────
   { configKey: 'specialDates',                 converter: toObjectArray(), on: 'update', type: 'DecoratedDate[]', description: 'Array of decorated-date objects (badges, tooltips, per-day classes). Property-only.' },
-  { configKey: 'actionButtons',               converter: toValue({ validate: (v): v is unknown[] => Array.isArray(v) }), on: 'update', type: 'ActionButton[]', description: 'Custom footer action buttons. Property-only; when unset the built-in buttons apply.' },
+  { configKey: 'actionButtons',               converter: toValue({ validate: (v): v is unknown[] => Array.isArray(v) }), on: 'update', type: "(DateRangePickerActionItem | 'today' | 'now' | 'clear' | 'apply')[]", description: 'Footer action buttons (core `ActionItem`s). Built-ins: `action: \'today\' | \'now\' | \'clear\' | \'apply\'` (or the bare string); a custom button sets `id` (and no `action`). Clicks fire the `action` event. Property-only; when unset the built-ins for the mode apply.' },
   { configKey: 'customStrings',                converter: toObject(), on: 'update', type: 'Partial<LocaleStrings>', description: 'Per-instance locale string overrides. Property-only.' },
 
   // ── Callbacks (property-only; cosmetic/data → update) ─────────────────────
   { configKey: 'getDateMetadataCallback',      converter: cb(), on: 'update', type: '(ctx: DayContext) => DayMetadata | null', description: 'Compute per-day metadata (badges, classes, disabled) dynamically.' },
-  { configKey: 'badgeTooltipCallback',         converter: cb(), on: 'update', type: '(ctx: DayContext) => string | null', description: 'Tooltip text for a day badge.' },
-  { configKey: 'dayTooltipCallback',           converter: cb(), on: 'update', type: '(ctx: DayContext) => string | null', description: 'Tooltip text for a day cell.' },
+  { configKey: 'getBadgeTooltipCallback',      converter: cb(), on: 'update', type: '(ctx: DayContext) => string | null', description: 'Tooltip HTML for a day badge; `null` keeps the default.' },
+  { configKey: 'getDayTooltipCallback',        converter: cb(), on: 'update', type: '(ctx: DayContext) => string | null', description: 'Tooltip HTML for a day cell; `null` keeps the default.' },
   { configKey: 'renderDayCallback',            converter: cb(), on: 'update', type: '(ctx: DayContext) => HTMLElement | string | null', description: 'Fully custom-render a day cell.' },
   { configKey: 'renderDayContentCallback',     converter: cb(), on: 'update', type: '(ctx: DayContext) => HTMLElement | string | null', description: 'Custom-render the content inside a day cell.' },
-  { configKey: 'formatSummaryCallback',        converter: cb(), on: 'update', type: '(ctx: SummaryContext) => string', description: 'Render the range summary text.' },
+  { configKey: 'renderSummaryCallback',        converter: cb(), on: 'update', type: '(ctx: SummaryContext) => string', description: 'Render the range summary (HTML).' },
   { configKey: 'getUnifiedHeaderCallback',     converter: cb(), on: 'update', type: '(ctx: UnifiedHeaderContext) => string', description: 'Render the unified grid header label.' },
   { configKey: 'getMonthHeaderCallback',       converter: cb(), on: 'update', type: '(ctx: MonthHeaderContext) => string', description: 'Render a per-column month header label.' },
-  { configKey: 'customStylesCallback',         converter: cb(), on: 'update', type: '() => string', description: 'Return a CSS string injected into the component via a replaceable style slot (§12.8). Takes precedence over the `custom-styles` attribute when both are set.' },
-  { configKey: 'customStyles',                 attribute: 'custom-styles',                 converter: toText({ isNullable: true }), on: 'update', description: 'Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `customStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `customStylesCallback` wins when both are set.' },
+  { configKey: 'getCustomStylesCallback',      converter: cb(), on: 'update', type: '(ctx: PickerContext) => string | null', description: 'Return a CSS string injected into the component via a replaceable style slot (§12.8). Takes precedence over the `custom-styles` attribute when both are set.' },
+  { configKey: 'customStyles',                 attribute: 'custom-styles',                 converter: toText({ isNullable: true }), on: 'update', description: 'Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `getCustomStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `getCustomStylesCallback` wins when both are set.' },
 
   // ── Callbacks: before-hooks (behavior-shaping → update) ───────────────────
-  { configKey: 'beforeDateSelectCallback',     converter: cb(), on: 'update', type: '(ctx: SelectionContext) => BeforeSelectResult | Promise<BeforeSelectResult>', description: 'Runs before a day is selected; can veto or adjust the selection.' },
-  { configKey: 'beforeMonthChangedCallback',   converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => BeforeMonthChangeResult | Promise<BeforeMonthChangeResult>', description: 'Runs before month navigation; can veto the change.' },
+  { configKey: 'beforeSelectCallback',         converter: cb(), on: 'update', type: '(ctx: BeforeSelectContext) => void | false | null | Date | DateRange | DateRange[] | Promise<…>', description: 'Runs before a selection is committed. Return nothing to accept, `false` to reject (explain via `ctx.controller.showMessage`; `ctx.markRangeInvalid()` keeps a rejected range visible), a `Date` / `DateRange` / `DateRange[]` to adjust, or `null` to clear. May be async.' },
+  { configKey: 'beforeMonthChangeCallback',    converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => void | false | Promise<void | false>', description: 'Runs before month navigation; return `false` to block it. May be async.' },
+  { configKey: 'getMonthDataCallback',         converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => MonthData | null | Promise<MonthData | null>', description: 'Load data for the visible range (`metadata` per `YYYY-MM-DD`, `monthHeaders` per `YYYY-MM`) on the initial open and after each month navigation. May be async (a loader shows meanwhile).' },
+  { configKey: 'beforeActionCallback',         converter: cb(), on: 'update', type: '(detail: DateRangePickerActionEventDetail) => void | false | Promise<void | false>', description: 'Runs before any action button / `data-action` trigger; return `false` to cancel it entirely (no `onClick`, no `action` event, no built-in). May be async.' },
 ];
 
-// Outward events (core §12.5). `date-select`/`change` are emitted by this element
-// (bridged from the picker's onSelect); `custom-action` is emitted by the picker
-// itself and bubbles (composed) up to the host — declaring it here installs the
-// managed `onCustomAction` handler property and lists it in the CEM manifest.
+// Outward events (core §12.5). Each has an `on<Name>` twin property that receives
+// the same detail object; every detail carries `controller` + `element`
+// (non-enumerable) and the presentation flags.
 type DrpEvents = {
-  'date-select': SelectEventDetail;
+  select: SelectEventDetail;
   change: SelectEventDetail;
-  'custom-action': CustomActionEventDetail;
-  ready: undefined;
+  action: DateRangePickerActionEventDetail;
+  'month-change': MonthChangeEventDetail;
+  ready: ReadyEventDetail;
 };
 const EVENTS = [
-  { name: 'date-select', description: 'A date/range/time was selected (or applied). `detail` carries the date(s)/range(s), the formatted value, and — depending on disabled-dates-handling — enabled/disabled/split breakdowns.' },
-  { name: 'change', description: 'Fires alongside `date-select` for form-style change wiring; same detail.' },
-  { name: 'custom-action', description: 'A custom action button was clicked. `detail.data` is the button’s data-* map; `detail.picker` is the picker instance.' },
-  { name: 'ready', description: 'The picker was built and painted for the first time (once per element lifetime). Fires right after the first build — synchronously during upgrade for a normal element, or when the render gate is released (`el.ready()` / removing `defer`) for a deferred one. No detail.' },
+  { name: 'select', description: 'A date/range/time was selected (or applied). `detail` carries the date(s)/range(s), the formatted value, and — depending on disabled-dates-handling — enabled/disabled/split breakdowns. Twin: `onSelect(detail)`.' },
+  { name: 'change', description: 'Fires right after `select` for form-style change wiring; the same detail object. Twin: `onChange(detail)`.' },
+  { name: 'action', description: 'An action button or a `data-action` trigger (e.g. a button in `showMessage` HTML) was activated. `detail`: `action` (built-in name or `custom`), `id`, `item`, `source` (`action-buttons` | `message` | `summary` | `calendar`), `sourceEvent`, `triggerElement`, `dataset` (the trigger’s other `data-*`), plus `controller` / `element`. Fires after the item’s `onClick`, before the built-in behaviour. Twin: `onAction(detail)`.' },
+  { name: 'month-change', description: 'The visible month(s) changed (any navigation). `detail`: `monthIndex`, `year`, `month` (0-11), `visibleMonths`. Twin: `onMonthChange(detail)`.' },
+  { name: 'ready', description: 'The picker was built and painted for the first time (once per element lifetime). Fires right after the first build — synchronously during upgrade for a normal element, or when the render gate is released (`el.ready()` / removing `defer`) for a deferred one. `detail`: `controller` / `element`. Twin: `onReady(detail)`.' },
 ] as const;
 
 /**
@@ -210,7 +214,7 @@ const EVENTS = [
  */
 const NON_PICKER_KEYS = new Set([
   'inputValue', 'placeholder', 'disabled', 'isReadonly', 'inputSize', 'enableTransitions',
-  'mobilePresentation', 'customStylesCallback', 'customStyles', 'compactBelow', 'deferRender',
+  'mobilePresentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow', 'deferRender',
   'formFieldName', 'valueFormat', 'getValueFormatCallback',
 ]);
 
@@ -237,7 +241,7 @@ function hasInput(mode: string): boolean {
 }
 
 // ============================================================================
-export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
+export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRangePickerController> {
   // Participate in forms. Submission goes through light-DOM hidden <input>(s)
   // (see #updateFormValue) — the same model as web-multiselect — carrying a
   // stable ISO value under `name`, independent of the display masks. Form
@@ -251,13 +255,16 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   protected static override inputs = INPUTS;
   protected static override events = EVENTS;
 
-  // Type-only: core installs the managed accessors at runtime (§12.5).
-  declare onDateSelect: ((e: CustomEvent<SelectEventDetail>) => void) | null;
-  declare onChange: ((e: CustomEvent<SelectEventDetail>) => void) | null;
-  declare onCustomAction: ((e: CustomEvent<CustomActionEventDetail>) => void) | null;
+  // Type-only: core installs the `on<Name>` twins at runtime (§12.5); each is
+  // called with the event detail (not the CustomEvent), right before the event.
+  declare onSelect: ((detail: SelectEventDetail) => void) | null;
+  declare onChange: ((detail: SelectEventDetail) => void) | null;
+  declare onAction: ((detail: DateRangePickerActionEventDetail) => void) | null;
+  declare onMonthChange: ((detail: MonthChangeEventDetail) => void) | null;
+  declare onReady: ((detail: ReadyEventDetail) => void) | null;
 
   #shadow: ShadowRoot;
-  #picker?: DateRangePicker;
+  #picker?: DateRangePickerEngine;
   #inputElement?: HTMLInputElement;
   // Positioned wrapper around the visible input + its inline ✕ clear button.
   #inputWrapper?: HTMLDivElement;
@@ -324,7 +331,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     // date-format-mask feeds the range-mode placeholder fallback, so re-derive the
     // hint when it changes at runtime (no-op for an explicit placeholder).
     if ('dateFormatMask' in partial) this.#applyPlaceholder();
-    if ('customStylesCallback' in partial || 'customStyles' in partial) this.#applyCustomStyles();
+    if ('getCustomStylesCallback' in partial || 'customStyles' in partial) this.#applyCustomStyles();
     if ('mobilePresentation' in partial && this.#picker) {
       // Presentation policy changed at runtime — the environment observable won't
       // re-fire on its own, so re-resolve against the current environment now.
@@ -411,7 +418,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     this.#measureNarrow();
 
     const options = this.#assembleConfig();
-    this.#picker = new DateRangePicker(this.#inputElement ?? null, options as DatePickerOptions);
+    this.#picker = new DateRangePickerEngine(this.#inputElement ?? null, options as DatePickerOptions);
 
     // Re-apply a declarative full lock (the attribute is the source of truth and
     // must survive a rebuild).
@@ -439,7 +446,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     if (!this.hasAttribute('is-ready')) {
       this.#released = true;
       this.setAttribute('is-ready', '');
-      this.emit('ready', undefined);
+      this.emit('ready');
     }
   }
 
@@ -537,6 +544,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     }
 
     cfg.onSelect = (detail: SelectEventDetail) => this.#handleDateSelect(detail);
+    cfg.onAction = (detail: DateRangePickerActionEventDetail) => this.emit('action', detail);
+    cfg.onMonthChange = (detail: MonthChangeEventDetail) => this.emit('month-change', detail);
+    // Contexts carry THIS element and its (rebuild-proof) controller, not the engine's.
+    cfg.hostElement = this;
+    cfg.controller = this.controller;
     cfg.container = this.#shadow as unknown as HTMLElement;
     return cfg;
   }
@@ -570,13 +582,13 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
 
   /**
    * Refresh the hidden form input(s) from the just-committed selection, then fire
-   * the outward `date-select` + `change` pair. The hidden input(s) are what make
+   * the outward `select` + `change` pair. The hidden input(s) are what make
    * the control submit under its `name` (see #updateFormValue) — carrying a stable
    * ISO value, not the display-formatted string in `detail.formattedValue`.
    */
   #emitSelect(detail: SelectEventDetail): void {
     this.#updateFormValue(detail);
-    this.emit('date-select', detail);
+    this.emit('select', detail);
     this.emit('change', detail);
   }
 
@@ -644,8 +656,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   /** Re-render the hidden form input(s) from the current selection. */
   #updateFormValue(detail?: SelectEventDetail): void {
     const format = (this.config.valueFormat as FormValueFormat) ?? 'iso';
-    const callback = this.config.getValueFormatCallback as ((s: FormValueSelection) => string) | undefined;
-    const values = serializeFormValue(this.#currentSelection(detail), format, callback);
+    const callback = this.config.getValueFormatCallback as ((ctx: FormValueSelection & PickerContext) => string) | undefined;
+    const withCtx = callback
+      ? (s: FormValueSelection) => callback(this.withContext({ ...s }) as unknown as FormValueSelection & PickerContext)
+      : undefined;
+    const values = serializeFormValue(this.#currentSelection(detail), format, withCtx);
     this.#renderHiddenInputs(format, values);
   }
 
@@ -731,7 +746,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
     if (!slot) return;
     // The JS callback wins when both are set; the `custom-styles` attribute is the
     // declarative, no-JS fallback. Either resolves to a CSS string for the slot.
-    const callback = this.config.customStylesCallback as (() => string | null | undefined) | null | undefined;
+    const callback = this.config.getCustomStylesCallback as ((ctx: PickerContext) => string | null | undefined) | null | undefined;
     const staticCss = (this.config.customStyles as string | null | undefined) ?? null;
     if (typeof callback !== 'function') {
       slot.set(staticCss);
@@ -739,11 +754,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
       return;
     }
     try {
-      const css = callback();
+      const css = callback(this.withContext({}) as unknown as PickerContext);
       slot.set(css);
       if (import.meta.env?.DEV && css) this.#checkCustomStyleVars(css);
     } catch (e) {
-      console.warn('[web-daterangepicker] customStylesCallback threw', e);
+      console.warn('[web-daterangepicker] getCustomStylesCallback threw', e);
       slot.clear();
     }
   }
@@ -1040,13 +1055,50 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents> {
   set isOpen(value: boolean) { this.flush(); if (this.#picker) this.#picker.isOpen = value; }
 
   /**
-   * The live `DateRangePicker` engine instance this element wraps (or `undefined`
-   * before first connect / while detached). An escape hatch for advanced use —
-   * the engine is also a public export — and the same white-box hook the old
-   * `private picker` field exposed. Prefer the element's own methods/properties
-   * where they exist.
+   * The public facade (`el.controller`, and `controller` on every callback context
+   * and event detail). Delegates to the current engine, so it survives rebuilds;
+   * applies pending property writes first (`flush`). Reads return empty values
+   * before the first build.
    */
-  get picker(): DateRangePicker | undefined { this.flush(); return this.#picker; }
+  protected override createController(): DateRangePickerController {
+    const engine = () => {
+      this.flush();
+      return this.#picker?.getController();
+    };
+    const call = <K extends keyof DateRangePickerController>(name: K) =>
+      ((...args: unknown[]) => (engine()?.[name] as ((...a: unknown[]) => unknown) | undefined)?.(...args)) as DateRangePickerController[K];
+    return {
+      getSelectedDate: () => engine()?.getSelectedDate() ?? null,
+      getSelectedRange: () => engine()?.getSelectedRange() ?? null,
+      getSelectedRanges: () => engine()?.getSelectedRanges() ?? [],
+      getSelectedDates: () => engine()?.getSelectedDates() ?? [],
+      getSelectedDatetime: () => engine()?.getSelectedDatetime() ?? null,
+      get isOpen() { return engine()?.isOpen ?? false; },
+      selectToday: call('selectToday'),
+      selectNow: call('selectNow'),
+      clearSelection: call('clearSelection'),
+      apply: call('apply'),
+      open: call('open'),
+      close: call('close'),
+      toggle: call('toggle'),
+      setPresentation: call('setPresentation'),
+      prevMonth: call('prevMonth'),
+      nextMonth: call('nextMonth'),
+      lock: call('lock'),
+      unlock: call('unlock'),
+      showMessage: call('showMessage'),
+      hideMessage: call('hideMessage'),
+      showSummary: call('showSummary'),
+      hideSummary: call('hideSummary'),
+      showLoader: call('showLoader'),
+      hideLoader: call('hideLoader'),
+    };
+  }
+
+  /** Presentation flags on every event detail the element emits itself (e.g. `ready`). */
+  protected override eventContext(): object | undefined {
+    return this.#picker?.presentationCtx();
+  }
 }
 
 // Importing this module registers the element (back-compat contract). The full

@@ -57,7 +57,7 @@ test('badge tooltip appears on hover of a badge with badgeTooltip text', async (
 // invalid-range error styling
 // =============================================================================
 
-test('showInvalidRange:true on restore keeps the invalid range visible with --invalid-range-start/end classes', async ({ page }) => {
+test('markRangeInvalid() + false keeps the invalid range visible with --invalid-range-start/end classes', async ({ page }) => {
     const p = await open(page, 'invalid-range');
 
     await dayByDate(p, '2026-06-10').click();

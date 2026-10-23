@@ -1,24 +1,30 @@
-import type { DateRangePicker } from './date-picker';
-import type { PresentationContext } from '@keenmate/web-components-core';
+import type { ComponentContext, PresentationContext } from '@keenmate/web-components-core';
+import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 
 export type { PresentationContext };
 
 /**
- * Base context shared by every callback in the public API.
- * Every callback receives a single context object that extends this,
- * so a handler can always reach the picker instance for imperative actions.
+ * Base context shared by every callback and every event detail in the public API
+ * (core interaction model): the picker's public `controller` facade and its host
+ * `element` (both non-enumerable), plus the presentation flags of the open chrome.
  */
-export interface PickerContext {
-  /** The DateRangePicker core instance (for calling imperative methods) */
-  picker: DateRangePicker;
+export interface PickerContext extends ComponentContext<DateRangePickerController>, PresentationContext {}
+
+/** Feedback message severity. */
+export type MessageType = 'error' | 'warning' | 'info' | 'success';
+
+/** Options for {@link DateRangePickerController.showMessage}. */
+export interface ShowMessageOptions {
+  /** Severity styling; omit for raw-HTML content (custom message). */
+  type?: MessageType;
+  /** Auto-hide after this many ms; omit / 0 to keep it until dismissed. */
+  autoHideMs?: number;
 }
 
 /**
- * Typed, curated imperative facade handed to callbacks (e.g. action-button
- * `onClick`) via `context.controller` — a stable public surface for reading the
- * selection and driving the picker, so callback authors don't reach into the raw
- * instance. The `picker` escape hatch on {@link PickerContext} remains for
- * anything not covered here. Mirrors web-multiselect's `MultiSelectController`.
+ * The picker's public facade — `el.controller`, and `controller` on every callback
+ * context and event detail. A stable surface for reading the selection and driving
+ * the picker; the internal engine is not part of the public API.
  */
 export interface DateRangePickerController {
   // ── read current selection ──────────────────────────────────────────────
@@ -38,6 +44,8 @@ export interface DateRangePickerController {
   // ── mutate the selection ────────────────────────────────────────────────
   /** Select today (and the current time in datetime mode). */
   selectToday(): void;
+  /** Select the current time (time / datetime modes). */
+  selectNow(): void;
   /** Clear the current selection. */
   clearSelection(): void;
   /** Commit a pending selection (Apply / `commit-mode="apply"`). */
@@ -59,10 +67,16 @@ export interface DateRangePickerController {
   unlock(aspects?: LockAspect | LockAspect[]): void;
 
   // ── feedback ────────────────────────────────────────────────────────────
-  showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number): void;
+  /**
+   * Show a message in the calendar. `content` is HTML; a button inside it with
+   * `data-action="custom" data-id="…"` fires the `action` event (`source: 'message'`).
+   */
+  showMessage(content: string, opts?: ShowMessageOptions): void;
   hideMessage(): void;
   showSummary(content: string): void;
   hideSummary(): void;
+  showLoader(target?: LoaderTarget): void;
+  hideLoader(target?: LoaderTarget): void;
 }
 
 /**
@@ -89,202 +103,103 @@ export type LoaderTarget = 'calendar' | 'message' | 'summary';
 export type LockAspect = 'selection' | 'navigation' | 'actions' | 'open';
 
 /**
- * Result from beforeDateSelectCallback
- * Tells the component what action to take with the proposed selection
+ * What `beforeSelectCallback` returns (core `before*` contract):
+ *
+ * - nothing (`undefined`) — accept the proposed selection
+ * - `false` — reject it; the previous selection is restored. Explain why with
+ *   `ctx.controller.showMessage(…)`; in range mode call `ctx.markRangeInvalid()`
+ *   first to keep the rejected range visible with error styling.
+ * - a `Date` (single) / `DateRange` (range) — accept this adjusted selection instead
+ * - a `DateRange[]` (range) — replace the proposal with these N independent ranges
+ *   (e.g. the enabled-only pieces of a split selection)
+ * - `null` — clear the selection entirely
  */
-export interface BeforeSelectResult {
+export type BeforeSelectResult = void | false | null | Date | DateRange | DateRange[];
+
+/**
+ * Context of `beforeSelectCallback` — the proposed selection.
+ * `date` is populated in single mode, `range` in range mode.
+ */
+export interface BeforeSelectContext extends PickerContext {
+  /** Selection mode this proposal came from */
+  mode: 'single' | 'range' | 'multiple';
+  /** Proposed date (single mode) */
+  date?: Date;
   /**
-   * Action to take:
-   * - 'accept': Use the proposed selection as-is
-   * - 'adjust': Use adjusted date(s) instead
-   * - 'restore': Revert to the previous selection before this operation
-   * - 'clear': Clear the selection entirely
+   * Proposed range (range mode) — the contiguous envelope between the two
+   * endpoints the user selected. In split/individual disabled-date handling
+   * this envelope may straddle disabled days; see `subRanges` / `enabledDates`.
    */
-  action: 'accept' | 'adjust' | 'restore' | 'clear';
-
-  /** If action is 'adjust' (single mode), the new date to use */
-  adjustedDate?: Date;
-
-  /** If action is 'adjust' (range mode), the new start date to use */
-  adjustedStartDate?: Date;
-
-  /** If action is 'adjust' (range mode), the new end date to use */
-  adjustedEndDate?: Date;
-
+  range?: DateRange;
   /**
-   * Range mode only. Replace the single proposed range with these N independent
-   * ranges — e.g. the enabled-only pieces of a split selection, or a range with
-   * a hole carved out. Valid with action 'accept' or 'adjust' (ignored for
-   * 'restore' / 'clear' and for single mode).
-   *
-   * When present, the committed selection becomes exactly these ranges:
-   * `selectedRanges` reflects them, the day grid highlights each range's
-   * start / end / in-range cells, the summary lists them, and `onSelect`
-   * receives the `DateRange[]`. The envelope accessors (`selectedStartDate` /
-   * `selectedEndDate`) span the first range's start through the last range's
-   * end. Takes precedence over `adjustedStartDate` / `adjustedEndDate`.
-   *
-   * @example
-   * // Turn a range straddling disabled days into its enabled-only segments
-   * beforeDateSelectCallback: (ctx) => {
-   *   if (ctx.subRanges && ctx.subRanges.length > 1) {
-   *     return { action: 'adjust', adjustedRanges: ctx.subRanges,
-   *              message: 'Selection split around unavailable days' };
-   *   }
-   *   return { action: 'accept' };
-   * }
+   * Range mode, `disabledDatesHandling` 'split' or 'individual' only: the envelope
+   * carved into contiguous enabled-only segments (read-only view).
    */
-  adjustedRanges?: DateRange[];
-
-  /** Optional message to log or display to user */
-  message?: string;
-
+  subRanges?: DateRange[];
+  /** Range mode, split/individual handling: the enabled dates inside the envelope. */
+  enabledDates?: Date[];
   /**
-   * When true with action 'restore', keeps the invalid range visible with distinct
-   * error styling (red-tinted background) instead of discarding it entirely.
-   * This provides visual feedback showing what the user attempted to select.
-   * The invalid range styling is cleared when the user makes a new selection attempt.
-   *
-   * Only applies to range mode with action 'restore'.
-   *
-   * @example
-   * beforeDateSelectCallback: (ctx) => {
-   *   const { start, end } = ctx.range;
-   *   const nights = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-   *   if (nights > 7) {
-   *     return {
-   *       action: 'restore',
-   *       message: 'Maximum 7 nights allowed',
-   *       showInvalidRange: true  // Keep range visible with error styling
-   *     };
-   *   }
-   *   return { action: 'accept' };
-   * }
+   * Range mode: when you return `false`, keep the rejected range visible with
+   * error styling (cleared on the next selection attempt) instead of discarding it.
    */
-  showInvalidRange?: boolean;
+  markRangeInvalid(): void;
 }
 
 /**
- * @deprecated Use BeforeSelectResult instead. Will be removed in v2.0.0
+ * Context of `beforeMonthChangeCallback` and `getMonthDataCallback` — the month
+ * being navigated to and the visible date range.
  */
-export type AsyncValidationResult = BeforeSelectResult;
-
-/**
- * Context passed to beforeMonthChangedCallback
- * Provides information about the target month being navigated to
- */
-export interface MonthChangeContext extends PickerContext, PresentationContext {
-  /** Typed facade for reading the selection and driving the picker (see {@link DateRangePickerController}). */
-  controller: DateRangePickerController;
-
+export interface MonthChangeContext extends PickerContext {
   /** Target year (e.g., 2025) */
   year: number;
-
   /** Target month (0-11, where January = 0) */
   month: number;
-
   /** Which visible month column is changing (0-based) */
   monthIndex: number;
-
   /** First date visible in the calendar grid (may be from previous month) */
   firstVisibleDate: Date;
-
   /** Last date visible in the calendar grid (may be from next month) */
   lastVisibleDate: Date;
 }
 
-/**
- * Result from beforeMonthChangedCallback
- * Tells the component whether to proceed with month navigation and provides bulk metadata
- */
-export interface BeforeMonthChangeResult {
-  /**
-   * Action to take:
-   * - 'accept': Allow navigation to proceed, update metadata cache if provided
-   * - 'block': Prevent navigation, stay on current month
-   */
-  action: 'accept' | 'block';
+/** `beforeMonthChangeCallback` result: `false` blocks the navigation; nothing continues. */
+export type BeforeMonthChangeResult = void | false;
 
+/**
+ * Data `getMonthDataCallback` loads for the visible range (sync or async — a
+ * loader shows while a Promise is pending).
+ */
+export interface MonthData {
   /**
-   * Bulk metadata for all dates in the visible range
-   * Key: YYYY-MM-DD string
-   * Value: DayMetadata with styling/disabled state
-   *
-   * When provided, these values are cached and used instead of calling
-   * getDateMetadataCallback for individual dates during rendering
+   * Metadata for dates in the visible range, keyed `YYYY-MM-DD`. Cached and used
+   * instead of calling `getDateMetadataCallback` per date.
    */
   metadata?: Map<string, DayMetadata>;
-
   /**
-   * Custom header text for each month
-   * Key: "YYYY-MM" string (e.g., "2026-01" for January 2026)
-   * Value: Custom header text to display (e.g., "Jan 2026 (10 rooms)")
-   *
-   * When provided, these values override the default month header format.
-   * Takes precedence over getMonthHeaderCallback.
+   * Header text per month, keyed `YYYY-MM` (0-padded 1-based month, e.g. "2026-01").
+   * Takes precedence over `getMonthHeaderCallback`.
    */
   monthHeaders?: Map<string, string>;
-
-  /** Optional message to log or display (typically used with 'block' action) */
-  message?: string;
 }
+
+/** Built-in action names of the footer buttons. */
+export type DateRangePickerAction = 'today' | 'now' | 'clear' | 'apply';
 
 /**
- * Action button configuration for calendar actions (Today, Clear, Apply, custom actions)
- * Aligned with web-multiselect ActionButton interface
+ * One footer action button (core `ActionItem`). Built-ins set `action`
+ * (`'today'`, `'now'`, `'clear'`, `'apply'`); a custom button omits it and sets
+ * `id`. Dynamic fields use `get*Callback(ctx)`; `onClick(detail)` runs first,
+ * then the `action` event, then the built-in behaviour.
  */
-export interface ActionButton {
-  /** Action identifier ('today', 'now', 'clear', 'apply', or 'custom' for custom actions) */
-  action: 'today' | 'now' | 'clear' | 'apply' | 'custom';
-
-  /** Button text label */
-  text: string;
-
-  /** Optional CSS class(es) to add to the button */
-  cssClass?: string;
-
-  /** Optional tooltip text */
-  tooltip?: string;
-
-  /** Static visibility - set to false to hide button */
-  isVisible?: boolean;
-
-  /** Static disabled state - set to true to disable button */
-  isDisabled?: boolean;
-
-  /** Custom click handler (required for 'custom' action) */
-  onClick?: (ctx: ActionButtonContext) => void | Promise<void>;
-
-  /** Dynamic visibility callback - return false to hide button (takes priority over isVisible) */
-  isVisibleCallback?: (ctx: ActionButtonContext) => boolean;
-
-  /** Dynamic disabled state callback - return true to disable button (takes priority over isDisabled) */
-  isDisabledCallback?: (ctx: ActionButtonContext) => boolean;
-
-  /** Dynamic text callback - return button text (takes priority over text) */
-  getTextCallback?: (ctx: ActionButtonContext) => string;
-
-  /** Dynamic CSS class callback - return class name(s) (takes priority over cssClass) */
-  getClassCallback?: (ctx: ActionButtonContext) => string | string[];
-
-  /** Dynamic tooltip callback - return tooltip text (takes priority over tooltip) */
-  getTooltipCallback?: (ctx: ActionButtonContext) => string;
-}
+export type DateRangePickerActionItem = ActionItem<PickerContext, DateRangePickerAction>;
 
 /**
- * Context passed to every ActionButton callback (onClick, isVisibleCallback,
- * isDisabledCallback, getTextCallback, getClassCallback, getTooltipCallback).
+ * Detail of the `action` event / `onAction` / `beforeActionCallback` / item
+ * `onClick`: the picker context plus `action`, `id`, `item`, `source`
+ * (`'action-buttons' | 'message' | 'summary' | 'calendar'`), `sourceEvent`,
+ * `triggerElement`, `dataset` (the trigger's `data-*`).
  */
-export interface ActionButtonContext extends PickerContext, PresentationContext {
-  /** The action identifier of the button this callback belongs to */
-  action: ActionButton['action'];
-  /** The button's own configuration object */
-  button: ActionButton;
-  /** data-* attributes on the button (for 'custom' actions); mirrors CustomActionEventDetail.data */
-  data?: Record<string, string>;
-  /** Typed facade for reading the selection and driving the picker (see {@link DateRangePickerController}). */
-  controller: DateRangePickerController;
-}
+export type DateRangePickerActionEventDetail = ActionEventDetail<PickerContext, DateRangePickerAction>;
 
 export type PickerMode = 'date' | 'time' | 'datetime';
 export type TimeDisplay = 'rolls' | 'clock' | 'wheel' | 'compact';
@@ -357,14 +272,21 @@ export interface DatePickerOptions {
    */
   overlayGroup?: string;
   /**
-   * Fire-and-forget notification that a date/range/time was selected (or applied).
-   * Receives the standardized {@link SelectEventDetail} — the exact same payload the
-   * web component's `date-select`/`change` CustomEvents carry (formatted value plus
-   * the enabled/disabled/split breakdown for range `disabledDatesHandling`). The raw
-   * selection is reachable from the detail itself: `detail.date` (single), `detail.dateRange`
-   * (range), `detail.dates` (multiple / individual), `detail.dateRanges` (split / multi-range).
+   * Engine-level twin of the `select` event (the element bridges it). Receives the
+   * {@link SelectEventDetail} — the same object the `select` / `change` events carry.
    */
   onSelect?: (detail: SelectEventDetail) => void;
+  /** Engine-level twin of the `action` event (the element bridges it). */
+  onAction?: (detail: DateRangePickerActionEventDetail) => void;
+  /** Engine-level twin of the `month-change` event (the element bridges it). */
+  onMonthChange?: (detail: MonthChangeEventDetail) => void;
+  /**
+   * Internal: the host element and its controller, so contexts and details carry
+   * them. Set by `<web-daterangepicker>`; a standalone engine falls back to its
+   * input / calendar element and its own controller.
+   */
+  hostElement?: HTMLElement;
+  controller?: DateRangePickerController;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
   /**
    * How the calendar is presented. Default: `floating`.
@@ -511,7 +433,8 @@ export interface DatePickerOptions {
   getDateMetadataCallback?: (ctx: DayContext) => DayMetadata | null; // Custom styling/labels
 
   // Custom rendering
-  customStylesCallback?: () => string; // Return CSS string to inject into Shadow DOM for use with renderDayCallback classes
+  /** Return a CSS string injected into the Shadow DOM (e.g. classes used by renderDayCallback). */
+  getCustomStylesCallback?: (ctx: PickerContext) => string | null;
 
   /**
    * Full replacement — return element or HTML string to completely replace day cell content.
@@ -531,8 +454,10 @@ export interface DatePickerOptions {
   renderDayContentCallback?: (data: DayContext) => HTMLElement | string | null;
 
   // Tooltips (HTML support)
-  badgeTooltipCallback?: (data: DayContext) => string | null; // Return HTML string for badge hover tooltip (overrides DayMetadata.badgeTooltip)
-  dayTooltipCallback?: (data: DayContext) => string | null; // Return HTML string for day cell hover tooltip (overrides DayMetadata.dayTooltip)
+  /** Return HTML for the badge hover tooltip (overrides DayMetadata.badgeTooltip); null keeps the default. */
+  getBadgeTooltipCallback?: (ctx: DayContext) => string | null;
+  /** Return HTML for the day-cell hover tooltip (overrides DayMetadata.dayTooltip); null keeps the default. */
+  getDayTooltipCallback?: (ctx: DayContext) => string | null;
 
   /**
    * How a range that spans disabled dates is handled.
@@ -549,8 +474,18 @@ export interface DatePickerOptions {
   shouldHighlightDisabledInRange?: boolean;
 
   // Action button configuration
-  /** Array of custom action buttons to display. If not provided, uses default buttons based on selectionMode */
-  actionButtons?: ActionButton[];
+  /**
+   * Footer action buttons. Unset → the built-ins for the mode (today / now / clear /
+   * apply). Strings are built-in shorthand: `['today', { id: 'next-week', text: '+7d' }]`.
+   */
+  actionButtons?: (DateRangePickerActionItem | DateRangePickerAction)[];
+
+  /**
+   * Runs before any action button (or HTML `data-action` trigger) does anything —
+   * `false` cancels: no `onClick`, no `action` event, no built-in. May be async
+   * (the button is busy meanwhile).
+   */
+  beforeActionCallback?: (detail: DateRangePickerActionEventDetail) => void | false | Promise<void | false>;
 
   /** Show Today button (default: true) */
   isTodayButtonShown?: boolean;
@@ -574,12 +509,12 @@ export interface DatePickerOptions {
   weekdayNames?: string[];
 
   /**
-   * Custom function to format the summary display (receives all selection data, returns HTML string).
+   * Render the summary (receives all selection data, returns an HTML string).
    *
    * SECURITY: Return value is spliced into innerHTML without escaping. Callers are responsible
    * for sanitizing any user-controlled data in the returned string.
    */
-  formatSummaryCallback?: (data: SummaryContext) => string;
+  renderSummaryCallback?: (ctx: SummaryContext) => string;
 
   /**
    * Callback to customize unified header range display text
@@ -599,9 +534,9 @@ export interface DatePickerOptions {
    *   // Returns: "Jan - Sep 2025"
    * }
    *
-   * SECURITY: Return value is spliced into innerHTML unescaped. Sanitize untrusted data.
+   * The value is set as plain text (`textContent`).
    */
-  getUnifiedHeaderCallback?: (data: UnifiedHeaderContext) => string;
+  getUnifiedHeaderCallback?: (ctx: UnifiedHeaderContext) => string;
 
   /**
    * Callback to customize individual month header display text
@@ -610,7 +545,7 @@ export interface DatePickerOptions {
    * @returns String to display in month header
    *
    * Priority order for month headers:
-   * 1. monthHeaders from beforeMonthChangedCallback result (if key exists)
+   * 1. monthHeaders from getMonthDataCallback (if key exists)
    * 2. getMonthHeaderCallback (if defined)
    * 3. Default: "${monthName} ${year}"
    *
@@ -621,84 +556,49 @@ export interface DatePickerOptions {
    *   return `${monthName} ${year} (${rooms} rooms)`;
    * }
    */
-  getMonthHeaderCallback?: (data: MonthHeaderContext) => string;
+  getMonthHeaderCallback?: (ctx: MonthHeaderContext) => string;
 
   /**
-   * Callback invoked BEFORE a date selection is finalized (single or range mode).
-   * Can be sync or async. Allows you to:
-   * - Validate against business rules or API
-   * - Block/prevent selection
-   * - Adjust the selected date(s)
-   * - Clear or restore selection
+   * Runs BEFORE a date selection is finalized (single or range mode), after local
+   * validation (disabled dates, min/max) passed. Sync or async — a loader shows
+   * while it's pending. See {@link BeforeSelectResult} for the return contract.
    *
-   * Called AFTER local validation (disabled dates, min/max) passes.
-   *
-   * @param selection - Proposed selection (Date for single mode, DateRange for range mode)
-   * @returns BeforeSelectResult or Promise<BeforeSelectResult> with action to take
-   *
-   * @example Single mode - check against API
-   * beforeDateSelectCallback: async (ctx) => {
-   *   const response = await fetch(`/api/check-date/${ctx.date.toISOString()}`);
-   *   const { available } = await response.json();
-   *   return available ? { action: 'accept' } : { action: 'restore', message: 'Date unavailable' };
+   * @example Reject with a message
+   * beforeSelectCallback: async (ctx) => {
+   *   const { available } = await (await fetch(`/api/check/${ctx.date.toISOString()}`)).json();
+   *   if (!available) { ctx.controller.showMessage('Date unavailable', { type: 'error' }); return false; }
    * }
    *
-   * @example Range mode - adjust to business rules
-   * beforeDateSelectCallback: async (ctx) => {
-   *   const { start, end } = ctx.range;
-   *   const nights = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-   *   if (nights < 2) {
-   *     return { action: 'restore', message: 'Minimum 2 nights required' };
+   * @example Range — max 7 nights, keep the attempt visible
+   * beforeSelectCallback: (ctx) => {
+   *   const nights = Math.round((ctx.range.end - ctx.range.start) / 864e5);
+   *   if (nights > 7) {
+   *     ctx.markRangeInvalid();
+   *     ctx.controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
+   *     return false;
    *   }
-   *   return { action: 'accept' };
    * }
    */
-  beforeDateSelectCallback?: (ctx: SelectionContext) => Promise<BeforeSelectResult> | BeforeSelectResult;
+  beforeSelectCallback?: (ctx: BeforeSelectContext) => BeforeSelectResult | Promise<BeforeSelectResult>;
 
   /**
-   * Callback invoked BEFORE month navigation occurs (before rendering new month).
-   * Can be sync or async. Allows you to:
-   * - Load bulk metadata for all visible dates in one API call (performance optimization)
-   * - Block navigation to unavailable months
-   * - Show loading overlay during async operations
+   * Runs BEFORE month navigation (not on the initial open). `false` blocks the
+   * navigation. Sync or async — a loader shows while a Promise is pending.
+   */
+  beforeMonthChangeCallback?: (ctx: MonthChangeContext) => BeforeMonthChangeResult | Promise<BeforeMonthChangeResult>;
+
+  /**
+   * Load data for the visible range — on the initial open and after every accepted
+   * month navigation (per column, or once for the whole grid in unified navigation).
+   * Sync or async; a loader shows while a Promise is pending.
    *
-   * Called before the calendar re-renders with the new month.
-   *
-   * @param context - Context about the target month and visible date range
-   * @returns BeforeMonthChangeResult or Promise<BeforeMonthChangeResult> with action and optional bulk metadata
-   *
-   * @example Hotel availability - bulk load for entire month
-   * beforeMonthChangedCallback: async ({ year, month, firstVisibleDate, lastVisibleDate }) => {
-   *   const response = await fetch('/api/availability', {
-   *     method: 'POST',
-   *     body: JSON.stringify({
-   *       start: firstVisibleDate.toISOString(),
-   *       end: lastVisibleDate.toISOString()
-   *     })
-   *   });
-   *   const data = await response.json();
-   *
-   *   const metadata = new Map();
-   *   data.forEach(day => {
-   *     metadata.set(day.date, {
-   *       isDisabled: day.available === 0,
-   *       badgeText: `$${day.price}`,
-   *       dayTooltip: `${day.available} rooms available`
-   *     });
-   *   });
-   *
-   *   return { action: 'accept', metadata };
-   * }
-   *
-   * @example Block navigation to unavailable period
-   * beforeMonthChangedCallback: async ({ year, month }) => {
-   *   const isAvailable = await checkPeriodAvailability(year, month);
-   *   return isAvailable
-   *     ? { action: 'accept' }
-   *     : { action: 'block', message: 'Data not available for this period' };
+   * @example Hotel availability — one request per visible range
+   * getMonthDataCallback: async ({ firstVisibleDate, lastVisibleDate }) => {
+   *   const days = await (await fetch(`/api/availability?from=${firstVisibleDate.toISOString()}&to=${lastVisibleDate.toISOString()}`)).json();
+   *   return { metadata: new Map(days.map(d => [d.date, { isDisabled: d.available === 0, badgeText: `$${d.price}` }])) };
    * }
    */
-  beforeMonthChangedCallback?: (context: MonthChangeContext) => Promise<BeforeMonthChangeResult> | BeforeMonthChangeResult;
+  getMonthDataCallback?: (ctx: MonthChangeContext) => MonthData | null | void | Promise<MonthData | null | void>;
 
   /** Enable detailed console logging for troubleshooting. Default: false. */
   showDebugInfo?: boolean;
@@ -795,7 +695,10 @@ export interface MonthDisplay {
   gridEnd: Date;
 }
 
-export interface DatePickerEventDetail {
+/**
+ * Detail of the `select` and `change` events and of `onSelect`.
+ */
+export interface SelectEventDetail extends PickerContext {
   date?: Date;
   dateRange?: DateRange | null;
   formattedValue: string;
@@ -815,6 +718,23 @@ export interface DatePickerEventDetail {
   getTotalDays?: () => number;
 }
 
+/** Detail of the `change` event — the same object as `select`. */
+export type ChangeEventDetail = SelectEventDetail;
+
+/** Detail of the `month-change` event / `onMonthChange` — after the visible months changed. */
+export interface MonthChangeEventDetail extends PickerContext {
+  /** The column that navigated (the anchor column in unified navigation). */
+  monthIndex: number;
+  /** That column's new year / month (0-11). */
+  year: number;
+  month: number;
+  /** Every visible column, in order. */
+  visibleMonths: { year: number; month: number }[];
+}
+
+/** Detail of the `ready` event / `onReady` — just the context. */
+export interface ReadyEventDetail extends PickerContext {}
+
 // Generic type for specialDates array items
 // Users can pass their own data structures and use *Member properties to map fields
 export type DecoratedDate = Record<string, any>;
@@ -828,19 +748,19 @@ export interface DayMetadata {
   dayTooltip?: string;       // Plain text hover tooltip for day cell
 }
 
-export interface SummaryContext extends PickerContext, PresentationContext {
+export interface SummaryContext extends PickerContext {
   // Basic counts
   days: number;           // Total days selected
   nights: number;         // Total nights (days - 1)
 
-  // Simple range (when rangeDisabledHandling is 'allow' or 'block')
+  // Simple range (when disabledDatesHandling is 'allow' or 'block')
   startDate: Date | null;
   endDate: Date | null;
 
-  // Multiple ranges (when rangeDisabledHandling is 'split')
+  // Multiple ranges (when disabledDatesHandling is 'split')
   dateRanges?: DateRange[];
 
-  // Individual dates (when rangeDisabledHandling is 'individual' or 'split')
+  // Individual dates (when disabledDatesHandling is 'individual' or 'split')
   dates?: Date[];
 
   // For 'allow' mode - breakdown of enabled vs disabled
@@ -849,7 +769,7 @@ export interface SummaryContext extends PickerContext, PresentationContext {
 
   // Context
   selectionMode: 'single' | 'range' | 'multiple';
-  rangeDisabledHandling?: 'allow' | 'block' | 'split' | 'individual';
+  disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
   localeStrings: LocaleStrings;
 
   // Preview flag (true when dragging)
@@ -858,14 +778,14 @@ export interface SummaryContext extends PickerContext, PresentationContext {
 
 /**
  * Data passed to the day-level callbacks: getDateMetadataCallback, renderDayCallback,
- * renderDayContentCallback, badgeTooltipCallback, dayTooltipCallback.
+ * renderDayContentCallback, getBadgeTooltipCallback, getDayTooltipCallback.
  * Provides complete context about the day being rendered.
  *
- * Note: `element` and the selection-state flags are optional because some callers
+ * Note: `cellElement` and the selection-state flags are optional because some callers
  * (metadata resolution, string-render tooltip paths) run before the day cell exists
  * or before selection state is resolved.
  */
-export interface DayContext extends PickerContext, PresentationContext {
+export interface DayContext extends PickerContext {
   // Date information
   date: Date;                  // JavaScript Date object for this day
   dateString: string;          // ISO format YYYY-MM-DD
@@ -882,13 +802,13 @@ export interface DayContext extends PickerContext, PresentationContext {
 
   // Context
   monthIndex?: number;         // Which month column this day appears in (0-based); absent in the metadata path (no column)
-  element?: HTMLElement;       // Default rendered element (for augmentation pattern); absent in string-render/metadata paths
+  cellElement?: HTMLElement;   // Default rendered day cell (for augmentation pattern); absent in string-render/metadata paths
 }
 
 /**
  * Context passed to getMonthHeaderCallback — a single visible month header.
  */
-export interface MonthHeaderContext extends PickerContext, PresentationContext {
+export interface MonthHeaderContext extends PickerContext {
   /** First day of the month being displayed */
   month: Date;
   /** Which visible month column this header belongs to (0-based) */
@@ -903,7 +823,7 @@ export interface MonthHeaderContext extends PickerContext, PresentationContext {
  * Context passed to getUnifiedHeaderCallback — the single header that spans a
  * unified-navigation grid/row.
  */
-export interface UnifiedHeaderContext extends PickerContext, PresentationContext {
+export interface UnifiedHeaderContext extends PickerContext {
   /** First visible month in the grid */
   firstMonth: Date;
   /** Last visible month in the grid */
@@ -912,65 +832,4 @@ export interface UnifiedHeaderContext extends PickerContext, PresentationContext
   anchorMonth: Date;
   /** Localized month names (12 entries) */
   monthNames: string[];
-}
-
-/**
- * Context passed to beforeDateSelectCallback — the proposed selection.
- * `date` is populated in single mode, `range` in range mode.
- */
-export interface SelectionContext extends PickerContext, PresentationContext {
-  /** Typed facade for reading the selection and driving the picker (see {@link DateRangePickerController}). */
-  controller: DateRangePickerController;
-
-  /** Selection mode this proposal came from */
-  mode: 'single' | 'range' | 'multiple';
-  /** Proposed date (single mode) */
-  date?: Date;
-  /**
-   * Proposed range (range mode) — the contiguous envelope between the two
-   * endpoints the user selected. In split/individual disabled-date handling
-   * this envelope may straddle disabled days; see `subRanges` / `enabledDates`
-   * for the carved-out pieces the summary will actually show.
-   */
-  range?: DateRange;
-  /**
-   * Range mode only, and only when `disabledDatesHandling` is 'split' or
-   * 'individual': the envelope (`range`) carved into contiguous enabled-only
-   * segments — the same pieces `splitRangeByDisabled()` feeds the summary.
-   * One entry per gap-separated run of enabled days. Absent for
-   * single/'allow'/'block'/'prevent' handling (the envelope is the selection).
-   *
-   * The return value stays single-range (block/adjust the envelope); this is
-   * a read-only view so validation can reason about the pieces without
-   * re-deriving them.
-   */
-  subRanges?: DateRange[];
-  /**
-   * Range mode only, split/individual handling: the flat list of enabled dates
-   * inside the envelope (mirrors `SummaryContext.dates`). Absent otherwise.
-   */
-  enabledDates?: Date[];
-}
-
-/**
- * Detail shape for the `date-select` and `change` events.
- */
-export interface SelectEventDetail extends DatePickerEventDetail {}
-
-/**
- * Detail shape for the `custom-action` event, dispatched when an action button
- * carrying data-action="custom" is clicked.
- */
-export interface CustomActionEventDetail {
-  /** data-* attributes on the button (data-action excluded) */
-  data: Record<string, string>;
-  /** The DateRangePicker core instance */
-  picker: DateRangePicker;
-  /**
-   * Typed facade for reading the selection and driving the picker (see
-   * {@link DateRangePickerController}). Mirrors `ActionButtonContext.controller`
-   * so a handler wired via the DOM `custom-action` event has the same surface as
-   * one wired via `ActionButton.onClick`.
-   */
-  controller: DateRangePickerController;
 }

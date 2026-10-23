@@ -1,12 +1,14 @@
 import { test, expect, Page, Locator } from './fixtures';
 
 /**
- * v2.0.0 unified-context wiring for the callback/event surfaces that previously
- * passed a raw `picker`/positional arg and had no e2e coverage:
- *   - ActionButton callbacks now receive ActionButtonContext { picker, action, button, data }
- *   - the custom-action event detail is now { data, picker }
+ * The core interaction model (web-components-core `/actions`, SPEC §12.5 / §12.12):
+ *   - action-item callbacks receive the picker context { controller, element, presentation… }
+ *   - one `action` event (+ `onAction`) for every activation, built-in or custom,
+ *     in the order beforeActionCallback → onClick → action → built-in
+ *   - `on*` twins receive the detail; `controller` / `element` are non-enumerable
+ *   - HTML-authored triggers (`data-action="custom" data-id`) in showMessage content
  *
- * Fixture: test/context-callbacks.html (inline pickers #ctx-actions, #ctx-events).
+ * Fixture: test/context-callbacks.html.
  */
 
 const PAGE = '/test/context-callbacks.html';
@@ -25,82 +27,191 @@ test.beforeEach(async ({ page }) => {
 });
 
 // =============================================================================
-// ActionButtonContext — the six ActionButton callbacks
+// Action items — render-time callbacks get the picker context
 // =============================================================================
 
-test('getTextCallback receives a live ctx.picker (button text reflects it)', async ({ page }) => {
+test('getTextCallback receives controller + element', async ({ page }) => {
     const p = pickerById(page, 'ctx-actions');
-    // Text is computed from ctx.picker.options — proves the instance is passed, not undefined.
-    await expect(buttonByText(p, 'HASPICKER')).toHaveCount(1);
-    await expect(buttonByText(p, 'NOPICKER')).toHaveCount(0);
+    await expect(buttonByText(p, 'HASCTX')).toHaveCount(1);
+    await expect(buttonByText(p, 'NOCTX')).toHaveCount(0);
 });
 
-test('getClassCallback receives ctx.action (class carries the action name)', async ({ page }) => {
+test('getClassCallback receives the presentation flags', async ({ page }) => {
     const p = pickerById(page, 'ctx-actions');
-    await expect(buttonByText(p, 'HASPICKER')).toHaveClass(/ctxclass-custom/);
+    await expect(buttonByText(p, 'HASCTX')).toHaveClass(/ctxclass-floating/);
 });
 
-test('isVisibleCallback:false (via ctx) hides the button', async ({ page }) => {
+test('getIsVisibleCallback / getIsDisabledCallback / getIsActiveCallback', async ({ page }) => {
     const p = pickerById(page, 'ctx-actions');
     await expect(buttonByText(p, 'HIDDEN')).toHaveCount(0);
-});
-
-test('isDisabledCallback:true (via ctx) disables the button', async ({ page }) => {
-    const p = pickerById(page, 'ctx-actions');
     await expect(buttonByText(p, 'DISABLED')).toBeDisabled();
+    await expect(buttonByText(p, 'ACTIVE')).toHaveAttribute('aria-pressed', 'true');
+    await expect(buttonByText(p, 'ACTIVE')).toHaveClass(/drp__button--active/);
 });
 
-test('onClick receives ctx (ctx.picker + ctx.action) when the custom button is clicked', async ({ page }) => {
+test('custom items render data-action="custom" + data-id; string shorthand renders a built-in', async ({ page }) => {
     const p = pickerById(page, 'ctx-actions');
+    await expect(p.locator('.drp__button[data-action="custom"][data-id="ctx"]')).toHaveCount(1);
+    await expect(p.locator('.drp__button[data-action="today"]')).toHaveText('Today');
+});
 
-    await buttonByText(p, 'HASPICKER').click();
-
-    // onClick did `ctx.picker.showMessage('act:' + ctx.action)`.
+test('onClick receives the action detail (action, id, source)', async ({ page }) => {
+    const p = pickerById(page, 'ctx-actions');
+    await buttonByText(p, 'HASCTX').click();
     const msg = p.locator('.drp__message');
     await expect(msg).toHaveClass(/drp__message--visible/);
-    await expect(msg).toContainText('act:custom');
+    await expect(msg).toContainText('act:custom:ctx:action-buttons');
 });
 
-test('getTooltipCallback receives ctx.action (action-button tooltip text)', async ({ page }) => {
+test('each custom button gets its OWN tooltip (not the first custom one)', async ({ page }) => {
     const p = pickerById(page, 'ctx-actions');
-
-    await buttonByText(p, 'HASPICKER').hover();
-
-    const visibleTip = p.locator('.drp__tooltip--visible');
-    await expect(visibleTip).toContainText('tip-custom', { timeout: 2000 });
+    await buttonByText(p, 'SECOND').hover();
+    await expect(p.locator('.drp__tooltip--visible')).toContainText('tip-second', { timeout: 2000 });
 });
 
 // =============================================================================
-// custom-action event detail shape { data, picker }
+// action event — order, detail, built-ins, veto
 // =============================================================================
 
-test('custom-action detail is { data, picker }: data-* under detail.data, picker is the instance', async ({ page }) => {
+test('order: beforeActionCallback → onClick → onAction → action event → built-in; one detail object', async ({ page }) => {
     const p = pickerById(page, 'ctx-events');
+    const result = await p.evaluate(async (el: any) => {
+        const log: string[] = [];
+        const seen: any[] = [];
+        el.beforeActionCallback = (d: any) => { log.push('before'); seen.push(d); };
+        el.onAction = (d: any) => { log.push('onAction'); seen.push(d); };
+        el.addEventListener('action', (e: any) => {
+            log.push('event:' + (el.controller.getSelectedDate() ? 'selected' : 'empty'));
+            seen.push(e.detail);
+        });
+        el.actionButtons = [{ action: 'today', onClick: (d: any) => { log.push('onClick'); seen.push(d); } }];
+        await el.whenSettled();
+        el.shadowRoot.querySelector('.drp__button[data-action="today"]').click();
+        await new Promise((r) => setTimeout(r, 50));
+        const d = seen[0];
+        return {
+            log,
+            isSameObject: seen.every((x) => x === d),
+            action: d.action,
+            source: d.source,
+            hasController: typeof d.controller?.selectToday === 'function',
+            elementIsHost: d.element === el,
+            keys: Object.keys(d).sort(),
+            isSelectedAfter: !!el.controller.getSelectedDate(),
+        };
+    });
+    // The built-in (selectToday) runs AFTER the event — the listener still saw no selection.
+    expect(result.log).toEqual(['before', 'onClick', 'onAction', 'event:empty']);
+    expect(result.isSelectedAfter).toBe(true);
+    expect(result.isSameObject).toBe(true);
+    expect(result.action).toBe('today');
+    expect(result.source).toBe('action-buttons');
+    expect(result.hasController).toBe(true);
+    expect(result.elementIsHost).toBe(true);
+    // controller / element are non-enumerable — invisible to Object.keys / JSON.
+    expect(result.keys).not.toContain('controller');
+    expect(result.keys).not.toContain('element');
+    expect(result.keys).toEqual(expect.arrayContaining(['action', 'item', 'source', 'dataset', 'presentation']));
+});
 
+test('beforeActionCallback returning false (async) cancels onClick, the event and the built-in', async ({ page }) => {
+    const p = pickerById(page, 'ctx-events');
+    const result = await p.evaluate(async (el: any) => {
+        const log: string[] = [];
+        el.beforeActionCallback = async () => false;
+        el.addEventListener('action', () => log.push('event'));
+        el.actionButtons = [{ action: 'today', onClick: () => log.push('onClick') }];
+        await el.whenSettled();
+        el.shadowRoot.querySelector('.drp__button[data-action="today"]').click();
+        await new Promise((r) => setTimeout(r, 50));
+        return { log, isSelected: !!el.controller.getSelectedDate() };
+    });
+    expect(result.log).toEqual([]);
+    expect(result.isSelected).toBe(false);
+});
+
+test('HTML in showMessage: data-action="custom" data-id fires action with source "message" and dataset', async ({ page }) => {
+    const p = pickerById(page, 'ctx-events');
     const cap = await p.evaluate(async (el: any) => {
         const captured: any[] = [];
-        el.addEventListener('custom-action', (e: any) => {
-            captured.push({
-                keys: Object.keys(e.detail).sort(),
-                data: e.detail.data,
-                pickerIsInstance: e.detail.picker === el.picker
-            });
-        });
-        // A custom button authored via showMessage carries the data-* attributes.
-        el.showMessage(
-            '<button data-action="custom" data-start-date="2026-06-01" data-reason="cheap">go</button>'
+        el.addEventListener('action', (e: any) => captured.push(JSON.parse(JSON.stringify(e.detail))));
+        el.controller.showMessage(
+            '<button data-action="custom" data-id="go" data-start-date="2026-06-01" data-reason="cheap">go</button>'
         );
         el.shadowRoot.querySelector('.drp__message [data-action="custom"]').click();
+        await new Promise((r) => setTimeout(r, 50));
         return captured;
     });
-
     expect(cap.length).toBe(1);
-    expect(cap[0].keys).toEqual(['data', 'picker']);
-    // data-* attributes are exposed as camelCase keys under detail.data
-    expect(cap[0].data.startDate).toBe('2026-06-01');
-    expect(cap[0].data.reason).toBe('cheap');
-    // data-action itself is excluded from the map
-    expect(cap[0].data.action).toBeUndefined();
-    // detail.picker is the core instance the web component wraps
-    expect(cap[0].pickerIsInstance).toBe(true);
+    expect(cap[0].action).toBe('custom');
+    expect(cap[0].id).toBe('go');
+    expect(cap[0].source).toBe('message');
+    // Other data-* arrive camelCased under dataset; data-action / data-id are not repeated there.
+    expect(cap[0].dataset).toEqual({ startDate: '2026-06-01', reason: 'cheap' });
+});
+
+test('internal controls (nav arrows) do not fire the action event', async ({ page }) => {
+    const p = pickerById(page, 'ctx-events');
+    const count = await p.evaluate(async (el: any) => {
+        let n = 0;
+        el.addEventListener('action', () => n++);
+        el.shadowRoot.querySelector('.drp__nav--next').click();
+        await new Promise((r) => setTimeout(r, 50));
+        return n;
+    });
+    expect(count).toBe(0);
+});
+
+// =============================================================================
+// select / month-change — twins get the detail
+// =============================================================================
+
+test('onSelect receives the detail (same object as the select event), not the CustomEvent', async ({ page }) => {
+    const p = pickerById(page, 'ctx-events');
+    const result = await p.evaluate(async (el: any) => {
+        let twin: any;
+        let evt: any;
+        el.onSelect = (d: any) => { twin = d; };
+        el.addEventListener('select', (e: any) => { evt = e; });
+        el.shadowRoot.querySelector('.drp__day[data-date="2026-06-10"]').click();
+        await new Promise((r) => setTimeout(r, 50));
+        return {
+            isDetail: !(twin instanceof Event) && twin === evt.detail,
+            hasDate: twin.date instanceof Date,
+            composed: evt.composed,
+            bubbles: evt.bubbles,
+            hasController: typeof twin.controller?.getSelectedDate === 'function',
+        };
+    });
+    expect(result.isDetail).toBe(true);
+    expect(result.hasDate).toBe(true);
+    expect(result.bubbles).toBe(true);
+    expect(result.composed).toBe(false);
+    expect(result.hasController).toBe(true);
+});
+
+test('month-change fires after navigation with the visible months', async ({ page }) => {
+    const p = pickerById(page, 'ctx-events');
+    const detail = await p.evaluate(async (el: any) => {
+        let d: any;
+        el.onMonthChange = (x: any) => { d = JSON.parse(JSON.stringify(x)); };
+        el.shadowRoot.querySelector('.drp__nav--next').click();
+        await new Promise((r) => setTimeout(r, 100));
+        return d;
+    });
+    expect(detail).toMatchObject({ monthIndex: 0, year: 2026, month: 6, visibleMonths: [{ year: 2026, month: 6 }] });
+});
+
+test('beforeSelectCallback returning null clears the selection', async ({ page }) => {
+    const p = pickerById(page, 'ctx-clear');
+    const result = await p.evaluate(async (el: any) => {
+        el.beforeSelectCallback = () => null;
+        await el.whenSettled();
+        const root = el.shadowRoot;
+        root.querySelector('.drp__day[data-date="2026-06-10"]').click();
+        root.querySelector('.drp__day[data-date="2026-06-12"]').click();
+        await new Promise((r) => setTimeout(r, 100));
+        return el.controller.getSelectedRange();
+    });
+    expect(result).toBeNull();
 });

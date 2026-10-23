@@ -33,17 +33,17 @@
         // counts so the e2e can assert the flip by button count.
         const desktopActions = [
             { action: 'today', text: 'Today' },
-            { action: 'custom', text: 'Last Week', onClick: ({ picker }) => {
+            { id: 'last-week', text: 'Last Week', onClick: ({ element }) => {
                 const end = new Date(); const start = new Date(); start.setDate(end.getDate() - 6);
-                picker.selectedRanges = [{ start, end }];
+                element.selectedRanges = [{ start, end }];
             } },
-            { action: 'custom', text: 'This Month', onClick: ({ picker }) => {
+            { id: 'this-month', text: 'This Month', onClick: ({ element }) => {
                 const n = new Date();
-                picker.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth(), 1), end: new Date(n.getFullYear(), n.getMonth() + 1, 0) }];
+                element.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth(), 1), end: new Date(n.getFullYear(), n.getMonth() + 1, 0) }];
             } },
-            { action: 'custom', text: 'Last Month', onClick: ({ picker }) => {
+            { id: 'last-month', text: 'Last Month', onClick: ({ element }) => {
                 const n = new Date();
-                picker.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth() - 1, 1), end: new Date(n.getFullYear(), n.getMonth(), 0) }];
+                element.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth() - 1, 1), end: new Date(n.getFullYear(), n.getMonth(), 0) }];
             } },
             { action: 'clear', text: 'Clear' },
             { action: 'apply', text: 'Apply' },

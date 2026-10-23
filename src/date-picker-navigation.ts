@@ -5,7 +5,8 @@
  * rolling selector, and keyboard focus movement.
  */
 
-import type { MonthChangeContext, BeforeMonthChangeResult } from './types';
+import { runBeforeCallback } from '@keenmate/web-components-core';
+import type { MonthChangeContext, MonthData } from './types';
 import { navigationLogger } from './logger';
 import { showLoader, hideLoader } from './date-picker-ui';
 
@@ -33,13 +34,80 @@ export function hasEnabledDaysInMonth(picker: any, year: number, month: number):
     return false;
 }
 
+/** First / last date of the 6-week grid of one month column. */
+function visibleRangeForMonth(picker: any, year: number, month: number): { firstVisibleDate: Date; lastVisibleDate: Date } {
+    const firstDayWeekday = new Date(year, month, 1).getDay();
+    const offset = (firstDayWeekday - picker.weekStartDay + 7) % 7;
+    const firstVisibleDate = new Date(year, month, 1 - offset);
+    const lastVisibleDate = new Date(firstVisibleDate);
+    lastVisibleDate.setDate(firstVisibleDate.getDate() + 41);
+    return { firstVisibleDate, lastVisibleDate };
+}
+
+/** First / last visible date across ALL columns (unified navigation). */
+function visibleRangeUnified(picker: any): { firstVisibleDate: Date; lastVisibleDate: Date } {
+    let earliestYear = Infinity;
+    let earliestMonth = Infinity;
+    let latestYear = -Infinity;
+    let latestMonth = -Infinity;
+    for (const monthDate of picker._monthDates as Date[]) {
+        const year = monthDate.getFullYear();
+        const month = monthDate.getMonth();
+        if (year < earliestYear || (year === earliestYear && month < earliestMonth)) {
+            earliestYear = year;
+            earliestMonth = month;
+        }
+        if (year > latestYear || (year === latestYear && month > latestMonth)) {
+            latestYear = year;
+            latestMonth = month;
+        }
+    }
+    const firstDayWeekday = new Date(earliestYear, earliestMonth, 1).getDay();
+    const offset = (firstDayWeekday - picker.weekStartDay + 7) % 7;
+    const firstVisibleDate = new Date(earliestYear, earliestMonth, 1 - offset);
+    // Last visible date: the latest month's last day, extended to the end of its week.
+    const lastDayOfLastMonth = new Date(latestYear, latestMonth + 1, 0).getDate();
+    const lastDayWeekday = new Date(latestYear, latestMonth, lastDayOfLastMonth).getDay();
+    const daysToAdd = (picker.weekStartDay + 6 - lastDayWeekday) % 7;
+    const lastVisibleDate = new Date(latestYear, latestMonth, lastDayOfLastMonth + daysToAdd);
+    return { firstVisibleDate, lastVisibleDate };
+}
+
+function monthChangeContext(picker: any, year: number, month: number, monthIndex: number, range: { firstVisibleDate: Date; lastVisibleDate: Date }): MonthChangeContext {
+    return picker.ctx({ year, month, monthIndex, ...range });
+}
+
+/** Wrap a callback so a returned Promise shows the calendar loader (hidden by the caller). */
+function withLoader<A, R>(picker: any, fn: (arg: A) => R, state: { isLoading: boolean }): (arg: A) => R {
+    return (arg: A) => {
+        const result = fn(arg);
+        if (result instanceof Promise && !state.isLoading) {
+            state.isLoading = true;
+            showLoader(picker);
+        }
+        return result;
+    };
+}
+
+/** Run `getMonthDataCallback(ctx)` (sync or async); a throw is logged and yields no data. */
+async function loadMonthData(picker: any, ctx: MonthChangeContext, state: { isLoading: boolean }): Promise<MonthData | null> {
+    const fn = picker.options.getMonthDataCallback;
+    if (!fn) return null;
+    try {
+        return (await withLoader(picker, fn, state)(ctx)) ?? null;
+    } catch (error) {
+        console.error('[web-daterangepicker] getMonthDataCallback threw:', error);
+        return null;
+    }
+}
+
 /**
- * Call beforeMonthChangedCallback for initial calendar load
- * This is called when calendar first opens to allow pre-loading metadata
- * Does NOT block/navigate, just calls callback to populate cache
+ * Load month data for the initial open (no `beforeMonthChangeCallback` — nothing
+ * is navigating). Unified navigation: one call for the whole grid; otherwise one
+ * call per visible column, merged. Replaces the caches.
  */
 export async function handleInitialMonthLoad(picker: any): Promise<void> {
-    if (!picker.options.beforeMonthChangedCallback) {
+    if (!picker.options.getMonthDataCallback) {
         return;
     }
 
@@ -49,189 +117,46 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
         return;
     }
 
+    const loader = { isLoading: false };
     try {
         picker.isMonthChanging = true;
 
+        const combinedMetadata = new Map<string, any>();
+        const combinedMonthHeaders = new Map<string, string>();
+        const merge = (data: MonthData | null) => {
+            data?.metadata?.forEach((value, key) => combinedMetadata.set(key, value));
+            data?.monthHeaders?.forEach((value, key) => combinedMonthHeaders.set(key, value));
+        };
+
         if (picker.options.isUnifiedNavigationEnabled) {
-            // UNIFIED MODE: One callback for all visible months together
             const anchorIndex = picker.options.unifiedNavigationAnchorIndex ?? 0;
-            const anchorMonth = picker._monthDates[anchorIndex];
-            const targetYear = anchorMonth.getFullYear();
-            const targetMonth = anchorMonth.getMonth();
-
-            // Calculate range for ALL visible months
-            let earliestYear = Infinity;
-            let earliestMonth = Infinity;
-            let latestYear = -Infinity;
-            let latestMonth = -Infinity;
-
+            const anchorMonth: Date = picker._monthDates[anchorIndex];
+            const ctx = monthChangeContext(picker, anchorMonth.getFullYear(), anchorMonth.getMonth(), anchorIndex, visibleRangeUnified(picker));
+            merge(await loadMonthData(picker, ctx, loader));
+        } else {
             for (let i = 0; i < picker._monthDates.length; i++) {
-                const monthDate = picker._monthDates[i];
+                const monthDate: Date = picker._monthDates[i];
                 const year = monthDate.getFullYear();
                 const month = monthDate.getMonth();
-
-                if (year < earliestYear || (year === earliestYear && month < earliestMonth)) {
-                    earliestYear = year;
-                    earliestMonth = month;
-                }
-
-                if (year > latestYear || (year === latestYear && month > latestMonth)) {
-                    latestYear = year;
-                    latestMonth = month;
-                }
-            }
-
-            const firstMonth = new Date(earliestYear, earliestMonth, 1);
-            const firstDayWeekday = firstMonth.getDay();
-            const offset = (firstDayWeekday - picker.weekStartDay + 7) % 7;
-            const firstVisibleDate = new Date(earliestYear, earliestMonth, 1 - offset);
-
-            const lastDayOfLastMonth = new Date(latestYear, latestMonth + 1, 0).getDate();
-            const lastDayDate = new Date(latestYear, latestMonth, lastDayOfLastMonth);
-            const lastDayWeekday = lastDayDate.getDay();
-            const daysToAdd = (picker.weekStartDay + 6 - lastDayWeekday) % 7;
-            const lastVisibleDate = new Date(latestYear, latestMonth, lastDayOfLastMonth + daysToAdd);
-
-            const context: MonthChangeContext = {
-                picker,
-                controller: picker.getController(),
-                ...picker.presentationCtx(),
-                year: targetYear,
-                month: targetMonth,
-                monthIndex: anchorIndex,
-                firstVisibleDate: firstVisibleDate,
-                lastVisibleDate: lastVisibleDate
-            };
-
-            navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - calling callback for ${targetYear}-${targetMonth + 1}, range: ${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`);
-
-            const callbackResult = picker.options.beforeMonthChangedCallback(context);
-            const isAsync = callbackResult instanceof Promise;
-
-            if (isAsync) {
-                showLoader(picker);
-            }
-
-            const result: BeforeMonthChangeResult = await Promise.resolve(callbackResult);
-
-            if (isAsync) {
-                hideLoader(picker);
-            }
-
-            navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - callback completed, metadata items: ${result.metadata?.size || 0}, monthHeaders: ${result.monthHeaders?.size || 0}`);
-
-            if (result.metadata) {
-                picker.bulkMetadataCache = result.metadata;
-                navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - bulk metadata cache updated with ${result.metadata.size} entries`);
-            }
-
-            // Store month headers if provided
-            if (result.monthHeaders) {
-                picker.monthHeadersCache = result.monthHeaders;
-                navigationLogger.debug(`handleInitialMonthLoad() [UNIFIED] - month headers cache updated with ${result.monthHeaders.size} entries`);
-            }
-
-            if (result.metadata || result.monthHeaders) {
-                picker.renderCalendar();
-            }
-
-        } else {
-            // NON-UNIFIED MODE: Call callback for EACH visible month separately
-            navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - calling callback for ${picker._monthDates.length} months`);
-
-            // Initialize empty maps for combined data
-            const combinedMetadata = new Map<string, any>();
-            const combinedMonthHeaders = new Map<string, string>();
-            let hadAsync = false;
-
-            for (let i = 0; i < picker._monthDates.length; i++) {
-                const monthDate = picker._monthDates[i];
-                const targetYear = monthDate.getFullYear();
-                const targetMonth = monthDate.getMonth();
-
-                // Calculate visible date range for THIS month
-                const firstDayOfMonth = new Date(targetYear, targetMonth, 1);
-                const firstDayWeekday = firstDayOfMonth.getDay();
-                const offset = (firstDayWeekday - picker.weekStartDay + 7) % 7;
-                const firstVisibleDate = new Date(targetYear, targetMonth, 1 - offset);
-                const lastVisibleDate = new Date(firstVisibleDate);
-                lastVisibleDate.setDate(firstVisibleDate.getDate() + 41);
-
-                const context: MonthChangeContext = {
-                    picker,
-                    controller: picker.getController(),
-                    ...picker.presentationCtx(),
-                    year: targetYear,
-                    month: targetMonth,
-                    monthIndex: i,
-                    firstVisibleDate: firstVisibleDate,
-                    lastVisibleDate: lastVisibleDate
-                };
-
-                navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] Col${i} - calling callback for ${targetYear}-${targetMonth + 1}, range: ${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`);
-
-                const callbackResult = picker.options.beforeMonthChangedCallback(context);
-                const isAsync = callbackResult instanceof Promise;
-
-                if (isAsync && !hadAsync) {
-                    hadAsync = true;
-                    showLoader(picker);
-                }
-
-                const result: BeforeMonthChangeResult = await Promise.resolve(callbackResult);
-
-                navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] Col${i} - callback completed, metadata items: ${result.metadata?.size || 0}, monthHeaders: ${result.monthHeaders?.size || 0}`);
-
-                // Merge metadata into combined map
-                if (result.metadata) {
-                    result.metadata.forEach((value, key) => {
-                        combinedMetadata.set(key, value);
-                    });
-                }
-
-                // Merge month headers into combined map
-                if (result.monthHeaders) {
-                    result.monthHeaders.forEach((value, key) => {
-                        combinedMonthHeaders.set(key, value);
-                    });
-                }
-            }
-
-            if (hadAsync) {
-                hideLoader(picker);
-            }
-
-            // Update bulk metadata cache with combined data from all months
-            if (combinedMetadata.size > 0) {
-                picker.bulkMetadataCache = combinedMetadata;
-                navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - combined metadata cache updated with ${combinedMetadata.size} entries`);
-            }
-
-            // Update month headers cache with combined data from all months
-            if (combinedMonthHeaders.size > 0) {
-                picker.monthHeadersCache = combinedMonthHeaders;
-                navigationLogger.debug(`handleInitialMonthLoad() [NON-UNIFIED] - combined month headers cache updated with ${combinedMonthHeaders.size} entries`);
-            }
-
-            if (combinedMetadata.size > 0 || combinedMonthHeaders.size > 0) {
-                picker.renderCalendar();
+                const ctx = monthChangeContext(picker, year, month, i, visibleRangeForMonth(picker, year, month));
+                merge(await loadMonthData(picker, ctx, loader));
             }
         }
 
-    } catch (error) {
-        // Hide loading overlay on error
-        hideLoader(picker);
-
-        navigationLogger.debug(`handleInitialMonthLoad() - error in callback:`, error);
-        console.error('[DateRangePicker] Error in beforeMonthChangedCallback (initial load):', error);
+        navigationLogger.debug(`handleInitialMonthLoad() - metadata items: ${combinedMetadata.size}, monthHeaders: ${combinedMonthHeaders.size}`);
+        if (combinedMetadata.size > 0) picker.bulkMetadataCache = combinedMetadata;
+        if (combinedMonthHeaders.size > 0) picker.monthHeadersCache = combinedMonthHeaders;
+        if (combinedMetadata.size > 0 || combinedMonthHeaders.size > 0) picker.renderCalendar();
     } finally {
+        if (loader.isLoading) hideLoader(picker);
         picker.isMonthChanging = false;
     }
 }
 
 /**
- * Handle beforeMonthChangedCallback before month navigation
- * Returns true if navigation should proceed, false if blocked
+ * Before month navigation: `beforeMonthChangeCallback` (`false` blocks), then
+ * `getMonthDataCallback` for the target range (merged into the caches).
+ * Returns true if navigation should proceed.
  */
 export async function handleBeforeMonthChange(
     picker: any,
@@ -239,8 +164,8 @@ export async function handleBeforeMonthChange(
     targetMonth: number, // 0-11
     monthIndex: number
 ): Promise<boolean> {
-    // If no callback is defined, proceed with navigation
-    if (!picker.options.beforeMonthChangedCallback) {
+    const beforeFn = picker.options.beforeMonthChangeCallback;
+    if (!beforeFn && !picker.options.getMonthDataCallback) {
         return true;
     }
 
@@ -250,153 +175,40 @@ export async function handleBeforeMonthChange(
         return false;
     }
 
+    const loader = { isLoading: false };
     try {
         picker.isMonthChanging = true;
 
-        // Calculate first and last visible dates in the calendar grid
-        let firstVisibleDate: Date;
-        let lastVisibleDate: Date;
+        const range = picker.options.isUnifiedNavigationEnabled
+            ? visibleRangeUnified(picker)
+            : visibleRangeForMonth(picker, targetYear, targetMonth);
+        const ctx = monthChangeContext(picker, targetYear, targetMonth, monthIndex, range);
 
-        if (picker.options.isUnifiedNavigationEnabled) {
-            // Calculate range for ALL visible months in unified mode
-            // Report the actual min/max dates across all visible months, not just anchor month
-
-            // Find the earliest month across all visible columns
-            let earliestYear = Infinity;
-            let earliestMonth = Infinity;
-            let latestYear = -Infinity;
-            let latestMonth = -Infinity;
-
-            for (let i = 0; i < picker._monthDates.length; i++) {
-                const monthDate = picker._monthDates[i];
-                const year = monthDate.getFullYear();
-                const month = monthDate.getMonth();
-
-                // Check if this is earlier than current earliest
-                if (year < earliestYear || (year === earliestYear && month < earliestMonth)) {
-                    earliestYear = year;
-                    earliestMonth = month;
-                }
-
-                // Check if this is later than current latest
-                if (year > latestYear || (year === latestYear && month > latestMonth)) {
-                    latestYear = year;
-                    latestMonth = month;
-                }
+        if (beforeFn) {
+            const gate = await runBeforeCallback(withLoader(picker, beforeFn, loader), ctx, 'beforeMonthChangeCallback');
+            if (gate.isCancelled) {
+                navigationLogger.debug(`handleBeforeMonthChange() - navigation blocked for ${targetYear}-${targetMonth + 1}`);
+                return false;
             }
-
-            // First visible date: from the earliest month in grid
-            const firstMonth = new Date(earliestYear, earliestMonth, 1);
-            const firstDayWeekday = firstMonth.getDay();
-            const offset = (firstDayWeekday - picker.weekStartDay + 7) % 7;
-            firstVisibleDate = new Date(earliestYear, earliestMonth, 1 - offset);
-
-            // Last visible date: from the latest month in grid
-            const lastDayOfLastMonth = new Date(latestYear, latestMonth + 1, 0).getDate();
-            const lastDayDate = new Date(latestYear, latestMonth, lastDayOfLastMonth);
-            const lastDayWeekday = lastDayDate.getDay();
-
-            // Extend to end of week (to match calendar grid display)
-            const daysToAdd = (picker.weekStartDay + 6 - lastDayWeekday) % 7;
-            lastVisibleDate = new Date(latestYear, latestMonth, lastDayOfLastMonth + daysToAdd);
-        } else {
-            // Single month calculation (existing logic for non-unified mode)
-            const firstDayOfMonth = new Date(targetYear, targetMonth, 1);
-            const firstDayWeekday = firstDayOfMonth.getDay();
-            const offset = (firstDayWeekday - picker.weekStartDay + 7) % 7;
-            firstVisibleDate = new Date(targetYear, targetMonth, 1 - offset);
-            lastVisibleDate = new Date(firstVisibleDate);
-            lastVisibleDate.setDate(firstVisibleDate.getDate() + 41);
         }
 
-        // Build context object
-        const context: MonthChangeContext = {
-            picker,
-            controller: picker.getController(),
-            ...picker.presentationCtx(),
-            year: targetYear,
-            month: targetMonth,
-            monthIndex: monthIndex,
-            firstVisibleDate: firstVisibleDate,
-            lastVisibleDate: lastVisibleDate
-        };
-
-        navigationLogger.debug(`handleBeforeMonthChange() - calling callback for ${targetYear}-${targetMonth + 1}, range: ${firstVisibleDate.toISOString().split('T')[0]} to ${lastVisibleDate.toISOString().split('T')[0]}`);
-
-        // Call the callback (might be async)
-        const callbackResult = picker.options.beforeMonthChangedCallback(context);
-        const isAsync = callbackResult instanceof Promise;
-
-        // Show loading overlay if async
-        if (isAsync) {
-            showLoader(picker);
-        }
-
-        // Await the result
-        const result: BeforeMonthChangeResult = await Promise.resolve(callbackResult);
-
-        // Hide loading overlay if it was shown
-        if (isAsync) {
-            hideLoader(picker);
-        }
-
-        // Handle the result
-        if (result.action === 'block') {
-            navigationLogger.debug(`handleBeforeMonthChange() - navigation blocked: ${result.message || 'no reason provided'}`);
-            if (result.message) {
-                console.warn(`[DateRangePicker] Month navigation blocked: ${result.message}`);
-            }
-            return false; // Block navigation
-        }
-
-        // Action is 'accept'
-        navigationLogger.debug(`handleBeforeMonthChange() - navigation accepted, metadata items: ${result.metadata?.size || 0}, monthHeaders: ${result.monthHeaders?.size || 0}`);
-
-        // Update bulk metadata cache if provided
-        if (result.metadata) {
-            if (!picker.bulkMetadataCache) {
-                // No existing cache, create new one
-                picker.bulkMetadataCache = result.metadata;
-                navigationLogger.debug(`handleBeforeMonthChange() - bulk metadata cache created with ${result.metadata.size} entries`);
+        const data = await loadMonthData(picker, ctx, loader);
+        if (picker.options.getMonthDataCallback) {
+            if (data?.metadata) {
+                if (!picker.bulkMetadataCache) picker.bulkMetadataCache = data.metadata;
+                else data.metadata.forEach((value, key) => picker.bulkMetadataCache.set(key, value));
             } else {
-                // Merge new metadata into existing cache
-                result.metadata.forEach((value, key) => {
-                    picker.bulkMetadataCache.set(key, value);
-                });
-                navigationLogger.debug(`handleBeforeMonthChange() - merged ${result.metadata.size} entries into cache (total: ${picker.bulkMetadataCache.size})`);
+                // The data source returned nothing for this range — drop stale entries.
+                picker.bulkMetadataCache = null;
             }
-        } else {
-            // Clear cache if no metadata provided
-            picker.bulkMetadataCache = null;
-        }
-
-        // Update month headers cache if provided
-        if (result.monthHeaders) {
-            if (!picker.monthHeadersCache) {
-                // No existing cache, create new one
-                picker.monthHeadersCache = result.monthHeaders;
-                navigationLogger.debug(`handleBeforeMonthChange() - month headers cache created with ${result.monthHeaders.size} entries`);
-            } else {
-                // Merge new headers into existing cache
-                result.monthHeaders.forEach((value, key) => {
-                    picker.monthHeadersCache.set(key, value);
-                });
-                navigationLogger.debug(`handleBeforeMonthChange() - merged ${result.monthHeaders.size} entries into headers cache (total: ${picker.monthHeadersCache.size})`);
+            if (data?.monthHeaders) {
+                if (!picker.monthHeadersCache) picker.monthHeadersCache = data.monthHeaders;
+                else data.monthHeaders.forEach((value, key) => picker.monthHeadersCache.set(key, value));
             }
         }
-
-        return true; // Allow navigation
-
-    } catch (error) {
-        // Hide loading overlay on error
-        hideLoader(picker);
-
-        navigationLogger.debug(`handleBeforeMonthChange() - error in callback:`, error);
-        console.error('[DateRangePicker] Error in beforeMonthChangedCallback:', error);
-
-        // On error, block navigation for safety
-        return false;
+        return true;
     } finally {
+        if (loader.isLoading) hideLoader(picker);
         picker.isMonthChanging = false;
     }
 }
@@ -412,7 +224,7 @@ export async function selectYear(picker: any, year: number, monthIndex: number) 
     // Get current month to preserve it
     const currentMonth = picker._monthDates[monthIndex].getMonth();
 
-    // Call beforeMonthChangedCallback
+    // Run beforeMonthChangeCallback + getMonthDataCallback
     const shouldProceed = await handleBeforeMonthChange(picker, year, currentMonth, monthIndex);
     if (!shouldProceed) {
         navigationLogger.debug(`selectYear() Col${monthIndex} - navigation blocked by callback`);
@@ -436,7 +248,7 @@ export async function selectMonth(picker: any, month: number, monthIndex: number
     // Get current year to preserve it
     const currentYear = picker._monthDates[monthIndex].getFullYear();
 
-    // Call beforeMonthChangedCallback
+    // Run beforeMonthChangeCallback + getMonthDataCallback
     const shouldProceed = await handleBeforeMonthChange(picker, currentYear, month, monthIndex);
     if (!shouldProceed) {
         navigationLogger.debug(`selectMonth() Col${monthIndex} - navigation blocked by callback`);
@@ -501,7 +313,7 @@ export function isSameOrAfterMonth(date1: Date, date2: Date): boolean {
 
 /**
  * Step a single month column by `offset` (+1 = next, -1 = previous).
- * Handles enabled-month boundary check, beforeMonthChangedCallback,
+ * Handles enabled-month boundary check, beforeMonthChangeCallback,
  * and collision propagation against the appropriate neighbour column.
  */
 async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1): Promise<void> {

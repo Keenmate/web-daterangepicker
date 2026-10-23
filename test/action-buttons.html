@@ -38,13 +38,13 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">range mode with custom formatSummaryCallback</div>
+        <div class="fixture-label">range mode with custom renderSummaryCallback</div>
         <web-daterangepicker id="custom-summary" selection-mode="range"
             initial-date="2026-06-15"></web-daterangepicker>
         <script type="module">
             await customElements.whenDefined('web-daterangepicker');
             const p = document.getElementById('custom-summary');
-            p.formatSummaryCallback = ({ days }) => `CUSTOM: ${days}d`;
+            p.renderSummaryCallback = ({ days }) => `CUSTOM: ${days}d`;
         </script>
     </div>
 

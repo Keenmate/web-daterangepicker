@@ -2,7 +2,7 @@ import { test, expect, Page, Locator } from './fixtures';
 
 /**
  * Action button visibility toggles (show-today/clear/apply) + action click
- * behavior + summary visibility / custom formatSummaryCallback.
+ * behavior + summary visibility / custom renderSummaryCallback.
  *
  * Fixture: test/action-buttons.html
  */
@@ -102,10 +102,10 @@ test('is-summary-shown="false" omits the summary block in range mode', async ({ 
 });
 
 // =============================================================================
-// formatSummaryCallback
+// renderSummaryCallback
 // =============================================================================
 
-test('custom formatSummaryCallback overrides the default summary HTML', async ({ page }) => {
+test('custom renderSummaryCallback overrides the default summary HTML', async ({ page }) => {
     const p = await open(page, 'custom-summary');
 
     await dayByDate(p, '2026-06-10').click();
