@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 /**
  * Back-gesture trap: while a modal or full-screen sheet is open, the phone Back

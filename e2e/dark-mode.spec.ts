@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, dayByDate } from './fixtures';
 
 /**
  * Basic dark-mode contrast checks.
@@ -29,10 +29,6 @@ function input(p: Locator): Locator {
 
 function calendar(p: Locator): Locator {
     return p.locator('.drp__picker');
-}
-
-function dayByDate(p: Locator, isoDate: string): Locator {
-    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 /**

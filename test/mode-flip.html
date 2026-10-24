@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — positioning-mode flip</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>positioning-mode flip</h1>
+    <p>Targeted by <code>e2e/mode-flip.spec.ts</code>. A plain floating range picker
+       whose <code>positioning-mode</code> the spec flips to <code>modal</code>
+       (destroy + rebuild with the input element reused).</p>
+
+    <div class="fixture">
+        <div class="fixture-label">floating range picker, flipped to modal by the spec</div>
+        <web-daterangepicker id="picker" selection-mode="range"
+            initial-date="2026-06-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

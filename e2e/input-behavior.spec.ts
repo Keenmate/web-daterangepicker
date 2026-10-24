@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, inputOf } from './fixtures';
 
 /**
  * Progressive input masking: as the user types digits, the picker auto-inserts
@@ -10,14 +10,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/input-behavior.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function inputOf(p: Locator) {
-    return p.locator('input');
-}
 
 async function typeInto(p: Locator, text: string) {
     const inp = inputOf(p);

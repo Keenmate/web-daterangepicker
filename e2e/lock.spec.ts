@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf } from './fixtures';
 
 /**
  * v2.0.0-rc02 scoped read-only lock — lock() / unlock() / toggleLock(), the
@@ -12,10 +12,6 @@ import { test, expect, Page, Locator } from './fixtures';
 
 const PAGE = '/test/lock.html';
 
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-function calendarOf(p: Locator) { return p.locator('.drp__picker'); }
 function enabledDays(p: Locator) {
     return p.locator('.drp__day:not(.drp__day--disabled):not(.drp__day--other-month)');
 }

@@ -150,6 +150,40 @@ whether to fix the picker, change the docs, or accept the behavior.
     is now used as the input's placeholder. Explicit `placeholder=` still
     wins. Two specs in `api-extras.spec.ts` cover both paths.
 
+## Open bugs from the e2e coverage plan (2026-10-24)
+
+Tracked in `web-components-core/docs/e2e-coverage-plan.md` (WP-DRP). Each is pinned by a
+`test.fail(true, 'FINDINGS.md #N')` spec that asserts the **correct** behaviour; when the
+component is fixed the test starts passing and Playwright flags it — drop the `test.fail`.
+
+13. **DRP-1 — `formResetCallback()` clears to `''` instead of the default `value`.**
+    Where: `src/web-component.ts` `formResetCallback()` (~l.377). Symptom: a picker declared
+    `value="2026-06-10"` inside a `<form>`; pick another date; `form.reset()` → input and
+    submitted value are empty instead of `2026-06-10`. It also skips `this.flush()`, so a reset
+    right after a `setAttribute('value', …)` sees stale state. Fix: `flush()`, then restore
+    `this.getAttribute('value')` (the default) through the normal value path; clear only when
+    there is no default.
+
+14. **DRP-2 — `getInputValue()` / `value` getter don't `flush()`.**
+    Where: `src/web-component.ts` `getInputValue()` / `get value()` (~l.982, 1004). Symptom:
+    `el.setAttribute('value', '2026-06-10'); el.value` returns the old text — the attribute
+    write is coalesced to a microtask and the getter reads the input directly. Fix: call
+    `this.flush()` first (as the other imperative accessors do).
+
+15. **DRP-3 — `setRollingItemAlignment()` is lost on rebuild.**
+    Where: `src/web-component.ts` `setRollingItemAlignment()` (~l.996). It writes
+    `--drp-rolling-item-justify-content` on the `.drp__picker` node; any `on:'reinit'` change
+    (or a DOM move, DRP-4) rebuilds that node and the alignment silently resets. Fix: set the
+    variable on the host (`this.style`) or keep it in config and re-apply in `#buildPicker()`.
+
+16. **DRP-4 — a DOM move rebuilds the picker (D1).**
+    Where: `src/web-component.ts` `disconnect()` (~l.371) destroys the picker, `connect()`
+    rebuilds it. Symptom: re-parenting an open picker closes it and drops a half-picked range;
+    decided (D1, 2026-10-24) that a move must keep selection, input value, form value and open
+    state. Fix: move to core's build-once + activate/deactivate model — `disconnect()` only
+    stops live resources (listeners, `autoUpdate`), `connect()` restarts them; the picker
+    instance survives. Pinned by `e2e/lifecycle.spec.ts`.
+
 ---
 
 Add new entries below as more specs land.

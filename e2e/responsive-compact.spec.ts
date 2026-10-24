@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById } from './fixtures';
 
 /**
  * Container-responsive compaction (`compact-below`, core `sizeChanged` hook).
@@ -13,10 +13,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/responsive-compact.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
 
 function monthsOf(picker: Locator) {
     return picker.locator('.drp__month');

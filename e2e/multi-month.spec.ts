@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, open } from './fixtures';
 
 /**
  * Multi-month rendering: visible-months-count, horizontal / grid layout,
@@ -8,14 +8,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/multi-month.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(p: Locator) {
-    return p.locator('.drp__picker');
-}
 
 function months(p: Locator) {
     return p.locator('.drp__month');
@@ -31,13 +23,6 @@ function nextNavAt(p: Locator, index: number) {
 
 function prevNavAt(p: Locator, index: number) {
     return p.locator(`.drp__nav--prev[data-month-index="${index}"]`);
-}
-
-async function open(page: Page, id: string) {
-    const p = pickerById(page, id);
-    await p.locator('input').click();
-    await expect(calendarOf(p)).toBeVisible();
-    return p;
 }
 
 test.beforeEach(async ({ page }) => {

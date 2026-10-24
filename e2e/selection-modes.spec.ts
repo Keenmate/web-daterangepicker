@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, inputOf, open } from './fixtures';
 
 /**
  * Covers the three selection modes and the commit-mode / Apply-button
@@ -9,29 +9,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/selection-modes.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(picker: Locator) {
-    return picker.locator('.drp__picker');
-}
-
-function dayByDate(picker: Locator, isoDate: string) {
-    return picker.locator(`.drp__day[data-date="${isoDate}"]`);
-}
-
-function inputOf(picker: Locator) {
-    return picker.locator('input');
-}
-
-async function open(page: Page, id: string) {
-    const p = pickerById(page, id);
-    await inputOf(p).click();
-    await expect(calendarOf(p)).toBeVisible();
-    return p;
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf } from './fixtures';
 
 /**
  * The core interaction model (web-components-core `/actions`, SPEC §12.5 / §12.12):
@@ -13,10 +13,6 @@ import { test, expect, Page, Locator } from './fixtures';
 
 const PAGE = '/test/context-callbacks.html';
 
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-function calendarOf(p: Locator) { return p.locator('.drp__picker'); }
 function buttonByText(p: Locator, text: string) {
     return p.locator('.drp__button', { hasText: text });
 }

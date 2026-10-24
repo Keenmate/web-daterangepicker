@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, dayByDate } from './fixtures';
 
 /**
  * Hover preview in range mode: after the first click sets a start date, the
@@ -15,14 +15,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/hover-preview.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp__day[data-date="${isoDate}"]`);
-}
 
 async function open(p: Locator) {
     await p.locator('input').click();

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 /**
  * Touch drag-to-adjust. The drag handlers were converted from mouse events to

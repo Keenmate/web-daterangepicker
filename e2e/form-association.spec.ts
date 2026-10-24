@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, dayByDate } from './fixtures';
 
 /**
  * Form association. `<web-daterangepicker>` submits a stable ISO value under its
@@ -19,10 +19,6 @@ const PAGE = '/test/form-association.html';
 // The VISIBLE input only — the light-DOM hidden form input is also an <input>.
 function visibleInput(p: Locator) {
     return p.locator('.drp__input');
-}
-
-function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp__day[data-date="${isoDate}"]`);
 }
 
 function formValue(page: Page, formId: string, name = 'range') {

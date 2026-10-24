@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 /**
  * Device-adaptive presentation (SPEC §12.9) on DESKTOP (fine pointer). `auto`

@@ -21,6 +21,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Range selection (click start → click end)                     | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | Range: drag-to-adjust start                                   | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Range: drag-to-adjust end                                     | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
+| Range: drag-to-adjust with touch pointer events               | ✓      | `drag-adjust-touch.spec.ts`  | `drag-adjust.html`        |
 | Multiple-date selection (toggle individual days)              | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `commitMode`: `'selection'` (default) / `'apply'` / `'manual'`  | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
@@ -43,6 +44,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `modal` mode: input blurred to suppress mobile keyboard       | ✗      |      |         |
 | `modal` mode: container-query inner layout tiers              | ✗      |      |         |
 | `mobile-modal-breakpoint` auto-engages modal at small widths  | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
+| Positioning-mode flip leaves no zombie floating picker / drift warning | ✓ | `mode-flip.spec.ts` | `mode-flip.html` |
 
 ## 3. Trigger / open-close
 
@@ -145,7 +147,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `beforeSelectCallback`: accept / `false` / `DateRange[]` (adjust to N ranges) | △ | `callbacks.spec.ts`  | `callbacks.html`          |
 | `beforeSelectCallback` returning `null` clears                | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `beforeMonthChangeCallback` returning `false` blocks          | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
-| `getMonthDataCallback` bulk metadata / month headers          | ✗      |      |         |
+| `getMonthDataCallback` bulk metadata (set after upgrade) + `reloadMonthData()` | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `specialDates` + `*Member` property mapping                   | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `getDateMetadataCallback` per-date                            | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 
@@ -193,6 +195,29 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `onSelect` twin receives the detail (same object as `select`) | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `month-change` event after navigation (`visibleMonths`)       | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 
+## 14. Visual states
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| Selected day class                                            | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| Range start / middle / end classes                            | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
+| Today highlight                                               | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
+| Disabled day styling                                          | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
+| Hover preview during range selection (`--hover-preview`, per `disabled-dates-handling`) | ✓ | `hover-preview.spec.ts` | `hover-preview.html` |
+| Drag-preview classes during drag-adjust                       | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
+| Keyboard-focused day class                                    | ✓      | `keyboard-navigation.spec.ts`| `keyboard-navigation.html`|
+| Weekend `--weekend` class + `data-weekday` hook               | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
+| Adjacent-month (faded) days                                   | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
+| Invalid-range error styling (`ctx.markRangeInvalid()`)        | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
+
+## 15. Sizing & theming
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
+| `spacing` / `font-size` / `cell-size` scale variants          | n/a    | _attributes documented in CLAUDE.md but not implemented (see FINDINGS.md #11)_ |         |
+| CSS-variable overrides flow through                           | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
+
 ## 16. v2.0.0 symmetric feedback API & interaction model
 
 | Feature                                                       | Status | Spec | Fixture |
@@ -213,25 +238,67 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsActiveCallback` via ctx | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Custom items render `data-action="custom"` + `data-id`; string shorthand renders a built-in | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 
-## 14. Visual states
+## 17. Form association
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| Selected day class                                            | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| Range start / middle / end classes                            | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
-| Today highlight                                               | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
-| Disabled day styling                                          | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
-| Hover preview during range selection                          | n/a    | _picker has no hover-preview class; mid-pick uses `:hover` only_ |         |
-| Drag-preview classes during drag-adjust                       | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
-| Keyboard-focused day class                                    | ✓      | `keyboard-navigation.spec.ts`| `keyboard-navigation.html`|
-| Weekend styling                                               | n/a    | _picker emits no `--weekend` class; weekend cells are unstyled by default_ |         |
-| Adjacent-month (faded) days                                   | ✓      | `visual-states.spec.ts`      | `visual-states.html`      |
-| Invalid-range error styling (`ctx.markRangeInvalid()`)        | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
+| `el.form` resolves the containing form                        | ✓      | `form-association.spec.ts`   | `form-association.html`   |
+| Selection submits the ISO value under `name` (single entry)   | ✓      | `form-association.spec.ts`   | `form-association.html`   |
+| Programmatic `value` reflected into the submission            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
+| `form.reset()` clears selection + submitted value             | ✓      | `form-association.spec.ts`   | `form-association.html`   |
+| `form.reset()` restores the default `value` attribute (DRP-1) | ✗      |      |         |
+| Inline picker submits via hidden field                        | ✓      | `form-association.spec.ts`   | `form-association.html`   |
+| Range → ISO interval; split range → each sub-range            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
+| `value-format` json / array; `getValueFormatCallback`         | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 
-## 15. Sizing & theming
+## 18. Lock / readonly
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
-| `spacing` / `font-size` / `cell-size` scale variants          | n/a    | _attributes documented in CLAUDE.md but not implemented (see FINDINGS.md #11)_ |         |
-| CSS-variable overrides flow through                           | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
+| `lock()` / `unlock()` / `toggleLock()`                        | ✓      | `lock.spec.ts`               | `lock.html`               |
+| Aspect locks: selection, actions, navigation (incl. rolling), open | ✓ | `lock.spec.ts`               | `lock.html`               |
+| `readonly` attribute = full lock, reflects to `lockedAspects` | ✓      | `lock.spec.ts`               | `lock.html`               |
+| Full lock does not block the programmatic API                 | ✓      | `lock.spec.ts`               | `lock.html`               |
+
+## 19. Device-adaptive presentation & mobile
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| Desktop: `mobile-presentation="auto"` → floating; forced `fullscreen` applies | ✓ | `mobile-presentation-desktop.spec.ts` | `mobile-presentation.html` |
+| Phone: auto → full-screen sheet, ✕ close, header merge, `fullscreen-input`, keyboard-off | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
+| Tablet: auto → modal; tap opens and stays open (ghost click)  | ✓      | `mobile-presentation-tablet.spec.ts` | `mobile-presentation.html` |
+| Back gesture closes modal / full-screen without navigating    | ✓      | `back-gesture.spec.ts`       | `mobile-presentation.html` |
+| Adaptive action set: rich on desktop, essentials on phone     | ✓      | `adaptive-actions.spec.ts`, `adaptive-actions-phone.spec.ts` | `adaptive-actions.html` |
+| Container-width compaction (2 → 1 month, hides Today/Clear) keeps the range | ✓ | `responsive-compact.spec.ts` | `responsive-compact.html` |
+
+## 20. Theme signals, dark mode & icon tokens
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| Page dark signals flip a picker; per-instance `data-theme` wins; `theme-source="closest"` | ✓ | `theme-signals.spec.ts` | `dark-mode.html` |
+| Hover / selected day readable on dark pages                   | ✓      | `dark-mode.spec.ts`          | `dark-mode.html`          |
+| `--drp-rem` / icon / shadow / easing tokens chain to `--base-*` | ✓    | `icon-theming.spec.ts`       | `icon-theming.html`       |
+
+## 21. Overlay coordination
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| Opening a second picker closes the first                      | ✓      | `single-active.spec.ts`      | `single-active.html`      |
+| External `km-overlay-activated` closes an open picker         | ✓      | `single-active.spec.ts`      | `single-active.html`      |
+| `overlay-group`: different groups coexist, same group dismisses | ✗    |      |         |
+
+## 22. Time picker
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| `picker-mode="time"` / `"datetime"` commit `selectedTime` / `selectedDatetime` | ✗ | | |
+| `time-display` rolls / clock / wheel / compact                | ✗      |      |         |
+| `hour-cycle`, `time-step`, `is-seconds-shown`, `is-now-button-shown`, `time-format-mask` | ✗ | | |
+| Full-screen (phone) time selection commits                    | ✗      |      |         |
+
+## 23. Lifecycle
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| `defer` / `ready` / `isReady`                                 | ✗      |      |         |
+| DOM move keeps selection, input value, form value, open state (D1, DRP-4) | ✗ | | |

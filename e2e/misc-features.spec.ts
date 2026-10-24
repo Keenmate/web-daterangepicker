@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, open } from './fixtures';
 
 /**
  * Round-out for several smaller features:
@@ -12,25 +12,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/misc-features.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(p: Locator) {
-    return p.locator('.drp__picker');
-}
-
-function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp__day[data-date="${isoDate}"]`);
-}
-
-async function open(page: Page, id: string) {
-    const p = pickerById(page, id);
-    await p.locator('input').click();
-    await expect(calendarOf(p)).toBeVisible();
-    return p;
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

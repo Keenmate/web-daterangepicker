@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, inputOf } from './fixtures';
 
 /**
  * The five `disabledDatesHandling` strategies. Each picker has
@@ -13,22 +13,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/disabled-handling.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(p: Locator) {
-    return p.locator('.drp__picker');
-}
-
-function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp__day[data-date="${isoDate}"]`);
-}
-
-function inputOf(p: Locator) {
-    return p.locator('input');
-}
 
 async function captureChange(p: Locator) {
     await p.evaluate((el: any) => {

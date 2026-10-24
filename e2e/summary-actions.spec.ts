@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, open } from './fixtures';
 
 /**
  * Verifies the v1.12.1 actions/summary CSS contract:
@@ -13,27 +13,12 @@ import { test, expect, Page, Locator } from './fixtures';
 
 const PAGE = '/test/summary-actions.html';
 
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(picker: Locator) {
-    return picker.locator('.drp__picker');
-}
-
 function actionsOf(picker: Locator) {
     return picker.locator('.drp__actions');
 }
 
 function summaryOf(picker: Locator) {
     return picker.locator('.drp__summary');
-}
-
-async function open(page: Page, id: string) {
-    const p = pickerById(page, id);
-    await p.locator('input').click();
-    await expect(calendarOf(p)).toBeVisible();
-    return p;
 }
 
 test.beforeEach(async ({ page }) => {

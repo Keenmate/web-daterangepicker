@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, inputOf } from './fixtures';
 
 /**
  * `calendar-open-trigger` modes and outside-click / re-open behavior.
@@ -8,18 +8,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/triggers.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(p: Locator) {
-    return p.locator('.drp__picker');
-}
-
-function inputOf(p: Locator) {
-    return p.locator('input');
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

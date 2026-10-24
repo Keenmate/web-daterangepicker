@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById } from './fixtures';
 
 /**
  * input-size variants apply size-modifier classes; consumer-supplied CSS
@@ -8,10 +8,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/sizing-theming.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

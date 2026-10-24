@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, inputOf, open } from './fixtures';
 
 /**
  * locale, customStrings, monthNames override, week-start-day.
@@ -7,25 +7,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/locale.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(p: Locator) {
-    return p.locator('.drp__picker');
-}
-
-function inputOf(p: Locator) {
-    return p.locator('input');
-}
-
-async function open(page: Page, id: string) {
-    const p = pickerById(page, id);
-    await inputOf(p).click();
-    await expect(calendarOf(p)).toBeVisible();
-    return p;
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);

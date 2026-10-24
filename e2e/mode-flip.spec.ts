@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 /**
  * Regression: a positioning-mode flip (as the environment auto-modal switch does)
@@ -13,7 +13,7 @@ test('positioning-mode flip leaves no zombie floating picker on the reused input
     if (m.type() === 'warning' || m.type() === 'error') warnings.push(m.text());
   });
 
-  await page.goto('/test/anchor-stability.html');
+  await page.goto('/test/mode-flip.html');
   const host = page.locator('#picker');
   await host.waitFor();
 

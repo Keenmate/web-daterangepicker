@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf } from './fixtures';
 
 /**
  * v2.0.0 symmetric feedback API — the summary/loader/message imperative methods
@@ -10,10 +10,6 @@ import { test, expect, Page, Locator } from './fixtures';
 
 const PAGE = '/test/imperative-feedback.html';
 
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-function calendarOf(p: Locator) { return p.locator('.drp__picker'); }
 function summaryOf(p: Locator) { return p.locator('.drp__summary'); }
 function messageOf(p: Locator) { return p.locator('.drp__message'); }
 function enabledDays(p: Locator) {

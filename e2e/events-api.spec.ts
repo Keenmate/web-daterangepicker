@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, inputOf } from './fixtures';
 
 /**
  * Public events (`change`, `action`) and the programmatic property API
@@ -10,22 +10,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/events-api.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(p: Locator) {
-    return p.locator('.drp__picker');
-}
-
-function inputOf(p: Locator) {
-    return p.locator('input');
-}
-
-function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp__day[data-date="${isoDate}"]`);
-}
 
 async function captureEvent(picker: Locator, name: string) {
     await picker.evaluate((el: any, evtName: string) => {

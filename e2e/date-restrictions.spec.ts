@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, inputOf, open } from './fixtures';
 
 /**
  * Disable strategies: min-date / max-date bounds, disabled-weekdays, the
@@ -9,29 +9,6 @@ import { test, expect, Page, Locator } from './fixtures';
  */
 
 const PAGE = '/test/date-restrictions.html';
-
-function pickerById(page: Page, id: string) {
-    return page.locator(`#${id}`);
-}
-
-function calendarOf(p: Locator) {
-    return p.locator('.drp__picker');
-}
-
-function dayByDate(p: Locator, isoDate: string) {
-    return p.locator(`.drp__day[data-date="${isoDate}"]`);
-}
-
-function inputOf(p: Locator) {
-    return p.locator('input');
-}
-
-async function open(page: Page, id: string) {
-    const p = pickerById(page, id);
-    await inputOf(p).click();
-    await expect(calendarOf(p)).toBeVisible();
-    return p;
-}
 
 test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);
