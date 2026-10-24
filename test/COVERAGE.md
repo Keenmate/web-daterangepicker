@@ -58,7 +58,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Click outside closes (floating)                               | ✓      | `triggers.spec.ts`           | `triggers.html`           |
 | Escape closes                                                 | ✓      | `keyboard-navigation.spec.ts`| `keyboard-navigation.html`|
 | Re-click input after scroll-close reopens (#3 regression)     | ✓      | `triggers.spec.ts`           | `triggers.html`           |
-| `open()` is idempotent (no double-init on focus+mousedown)    | △      | `triggers.spec.ts`           | `triggers.html`           |
+| `open()` is idempotent (no double-init on focus+mousedown)    | ✓      | `triggers.spec.ts`, `api-extras.spec.ts` | `triggers.html`, `api-extras.html` |
+| `toggle()` opens / closes                                     | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 
 ## 4. Multi-month layout
 
@@ -70,7 +71,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Collision prevention: adjacent columns can't show same month  | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | Per-column independent navigation                             | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | `is-unified-navigation-enabled`: single header drives all columns        | △      | `multi-month.spec.ts`        | `multi-month.html`        |
-| `unified-navigation-anchor-index`                             | ✗      |      |         |
+| `unified-navigation-anchor-index`: unified month/year pick lands in column N | ✓ | `multi-month.spec.ts` | `multi-month.html` |
+| `month-layout` row → grid at runtime renders the grid | ✓ | `multi-month.spec.ts` | `multi-month.html` |
+| `month-layout` switch keeps the range (FINDINGS #21) | ✗ test.fail | `multi-month.spec.ts` | `multi-month.html` |
 | `is-unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Always-6-week rendering (stable height in modal)              | ✗      |      |         |
 
@@ -185,12 +188,18 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `apply` event                                                 | n/a    | _picker dispatches `change` on apply; no separate event_ |         |
 | `cancel` event                                                | n/a    | _no event; pending selection restores prior input value_ |         |
 | `action` event fires once per custom button click             | ✓      | `events-api.spec.ts`         | `events-api.html`         |
-| `selectedDate` / `selectedRanges` / `selectedDates` setters   | △      | `api-extras.spec.ts`         | `api-extras.html`         |
+| `selectedDate` / `selectedRanges` setters → input + classes   | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
+| `selectedDates` setter survives open (FINDINGS #25)           | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
+| Selection setters refresh the form value (FINDINGS #24)       | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
+| `clearSelection()` clears input, classes, form value          | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
+| `setRollingItemAlignment()` sets the variable                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
+| `setRollingItemAlignment()` survives a rebuild (FINDINGS #15) | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
 | `isOpen` setter opens/closes programmatically                 | ✓      | `events-api.spec.ts`, `triggers.spec.ts` | `events-api.html`, `triggers.html` |
 | `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `showMessage` / `hideMessage`                                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `toggleMessage`                                               | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
-| `value` setter populates input + selection                    | △      | `events-api.spec.ts`         | `events-api.html`         |
+| `value` setter populates input + selection + form value       | ✓      | `events-api.spec.ts`, `api-extras.spec.ts` | `events-api.html`, `api-extras.html` |
+| `value` getter right after `setAttribute('value')` (FINDINGS #14) | ✗ test.fail | `api-extras.spec.ts` | `api-extras.html`       |
 | `disabled` setter disables input + suppresses open            | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | HTML `data-action="custom" data-id` in `showMessage` → `action` (`source: 'message'`, `dataset`) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Internal controls (nav arrows) do not fire `action`           | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
@@ -248,7 +257,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Selection submits the ISO value under `name` (single entry)   | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Programmatic `value` reflected into the submission            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `form.reset()` clears selection + submitted value             | ✓      | `form-association.spec.ts`   | `form-association.html`   |
-| `form.reset()` restores the default `value` attribute (DRP-1) | ✗      |      |         |
+| `form.reset()` restores the default `value` attribute (FINDINGS #13) | ✗ test.fail | `api-extras.spec.ts` | `api-extras.html` |
 | Inline picker submits via hidden field                        | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Range → ISO interval; split range → each sub-range            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `value-format` json / array; `getValueFormatCallback`         | ✓      | `form-association.spec.ts`   | `form-association.html`   |
@@ -287,7 +296,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Opening a second picker closes the first                      | ✓      | `single-active.spec.ts`      | `single-active.html`      |
 | External `km-overlay-activated` closes an open picker         | ✓      | `single-active.spec.ts`      | `single-active.html`      |
-| `overlay-group`: different groups coexist, same group dismisses | ✗    |      |         |
+| `overlay-group`: different groups coexist, same group dismisses, ungrouped independent | ✓ | `single-active.spec.ts` | `single-active.html` |
 
 ## 22. Time picker
 
@@ -312,6 +321,6 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `defer` / `ready` / `isReady`                                 | ✗      |      |         |
+| `defer` holds the build; attribute removal / `ready()` builds once; `ready` never re-fires (reinit, reconnect); `is-ready` / `isReady` | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
 | DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
 | DOM move keeps the committed selection state + open state (D1, FINDINGS #16) | ✗ test.fail | `lifecycle.spec.ts` | `lifecycle.html` |

@@ -250,6 +250,24 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     object to the console, bypassing the `/logging` loggers (silent by default). Fix:
     `drpLogger.debug(...)` or delete. No test (console noise only).
 
+24. **DRP-12 — the selection setters don't refresh the form value.**
+    Where: `src/web-component.ts` `set selectedDate` / `selectedRanges` / `selectedDates`
+    (~l.1017-1027) assign straight to the engine; `#refreshFormValue()` only runs from the
+    `inputValue` update path and `#emitSelect`. Symptom: inside a `<form>`,
+    `el.selectedDate = new Date(2026, 5, 18)` shows `2026-06-18` in the input but the
+    submitted value stays empty (the `value` setter and `clearSelection()` do refresh it).
+    Fix: call `this.#refreshFormValue()` after each setter (also `selectedTime` /
+    `selectedDatetime`). Pinned by `api-extras.spec.ts` "…setters refresh the form value".
+
+25. **DRP-13 — `selectedDates` setter (multiple mode) is wiped by the next open.**
+    Where: `src/date-picker.ts` `set selectedDates` renders but never writes the input text;
+    `open()` → `updateCalendarFromInput()` (`src/date-picker-ui.ts` ~l.177) then re-syncs the
+    selection from the (empty) input and clears it. Symptom: `el.selectedDates = [d1, d2];
+    el.open()` → no `--selected` days, `selectedDates` reads `[]`. Fix: write the
+    multiple-mode input text in the setter (as a commit does), or skip the input re-sync
+    when the input text was never user-edited. Pinned by `api-extras.spec.ts`
+    "selectedDates setter (multiple) → --selected on each day".
+
 ---
 
 Add new entries below as more specs land.

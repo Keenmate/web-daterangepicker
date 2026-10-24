@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — defer / ready</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>defer / ready</h1>
+    <p>Targeted by <code>e2e/defer-ready.spec.ts</code>. <code>#attr</code> is released by
+       removing <code>defer</code>, <code>#api</code> by <code>el.ready()</code>;
+       <code>#plain</code> is not deferred.</p>
+
+    <div class="fixture" id="home">
+        <div class="fixture-label">defer — released by removing the attribute</div>
+        <web-daterangepicker id="attr" defer selection-mode="range" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">defer — released by el.ready()</div>
+        <web-daterangepicker id="api" defer initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture" id="other">
+        <div class="fixture-label">not deferred (builds on upgrade)</div>
+        <web-daterangepicker id="plain" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <pre data-testid="defer-ready-log"></pre>
+
+    <script>
+        const log = document.querySelector('[data-testid="defer-ready-log"]');
+        document.addEventListener('ready', (e) => {
+            if (e.target.localName !== 'web-daterangepicker') return;
+            log.textContent += `ready:${e.target.id}\n`;
+        });
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

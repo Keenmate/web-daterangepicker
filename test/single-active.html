@@ -19,6 +19,13 @@
         <web-daterangepicker id="drp-b" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">overlay-group="x" (two) and overlay-group="y" — opened via the API so no click-outside interferes</div>
+        <web-daterangepicker id="grp-x1" overlay-group="x" initial-date="2026-06-15"></web-daterangepicker>
+        <web-daterangepicker id="grp-x2" overlay-group="x" initial-date="2026-06-15"></web-daterangepicker>
+        <web-daterangepicker id="grp-y" overlay-group="y" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import { test, expect, Page, Locator, pickerById, calendarOf, open } from './fixtures';
+import { test, expect, Page, Locator, pickerById, calendarOf, open, dayByDate, inputOf } from './fixtures';
 
 /**
  * Multi-month rendering: visible-months-count, horizontal / grid layout,
@@ -115,4 +115,44 @@ test('unified navigation: month headers are static (no toggle-rolling on individ
 
     // Static-header variant has the --static modifier.
     await expect(p.locator('.drp__header--static').first()).toBeVisible();
+});
+
+// =============================================================================
+// unified-navigation-anchor-index / runtime month-layout
+// =============================================================================
+
+test('unified-navigation-anchor-index="1": a month picked in the unified selector lands in column 1', async ({ page }) => {
+    const p = await open(page, 'anchor');
+    await p.locator('.drp__unified-range').click();
+    await expect(p.locator('.drp__unified-rolling-selector--visible')).toBeVisible();
+    await p.locator('[data-unified="true"][data-month="8"]').click();   // September (0-based)
+
+    await expect(monthHeaderTextAt(p, 1)).toContainText(/September\s+2026/);
+    await expect(monthHeaderTextAt(p, 0)).toContainText(/August\s+2026/);
+    await expect(monthHeaderTextAt(p, 2)).toContainText(/October\s+2026/);
+});
+
+test("unified-navigation-anchor-index=\"1\": a year picked in the unified selector keeps column 1's month", async ({ page }) => {
+    const p = await open(page, 'anchor');
+    const before = (await monthHeaderTextAt(p, 1).textContent())?.replace(/\s*\d{4}.*$/, '').trim();
+    await p.locator('.drp__unified-range').click();
+    await p.locator('[data-unified="true"][data-year="2027"]').click();
+    await expect(monthHeaderTextAt(p, 1)).toContainText(new RegExp(`${before}\\s+2027`));
+});
+
+test('switching month-layout row → grid at runtime renders the grid and keeps the range', async ({ page }) => {
+    test.fail(true, 'FINDINGS.md #21');
+    const p = await open(page, 'layout');
+    await dayByDate(p, '2026-06-10').click();
+    await dayByDate(p, '2026-06-12').click();
+    await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
+
+    await p.evaluate((el: any) => { el.setAttribute('month-layout', 'grid'); return el.whenSettled(); });
+    await inputOf(p).click();
+    await expect(p.locator('.drp__months--grid')).toBeVisible();
+    await expect(p.locator('.drp__month')).toHaveCount(4);
+    await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
+    const ranges = await p.evaluate((el: any) => el.selectedRanges.length);
+    expect(ranges).toBe(1);
+    await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--range-start/);
 });

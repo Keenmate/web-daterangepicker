@@ -68,6 +68,39 @@
             placeholder="Vyberte rozsah"></web-daterangepicker>
     </div>
 
+    <form id="api-form">
+        <div class="fixture">
+            <div class="fixture-label">form-associated setters: single / range / multiple (name = when / span / days)</div>
+            <web-daterangepicker id="api-single" name="when" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+            <web-daterangepicker id="api-range" name="span" selection-mode="range" initial-date="2026-06-15"></web-daterangepicker>
+            <web-daterangepicker id="api-multi" name="days" selection-mode="multiple" initial-date="2026-06-15"></web-daterangepicker>
+        </div>
+        <div class="fixture">
+            <div class="fixture-label">value setter + clearSelection (name = val)</div>
+            <web-daterangepicker id="api-value" name="val" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+        </div>
+        <div class="fixture">
+            <div class="fixture-label">declared default value="2026-06-10" (name = def) — form.reset() restores it</div>
+            <web-daterangepicker id="api-default" name="def" selection-mode="single" value="2026-06-10" initial-date="2026-06-15"></web-daterangepicker>
+        </div>
+    </form>
+
+    <div class="fixture">
+        <div class="fixture-label">toggle() / open() idempotence / setRollingItemAlignment</div>
+        <web-daterangepicker id="api-toggle" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <pre data-testid="api-extras-log"></pre>
+
+    <script>
+        const apiLog = document.querySelector('[data-testid="api-extras-log"]');
+        for (const type of ['select', 'change']) {
+            document.addEventListener(type, (e) => {
+                if (e.target.localName !== 'web-daterangepicker') return;
+                apiLog.textContent += `${type}:${e.target.id}\n`;
+            });
+        }
+    </script>
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

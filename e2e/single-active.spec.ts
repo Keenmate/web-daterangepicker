@@ -44,3 +44,38 @@ test('an external km-overlay-activated event (no core import) closes an open dat
     );
     await expect(calendarOf(a)).toBeHidden();
 });
+
+test.describe('overlay-group', () => {
+    const openApi = (p: Locator) => p.evaluate((el: any) => el.open());
+
+    test('pickers in different groups stay open together', async ({ page }) => {
+        const x1 = page.locator('#grp-x1');
+        const y = page.locator('#grp-y');
+        await openApi(x1);
+        await expect(calendarOf(x1)).toBeVisible();
+        await openApi(y);
+        await expect(calendarOf(y)).toBeVisible();
+        await expect(calendarOf(x1)).toBeVisible();
+    });
+
+    test('opening a picker in the same group dismisses the other, leaving other groups alone', async ({ page }) => {
+        const x1 = page.locator('#grp-x1');
+        const x2 = page.locator('#grp-x2');
+        const y = page.locator('#grp-y');
+        await openApi(x1);
+        await openApi(y);
+        await openApi(x2);
+        await expect(calendarOf(x2)).toBeVisible();
+        await expect(calendarOf(x1)).toBeHidden();
+        await expect(calendarOf(y)).toBeVisible();
+    });
+
+    test('an ungrouped picker does not dismiss a grouped one', async ({ page }) => {
+        const x1 = page.locator('#grp-x1');
+        const a = page.locator('#drp-a');
+        await openApi(x1);
+        await openApi(a);
+        await expect(calendarOf(a)).toBeVisible();
+        await expect(calendarOf(x1)).toBeVisible();
+    });
+});

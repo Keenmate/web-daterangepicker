@@ -198,3 +198,132 @@ test('selectedStartDate / selectedEndDate are readable after a selectedRanges se
     });
     expect(got).toEqual({ start: '2026-06-10', end: '2026-06-14' });
 });
+
+// =============================================================================
+// setters + form value, toggle / clearSelection / open, alignment, value getter
+// =============================================================================
+
+test.describe('setters keep the input and the form value in sync', () => {
+    /** The visible text input (form-associated pickers also render a light-DOM hidden input). */
+    const textInput = (p: Locator) => p.locator('input.drp__input');
+    const formValue = (page: Page, name: string) =>
+        page.evaluate((n) => new FormData(document.getElementById('api-form') as HTMLFormElement).getAll(n).map(String).join('|'), name);
+
+    test('selectedDate setter → input + --selected class', async ({ page }) => {
+        const p = pickerById(page, 'api-single');
+        await p.evaluate((el: any) => { el.selectedDate = new Date(2026, 5, 18); });
+        await expect(textInput(p)).toHaveValue('2026-06-18');
+        await textInput(p).click();
+        await expect(dayByDate(p, '2026-06-18')).toHaveClass(/drp__day--selected/);
+    });
+
+    test('selectedRanges setter → input + range classes', async ({ page }) => {
+        const p = pickerById(page, 'api-range');
+        await p.evaluate((el: any) => { el.selectedRanges = [{ start: new Date(2026, 5, 10), end: new Date(2026, 5, 12) }]; });
+        await expect(textInput(p)).toHaveValue('2026-06-10 - 2026-06-12');
+        await textInput(p).click();
+        await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--range-start/);
+        await expect(dayByDate(p, '2026-06-11')).toHaveClass(/drp__day--in-range/);
+        await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp__day--range-end/);
+    });
+
+    test('selectedDates setter (multiple) → --selected on each day', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #25');
+        const p = pickerById(page, 'api-multi');
+        await p.evaluate((el: any) => { el.selectedDates = [new Date(2026, 5, 3), new Date(2026, 5, 9)]; });
+        await textInput(p).click();
+        await expect(dayByDate(p, '2026-06-03')).toHaveClass(/drp__day--selected/);
+        await expect(dayByDate(p, '2026-06-09')).toHaveClass(/drp__day--selected/);
+    });
+
+    test('selectedDate / selectedRanges / selectedDates setters refresh the form value', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #24');
+        await page.evaluate(() => {
+            (document.getElementById('api-single') as any).selectedDate = new Date(2026, 5, 18);
+            (document.getElementById('api-range') as any).selectedRanges = [{ start: new Date(2026, 5, 10), end: new Date(2026, 5, 12) }];
+            (document.getElementById('api-multi') as any).selectedDates = [new Date(2026, 5, 3), new Date(2026, 5, 9)];
+        });
+        await expect.poll(() => formValue(page, 'when')).toBe('2026-06-18');
+        await expect.poll(() => formValue(page, 'span')).toBe('2026-06-10/2026-06-12');
+        await expect.poll(() => formValue(page, 'days')).toBe('2026-06-03,2026-06-09');
+    });
+
+    test('value setter → input, selection and form value', async ({ page }) => {
+        const p = pickerById(page, 'api-value');
+        await p.evaluate((el: any) => { el.value = '2026-06-21'; });
+        await expect(textInput(p)).toHaveValue('2026-06-21');
+        expect(await p.evaluate((el: any) => el.value)).toBe('2026-06-21');
+        await expect.poll(() => formValue(page, 'val')).toBe('2026-06-21');
+        await textInput(p).click();
+        await expect(dayByDate(p, '2026-06-21')).toHaveClass(/drp__day--selected/);
+    });
+
+    test('clearSelection() clears the input, the classes and the form value', async ({ page }) => {
+        const p = pickerById(page, 'api-value');
+        await p.evaluate((el: any) => { el.selectedDate = new Date(2026, 5, 18); });
+        await expect(textInput(p)).toHaveValue('2026-06-18');
+        await p.evaluate((el: any) => el.clearSelection());
+        await expect(textInput(p)).toHaveValue('');
+        expect(await p.evaluate((el: any) => el.selectedDate)).toBeNull();
+        await expect.poll(() => formValue(page, 'val')).toBe('');
+        await textInput(p).click();
+        await expect(p.locator('.drp__day--selected')).toHaveCount(0);
+    });
+
+    test('form.reset() restores the declared default value attribute', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #13');
+        const p = pickerById(page, 'api-default');
+        await expect(textInput(p)).toHaveValue('2026-06-10');
+        await p.evaluate((el: any) => { el.selectedDate = new Date(2026, 5, 18); });
+        await expect(textInput(p)).toHaveValue('2026-06-18');
+        await page.evaluate(() => (document.getElementById('api-form') as HTMLFormElement).reset());
+        await expect(textInput(p)).toHaveValue('2026-06-10');
+        expect(await formValue(page, 'def')).toBe('2026-06-10');
+    });
+
+    test('the value getter reads a just-written value attribute synchronously', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #14');
+        const p = pickerById(page, 'api-value');
+        const read = await p.evaluate((el: any) => { el.setAttribute('value', '2026-06-10'); return [el.value, el.getInputValue()]; });
+        expect(read).toEqual(['2026-06-10', '2026-06-10']);
+    });
+});
+
+test.describe('open / toggle', () => {
+    test('toggle() opens a closed picker and closes an open one', async ({ page }) => {
+        const p = pickerById(page, 'api-toggle');
+        await p.evaluate((el: any) => el.toggle());
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+        expect(await p.evaluate((el: any) => el.isOpen)).toBe(true);
+        await p.evaluate((el: any) => el.toggle());
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+    });
+
+    test('open() is idempotent: a second call keeps it open and one close() closes it', async ({ page }) => {
+        const p = pickerById(page, 'api-toggle');
+        await p.evaluate((el: any) => { el.open(); el.open(); });
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+        await expect(p.locator('.drp__picker')).toHaveCount(1);
+        await p.evaluate((el: any) => el.close());
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+    });
+});
+
+test.describe('setRollingItemAlignment', () => {
+    const justify = (p: Locator) =>
+        p.evaluate((el) => getComputedStyle(el.shadowRoot!.querySelector('.drp__picker')!).getPropertyValue('--drp-rolling-item-justify-content').trim());
+
+    test('sets the rolling-item alignment variable', async ({ page }) => {
+        const p = pickerById(page, 'api-toggle');
+        await p.evaluate((el: any) => el.setRollingItemAlignment('flex-end'));
+        expect(await justify(p)).toBe('flex-end');
+    });
+
+    test('the alignment survives a structural rebuild', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #15');
+        const p = pickerById(page, 'api-toggle');
+        await p.evaluate((el: any) => el.setRollingItemAlignment('flex-end'));
+        await p.evaluate((el: any) => { el.setAttribute('visible-months-count', '2'); return el.whenSettled(); });
+        expect(await justify(p)).toBe('flex-end');
+    });
+});
