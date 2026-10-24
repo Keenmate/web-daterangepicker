@@ -182,7 +182,73 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     decided (D1, 2026-10-24) that a move must keep selection, input value, form value and open
     state. Fix: move to core's build-once + activate/deactivate model — `disconnect()` only
     stops live resources (listeners, `autoUpdate`), `connect()` restarts them; the picker
-    instance survives. Pinned by `e2e/lifecycle.spec.ts`.
+    instance survives. Pinned by `e2e/lifecycle.spec.ts`: after a move the input text and
+    form value survive, but `selectedRanges` reads `[]` and an open picker is closed. (A
+    half-picked range happens to survive — reopening re-syncs from the input text.)
+
+17. **DRP-5 — Apply never fires `select` / `change` (all `commit-mode="apply"` pickers).**
+    Where: `src/date-picker-selection.ts` `apply()` calls `options.onSelect(...)` *before*
+    `picker.pendingSelection = null`; the host bridge `#handleDateSelect`
+    (`src/web-component.ts` ~l.563) returns early while
+    `picker.requiresApplyButton() && picker.hasPendingSelection` — which is still true at
+    that moment. Symptom: range-apply, multiple and every time/datetime picker (apply is
+    their default) commit the input on Apply but emit no `select`/`change`, and
+    `#updateFormValue` (only called from `#emitSelect`) never refreshes the hidden form
+    input. Repro: `test/selection-modes.html#range-apply`, pick two days, Apply → no event.
+    Fix: clear `pendingSelection` before invoking `onSelect` in `apply()` (or pass a flag so
+    the bridge knows it's the Apply call). Pinned by `time-picker.spec.ts`
+    "Apply fires select with the committed time".
+
+18. **DRP-6 — `time-display` is `on:'update'` but the time DOM is built once.**
+    Where: `src/date-picker.ts` builds the clock / wheel / compact / rolls skeleton in
+    `createCalendar()`; `updateOptions()` doesn't list `timeDisplay` in `STRUCTURAL_KEYS`, so a
+    runtime switch merges the option, the renderer dispatches on the new display, finds no
+    `.drp__clock-picker` (etc.) and renders nothing — the old rolls stay on screen, stale.
+    The selection itself survives. Fix: add `'timeDisplay'` to `STRUCTURAL_KEYS` (the host
+    already rebuilds when `updateOptions` returns false — ideally preserving the selection,
+    see #21). Pinned by `time-picker.spec.ts` (3 tests).
+
+19. **DRP-7 — `display-time-format-mask` is accepted but never used.**
+    Where: `src/web-component.ts` `#applyPlaceholderTo()` only reads `displayFormatMask` /
+    `dateFormatMask`; `displayTimeFormatMask` is passed to the engine and stored, nothing
+    reads it. Symptom: `<web-daterangepicker picker-mode="time" display-time-format-mask="hh:mm">`
+    shows no placeholder hint. Suggested fix: in time mode use it as the hint; in datetime
+    mode combine `(displayFormatMask ?? dateFormatMask) + ' ' + displayTimeFormatMask`.
+    **Open question for the user:** is that the intended meaning? Pinned by
+    `time-picker.spec.ts`.
+
+20. **DRP-8 — runtime `time-format-mask` change is ignored.**
+    Where: `src/date-picker.ts` `updateOptions()` re-parses `formatInfo` for
+    `dateFormatMask` but never re-parses `timeFormatOptions` for `timeFormatMask` (it's
+    `on:'update'`). Symptom: `setAttribute('time-format-mask', 'HH.mm')`, then pick 07:30 →
+    input shows `07:30`. Fix: re-parse on `has('timeFormatMask')`; since the mask can flip
+    the derived hour cycle / seconds, return `false` (rebuild) when those change, or make
+    the input `on:'reinit'`. Pinned by `time-options.spec.ts`.
+
+21. **DRP-9 — any `on:'reinit'` change drops the selection state.**
+    Where: `src/web-component.ts` `reinit()` calls `#rebuildPicker()` (destroy + build), not
+    `#rebuildPreservingSelection()` (which the compaction path already uses). Symptom:
+    commit 20:05 in a time picker, `setAttribute('hour-cycle', 'h12')` → `selectedTime` is
+    `null` while the input still shows `20:05` (state and input disagree). Applies to every
+    reinit input (`picker-mode`, `is-seconds-shown`, `visible-months-count`, …). Fix: use
+    `#rebuildPreservingSelection()` in `reinit()` after the first build. Pinned by
+    `time-options.spec.ts` "switching hour-cycle at runtime…".
+
+22. **DRP-10 — `commit-mode="manual"` commits on every pick (docs say it never does).**
+    `src/types.ts` / CHANGELOG 2.0: "`manual` — never auto-commit or auto-close … the app
+    drives commit/close via custom action buttons calling `apply()` / `close()`". Actual:
+    `requiresApplyButton()` is true only for `apply`, so in `manual` mode every pick writes
+    the input and fires `select`/`change`; only the auto-close is suppressed. The older
+    `selection-modes.spec.ts` test "single mode does NOT close after selecting a day" even
+    asserts the immediate input write. **Open question for the user:** which is intended —
+    stage like `apply` (just without the button), or commit-without-close (then fix the
+    docs)? Pinned by `selection-modes.spec.ts` "nothing is committed … until the app calls
+    controller.apply()".
+
+23. **DRP-11 — stray `console.log('[wheel] commit', …)` in production code.**
+    Where: `src/date-picker-selection.ts` `commitWheelScroll()`. Every wheel commit logs an
+    object to the console, bypassing the `/logging` loggers (silent by default). Fix:
+    `drpLogger.debug(...)` or delete. No test (console noise only).
 
 ---
 

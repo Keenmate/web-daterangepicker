@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — time picker</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>time picker</h1>
+    <p>Targeted by <code>e2e/time-picker.spec.ts</code>. The clock is pinned by the
+       e2e fixture (2026-05-22 10:00), so the rolls focus 10:00 on open.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">picker-mode="time" (rolls, default)</div>
+        <web-daterangepicker id="time" picker-mode="time" placeholder="HH:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">picker-mode="datetime"</div>
+        <web-daterangepicker id="datetime" picker-mode="datetime"
+            initial-date="2026-06-15" placeholder="YYYY-MM-DD HH:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">time-display="clock"</div>
+        <web-daterangepicker id="clock" picker-mode="time" time-display="clock" placeholder="HH:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">time-display="wheel"</div>
+        <web-daterangepicker id="wheel" picker-mode="time" time-display="wheel" placeholder="HH:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">time-display="compact"</div>
+        <web-daterangepicker id="compact" picker-mode="time" time-display="compact" placeholder="HH:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">rolls; the spec switches time-display at runtime</div>
+        <web-daterangepicker id="switch" picker-mode="time" placeholder="HH:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">display-time-format-mask="hh:mm" with no explicit placeholder</div>
+        <web-daterangepicker id="masked" picker-mode="time" display-time-format-mask="hh:mm"></web-daterangepicker>
+    </div>
+
+    <pre data-testid="time-picker-log"></pre>
+
+    <script type="module" src="/src/index.ts"></script>
+    <script>
+        const log = document.querySelector('[data-testid="time-picker-log"]');
+        document.addEventListener('select', (e) => {
+            if (e.target.localName !== 'web-daterangepicker') return;
+            log.textContent += `select:${e.target.id}:${e.detail?.formattedValue ?? ''}\n`;
+        });
+    </script>
+</body>
+</html>

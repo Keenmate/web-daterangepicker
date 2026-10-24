@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — lifecycle (DOM move)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>lifecycle</h1>
+    <p>Targeted by <code>e2e/lifecycle.spec.ts</code>. The spec re-parents
+       <code>#picker</code> between <code>#slot-a</code> and <code>#slot-b</code>
+       (both inside the same form). Decision D1: a DOM move keeps selection, input
+       value, form value and open state.</p>
+
+    <form id="form">
+        <div class="fixture" id="slot-a">
+            <div class="fixture-label">slot A (initial home)</div>
+            <web-daterangepicker id="picker" name="period" selection-mode="range"
+                initial-date="2026-06-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        </div>
+        <div class="fixture" id="slot-b">
+            <div class="fixture-label">slot B (move target)</div>
+        </div>
+    </form>
+
+    <pre data-testid="lifecycle-log"></pre>
+
+    <script>
+        const log = document.querySelector('[data-testid="lifecycle-log"]');
+        for (const type of ['ready', 'select']) {
+            document.addEventListener(type, (e) => {
+                if (e.target.localName !== 'web-daterangepicker') return;
+                log.textContent += `${type}:${e.target.id}\n`;
+            });
+        }
+        /** Re-parent the picker into the other slot (a plain DOM move). */
+        window.movePicker = () => {
+            const el = document.getElementById('picker');
+            const target = el.parentElement.id === 'slot-a' ? 'slot-b' : 'slot-a';
+            document.getElementById(target).appendChild(el);
+        };
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -44,6 +44,27 @@
             initial-date="2026-06-15" commit-mode="manual" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">range with commit-mode="manual" — the app commits via a custom "Done" button (controller.apply())</div>
+        <web-daterangepicker id="range-manual" selection-mode="range"
+            initial-date="2026-06-15" commit-mode="manual" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <pre data-testid="selection-modes-log"></pre>
+
+    <script>
+        // Set before upgrade (lifted by the element on connect).
+        document.getElementById('range-manual').actionButtons = [
+            { id: 'done', text: 'Done', onClick: (d) => d.controller.apply() }
+        ];
+        const log = document.querySelector('[data-testid="selection-modes-log"]');
+        for (const type of ['select', 'change']) {
+            document.addEventListener(type, (e) => {
+                if (e.target.localName !== 'web-daterangepicker') return;
+                log.textContent += `${type}:${e.target.id}:${e.detail?.formattedValue ?? ''}\n`;
+            });
+        }
+    </script>
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

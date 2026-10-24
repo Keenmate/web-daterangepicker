@@ -174,3 +174,35 @@ test('commit-mode="manual": single mode does NOT close after selecting a day', a
     await expect(inputOf(p)).toHaveValue('2026-06-20');
     await expect(calendarOf(p)).toBeVisible();
 });
+
+test.describe('commit-mode="manual" (range, app-driven commit)', () => {
+    const log = (page: Page) => page.getByTestId('selection-modes-log');
+
+    test('completing a range neither closes the picker nor renders an Apply button', async ({ page }) => {
+        const p = await open(page, 'range-manual');
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-12').click();
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+        await expect(p.locator('.drp__button--apply')).toHaveCount(0);
+        await expect(p.locator('.drp__button[data-id="done"]')).toBeVisible();
+    });
+
+    test('nothing is committed (no select/change) until the app calls controller.apply()', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #22');
+        const p = await open(page, 'range-manual');
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-12').click();
+        await page.waitForTimeout(100);
+        await expect(log(page)).toHaveText('');
+    });
+
+    test('controller.apply() (custom Done button) commits the range and closes', async ({ page }) => {
+        const p = await open(page, 'range-manual');
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-12').click();
+        await p.locator('.drp__button[data-id="done"]').click();
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+        await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
+        await expect(log(page)).toContainText('select:range-manual:2026-06-10 - 2026-06-12');
+    });
+});

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — time options</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>time options</h1>
+    <p>Targeted by <code>e2e/time-options.spec.ts</code>. All pickers are
+       <code>picker-mode="time"</code> (default <code>commit-mode="apply"</code>);
+       the clock is pinned by the e2e fixture to 2026-05-22 10:00:00.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">hour-cycle="h12" time-format-mask="hh:mm a"</div>
+        <web-daterangepicker id="h12" picker-mode="time" hour-cycle="h12" time-format-mask="hh:mm a"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">time-format-mask="hh:mm a" only (hour cycle derived from the mask)</div>
+        <web-daterangepicker id="mask12" picker-mode="time" time-format-mask="hh:mm a"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">time-step="15"</div>
+        <web-daterangepicker id="step" picker-mode="time" time-step="15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">is-seconds-shown time-format-mask="HH:mm:ss"</div>
+        <web-daterangepicker id="seconds" picker-mode="time" is-seconds-shown time-format-mask="HH:mm:ss"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">defaults (HH:mm, Now button shown); the spec changes options at runtime</div>
+        <web-daterangepicker id="plain" picker-mode="time"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">is-now-button-shown="false"</div>
+        <web-daterangepicker id="no-now" picker-mode="time" is-now-button-shown="false"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

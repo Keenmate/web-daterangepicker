@@ -24,7 +24,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Range: drag-to-adjust with touch pointer events               | ✓      | `drag-adjust-touch.spec.ts`  | `drag-adjust.html`        |
 | Multiple-date selection (toggle individual days)              | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| `commitMode`: `'selection'` (default) / `'apply'` / `'manual'`  | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| `commitMode`: `'selection'` (default) / `'apply'` / `'manual'`  | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| `commit-mode="manual"`: no close, no Apply; custom button → `controller.apply()` commits | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `commit-mode="manual"`: nothing commits before `apply()` (FINDINGS #22) | ✗ test.fail | `selection-modes.spec.ts` | `selection-modes.html` |
 
 ## 2. Positioning modes
 
@@ -291,14 +293,25 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `picker-mode="time"` / `"datetime"` commit `selectedTime` / `selectedDatetime` | ✗ | | |
-| `time-display` rolls / clock / wheel / compact                | ✗      |      |         |
-| `hour-cycle`, `time-step`, `is-seconds-shown`, `is-now-button-shown`, `time-format-mask` | ✗ | | |
-| Full-screen (phone) time selection commits                    | ✗      |      |         |
+| `picker-mode="time"`: rolls; pick + Apply commits `selectedTime` + input | ✓ | `time-picker.spec.ts` | `time-picker.html` |
+| `picker-mode="datetime"`: grid + rolls, commits `selectedDatetime`; ISO setter splits | ✓ | `time-picker.spec.ts` | `time-picker.html` |
+| `selectedTime` setter renders rolls + input                   | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
+| `time-display` clock / wheel / compact each commit            | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
+| Apply fires `select` (FINDINGS #17)                           | ✗ test.fail | `time-picker.spec.ts`   | `time-picker.html`        |
+| Runtime `time-display` switch renders the new UI (FINDINGS #18) | ✗ test.fail | `time-picker.spec.ts` | `time-picker.html`        |
+| `display-time-format-mask` as placeholder hint (FINDINGS #19) | ✗ test.fail | `time-picker.spec.ts`   | `time-picker.html`        |
+| `hour-cycle` h12 (1-12 + AM/PM, formats `hh:mm a`); derived from the mask | ✓ | `time-options.spec.ts` | `time-options.html` |
+| Runtime `hour-cycle` switch keeps the time (FINDINGS #21)     | ✗ test.fail | `time-options.spec.ts`  | `time-options.html`       |
+| `time-step` (declared + runtime)                              | ✓      | `time-options.spec.ts`       | `time-options.html`       |
+| `is-seconds-shown` (declared + runtime toggle)                | ✓      | `time-options.spec.ts`       | `time-options.html`       |
+| `is-now-button-shown`: Now commits the pinned now; hidden (declared + runtime) | ✓ | `time-options.spec.ts` | `time-options.html` |
+| Runtime `time-format-mask` change (FINDINGS #20)              | ✗ test.fail | `time-options.spec.ts`  | `time-options.html`       |
+| Phone full-screen sheet: time / datetime / wheel commit via Apply; ✕ discards | ✓ | `mobile-time.spec.ts` | `mobile-time-e2e.html` |
 
 ## 23. Lifecycle
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `defer` / `ready` / `isReady`                                 | ✗      |      |         |
-| DOM move keeps selection, input value, form value, open state (D1, DRP-4) | ✗ | | |
+| DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
+| DOM move keeps the committed selection state + open state (D1, FINDINGS #16) | ✗ test.fail | `lifecycle.spec.ts` | `lifecycle.html` |
