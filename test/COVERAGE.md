@@ -194,7 +194,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `cancel` event                                                | n/a    | _no event; pending selection restores prior input value_ |         |
 | `action` event fires once per custom button click             | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `selectedDate` / `selectedRanges` setters → input + classes   | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
-| `selectedDates` setter survives open (FINDINGS #25)           | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
+| `selectedDates` / `selectedRanges` (multiple) setters survive open (FINDINGS #25, fixed) | ✓ | `api-extras.spec.ts`    | `api-extras.html`         |
 | Selection setters refresh the form value (FINDINGS #24, fixed) | ✓ | `api-extras.spec.ts`    | `api-extras.html`         |
 | `clearSelection()` clears input, classes, form value          | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `setRollingItemAlignment()` sets the variable                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |

@@ -2393,6 +2393,11 @@ class DateRangePickerEngine {
                     ? this._selectedRanges.map(r => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`).join(', ')
                     : `${this.formatDate(this._selectedStartDate)} - ${this.formatDate(this._selectedEndDate)}`;
             }
+        } else if (this.options.selectionMode === 'multiple') {
+            // Multiple mode: the input carries the selection count (as a pick does);
+            // leaving it empty made the next open() re-sync from '' and wipe the
+            // assigned selection (FINDINGS #25).
+            this.writeMultipleInputText();
         } else if (this.input && !this.requiresApplyButton()) {
             // Clear input if no ranges or not in range mode
             this.input.value = '';
@@ -2400,6 +2405,13 @@ class DateRangePickerEngine {
 
         this.renderCalendar();
         this.updateSummary();
+    }
+
+    /** Multiple mode: write the committed selection count ("N selection(s)", '' when none) into the input. */
+    private writeMultipleInputText() {
+        if (!this.input) return;
+        const count = this._selectedDates.length + this._selectedRanges.length;
+        this.input.value = count > 0 ? `${count} selection(s)` : '';
     }
 
     /**
@@ -2412,6 +2424,9 @@ class DateRangePickerEngine {
     set selectedDates(dates: Date[]) {
         this.summaryOverride = null;
         this._selectedDates = dates.map(d => new Date(d));
+        // Write the input text like a pick does, so the next open() (which re-syncs
+        // from the input) keeps the assigned dates (FINDINGS #25).
+        if (this.options.selectionMode === 'multiple') this.writeMultipleInputText();
         this.renderCalendar();
         this.updateSummary();
     }

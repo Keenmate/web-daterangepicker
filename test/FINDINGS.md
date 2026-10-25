@@ -304,7 +304,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     value either (the old spec only passed because the setter never wrote one) — it now
     does.
 
-25. **DRP-13 — `selectedDates` setter (multiple mode) is wiped by the next open.**
+25. **~~DRP-13 — `selectedDates` setter (multiple mode) is wiped by the next open.~~** ✅ FIXED
     Where: `src/date-picker.ts` `set selectedDates` renders but never writes the input text;
     `open()` → `updateCalendarFromInput()` (`src/date-picker-ui.ts` ~l.177) then re-syncs the
     selection from the (empty) input and clears it. Symptom: `el.selectedDates = [d1, d2];
@@ -312,6 +312,9 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     multiple-mode input text in the setter (as a commit does), or skip the input re-sync
     when the input text was never user-edited. Pinned by `api-extras.spec.ts`
     "selectedDates setter (multiple) → --selected on each day".
+    **Fixed (2026-10-25):** the engine's `selectedDates` setter (and `selectedRanges` in
+    multiple mode, which cleared the input outright) writes the `N selection(s)` text a pick
+    writes. New spec covers both setters surviving an open.
 
 26. **DRP-14 — Ctrl+Home / Ctrl+End can leave two focused days (timing race, low priority).**
     Where: `src/date-picker.ts` keydown handler, the Ctrl+Home / Ctrl+End branches

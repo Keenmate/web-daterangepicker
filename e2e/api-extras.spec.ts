@@ -228,12 +228,22 @@ test.describe('setters keep the input and the form value in sync', () => {
     });
 
     test('selectedDates setter (multiple) → --selected on each day', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #25');
         const p = pickerById(page, 'api-multi');
         await p.evaluate((el: any) => { el.selectedDates = [new Date(2026, 5, 3), new Date(2026, 5, 9)]; });
         await textInput(p).click();
         await expect(dayByDate(p, '2026-06-03')).toHaveClass(/drp__day--selected/);
         await expect(dayByDate(p, '2026-06-09')).toHaveClass(/drp__day--selected/);
+    });
+
+    test('selectedDates / selectedRanges setters (multiple) write the count and survive open (FINDINGS #25)', async ({ page }) => {
+        const p = pickerById(page, 'api-multi');
+        await p.evaluate((el: any) => { el.selectedDates = [new Date(2026, 5, 3), new Date(2026, 5, 9)]; });
+        await expect(textInput(p)).toHaveValue('2 selection(s)');
+        await p.evaluate((el: any) => { el.selectedRanges = [{ start: new Date(2026, 5, 15), end: new Date(2026, 5, 17) }]; });
+        await expect(textInput(p)).toHaveValue('3 selection(s)');
+        await textInput(p).click();
+        const kept = await p.evaluate((el: any) => [el.selectedDates.length, el.selectedRanges.length]);
+        expect(kept).toEqual([2, 1]);
     });
 
     test('selectedDate / selectedRanges / selectedDates setters refresh the form value', async ({ page }) => {

@@ -102,6 +102,8 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
 - A runtime `time-display` change renders the new time UI (the old rolls stayed on screen),
   and a runtime `time-format-mask` change re-formats the input and re-derives the hour cycle /
   seconds — both rebuild with the committed time preserved.
+- Multiple mode: assigning `selectedDates` / `selectedRanges` writes the `N selection(s)` input
+  text, so the next open no longer wipes the assigned selection.
 
 ### Added
 
