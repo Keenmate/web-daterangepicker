@@ -98,6 +98,10 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   (they read before the coalesced write landed).
 - The selection setters (`selectedDate`, `selectedRanges`, `selectedDates`, `selectedTime`,
   `selectedDatetime`) and `el.clearSelection()` keep the submitted form value in sync.
+- `setRollingItemAlignment()` survives a rebuild (it was written on the rebuilt calendar node).
+- A runtime `time-display` change renders the new time UI (the old rolls stayed on screen),
+  and a runtime `time-format-mask` change re-formats the input and re-derives the hour cycle /
+  seconds — both rebuild with the committed time preserved.
 
 ### Added
 

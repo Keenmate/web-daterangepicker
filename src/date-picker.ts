@@ -696,6 +696,11 @@ class DateRangePickerEngine {
             'pickerMode',
             'isSecondsShown',
             'hourCycle',
+            // The time UI skeleton (clock / wheel / compact / rolls) is built once in
+            // createCalendar(), and the time mask derives hour cycle + seconds at
+            // construction — both need a rebuild (FINDINGS #18, #20).
+            'timeDisplay',
+            'timeFormatMask',
         ];
         const has = (k: keyof DatePickerOptions) => Object.prototype.hasOwnProperty.call(partial, k);
         const changed = (k: keyof DatePickerOptions) => has(k) && (partial as any)[k] !== (this.options as any)[k];

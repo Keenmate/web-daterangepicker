@@ -198,7 +198,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Selection setters refresh the form value (FINDINGS #24, fixed) | ✓ | `api-extras.spec.ts`    | `api-extras.html`         |
 | `clearSelection()` clears input, classes, form value          | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `setRollingItemAlignment()` sets the variable                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
-| `setRollingItemAlignment()` survives a rebuild (FINDINGS #15) | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
+| `setRollingItemAlignment()` survives a rebuild (FINDINGS #15, fixed) | ✓ | `api-extras.spec.ts`    | `api-extras.html`         |
 | `isOpen` setter opens/closes programmatically                 | ✓      | `events-api.spec.ts`, `triggers.spec.ts` | `events-api.html`, `triggers.html` |
 | `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `showMessage` / `hideMessage`                                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
@@ -312,14 +312,14 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `selectedTime` setter renders rolls + input                   | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
 | `time-display` clock / wheel / compact each commit            | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
 | Apply fires `select` (FINDINGS #17, fixed)                    | ✓      | `time-picker.spec.ts`   | `time-picker.html`        |
-| Runtime `time-display` switch renders the new UI (FINDINGS #18) | ✗ test.fail | `time-picker.spec.ts` | `time-picker.html`        |
+| Runtime `time-display` switch renders the new UI (FINDINGS #18, fixed) | ✓ | `time-picker.spec.ts` | `time-picker.html`        |
 | `display-time-format-mask` as placeholder hint (FINDINGS #19) | ✗ test.fail | `time-picker.spec.ts`   | `time-picker.html`        |
 | `hour-cycle` h12 (1-12 + AM/PM, formats `hh:mm a`); derived from the mask | ✓ | `time-options.spec.ts` | `time-options.html` |
 | Runtime `hour-cycle` switch keeps the time (FINDINGS #21, fixed) | ✓ | `time-options.spec.ts`  | `time-options.html`       |
 | `time-step` (declared + runtime)                              | ✓      | `time-options.spec.ts`       | `time-options.html`       |
 | `is-seconds-shown` (declared + runtime toggle)                | ✓      | `time-options.spec.ts`       | `time-options.html`       |
 | `is-now-button-shown`: Now commits the pinned now; hidden (declared + runtime) | ✓ | `time-options.spec.ts` | `time-options.html` |
-| Runtime `time-format-mask` change (FINDINGS #20)              | ✗ test.fail | `time-options.spec.ts`  | `time-options.html`       |
+| Runtime `time-format-mask` change incl. derived hour cycle (FINDINGS #20, fixed) | ✓ | `time-options.spec.ts`  | `time-options.html`       |
 | Phone full-screen sheet: time / datetime / wheel commit via Apply; ✕ discards | ✓ | `mobile-time.spec.ts` | `mobile-time-e2e.html` |
 
 ## 23. Lifecycle

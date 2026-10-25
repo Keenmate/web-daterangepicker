@@ -360,7 +360,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       pickerPartial[key] = value;
     }
     if (this.#picker && Object.keys(pickerPartial).length > 0) {
-      if (!this.#picker.updateOptions(pickerPartial as Partial<DatePickerOptions>)) this.#rebuildPicker();
+      // The engine refuses a structural key in place → rebuild, carrying the selection.
+      if (!this.#picker.updateOptions(pickerPartial as Partial<DatePickerOptions>)) this.#rebuildPreservingSelection();
     }
   }
 
@@ -1019,8 +1020,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   /** Align items within the rolling year/month selector (`flex-start` | `center` | `flex-end`). */
   setRollingItemAlignment(alignment: 'flex-start' | 'center' | 'flex-end'): void {
-    const calendar = this.#shadow.querySelector('.drp__picker') as HTMLElement | null;
-    calendar?.style.setProperty('--drp-rolling-item-justify-content', alignment);
+    // On the host (inherits into the shadow tree, beats the `:host` default) so it
+    // survives a rebuild of the `.drp__picker` node (FINDINGS #15).
+    this.style.setProperty('--drp-rolling-item-justify-content', alignment);
   }
 
   // ── live-state accessors (read the picker/input, not the config) ──────────

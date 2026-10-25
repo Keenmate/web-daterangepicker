@@ -136,7 +136,6 @@ test.describe('is-now-button-shown', () => {
 
 test.describe('time-format-mask', () => {
     test('changing time-format-mask at runtime re-formats the next commit', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #20');
         const p = pickerById(page, 'plain');
         await setAttr(p, 'time-format-mask', 'HH.mm');
         await open(page, 'plain');
@@ -144,5 +143,13 @@ test.describe('time-format-mask', () => {
         await list(p, 'minutes').locator('[data-minute="30"]').click();
         await apply(p);
         await expect(inputOf(p)).toHaveValue('07.30');
+    });
+
+    test('a runtime 12-hour time-format-mask re-derives the hour cycle (AM/PM roll appears)', async ({ page }) => {
+        const p = pickerById(page, 'plain');
+        await setAttr(p, 'time-format-mask', 'hh:mm a');
+        await open(page, 'plain');
+        await expect(list(p, 'ampm')).toBeVisible();
+        await expect(list(p, 'hours').locator('[data-hour12]')).toHaveCount(12);
     });
 });

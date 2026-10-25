@@ -140,7 +140,6 @@ test.describe('time-display variants', () => {
 
     for (const display of ['clock', 'wheel', 'compact'] as const) {
         test(`switching time-display rolls → ${display} at runtime keeps the selection and renders the new UI`, async ({ page }) => {
-            test.fail(true, 'FINDINGS.md #18');
             const p = await open(page, 'switch');
             await rollItem(p, 'hours', 'data-hour', 16).click();
             await rollItem(p, 'minutes', 'data-minute', 30).click();

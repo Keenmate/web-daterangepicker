@@ -174,11 +174,12 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     `this.flush()` first (as the other imperative accessors do).
     **Fixed (2026-10-25):** `getInputValue()` (and so the `value` getter) flushes first.
 
-15. **DRP-3 — `setRollingItemAlignment()` is lost on rebuild.**
+15. **~~DRP-3 — `setRollingItemAlignment()` is lost on rebuild.~~** ✅ FIXED
     Where: `src/web-component.ts` `setRollingItemAlignment()` (~l.996). It writes
     `--drp-rolling-item-justify-content` on the `.drp__picker` node; any `on:'reinit'` change
     (or a DOM move, DRP-4) rebuilds that node and the alignment silently resets. Fix: set the
     variable on the host (`this.style`) or keep it in config and re-apply in `#buildPicker()`.
+    **Fixed (2026-10-25):** the variable is set on the host's inline style.
 
 16. **~~DRP-4 — a DOM move rebuilds the picker (D1).~~** ✅ FIXED
     Where: `src/web-component.ts` `disconnect()` (~l.371) destroys the picker, `connect()`
@@ -218,7 +219,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     refreshes the form value. New spec `selection-modes.spec.ts` "Apply fires select +
     change once and refreshes the form value" (range-apply).
 
-18. **DRP-6 — `time-display` is `on:'update'` but the time DOM is built once.**
+18. **~~DRP-6 — `time-display` is `on:'update'` but the time DOM is built once.~~** ✅ FIXED
     Where: `src/date-picker.ts` builds the clock / wheel / compact / rolls skeleton in
     `createCalendar()`; `updateOptions()` doesn't list `timeDisplay` in `STRUCTURAL_KEYS`, so a
     runtime switch merges the option, the renderer dispatches on the new display, finds no
@@ -226,6 +227,9 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     The selection itself survives. Fix: add `'timeDisplay'` to `STRUCTURAL_KEYS` (the host
     already rebuilds when `updateOptions` returns false — ideally preserving the selection,
     see #21). Pinned by `time-picker.spec.ts` (3 tests).
+    **Fixed (2026-10-25):** `timeDisplay` is in `STRUCTURAL_KEYS`, and the host's
+    `update()` now rebuilds via `#rebuildPreservingSelection()` when the engine refuses a
+    partial (the committed time survives).
 
 19. **DRP-7 — `display-time-format-mask` is accepted but never used.**
     Where: `src/web-component.ts` `#applyPlaceholderTo()` only reads `displayFormatMask` /
@@ -236,13 +240,16 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     **Open question for the user:** is that the intended meaning? Pinned by
     `time-picker.spec.ts`.
 
-20. **DRP-8 — runtime `time-format-mask` change is ignored.**
+20. **~~DRP-8 — runtime `time-format-mask` change is ignored.~~** ✅ FIXED
     Where: `src/date-picker.ts` `updateOptions()` re-parses `formatInfo` for
     `dateFormatMask` but never re-parses `timeFormatOptions` for `timeFormatMask` (it's
     `on:'update'`). Symptom: `setAttribute('time-format-mask', 'HH.mm')`, then pick 07:30 →
     input shows `07:30`. Fix: re-parse on `has('timeFormatMask')`; since the mask can flip
     the derived hour cycle / seconds, return `false` (rebuild) when those change, or make
     the input `on:'reinit'`. Pinned by `time-options.spec.ts`.
+    **Fixed (2026-10-25):** `timeFormatMask` is in `STRUCTURAL_KEYS` (rebuild, selection
+    preserved) so the mask and its derived hour cycle / seconds are re-parsed. New spec: a
+    runtime `hh:mm a` mask brings the AM/PM roll.
 
 21. **~~DRP-9 — any `on:'reinit'` change drops the selection state.~~** ✅ FIXED
     Where: `src/web-component.ts` `reinit()` calls `#rebuildPicker()` (destroy + build), not

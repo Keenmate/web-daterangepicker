@@ -317,7 +317,6 @@ test.describe('setRollingItemAlignment', () => {
     });
 
     test('the alignment survives a structural rebuild', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #15');
         const p = pickerById(page, 'api-toggle');
         await p.evaluate((el: any) => el.setRollingItemAlignment('flex-end'));
         await p.evaluate((el: any) => { el.setAttribute('visible-months-count', '2'); return el.whenSettled(); });
