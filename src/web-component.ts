@@ -386,12 +386,19 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#picker?.deactivate();
   }
 
-  /** Form reset: clear the selection and the submitted value with the form. */
+  /**
+   * Form reset: back to the declared default — the `value` attribute (like a
+   * native input's `defaultValue`), else empty. `flush()` first so a reset right
+   * after a `setAttribute('value', …)` sees it. The picker re-syncs its selection
+   * from the restored text on the next open, as for the `value` setter.
+   */
   formResetCallback(): void {
+    this.flush();
+    const defaultValue = this.getAttribute('value') ?? '';
     this.#picker?.clearSelection();
-    if (this.#inputElement) this.#inputElement.value = '';
+    if (this.#inputElement) this.#inputElement.value = defaultValue;
     this.#updateInputClear();
-    this.#updateFormValue(); // selection is now empty → clears the hidden input(s)
+    this.#refreshFormValue(); // empty selection → the default text (or nothing)
   }
 
   // ── picker lifecycle ──────────────────────────────────────────────────────
@@ -949,7 +956,12 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   /** Toggle the calendar open/closed. */
   toggle(): void { this.flush(); this.#picker?.toggle(); }
   /** Clear the current selection and reset the input. */
-  clearSelection(): void { this.flush(); this.#picker?.clearSelection(); }
+  clearSelection(): void {
+    this.flush();
+    this.#picker?.clearSelection();
+    this.#updateFormValue(); // empty selection → clears the hidden input(s)
+    this.#updateInputClear();
+  }
 
   /** Show an inline message; `autoHide` (ms) dismisses it automatically. */
   showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number): void {
@@ -992,7 +1004,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   get lockedAspects(): LockAspect[] { this.flush(); return this.#picker?.lockedAspects ?? []; }
 
   /** The current text in the input (floating/modal modes); `''` when there is no input. */
-  getInputValue(): string { return this.#inputElement?.value || ''; }
+  getInputValue(): string { this.flush(); return this.#inputElement?.value || ''; }
   /** Set the input text and reflect it to the `value` attribute. */
   setInputValue(value: string): void {
     if (this.#inputElement) this.#inputElement.value = value;
@@ -1029,15 +1041,15 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   /** Committed ranges (range mode). Assigning replaces the selection. */
   get selectedRanges(): DateRange[] { this.flush(); return this.#picker?.selectedRanges || []; }
-  set selectedRanges(ranges: DateRange[]) { this.flush(); if (this.#picker) this.#picker.selectedRanges = ranges; }
+  set selectedRanges(ranges: DateRange[]) { this.flush(); if (this.#picker) { this.#picker.selectedRanges = ranges; this.#afterSelectionSet(); } }
 
   /** Committed dates (multiple mode). Assigning replaces the selection. */
   get selectedDates(): Date[] { this.flush(); return this.#picker?.selectedDates || []; }
-  set selectedDates(dates: Date[]) { this.flush(); if (this.#picker) this.#picker.selectedDates = dates; }
+  set selectedDates(dates: Date[]) { this.flush(); if (this.#picker) { this.#picker.selectedDates = dates; this.#afterSelectionSet(); } }
 
   /** Committed date (single mode). Assigning replaces the selection. */
   get selectedDate(): Date | null { this.flush(); return this.#picker?.selectedDate || null; }
-  set selectedDate(date: Date | null) { this.flush(); if (this.#picker) this.#picker.selectedDate = date; }
+  set selectedDate(date: Date | null) { this.flush(); if (this.#picker) { this.#picker.selectedDate = date; this.#afterSelectionSet(); } }
 
   /** Committed range start (read-only; set a range via `selectedRanges`). */
   get selectedStartDate(): Date | null { this.flush(); return this.#picker?.selectedStartDate || null; }
@@ -1046,11 +1058,17 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   /** Selected time (time/datetime modes). */
   get selectedTime(): SelectedTime | null { this.flush(); return this.#picker?.selectedTime || null; }
-  set selectedTime(time: SelectedTime | null) { this.flush(); if (this.#picker) this.#picker.selectedTime = time; }
+  set selectedTime(time: SelectedTime | null) { this.flush(); if (this.#picker) { this.#picker.selectedTime = time; this.#afterSelectionSet(); } }
 
   /** Composed date+time; the setter accepts a Date or ISO string and splits it. */
   get selectedDatetime(): Date | null { this.flush(); return this.#picker?.selectedDatetime || null; }
-  set selectedDatetime(value: Date | string | null) { this.flush(); if (this.#picker) this.#picker.selectedDatetime = value; }
+  set selectedDatetime(value: Date | string | null) { this.flush(); if (this.#picker) { this.#picker.selectedDatetime = value; this.#afterSelectionSet(); } }
+
+  /** A programmatic selection write: keep the submitted form value and the ✕ in sync (FINDINGS #24). */
+  #afterSelectionSet(): void {
+    this.#refreshFormValue();
+    this.#updateInputClear();
+  }
 
   // Displayed state (read-only; change what's shown via navigation, not assignment).
   /** Descriptor for each visible month column (read-only). */

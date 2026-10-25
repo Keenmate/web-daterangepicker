@@ -93,6 +93,11 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   `disableLogging()` (which overrode `window.components.logging` and silenced every
   warning), and removing it goes back to `warn`. The remaining direct `console.*`
   diagnostics go through the loggers; the stray `[wheel]` debug `console.log`s are gone.
+- `form.reset()` restores the declared `value` attribute (it cleared to empty).
+- `el.value` / `getInputValue()` right after `setAttribute('value', …)` return the new value
+  (they read before the coalesced write landed).
+- The selection setters (`selectedDate`, `selectedRanges`, `selectedDates`, `selectedTime`,
+  `selectedDatetime`) and `el.clearSelection()` keep the submitted form value in sync.
 
 ### Added
 

@@ -195,7 +195,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `action` event fires once per custom button click             | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `selectedDate` / `selectedRanges` setters → input + classes   | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `selectedDates` setter survives open (FINDINGS #25)           | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
-| Selection setters refresh the form value (FINDINGS #24)       | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
+| Selection setters refresh the form value (FINDINGS #24, fixed) | ✓ | `api-extras.spec.ts`    | `api-extras.html`         |
 | `clearSelection()` clears input, classes, form value          | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `setRollingItemAlignment()` sets the variable                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `setRollingItemAlignment()` survives a rebuild (FINDINGS #15) | ✗ test.fail | `api-extras.spec.ts`    | `api-extras.html`         |
@@ -204,7 +204,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `showMessage` / `hideMessage`                                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 | `toggleMessage`                                               | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `value` setter populates input + selection + form value       | ✓      | `events-api.spec.ts`, `api-extras.spec.ts` | `events-api.html`, `api-extras.html` |
-| `value` getter right after `setAttribute('value')` (FINDINGS #14) | ✗ test.fail | `api-extras.spec.ts` | `api-extras.html`       |
+| `value` getter right after `setAttribute('value')` (FINDINGS #14, fixed) | ✓ | `api-extras.spec.ts` | `api-extras.html`       |
 | `disabled` setter disables input + suppresses open            | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | HTML `data-action="custom" data-id` in `showMessage` → `action` (`source: 'message'`, `dataset`) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Internal controls (nav arrows) do not fire `action`           | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
@@ -262,7 +262,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Selection submits the ISO value under `name` (single entry)   | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Programmatic `value` reflected into the submission            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `form.reset()` clears selection + submitted value             | ✓      | `form-association.spec.ts`   | `form-association.html`   |
-| `form.reset()` restores the default `value` attribute (FINDINGS #13) | ✗ test.fail | `api-extras.spec.ts` | `api-extras.html` |
+| `form.reset()` restores the default `value` attribute (FINDINGS #13, fixed) | ✓ | `api-extras.spec.ts` | `api-extras.html` |
 | Inline picker submits via hidden field                        | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Range → ISO interval; split range → each sub-range            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `value-format` json / array; `getValueFormatCallback`         | ✓      | `form-association.spec.ts`   | `form-association.html`   |

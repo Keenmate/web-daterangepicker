@@ -237,7 +237,6 @@ test.describe('setters keep the input and the form value in sync', () => {
     });
 
     test('selectedDate / selectedRanges / selectedDates setters refresh the form value', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #24');
         await page.evaluate(() => {
             (document.getElementById('api-single') as any).selectedDate = new Date(2026, 5, 18);
             (document.getElementById('api-range') as any).selectedRanges = [{ start: new Date(2026, 5, 10), end: new Date(2026, 5, 12) }];
@@ -271,7 +270,6 @@ test.describe('setters keep the input and the form value in sync', () => {
     });
 
     test('form.reset() restores the declared default value attribute', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #13');
         const p = pickerById(page, 'api-default');
         await expect(textInput(p)).toHaveValue('2026-06-10');
         await p.evaluate((el: any) => { el.selectedDate = new Date(2026, 5, 18); });
@@ -282,7 +280,6 @@ test.describe('setters keep the input and the form value in sync', () => {
     });
 
     test('the value getter reads a just-written value attribute synchronously', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #14');
         const p = pickerById(page, 'api-value');
         const read = await p.evaluate((el: any) => { el.setAttribute('value', '2026-06-10'); return [el.value, el.getInputValue()]; });
         expect(read).toEqual(['2026-06-10', '2026-06-10']);

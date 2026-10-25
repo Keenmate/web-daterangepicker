@@ -156,19 +156,23 @@ Tracked in `web-components-core/docs/e2e-coverage-plan.md` (WP-DRP). Each is pin
 `test.fail(true, 'FINDINGS.md #N')` spec that asserts the **correct** behaviour; when the
 component is fixed the test starts passing and Playwright flags it — drop the `test.fail`.
 
-13. **DRP-1 — `formResetCallback()` clears to `''` instead of the default `value`.**
+13. **~~DRP-1 — `formResetCallback()` clears to `''` instead of the default `value`.~~** ✅ FIXED
     Where: `src/web-component.ts` `formResetCallback()` (~l.377). Symptom: a picker declared
     `value="2026-06-10"` inside a `<form>`; pick another date; `form.reset()` → input and
     submitted value are empty instead of `2026-06-10`. It also skips `this.flush()`, so a reset
     right after a `setAttribute('value', …)` sees stale state. Fix: `flush()`, then restore
     `this.getAttribute('value')` (the default) through the normal value path; clear only when
     there is no default.
+    **Fixed (2026-10-25):** `formResetCallback()` flushes, restores the `value` attribute
+    into the input (selection re-syncs from it on the next open, as for the `value` setter)
+    and re-renders the hidden input from it; empty when there is no default.
 
-14. **DRP-2 — `getInputValue()` / `value` getter don't `flush()`.**
+14. **~~DRP-2 — `getInputValue()` / `value` getter don't `flush()`.~~** ✅ FIXED
     Where: `src/web-component.ts` `getInputValue()` / `get value()` (~l.982, 1004). Symptom:
     `el.setAttribute('value', '2026-06-10'); el.value` returns the old text — the attribute
     write is coalesced to a microtask and the getter reads the input directly. Fix: call
     `this.flush()` first (as the other imperative accessors do).
+    **Fixed (2026-10-25):** `getInputValue()` (and so the `value` getter) flushes first.
 
 15. **DRP-3 — `setRollingItemAlignment()` is lost on rebuild.**
     Where: `src/web-component.ts` `setRollingItemAlignment()` (~l.996). It writes
@@ -279,7 +283,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     `show-debug-info` is removed, and a picker without it doesn't override
     `window.components.logging.enableLogging()`.
 
-24. **DRP-12 — the selection setters don't refresh the form value.**
+24. **~~DRP-12 — the selection setters don't refresh the form value.~~** ✅ FIXED
     Where: `src/web-component.ts` `set selectedDate` / `selectedRanges` / `selectedDates`
     (~l.1017-1027) assign straight to the engine; `#refreshFormValue()` only runs from the
     `inputValue` update path and `#emitSelect`. Symptom: inside a `<form>`,
@@ -287,6 +291,11 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     submitted value stays empty (the `value` setter and `clearSelection()` do refresh it).
     Fix: call `this.#refreshFormValue()` after each setter (also `selectedTime` /
     `selectedDatetime`). Pinned by `api-extras.spec.ts` "…setters refresh the form value".
+    **Fixed (2026-10-25):** every selection setter (`selectedDate` / `selectedRanges` /
+    `selectedDates` / `selectedTime` / `selectedDatetime`) refreshes the hidden form input
+    and the inline ✕. Fixing it exposed that `el.clearSelection()` did NOT clear the form
+    value either (the old spec only passed because the setter never wrote one) — it now
+    does.
 
 25. **DRP-13 — `selectedDates` setter (multiple mode) is wiped by the next open.**
     Where: `src/date-picker.ts` `set selectedDates` renders but never writes the input text;
