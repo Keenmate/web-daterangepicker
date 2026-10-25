@@ -159,6 +159,27 @@ test.describe('Apply button (range mode)', () => {
         await expect(calendarOf(p)).toBeHidden();
         await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
     });
+
+    // FINDINGS.md #17: Apply used to commit the input silently — no select/change
+    // and no refresh of the hidden form input.
+    test('Apply fires select + change once and refreshes the form value', async ({ page }) => {
+        const p = pickerById(page, 'range-apply');
+        await p.evaluate((el: any) => {
+            el.setAttribute('name', 'stay');
+            (window as any).__ev = [];
+            for (const t of ['select', 'change']) el.addEventListener(t, () => (window as any).__ev.push(t));
+        });
+        await p.locator('.drp__input').click();
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-15').click();
+        expect(await page.evaluate(() => (window as any).__ev)).toEqual([]);   // staged → silent
+        await p.locator('.drp__button--apply').click();
+
+        expect(await page.evaluate(() => (window as any).__ev)).toEqual(['select', 'change']);
+        const submitted = await p.evaluate((el: any) =>
+            [...el.querySelectorAll('input[type="hidden"][name="stay"]')].map((i: any) => i.value));
+        expect(submitted).toEqual(['2026-06-10/2026-06-15']);
+    });
 });
 
 // =============================================================================

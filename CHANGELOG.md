@@ -76,6 +76,9 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
 - Several custom action buttons no longer all show the first one's tooltip.
 - `onClick` on a built-in button (`today` / `now` / `clear` / `apply`) is no longer ignored.
 - Action button text is set as plain text (it was injected as HTML).
+- `commit-mode="apply"` (range-apply, multiple, and every time / datetime picker): Apply
+  now fires `select` + `change` and refreshes the submitted form value — it used to commit
+  the input silently.
 
 ### Added
 

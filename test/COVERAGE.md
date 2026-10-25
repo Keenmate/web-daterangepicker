@@ -134,6 +134,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Today button jumps + selects today                            | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Clear button clears selection + input                         | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Apply commits pending selection, closes picker                | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| Apply fires `select` + `change` and refreshes the form value (FINDINGS #17) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 | `is-today-button-shown` / `is-clear-button-shown` / `commit-mode="apply"` (Apply button) | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Custom `actionButtons` array (incl. `action` event)           | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | Action-button tooltip on hover                                | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
@@ -310,7 +311,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `picker-mode="datetime"`: grid + rolls, commits `selectedDatetime`; ISO setter splits | ✓ | `time-picker.spec.ts` | `time-picker.html` |
 | `selectedTime` setter renders rolls + input                   | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
 | `time-display` clock / wheel / compact each commit            | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
-| Apply fires `select` (FINDINGS #17)                           | ✗ test.fail | `time-picker.spec.ts`   | `time-picker.html`        |
+| Apply fires `select` (FINDINGS #17, fixed)                    | ✓      | `time-picker.spec.ts`   | `time-picker.html`        |
 | Runtime `time-display` switch renders the new UI (FINDINGS #18) | ✗ test.fail | `time-picker.spec.ts` | `time-picker.html`        |
 | `display-time-format-mask` as placeholder hint (FINDINGS #19) | ✗ test.fail | `time-picker.spec.ts`   | `time-picker.html`        |
 | `hour-cycle` h12 (1-12 + AM/PM, formats `hh:mm a`); derived from the mask | ✓ | `time-options.spec.ts` | `time-options.html` |

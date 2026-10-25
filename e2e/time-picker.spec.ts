@@ -54,7 +54,6 @@ test.describe('picker-mode="time" (rolls)', () => {
     });
 
     test('Apply fires select with the committed time', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #17');
         const p = await open(page, 'time');
         await rollItem(p, 'hours', 'data-hour', 14).click();
         await rollItem(p, 'minutes', 'data-minute', 35).click();

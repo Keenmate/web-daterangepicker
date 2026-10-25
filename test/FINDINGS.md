@@ -186,7 +186,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     form value survive, but `selectedRanges` reads `[]` and an open picker is closed. (A
     half-picked range happens to survive — reopening re-syncs from the input text.)
 
-17. **DRP-5 — Apply never fires `select` / `change` (all `commit-mode="apply"` pickers).**
+17. **~~DRP-5 — Apply never fires `select` / `change` (all `commit-mode="apply"` pickers).~~** ✅ FIXED
     Where: `src/date-picker-selection.ts` `apply()` calls `options.onSelect(...)` *before*
     `picker.pendingSelection = null`; the host bridge `#handleDateSelect`
     (`src/web-component.ts` ~l.563) returns early while
@@ -198,6 +198,10 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     Fix: clear `pendingSelection` before invoking `onSelect` in `apply()` (or pass a flag so
     the bridge knows it's the Apply call). Pinned by `time-picker.spec.ts`
     "Apply fires select with the committed time".
+    **Fixed (2026-10-25):** `apply()` takes and clears `pendingSelection` first, stores the
+    committed snapshot, then fires `onSelect` — so the bridge emits `select` + `change` and
+    refreshes the form value. New spec `selection-modes.spec.ts` "Apply fires select +
+    change once and refreshes the form value" (range-apply).
 
 18. **DRP-6 — `time-display` is `on:'update'` but the time DOM is built once.**
     Where: `src/date-picker.ts` builds the clock / wheel / compact / rolls skeleton in

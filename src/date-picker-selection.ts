@@ -951,13 +951,12 @@ export function apply(picker: any) {
         if (formatted !== null) picker.input.value = formatted;
     }
 
-    // Fire deferred callback if there was a pending selection
-    if (picker.pendingSelection) {
-        if (picker.options.onSelect) {
-            picker.options.onSelect(picker.buildSelectDetail(picker.pendingSelection));
-        }
-        picker.pendingSelection = null;
-    }
+    // Take the staged selection, and clear it BEFORE the deferred onSelect fires:
+    // the host bridge suppresses onSelect while a selection is still pending (that's
+    // how a staged pick stays silent until Apply), so clearing it after the call
+    // swallowed every Apply's select/change and form-value refresh (FINDINGS #17).
+    const pending = picker.pendingSelection;
+    picker.pendingSelection = null;
 
     // Store committed values
     if (picker.options.selectionMode === 'range') {
@@ -974,6 +973,12 @@ export function apply(picker: any) {
     // Time/datetime modes also commit the time parts so close() can revert.
     if (picker.options.pickerMode !== 'date') {
         picker.committedTime = picker._selectedTime ? { ...picker._selectedTime } : null;
+    }
+
+    // Fire the deferred callback once the committed snapshot is stored, so the
+    // listener (and the host's form value) reads the committed state.
+    if (pending && picker.options.onSelect) {
+        picker.options.onSelect(picker.buildSelectDetail(pending));
     }
 
     // Always close on Apply (inline mode never closes; floating and modal both close)
