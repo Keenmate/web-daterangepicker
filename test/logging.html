@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — logging</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>logging</h1>
+    <p>Targeted by <code>e2e/logging.spec.ts</code>. One plain range picker; the spec
+       toggles <code>show-debug-info</code> at runtime (logging is global per page).</p>
+
+    <div class="fixture">
+        <web-daterangepicker id="picker" selection-mode="range" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -115,3 +115,13 @@ test('keyboard-off default: the input is not focused when the sheet opens', asyn
     el.shadowRoot?.activeElement === el.shadowRoot?.querySelector('input'));
   expect(inputIsActive).toBe(false);
 });
+
+test('fullscreen-autofocus: the input is focused when the sheet opens', async ({ page }) => {
+  await page.goto('/test/mobile-presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.evaluate(async (el: any) => { el.setAttribute('fullscreen-autofocus', ''); await el.whenSettled(); el.open(); });
+  await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--fullscreen/);
+  await expect.poll(() => host.evaluate(el =>
+    el.shadowRoot?.activeElement === el.shadowRoot?.querySelector('input'))).toBe(true);
+});

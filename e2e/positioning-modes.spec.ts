@@ -101,3 +101,23 @@ test.describe('modal mode', () => {
         expect(position).toBe('fixed');
     });
 });
+
+test.describe('modal mode extras', () => {
+    test('opening from the input blurs it (suppresses the mobile keyboard)', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #29');
+        const p = pickerById(page, 'modal');
+        await p.locator('input').click();
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+        const inputFocused = await p.evaluate((el) =>
+            el.shadowRoot!.activeElement === el.shadowRoot!.querySelector('input'));
+        expect(inputFocused).toBe(false);
+    });
+
+    test('the grid always renders 6 weeks (42 cells), even for a 5-week month', async ({ page }) => {
+        const p = pickerById(page, 'modal');
+        await p.locator('input').click();
+        // June 2026 needs only 5 rows (Mon 1st … Tue 30th); padding fills to 42.
+        await expect(p.locator('.drp__days .drp__day')).toHaveCount(42);
+        await expect(p.locator('.drp__days .drp__day--other-month')).toHaveCount(12);
+    });
+});

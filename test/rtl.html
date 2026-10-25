@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — RTL</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>RTL</h1>
+    <p>Targeted by <code>e2e/rtl.spec.ts</code>. <code>#rtl</code> sits in a
+       <code>dir="rtl"</code> container; <code>#ltr</code> is the control.</p>
+
+    <div class="fixture" dir="rtl">
+        <div class="fixture-label">dir="rtl" container</div>
+        <web-daterangepicker id="rtl" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">ltr control</div>
+        <web-daterangepicker id="ltr" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

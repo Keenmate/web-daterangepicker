@@ -60,3 +60,29 @@ test('is-unified-header-interactive: clicking the unified range header opens the
     await p.locator('.drp__unified-range').click();
     await expect(p.locator('.drp__unified-rolling-selector--visible')).toBeVisible();
 });
+
+// =============================================================================
+// enable-transitions
+// =============================================================================
+
+test.describe('enable-transitions', () => {
+    test('absent by default: no transitions class on the calendar', async ({ page }) => {
+        const p = await open(page, 'no-transitions');
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--transitions-enabled/);
+    });
+
+    test('declared: the calendar carries the transitions class', async ({ page }) => {
+        const p = await open(page, 'transitions');
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--transitions-enabled/);
+    });
+
+    test('toggling the property at runtime adds/removes the class and reflects the attribute', async ({ page }) => {
+        const p = pickerById(page, 'no-transitions');
+        await p.evaluate((el: any) => { el.enableTransitions = true; return el.whenSettled(); });
+        await expect(p).toHaveAttribute('enable-transitions', '');
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--transitions-enabled/);
+        await p.evaluate((el: any) => { el.enableTransitions = false; return el.whenSettled(); });
+        await expect(p).not.toHaveAttribute('enable-transitions');
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--transitions-enabled/);
+    });
+});

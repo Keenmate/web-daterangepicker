@@ -43,7 +43,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `modal` mode: centered overlay + backdrop                     | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: backdrop click closes                           | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: body scroll locked while open                   | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
-| `modal` mode: input blurred to suppress mobile keyboard       | ✗      |      |         |
+| `modal` mode: input blurred to suppress mobile keyboard (FINDINGS #29) | ✗ test.fail | `positioning-modes.spec.ts` | `positioning-modes.html` |
 | `modal` mode: container-query inner layout tiers              | ✗      |      |         |
 | `mobile-modal-breakpoint` auto-engages modal at small widths  | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Positioning-mode flip leaves no zombie floating picker / drift warning | ✓ | `mode-flip.spec.ts` | `mode-flip.html` |
@@ -75,7 +75,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `month-layout` row → grid at runtime renders the grid | ✓ | `multi-month.spec.ts` | `multi-month.html` |
 | `month-layout` switch keeps the range (FINDINGS #21) | ✗ test.fail | `multi-month.spec.ts` | `multi-month.html` |
 | `is-unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
-| Always-6-week rendering (stable height in modal)              | ✗      |      |         |
+| Always-6-week rendering (42 cells, stable height in modal)    | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 
 ## 5. Navigation
 
@@ -280,7 +280,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Desktop: `mobile-presentation="auto"` → floating; forced `fullscreen` applies | ✓ | `mobile-presentation-desktop.spec.ts` | `mobile-presentation.html` |
-| Phone: auto → full-screen sheet, ✕ close, header merge, `fullscreen-input`, keyboard-off | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
+| Phone: auto → full-screen sheet, ✕ close, header merge, `fullscreen-input`, keyboard-off, `fullscreen-autofocus` | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
 | Tablet: auto → modal; tap opens and stays open (ghost click)  | ✓      | `mobile-presentation-tablet.spec.ts` | `mobile-presentation.html` |
 | Back gesture closes modal / full-screen without navigating    | ✓      | `back-gesture.spec.ts`       | `mobile-presentation.html` |
 | Adaptive action set: rich on desktop, essentials on phone     | ✓      | `adaptive-actions.spec.ts`, `adaptive-actions-phone.spec.ts` | `adaptive-actions.html` |
@@ -328,3 +328,20 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `defer` holds the build; attribute removal / `ready()` builds once; `ready` never re-fires (reinit, reconnect); `is-ready` / `isReady` | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
 | DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
 | DOM move keeps the committed selection state + open state (D1, FINDINGS #16) | ✗ test.fail | `lifecycle.spec.ts` | `lifecycle.html` |
+
+## 24. Misc: transitions, logging, RTL
+
+| Feature                                                       | Status | Spec | Fixture |
+| ------------------------------------------------------------- | :----: | ---- | ------- |
+| `enable-transitions`: class on the calendar; runtime toggle reflects | ✓ | `misc-features.spec.ts` | `misc-features.html` |
+| `/logging` `DRP:*` loggers silent by default                  | ✓      | `logging.spec.ts`            | `logging.html`            |
+| `show-debug-info` enables / disables the loggers at runtime   | ✓      | `logging.spec.ts`            | `logging.html`            |
+| RTL: header + grid mirror (prev on the right)                 | ✓      | `rtl.spec.ts`                | `rtl.html`                |
+| RTL: chevrons point outward, ArrowLeft = next day (FINDINGS #28) | ✗ test.fail | `rtl.spec.ts`        | `rtl.html`                |
+| Wheel commit logs via `console.log` (FINDINGS #23)            | ✗      | _no test (console noise)_ |              |
+
+## Not covered (by design)
+
+| Feature                                                       | Status | Note |
+| ------------------------------------------------------------- | :----: | ---- |
+| Unit layer (parsing / format masks / range math)              | ✗      | optional separate WP (vitest + `test/unit/`) — not started |

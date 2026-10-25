@@ -285,6 +285,25 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     Fix: support `±N:±M` relative to the shown year (or fix the description). **Open
     question for the user:** which one? Pinned by `rolling-selector.spec.ts`.
 
+28. **DRP-16 — no RTL handling: chevrons and arrow keys don't mirror.**
+    In a `dir="rtl"` context the header and grid mirror through flexbox/grid (prev sits on
+    the right), but `.drp__nav--prev::before` still rotates 180° (points left, i.e. inward)
+    and ArrowLeft still moves to the previous day (visually rightward). Where:
+    `src/css/header-navigation.css` (`--drp-nav-icon-rotate-prev/next`), keydown handler in
+    `src/date-picker.ts`. Suggested fix: `:host(:dir(rtl))` swaps the two rotate variables;
+    the keydown handler swaps ArrowLeft/Right (and Ctrl+arrows) when
+    `getComputedStyle(host).direction === 'rtl'`. **Open question for the user:** is RTL a
+    supported target? Pinned by `rtl.spec.ts` (2 tests; the mirrored layout is ✓).
+
+29. **DRP-17 — modal mode never blurs the input inside the web component.**
+    Where: `src/date-picker-ui.ts` `enterModal()` checks `document.activeElement ===
+    picker.input`; inside the shadow root `document.activeElement` is the *host*, so the
+    check is always false — the input keeps focus (mobile keyboard stays up over the
+    modal) and `modalRestoreFocus` never restores focus on close. (`enterFullscreen()`
+    blurs unconditionally, so full-screen is fine.) Fix: compare against
+    `(picker.input.getRootNode() as Document | ShadowRoot).activeElement`. Pinned by
+    `positioning-modes.spec.ts` "opening from the input blurs it".
+
 ---
 
 Add new entries below as more specs land.
