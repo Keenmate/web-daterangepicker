@@ -307,7 +307,12 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // render gate is held (`defer` set, not yet released) skip the build — config
     // keeps accumulating and lands whole on release. Removing the `defer`
     // attribute flips deferRender false, so this same reinit then builds.
-    if (this.isConnected && !this.#renderHeld()) this.#rebuildPicker();
+    if (!this.isConnected || this.#renderHeld()) return;
+    // A structural change on a live picker carries the committed selection across
+    // the rebuild (FINDINGS #21) — otherwise state reset to empty while the input
+    // kept the old text. The first build has nothing to carry.
+    if (this.#picker) this.#rebuildPreservingSelection();
+    else this.#buildPicker();
   }
 
   /** Cosmetic change: element-level side effects, then patch the picker in place. */

@@ -79,6 +79,9 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
 - `commit-mode="apply"` (range-apply, multiple, and every time / datetime picker): Apply
   now fires `select` + `change` and refreshes the submitted form value — it used to commit
   the input silently.
+- A runtime change to a structural input (`hour-cycle`, `is-seconds-shown`,
+  `visible-months-count`, …) keeps the committed selection — it used to reset the selection
+  while the input kept showing the old text.
 
 ### Added
 

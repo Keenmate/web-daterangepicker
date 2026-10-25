@@ -229,7 +229,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     the derived hour cycle / seconds, return `false` (rebuild) when those change, or make
     the input `on:'reinit'`. Pinned by `time-options.spec.ts`.
 
-21. **DRP-9 — any `on:'reinit'` change drops the selection state.**
+21. **~~DRP-9 — any `on:'reinit'` change drops the selection state.~~** ✅ FIXED
     Where: `src/web-component.ts` `reinit()` calls `#rebuildPicker()` (destroy + build), not
     `#rebuildPreservingSelection()` (which the compaction path already uses). Symptom:
     commit 20:05 in a time picker, `setAttribute('hour-cycle', 'h12')` → `selectedTime` is
@@ -237,6 +237,12 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     reinit input (`picker-mode`, `is-seconds-shown`, `visible-months-count`, …). Fix: use
     `#rebuildPreservingSelection()` in `reinit()` after the first build. Pinned by
     `time-options.spec.ts` "switching hour-cycle at runtime…".
+    **Fixed (2026-10-25):** `reinit()` on a live picker now goes through
+    `#rebuildPreservingSelection()` (first build unchanged). Side note: the `multi-month.spec.ts`
+    month-layout pin also asserted `selectedRanges.length === 1`, but a plain clicked range
+    lives in `selectedStartDate`/`selectedEndDate` (`selectedRanges` is `[]` even without a
+    rebuild) — the spec now checks those. A `selection-mode` / `picker-mode` flip still can't
+    carry an incompatible selection (open question in the session report).
 
 22. **DRP-10 — `commit-mode="manual"` commits on every pick (docs say it never does).**
     `src/types.ts` / CHANGELOG 2.0: "`manual` — never auto-commit or auto-close … the app

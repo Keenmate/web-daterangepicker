@@ -141,7 +141,6 @@ test("unified-navigation-anchor-index=\"1\": a year picked in the unified select
 });
 
 test('switching month-layout row → grid at runtime renders the grid and keeps the range', async ({ page }) => {
-    test.fail(true, 'FINDINGS.md #21');
     const p = await open(page, 'layout');
     await dayByDate(p, '2026-06-10').click();
     await dayByDate(p, '2026-06-12').click();
@@ -152,7 +151,9 @@ test('switching month-layout row → grid at runtime renders the grid and keeps 
     await expect(p.locator('.drp__months--grid')).toBeVisible();
     await expect(p.locator('.drp__month')).toHaveCount(4);
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
-    const ranges = await p.evaluate((el: any) => el.selectedRanges.length);
-    expect(ranges).toBe(1);
+    // A plain clicked range lives in selectedStartDate/EndDate (selectedRanges is only
+    // populated for independent multi-ranges).
+    const [s, e] = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
+    expect([s, e]).toEqual([10, 12]);
     await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--range-start/);
 });

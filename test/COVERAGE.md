@@ -73,7 +73,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `is-unified-navigation-enabled`: single header drives all columns        | △      | `multi-month.spec.ts`        | `multi-month.html`        |
 | `unified-navigation-anchor-index`: unified month/year pick lands in column N | ✓ | `multi-month.spec.ts` | `multi-month.html` |
 | `month-layout` row → grid at runtime renders the grid | ✓ | `multi-month.spec.ts` | `multi-month.html` |
-| `month-layout` switch keeps the range (FINDINGS #21) | ✗ test.fail | `multi-month.spec.ts` | `multi-month.html` |
+| `month-layout` switch keeps the range (FINDINGS #21, fixed) | ✓ | `multi-month.spec.ts` | `multi-month.html` |
 | `is-unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Always-6-week rendering (42 cells, stable height in modal)    | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 
@@ -315,7 +315,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Runtime `time-display` switch renders the new UI (FINDINGS #18) | ✗ test.fail | `time-picker.spec.ts` | `time-picker.html`        |
 | `display-time-format-mask` as placeholder hint (FINDINGS #19) | ✗ test.fail | `time-picker.spec.ts`   | `time-picker.html`        |
 | `hour-cycle` h12 (1-12 + AM/PM, formats `hh:mm a`); derived from the mask | ✓ | `time-options.spec.ts` | `time-options.html` |
-| Runtime `hour-cycle` switch keeps the time (FINDINGS #21)     | ✗ test.fail | `time-options.spec.ts`  | `time-options.html`       |
+| Runtime `hour-cycle` switch keeps the time (FINDINGS #21, fixed) | ✓ | `time-options.spec.ts`  | `time-options.html`       |
 | `time-step` (declared + runtime)                              | ✓      | `time-options.spec.ts`       | `time-options.html`       |
 | `is-seconds-shown` (declared + runtime toggle)                | ✓      | `time-options.spec.ts`       | `time-options.html`       |
 | `is-now-button-shown`: Now commits the pinned now; hidden (declared + runtime) | ✓ | `time-options.spec.ts` | `time-options.html` |

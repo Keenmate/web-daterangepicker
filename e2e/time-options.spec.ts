@@ -60,7 +60,6 @@ test.describe('hour-cycle', () => {
     });
 
     test('switching hour-cycle at runtime rebuilds the rolls and keeps the time', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #21');
         const p = await open(page, 'plain');
         await list(p, 'hours').locator('[data-hour="20"]').click();
         await list(p, 'minutes').locator('[data-minute="5"]').click();
