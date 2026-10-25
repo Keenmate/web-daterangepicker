@@ -82,6 +82,11 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
 - A runtime change to a structural input (`hour-cycle`, `is-seconds-shown`,
   `visible-months-count`, …) keeps the committed selection — it used to reset the selection
   while the input kept showing the old text.
+- A DOM move (re-parent / reorder) keeps the picker intact — selection, staged picks, open
+  state and displayed months survive. Disconnect now only pauses the document-level
+  listeners, overlay-group registration and positioning loop (resumed on reconnect)
+  instead of destroying the picker. The document `keydown` listener no longer leaks on
+  every rebuild.
 
 ### Added
 

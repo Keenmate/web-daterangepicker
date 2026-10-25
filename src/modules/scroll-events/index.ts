@@ -31,6 +31,17 @@ export interface ScrollEventManager {
 	init(container?: HTMLElement): void
 
 	/**
+	 * Detach the window-level listener while the host is out of the DOM
+	 * (subscriptions and the container listener are kept). Undo with resume().
+	 */
+	suspend(): void
+
+	/**
+	 * Re-attach the window-level listener after suspend().
+	 */
+	resume(): void
+
+	/**
 	 * Remove all listeners and subscriptions
 	 */
 	destroy(): void
@@ -46,6 +57,7 @@ export function createScrollEventManager(): ScrollEventManager {
 	let containerElement: HTMLElement | null = null
 	let windowListenerAttached = false
 	let containerListenerAttached = false
+	let windowSuspended = false
 
 	// Single window scroll handler - dispatches to all subscribers
 	const handleWindowScroll = () => {
@@ -84,7 +96,24 @@ export function createScrollEventManager(): ScrollEventManager {
 			}
 		},
 
+		suspend() {
+			if (windowListenerAttached) {
+				window.removeEventListener('scroll', handleWindowScroll, true)
+				windowListenerAttached = false
+				windowSuspended = true
+			}
+		},
+
+		resume() {
+			if (windowSuspended && !windowListenerAttached) {
+				window.addEventListener('scroll', handleWindowScroll, { capture: true, passive: true })
+				windowListenerAttached = true
+			}
+			windowSuspended = false
+		},
+
 		destroy() {
+			windowSuspended = false
 			if (windowListenerAttached) {
 				window.removeEventListener('scroll', handleWindowScroll, true)
 				windowListenerAttached = false

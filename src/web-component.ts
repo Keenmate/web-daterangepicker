@@ -364,18 +364,26 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     }
   }
 
-  /** Activate: ensure the picker exists (a DOM move destroyed it in disconnect()). */
+  /**
+   * Activate (every connect, after any reinit()/update()). Build-once: the picker
+   * survives a DOM move with its full state (decision D1) — reconnecting only
+   * restarts the live resources disconnect() stopped. Builds here only when a
+   * held `defer` gate was released while detached.
+   */
   protected override connect(): void {
-    if (!this.#picker && !this.#renderHeld()) this.#buildPicker();
+    if (this.#picker) this.#picker.activate();
+    else if (!this.#renderHeld()) this.#buildPicker();
     // The device-adaptive presentation runs off core's environment observable,
     // which BlissElement (un)subscribes automatically because we override
     // environmentChanged() — no per-connect wiring needed here.
   }
 
-  /** Deactivate: tear the picker down (rebuilt on the next connect). */
+  /**
+   * Deactivate (every disconnect): stop the picker's document/window-level
+   * listeners, overlay registration and positioning loop, keeping its state.
+   */
   protected override disconnect(): void {
-    this.#picker?.destroy();
-    this.#picker = undefined;
+    this.#picker?.deactivate();
   }
 
   /** Form reset: clear the selection and the submitted value with the form. */

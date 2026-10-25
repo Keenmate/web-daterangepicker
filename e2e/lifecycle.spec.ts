@@ -5,9 +5,9 @@ import type { Locator, Page } from './fixtures';
  * DOM move (re-parent) — decision D1 (2026-10-24): a move must KEEP the picker's
  * state: committed selection, input value, form value, open state and a
  * half-picked range. Core's lifecycle is build-once + activate/deactivate, but
- * the component still destroys the picker in disconnect() and rebuilds it in
- * connect() (FINDINGS.md #16 / DRP-4). The tests that fail today are marked
- * `test.fail` until the component moves to activate/deactivate.
+ * the component used to destroy the picker in disconnect() and rebuild it in
+ * connect() (FINDINGS.md #16 / DRP-4, fixed): disconnect() now only deactivates
+ * the picker's document-level resources and connect() re-activates them.
  *
  * Fixture: test/lifecycle.html (`window.movePicker()` toggles slot A ↔ B).
  */
@@ -49,14 +49,15 @@ async function commitRange(page: Page): Promise<void> {
 }
 
 test('a move keeps the committed selection and the input value', async ({ page }) => {
-    test.fail(true, 'FINDINGS.md #16');
     await commitRange(page);
     await move(page);
     const p = pickerById(page, 'picker');
     await expect(page.locator('#slot-b #picker')).toHaveCount(1);
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
-    const range = await p.evaluate((el: any) => el.selectedRanges.map((r: any) => [r.start.getDate(), r.end.getDate()]));
-    expect(range).toEqual([[10, 12]]);
+    // A plain clicked range lives in selectedStartDate/EndDate (selectedRanges is only
+    // populated for independent multi-ranges).
+    const range = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
+    expect(range).toEqual([10, 12]);
     await inputOf(p).click();
     await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--range-start/);
 });
@@ -70,10 +71,27 @@ test('a move keeps the form value', async ({ page }) => {
 });
 
 test('a move keeps an open picker open', async ({ page }) => {
-    test.fail(true, 'FINDINGS.md #16');
     const p = await open(page, 'picker');
     await move(page);
     await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+});
+
+test('after a move the open picker is re-activated: an outside click still closes it', async ({ page }) => {
+    const p = await open(page, 'picker');
+    await move(page);
+    await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+    await page.locator('h1').click();
+    await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+});
+
+test('a removed (open) picker stops listening to the document; re-inserting restores it', async ({ page }) => {
+    const p = await open(page, 'picker');
+    await page.evaluate(() => { (window as any).__parked = document.getElementById('picker'); (window as any).__parked.remove(); });
+    await page.locator('h1').click();   // document click while detached: no outside-click close
+    await page.evaluate(() => document.getElementById('slot-b')!.appendChild((window as any).__parked));
+    await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+    await page.locator('h1').click();
+    await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
 });
 
 test('a move keeps a half-picked range (start chosen, end pending)', async ({ page }) => {

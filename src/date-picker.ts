@@ -201,6 +201,14 @@ class DateRangePickerEngine {
     // destroy()+rebuild (e.g. the positioning-mode flip), so without this a zombie
     // picker's open()/handlers would keep firing on the shared input.
     private inputListenersAbort = new AbortController();
+    // Document-level keyboard navigation listener (see setupCalendarListeners).
+    private onDocumentKeydown: ((e: KeyboardEvent) => void) | null = null;
+    // deactivate()/activate() state: true while the host is out of the DOM. The
+    // Back-trap flag is parked here so a re-activated open sheet doesn't push a
+    // second history entry.
+    private isSuspended = false;
+    private suspendedOverlayHistory = false;
+    private suspendedModalRestoreFocus = false;
 
     // Week start and date restrictions
     private weekStartDay: number = 0; // 0 = Sunday, 1 = Monday, etc.
@@ -1804,8 +1812,9 @@ class DateRangePickerEngine {
 
         // Note: Outside click deactivation is now handled by the clickEvents manager
 
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
+        // Keyboard navigation (document-level; a named field so destroy() /
+        // deactivate() can detach it)
+        this.onDocumentKeydown = (e: KeyboardEvent) => {
             // Only respond if calendar is visible AND active (has focus)
             if (!this.calendar.classList.contains('drp__picker--visible')) return;
             if (!this.isCalendarActive) return;
@@ -2150,7 +2159,8 @@ class DateRangePickerEngine {
                 }
                 e.preventDefault();
             }
-        });
+        };
+        document.addEventListener('keydown', this.onDocumentKeydown);
 
         // Note: Outside click handling is now managed by the clickEvents manager (see setupEventSubscriptions)
     }
@@ -2566,6 +2576,76 @@ class DateRangePickerEngine {
 
     static readonly ACTIVE_EVENT = 'drp-picker-activated';
 
+    /**
+     * Deactivate while the host element is out of the DOM (a DOM move, or a removal
+     * that may be followed by re-insertion). Stops every document/window-level
+     * resource — outside-click / scroll / keydown listeners, the overlay-group
+     * registration, the floating autoUpdate anchor, an open sheet's body scroll lock
+     * and Back trap — but keeps ALL state: selection, staged picks, displayed months
+     * and the open flag. {@link activate} restarts them. Idempotent.
+     */
+    deactivate() {
+        if (this.isSuspended) return;
+        this.isSuspended = true;
+
+        this.clickEvents.suspend();
+        this.scrollEvents.suspend();
+        document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
+        this.overlayCoord?.destroy();
+        this.overlayCoord = null;
+        this.hideTooltip();
+
+        // Park the Back trap WITHOUT popping history (a move must not navigate), then
+        // tear down the open chrome while keeping the --visible flag.
+        this.suspendedOverlayHistory = this.overlayHistoryActive;
+        if (this.overlayHistoryActive) {
+            this.overlayHistoryActive = false;
+            if (typeof window !== 'undefined' && this.onOverlayPopstate) {
+                window.removeEventListener('popstate', this.onOverlayPopstate);
+            }
+        }
+        this.suspendedModalRestoreFocus = !!(this as any).modalRestoreFocus;
+        const openOverlay = this.options.positioningMode !== 'inline' &&
+            this.calendar.classList.contains('drp__picker--visible');
+        if (openOverlay) {
+            (this as any).modalRestoreFocus = false; // detached — nothing to refocus
+            UI.teardownPresentationChrome(this);
+        } else {
+            UI.cleanupPositioning(this);
+        }
+    }
+
+    /** Re-activate after {@link deactivate} (the host is back in the DOM). Idempotent. */
+    activate() {
+        if (!this.isSuspended) return;
+        this.isSuspended = false;
+
+        this.clickEvents.resume();
+        this.scrollEvents.resume();
+        document.addEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        if (this.onDocumentKeydown) document.addEventListener('keydown', this.onDocumentKeydown);
+        this.overlayCoord = registerOverlay(() => this.close(), this.options.overlayGroup || undefined);
+
+        const isOpen = this.options.positioningMode !== 'inline' &&
+            this.calendar.classList.contains('drp__picker--visible');
+        if (isOpen) {
+            // Re-arm the parked Back trap first so the chrome doesn't push a second entry.
+            if (this.suspendedOverlayHistory && typeof window !== 'undefined' && this.onOverlayPopstate) {
+                this.overlayHistoryActive = true;
+                window.addEventListener('popstate', this.onOverlayPopstate);
+            }
+            UI.applyPresentationChrome(this);
+            (this as any).modalRestoreFocus = this.suspendedModalRestoreFocus;
+            this.overlayCoord?.activate();
+        } else if (this.suspendedOverlayHistory) {
+            // Parked trap but no longer open — drop it (the entry is harmless).
+            this.overlayHistoryActive = false;
+        }
+        this.suspendedOverlayHistory = false;
+        this.suspendedModalRestoreFocus = false;
+    }
+
     destroy() {
         // Unsubscribe from all event subscriptions
         this.scrollSubscriptions.forEach(sub => sub.unsubscribe());
@@ -2577,8 +2657,10 @@ class DateRangePickerEngine {
         this.scrollEvents.destroy();
         this.clickEvents.destroy();
 
-        // Stop listening for cross-picker activation broadcasts
+        // Stop listening for cross-picker activation broadcasts + keyboard navigation
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
+        this.onDocumentKeydown = null;
 
         // Leave the single-active-overlay group.
         this.overlayCoord?.destroy();
@@ -2610,10 +2692,13 @@ class DateRangePickerEngine {
                 window.removeEventListener('popstate', this.onOverlayPopstate);
             }
         }
-        const openOverlay = this.options.positioningMode !== 'inline' &&
+        // A deactivated picker already tore its chrome down (running it again would
+        // double-release the body scroll lock).
+        const openOverlay = !this.isSuspended && this.options.positioningMode !== 'inline' &&
             this.calendar.classList.contains('drp__picker--visible');
         if (openOverlay) UI.teardownPresentationChrome(this);
         else UI.cleanupPositioning(this);
+        this.isSuspended = false;
 
         this.calendar.remove();
         if (this.tooltip) {

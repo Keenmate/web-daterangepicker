@@ -328,7 +328,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `defer` holds the build; attribute removal / `ready()` builds once; `ready` never re-fires (reinit, reconnect); `is-ready` / `isReady` | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
 | DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
-| DOM move keeps the committed selection state + open state (D1, FINDINGS #16) | ✗ test.fail | `lifecycle.spec.ts` | `lifecycle.html` |
+| DOM move keeps the committed selection state + open state (D1, FINDINGS #16, fixed) | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
+| DOM move / removal pauses document listeners; re-insert re-activates (outside click) | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
 
 ## 24. Misc: transitions, logging, RTL
 

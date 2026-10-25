@@ -176,7 +176,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     (or a DOM move, DRP-4) rebuilds that node and the alignment silently resets. Fix: set the
     variable on the host (`this.style`) or keep it in config and re-apply in `#buildPicker()`.
 
-16. **DRP-4 — a DOM move rebuilds the picker (D1).**
+16. **~~DRP-4 — a DOM move rebuilds the picker (D1).~~** ✅ FIXED
     Where: `src/web-component.ts` `disconnect()` (~l.371) destroys the picker, `connect()`
     rebuilds it. Symptom: re-parenting an open picker closes it and drops a half-picked range;
     decided (D1, 2026-10-24) that a move must keep selection, input value, form value and open
@@ -185,6 +185,17 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     instance survives. Pinned by `e2e/lifecycle.spec.ts`: after a move the input text and
     form value survive, but `selectedRanges` reads `[]` and an open picker is closed. (A
     half-picked range happens to survive — reopening re-syncs from the input text.)
+    **Fixed (2026-10-25):** build-once + activate/deactivate. New engine `deactivate()` /
+    `activate()`: deactivate detaches the document/window listeners (outside click, scroll,
+    keyboard, sibling-activation), leaves the overlay group, stops the floating autoUpdate
+    and tears down an open sheet's chrome (scroll lock, Back trap parked without popping
+    history) while keeping every bit of state incl. the open flag; activate restores them and
+    re-stands the chrome of an open picker. `disconnect()` → `deactivate()`, `connect()` →
+    `activate()` (builds only on first connect / a released `defer`). Also: the document
+    `keydown` listener was never removed in `destroy()` (each rebuild leaked one) — now a
+    named field, removed in `destroy()`/`deactivate()`. The lifecycle spec's
+    `selectedRanges` check now reads `selectedStartDate`/`EndDate` (see #21's note); two
+    new specs prove the re-activation (outside click after a move / while detached).
 
 17. **~~DRP-5 — Apply never fires `select` / `change` (all `commit-mode="apply"` pickers).~~** ✅ FIXED
     Where: `src/date-picker-selection.ts` `apply()` calls `options.onSelect(...)` *before*

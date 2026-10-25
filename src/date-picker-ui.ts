@@ -206,7 +206,7 @@ export function open(picker: any) {
  * Stand up the chrome for the picker's current runtime `presentation`. Called by
  * open() and by setPresentation() when the environment flips while open.
  */
-function applyPresentationChrome(picker: any) {
+export function applyPresentationChrome(picker: any) {
     switch (picker.presentation) {
         case 'modal':      enterModal(picker); break;
         case 'fullscreen': enterFullscreen(picker); break;

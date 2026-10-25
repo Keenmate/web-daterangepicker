@@ -49,6 +49,17 @@ export interface ClickEventManager {
 	updateReferences(input?: HTMLElement | null, calendarButton?: HTMLElement | null): void
 
 	/**
+	 * Detach the document-level listener while the host is out of the DOM
+	 * (subscriptions and calendar listeners are kept). Undo with resume().
+	 */
+	suspend(): void
+
+	/**
+	 * Re-attach the document-level listener after suspend().
+	 */
+	resume(): void
+
+	/**
 	 * Remove all listeners and subscriptions
 	 */
 	destroy(): void
@@ -172,6 +183,21 @@ export function createClickEventManager(): ClickEventManager {
 		updateReferences(input?: HTMLElement | null, calendarButton?: HTMLElement | null) {
 			inputElement = input || null
 			buttonElement = calendarButton || null
+		},
+
+		suspend() {
+			if (documentListenerAttached) {
+				document.removeEventListener('click', handleDocumentClick, true)
+				documentListenerAttached = false
+			}
+			insideCalendarClickInProgress = false
+		},
+
+		resume() {
+			if (calendarElement && !documentListenerAttached) {
+				document.addEventListener('click', handleDocumentClick, true)
+				documentListenerAttached = true
+			}
 		},
 
 		destroy() {
