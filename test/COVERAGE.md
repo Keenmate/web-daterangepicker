@@ -336,11 +336,12 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `enable-transitions`: class on the calendar; runtime toggle reflects | ✓ | `misc-features.spec.ts` | `misc-features.html` |
-| `/logging` `DRP:*` loggers silent by default                  | ✓      | `logging.spec.ts`            | `logging.html`            |
-| `show-debug-info` enables / disables the loggers at runtime   | ✓      | `logging.spec.ts`            | `logging.html`            |
+| `/logging` `DRP:*` loggers at `warn` by default (no debug lines; warnings visible) | ✓ | `logging.spec.ts` | `logging.html` |
+| `show-debug-info` enables debug at runtime; removal → back to `warn` (never silent) | ✓ | `logging.spec.ts` | `logging.html` |
+| A picker without `show-debug-info` doesn't override `window.components.logging` | ✓ | `logging.spec.ts` | `logging.html` |
 | RTL: header + grid mirror (prev on the right)                 | ✓      | `rtl.spec.ts`                | `rtl.html`                |
 | RTL: chevrons point outward, ArrowLeft = next day (FINDINGS #28) | ✗ test.fail | `rtl.spec.ts`        | `rtl.html`                |
-| Wheel commit logs via `console.log` (FINDINGS #23)            | ✗      | _no test (console noise)_ |              |
+| Wheel commit logs via `console.log` (FINDINGS #23, fixed — removed) | ✓ | _no test (console noise)_ |              |
 
 ## Not covered (by design)
 

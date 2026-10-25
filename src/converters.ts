@@ -15,6 +15,7 @@
  */
 import { toCustom } from '@keenmate/web-components-core';
 import type { Converter } from '@keenmate/web-components-core';
+import { drpLogger } from './logger';
 
 type WeekStart = 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -91,11 +92,11 @@ export function toPipeList(count: number): Converter<string[] | undefined> {
       if (!raw) return undefined;
       const parts = raw.split('|').map((s) => s.trim());
       if (parts.length !== count) {
-        console.warn(`[web-daterangepicker] list ignored: expected exactly ${count} pipe-delimited segments, got ${parts.length}. Falling back to locale names.`);
+        drpLogger.warn(`list ignored: expected exactly ${count} pipe-delimited segments, got ${parts.length}. Falling back to locale names.`);
         return undefined;
       }
       if (!parts.every(Boolean)) {
-        console.warn('[web-daterangepicker] list ignored: one or more segments are empty. Falling back to locale names.');
+        drpLogger.warn('list ignored: one or more segments are empty. Falling back to locale names.');
         return undefined;
       }
       return parts;

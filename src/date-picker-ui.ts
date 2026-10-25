@@ -30,8 +30,8 @@ import type { LoaderTarget } from './types';
 function warnDrift(picker: any, report: DriftReport): void {
     if (picker.positioningDriftWarned) return;
     picker.positioningDriftWarned = true;
-    console.warn(
-        `[@keenmate/web-daterangepicker] Calendar rendered ${report.driftX.toFixed(0)}px / ${report.driftY.toFixed(0)}px ` +
+    uiLogger.warn(
+        `Calendar rendered ${report.driftX.toFixed(0)}px / ${report.driftY.toFixed(0)}px ` +
         `away from where the library positioned it. Most likely culprit: ${report.culpritDescription}` +
         (report.culpritCss ? ` (has ${report.culpritCss})` : '') + `.\n` +
         `An ancestor of <web-daterangepicker> establishes a fixed-positioning containing block that the library's ` +

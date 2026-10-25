@@ -18,6 +18,11 @@
  * - VALIDATION  — date-restriction helpers
  * - DRAG        — drag-to-adjust
  *
+ * Default level is core's `warn` (warnings/errors show, debug/info don't); the
+ * page-wide `window.components.logging` switch drives every KeenMate bundle at
+ * once. The `show-debug-info` attribute turns this bundle up to `debug` and, when
+ * removed, back to `warn` — it never silences.
+ *
  * Enable from the console (or `window.components['web-daterangepicker'].logging`):
  *
  * ```js
@@ -65,6 +70,11 @@ export function disableLogging(): void {
   logging.disableLogging();
 }
 
+/** Put every category back to the default level (`warn`) — what `show-debug-info` off restores. */
+export function resetLogLevel(): void {
+  logging.setLogLevel('warn');
+}
+
 /** Set the same level on every category. */
 export function setLogLevel(level: LogLevelDesc): void {
   logging.setLogLevel(level);
@@ -83,9 +93,6 @@ export function setCategoryLevel(category: string, level: LogLevelDesc = 'debug'
 export function getCategories(): string[] {
   return [...LOGGING_CATEGORIES];
 }
-
-// Start silent — matches the historical default; enable via the API/console.
-logging.disableLogging();
 
 // Back-compat default export: the modules that did `import log from './logger'`
 // use it as a general `log.warn(...)`/`log.error(...)` sink → the GENERAL logger.

@@ -96,7 +96,7 @@ async function loadMonthData(picker: any, ctx: MonthChangeContext, state: { isLo
     try {
         return (await withLoader(picker, fn, state)(ctx)) ?? null;
     } catch (error) {
-        console.error('[web-daterangepicker] getMonthDataCallback threw:', error);
+        navigationLogger.error('getMonthDataCallback threw:', error);
         return null;
     }
 }

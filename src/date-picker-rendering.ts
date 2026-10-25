@@ -642,7 +642,7 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
                     }
                 }
             } catch (error) {
-                console.error('[DatePicker] Error in renderDayCallback:', error);
+                renderingLogger.error('Error in renderDayCallback:', error);
             }
         } else if (picker.options.renderDayContentCallback) {
             try {
@@ -660,7 +660,7 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
                     }
                 }
             } catch (error) {
-                console.error('[DatePicker] Error in renderDayContentCallback:', error);
+                renderingLogger.error('Error in renderDayContentCallback:', error);
             }
         }
     });
@@ -1180,19 +1180,6 @@ export function renderWheelPicker(picker: any) {
             const target = focused.offsetTop - (col.clientHeight - itemH) / 2;
             const desired = Math.max(0, target);
             const skip = !forceScroll && Math.abs(col.scrollTop - desired) < 2;
-            console.log('[wheel] render-center', {
-                listKey,
-                focusValue,
-                focusedOffsetTop: focused.offsetTop,
-                focusedOffsetHeight: focused.offsetHeight,
-                itemH,
-                clientHeight: col.clientHeight,
-                target,
-                desired,
-                currentScrollTop: col.scrollTop,
-                forceScroll,
-                skip,
-            });
             if (skip) return;
             picker.wheelScrollLock = true;
             col.scrollTo({ top: desired, behavior: 'auto' });

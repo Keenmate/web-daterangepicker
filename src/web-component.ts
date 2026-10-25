@@ -771,7 +771,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       slot.set(css);
       if (import.meta.env?.DEV && css) this.#checkCustomStyleVars(css);
     } catch (e) {
-      console.warn('[web-daterangepicker] getCustomStylesCallback threw', e);
+      this.log.UI.warn('getCustomStylesCallback threw', e);
       slot.clear();
     }
   }
@@ -790,8 +790,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       if (this.#customStyleVarsWarned.has(name)) continue;
       this.#customStyleVarsWarned.add(name);
       const hint = suggestions.length ? ` Did you mean ${suggestions.map((s) => `"${s}"`).join(', ')}?` : '';
-      console.warn(
-        `[web-daterangepicker] custom styles set "${name}", which no ` +
+      this.log.UI.warn(
+        `custom styles set "${name}", which no ` +
         `--drp-* variable in the component reads — likely a typo.${hint}`,
       );
     }

@@ -22,7 +22,7 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
-import { drpLogger, navigationLogger, enableLogging, disableLogging } from './logger';
+import { drpLogger, navigationLogger, enableLogging, resetLogLevel } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
 import { createPresentationContext, registerOverlay, withComponentContext, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
@@ -312,13 +312,13 @@ class DateRangePickerEngine {
         // pickerMode 'time'/'datetime' only support selectionMode 'single' in v1.
         if (this.options.pickerMode !== 'date' &&
             (this.options.selectionMode === 'range' || this.options.selectionMode === 'multiple')) {
-            console.warn(`[web-daterangepicker] pickerMode="${this.options.pickerMode}" does not support selectionMode="${this.options.selectionMode}" yet. Falling back to "single".`);
+            drpLogger.warn(`pickerMode="${this.options.pickerMode}" does not support selectionMode="${this.options.selectionMode}" yet. Falling back to "single".`);
             this.options.selectionMode = 'single';
             this.options.visibleMonthsCount = 1;
         }
         // pickerMode 'datetime' + monthLayout 'grid' — the time picker fights the grid for width.
         if (this.options.pickerMode === 'datetime' && this.options.monthLayout === 'grid') {
-            console.warn('[web-daterangepicker] pickerMode="datetime" is incompatible with monthLayout="grid". Falling back to "horizontal".');
+            drpLogger.warn('pickerMode="datetime" is incompatible with monthLayout="grid". Falling back to "horizontal".');
             this.options.monthLayout = 'horizontal';
         }
         // timeDisplay 'clock' constraints — only when actually rendering time.
@@ -329,11 +329,11 @@ class DateRangePickerEngine {
         const clockActive = this.options.timeDisplay === 'clock'
             && (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime');
         if (clockActive && this.options.timeStep && 60 % this.options.timeStep !== 0) {
-            console.warn(`[web-daterangepicker] timeDisplay="clock" requires (60 % timeStep === 0). Got timeStep=${this.options.timeStep}. Falling back to 1.`);
+            drpLogger.warn(`timeDisplay="clock" requires (60 % timeStep === 0). Got timeStep=${this.options.timeStep}. Falling back to 1.`);
             this.options.timeStep = 1;
         }
         if (clockActive && this.options.isSecondsShown) {
-            console.warn('[web-daterangepicker] timeDisplay="clock" does not support isSecondsShown; seconds will always be 00. Set timeDisplay="rolls" to pick seconds.');
+            drpLogger.warn('timeDisplay="clock" does not support isSecondsShown; seconds will always be 00. Set timeDisplay="rolls" to pick seconds.');
             this.options.isSecondsShown = false;
         }
         // Multiple mode collects several dates, so it can't commit-and-close on each
@@ -349,18 +349,17 @@ class DateRangePickerEngine {
             this.options.commitMode = 'apply';
         }
 
-        // Enable/disable logging based on showDebugInfo option
-        if (this.options.showDebugInfo) {
-            enableLogging();
-        } else {
-            disableLogging();
-        }
+        // showDebugInfo turns the DRP loggers up to debug. Off is a no-op: it must
+        // never silence the bundle (warnings — incl. core's input-validation ones —
+        // stay at the default `warn`), nor override a page-wide
+        // `window.components.logging` setting.
+        if (this.options.showDebugInfo) enableLogging();
 
         // Validate anchor index is within bounds
         if (this.options.isUnifiedNavigationEnabled && this.options.unifiedNavigationAnchorIndex !== undefined) {
             const maxIndex = this.options.visibleMonthsCount - 1;
             if (this.options.unifiedNavigationAnchorIndex < 0 || this.options.unifiedNavigationAnchorIndex > maxIndex) {
-                console.warn(`unifiedNavigationAnchorIndex (${this.options.unifiedNavigationAnchorIndex}) out of bounds. Using 0.`);
+                drpLogger.warn(`unifiedNavigationAnchorIndex (${this.options.unifiedNavigationAnchorIndex}) out of bounds. Using 0.`);
                 this.options.unifiedNavigationAnchorIndex = 0;
             }
         }
@@ -709,6 +708,8 @@ class DateRangePickerEngine {
         // Captured before the merge (afterwards partial and options agree).
         const isMonthDataSourceChanged = changed('getMonthDataCallback');
 
+        const wasDebugInfoShown = !!this.options.showDebugInfo;
+
         // Merge partial into options (only keys present on partial — preserves untouched ones).
         for (const key of Object.keys(partial) as (keyof DatePickerOptions)[]) {
             (this.options as any)[key] = (partial as any)[key];
@@ -731,7 +732,10 @@ class DateRangePickerEngine {
             this.initializeDateRestrictions();
         }
         if (has('showDebugInfo')) {
-            if (this.options.showDebugInfo) enableLogging(); else disableLogging();
+            // Turning it off only undoes what it turned on: back to the default `warn`
+            // (never silent).
+            if (this.options.showDebugInfo) enableLogging();
+            else if (wasDebugInfoShown) resetLogLevel();
         }
 
         // Re-render is the universal post-step. Calendar DOM structure is unchanged,
@@ -2336,7 +2340,7 @@ class DateRangePickerEngine {
      */
     set isOpen(value: boolean) {
         if (this.options.positioningMode === 'inline') {
-            console.warn('isOpen property does not apply to inline mode');
+            drpLogger.warn('isOpen property does not apply to inline mode');
             return;
         }
         if (value) {

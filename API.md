@@ -670,11 +670,13 @@ The date picker includes a professional, categorized logging system provided by 
 
 ### Enabling Debug Logging
 
-Add the `show-debug-info` attribute to any picker instance to enable debug logging for that specific instance:
+Add the `show-debug-info` attribute to a picker to turn the `DRP:*` loggers up to `debug` (the level is shared by every picker on the page). Removing it puts them back to the default `warn` — it never silences warnings.
 
 ```html
 <web-daterangepicker show-debug-info></web-daterangepicker>
 ```
+
+The page-wide switch for every KeenMate component is `window.components.logging` (`enableLogging()` / `disableLogging()` / `setLogLevel(level)`); a picker without `show-debug-info` never overrides it.
 
 ### Log Categories
 
@@ -713,9 +715,9 @@ The library uses these log levels:
 
 | Level | When Used | Visibility |
 |-------|-----------|------------|
-| `silent` | Default (production) | No logging |
-| `error` | Critical errors (async validation failures, etc.) | Always visible |
-| `warn` | Warnings (invalid inputs, validation failures) | Always visible |
+| `silent` | Opt-in (`disableLogging()`) | No logging |
+| `error` | Critical errors (async validation failures, throwing callbacks, etc.) | Visible by default |
+| `warn` | Warnings (invalid inputs, validation failures) — the default level | Visible by default |
 | `info` | Not currently used | - |
 | `debug` | Development debugging | Only when `show-debug-info` is enabled |
 | `trace` | Not currently used | - |

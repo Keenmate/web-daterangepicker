@@ -712,19 +712,6 @@ export function commitWheelScroll(picker: any, col: HTMLElement, listKey: string
     const centerOffset = col.scrollTop + col.clientHeight / 2;
     const rawIdx = (centerOffset - firstItemTop - itemH / 2) / itemH;
     const idx = Math.max(0, Math.min(items.length - 1, Math.round(rawIdx)));
-    console.log('[wheel] commit', {
-        listKey,
-        scrollTop: col.scrollTop,
-        clientHeight: col.clientHeight,
-        firstItemTop,
-        firstItemOffsetHeight: items[0].offsetHeight,
-        itemH,
-        itemCount: items.length,
-        centerOffset,
-        rawIdx: rawIdx.toFixed(4),
-        idx,
-        centeredValue: items[idx]?.dataset.wheelValue,
-    });
     const raw = items[idx].dataset.wheelValue;
     if (raw === undefined) return;
     if (listKey === 'ampm') {

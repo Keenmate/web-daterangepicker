@@ -266,10 +266,18 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     docs)? Pinned by `selection-modes.spec.ts` "nothing is committed … until the app calls
     controller.apply()".
 
-23. **DRP-11 — stray `console.log('[wheel] commit', …)` in production code.**
+23. **~~DRP-11 — stray `console.log('[wheel] commit', …)` in production code.~~** ✅ FIXED
     Where: `src/date-picker-selection.ts` `commitWheelScroll()`. Every wheel commit logs an
     object to the console, bypassing the `/logging` loggers (silent by default). Fix:
     `drpLogger.debug(...)` or delete. No test (console noise only).
+    **Fixed (2026-10-25):** deleted, along with a sibling `console.log('[wheel] render-center')`
+    in `date-picker-rendering.ts`. Part of the logging alignment with core's `warn` default:
+    every remaining direct `console.*` now goes through the `DRP:*` loggers (engine) or
+    `this.log` (element), and `showDebugInfo` no longer calls `disableLogging()` (on
+    construction or at module load) — it only turns debug on, and back to `warn` when
+    removed. New `logging.spec.ts` tests: warnings visible by default, still visible after
+    `show-debug-info` is removed, and a picker without it doesn't override
+    `window.components.logging.enableLogging()`.
 
 24. **DRP-12 — the selection setters don't refresh the form value.**
     Where: `src/web-component.ts` `set selectedDate` / `selectedRanges` / `selectedDates`

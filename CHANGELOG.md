@@ -87,6 +87,12 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   listeners, overlay-group registration and positioning loop (resumed on reconnect)
   instead of destroying the picker. The document `keydown` listener no longer leaks on
   every rebuild.
+- Logging follows core's defaults: the `DRP:*` loggers start at `warn` (they were forced
+  silent), so warnings — incl. core's invalid-attribute warnings — are visible.
+  `show-debug-info` only turns debug **on**; without it a picker no longer calls
+  `disableLogging()` (which overrode `window.components.logging` and silenced every
+  warning), and removing it goes back to `warn`. The remaining direct `console.*`
+  diagnostics go through the loggers; the stray `[wheel]` debug `console.log`s are gone.
 
 ### Added
 
