@@ -85,9 +85,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Rolling year/month selector toggles via month-year header     | ✓      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
 | Rolling list scrolls without chaining to page                 | ✓      | `rolling-selector.spec.ts`   | `rolling-selector.html`   |
 | Rolling list border-box (no overflow into elements below)     | ✓      | `rolling-selector.spec.ts`   | `rolling-selector.html`   |
-| Keyboard: arrows (day), Ctrl+arrows / PgUp/PgDn (month)       | △      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
-| Keyboard: Home/End (start/end of month)                       | △      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
-| Keyboard: Ctrl+Home/End (year jump, step year-by-year)        | △      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
+| Keyboard: arrows (day), Ctrl+arrows / PgUp/PgDn (month)       | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
+| Keyboard: Home/End (start/end of month)                       | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
+| Keyboard: Ctrl+Home/End (year jump, step year-by-year)        | ✓      | `keyboard-navigation.spec.ts`, `navigation-extras.spec.ts` | `keyboard-navigation.html`, `navigation-extras.html` |
+| Keyboard: Ctrl+Home/End leave a single focused day (FINDINGS #26, race — untested) | ✗ | | |
 | Keyboard: `t` jumps to today                                  | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Enter selects, Escape closes                        | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Tab cycles between month columns                    | ✓      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
@@ -98,7 +99,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Input mask: progressive auto-format as user types             | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Custom `date-format-mask` (YYYY-MM-DD, DD.MM.YYYY, etc.)      | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
-| Progressive parsing: calendar follows valid typed segments    | ✗      |      |         |
+| Progressive parsing: calendar follows valid typed segments    | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
 | `displayFormatMask` fills placeholder when no explicit one    | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
 
@@ -110,8 +111,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `disabled-weekdays` (Sat/Sun, etc.)                           | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | `disabledDates` (specific dates)                              | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `initial-date` controls opening month                         | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
-| `rolling-year-range` / `rolling-month-range`                  | △      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
-| Rolling selector disables out-of-range entries                | ✗      |      |         |
+| `rolling-year-range` (absolute; runtime change)               | ✓      | `date-restrictions.spec.ts`, `rolling-selector.spec.ts` | `date-restrictions.html`, `rolling-selector.html` |
+| `rolling-year-range` relative `-1:+2` (FINDINGS #27)          | ✗ test.fail | `rolling-selector.spec.ts` | `rolling-selector.html` |
+| `rolling-month-range`                                         | ✗      |      |         |
+| Rolling selector: min/max-date bound years, disable months; disabled month inert | ✓ | `rolling-selector.spec.ts` | `rolling-selector.html` |
 
 ## 8. Range over disabled dates (`disabledDatesHandling`)
 
@@ -149,7 +152,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `getMonthHeaderCallback` overrides per-month header           | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `getUnifiedHeaderCallback` overrides unified-mode header text | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `getCustomStylesCallback` injects styles into Shadow DOM      | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
-| `beforeSelectCallback`: accept / `false` / `DateRange[]` (adjust to N ranges) | △ | `callbacks.spec.ts`  | `callbacks.html`          |
+| `beforeSelectCallback`: accept / `false` / `DateRange[]` (adjust to N ranges, replaces the previous selection) | ✓ | `callbacks.spec.ts`  | `callbacks.html`          |
 | `beforeSelectCallback` returning `null` clears                | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `beforeMonthChangeCallback` returning `false` blocks          | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `getMonthDataCallback` bulk metadata (set after upgrade) + `reloadMonthData()` | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
@@ -162,6 +165,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Day-cell tooltip on hover                                     | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 | Badge tooltip                                                 | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
+| `getBadgeTooltipCallback` text (overrides / supplies)         | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 | Action-button tooltip                                         | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 | Tooltips escape `overflow:auto` ancestor (position: fixed)    | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
 
@@ -169,7 +173,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `locale="auto"` detects from browser                          | ✗      |      |         |
+| `locale="auto"` detects from browser (de-DE / en-US)          | ✓      | `locale.spec.ts`             | `locale.html`             |
 | Explicit `locale="de"` / `"fr"` / etc.                        | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `customStrings` overrides individual UI strings               | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `monthNames` override (property)                              | ✓      | `locale.spec.ts`             | `locale.html`             |
@@ -177,7 +181,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `weekday-names` override (pipe-delimited, Sunday-indexed)     | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `weekday-names` rotates by `week-start-day` (Wednesday-first) | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `month-names` / `weekday-names` bad segment count ignored     | ✓      | `locale.spec.ts`             | `locale.html`             |
-| `week-start-day="auto"` follows locale                        | ✗      |      |         |
+| `week-start-day="auto"` follows locale (Monday / Sunday)      | ✓      | `locale.spec.ts`             | `locale.html`             |
 | Explicit `week-start-day` integer                             | ✓      | `locale.spec.ts`             | `locale.html`             |
 
 ## 13. Events & API

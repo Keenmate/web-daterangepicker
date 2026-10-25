@@ -110,3 +110,28 @@ test('weekday-names with wrong segment count is ignored (falls back to locale na
     await expect(firstWeekday).toContainText(/Sun|Su/i);
     await expect(firstWeekday).not.toHaveText('Po');
 });
+
+// =============================================================================
+// locale="auto" / week-start-day="auto" follow the browser locale
+// =============================================================================
+
+test.describe('auto locale in a de-DE browser', () => {
+    test.use({ locale: 'de-DE' });
+
+    test('German month and weekday names, Monday first', async ({ page }) => {
+        const p = await open(page, 'auto');
+        await expect(p.locator('.drp__month-year').first()).toContainText('Juni 2026');
+        await expect(p.locator('.drp__weekdays > *').first()).toContainText(/^Mo/);
+        await expect(p.locator('.drp__weekdays > *').last()).toContainText(/^So/);
+    });
+});
+
+test.describe('auto locale in an en-US browser', () => {
+    test.use({ locale: 'en-US' });
+
+    test('English names, Sunday first', async ({ page }) => {
+        const p = await open(page, 'auto');
+        await expect(p.locator('.drp__month-year').first()).toContainText('June 2026');
+        await expect(p.locator('.drp__weekdays > *').first()).toContainText(/^Su/);
+    });
+});

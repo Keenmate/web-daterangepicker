@@ -318,3 +318,25 @@ test('adjustedRanges also applies when the range is TYPED into the input', async
     await expect(inp).toHaveValue('2026-06-10 - 2026-06-14, 2026-06-16 - 2026-06-20');
     await expect(dayByDate(p, '2026-06-15')).not.toHaveClass(/drp__day--in-range/);
 });
+
+test('beforeSelectCallback DateRange[] replaces the previous selection (no merge with older ranges)', async ({ page }) => {
+    const p = await open(page, 'split-ranges');
+    // First commit: Jun 1..3 (no hole → accepted as-is).
+    await dayByDate(p, '2026-06-01').click();
+    await dayByDate(p, '2026-06-03').click();
+    if (!(await calendarOf(p).evaluate((c) => c.classList.contains('drp__picker--visible')))) {
+        await inputOf(p).click();
+    }
+    // Second commit: Jun 10..20 → callback returns two ranges.
+    await dayByDate(p, '2026-06-10').click();
+    await dayByDate(p, '2026-06-20').click();
+
+    const ranges = await p.evaluate((el: any) =>
+        el.selectedRanges.map((r: any) => [r.start.getDate(), r.end.getDate()]));
+    expect(ranges).toEqual([[10, 14], [16, 20]]);
+    if (!(await calendarOf(p).evaluate((c) => c.classList.contains('drp__picker--visible')))) {
+        await inputOf(p).click();
+    }
+    await expect(dayByDate(p, '2026-06-01')).not.toHaveClass(/drp__day--range-start/);
+    await expect(dayByDate(p, '2026-06-02')).not.toHaveClass(/drp__day--in-range/);
+});

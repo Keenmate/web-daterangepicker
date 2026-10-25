@@ -46,8 +46,20 @@
         </div>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">getBadgeTooltipCallback overrides the static badgeTooltip</div>
+        <web-daterangepicker id="badge-cb" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
     <script type="module">
         await customElements.whenDefined('web-daterangepicker');
+
+        const badgeCb = document.getElementById('badge-cb');
+        badgeCb.specialDates = [
+            { date: '2026-06-15', badgeText: '3', badgeTooltip: 'static tooltip' },
+            { date: '2026-06-16', badgeText: '4' }
+        ];
+        badgeCb.getBadgeTooltipCallback = ({ dayNumber, isWeekend }) => `cb ${dayNumber}${isWeekend ? " (weekend)" : ""}`;
 
         document.getElementById('day-tip').getDayTooltipCallback = ({ dayNumber }) =>
             dayNumber === 15 ? 'Special day 15' : null;

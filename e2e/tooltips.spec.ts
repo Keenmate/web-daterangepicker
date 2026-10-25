@@ -111,3 +111,26 @@ test('day tooltip extends past an overflow:auto ancestor when positioned at a hi
     expect(tipBox!.width).toBeGreaterThan(0);
     expect(tipBox!.height).toBeGreaterThan(0);
 });
+
+// =============================================================================
+// getBadgeTooltipCallback
+// =============================================================================
+
+test.describe('getBadgeTooltipCallback', () => {
+    // Badges live in a separate .drp__badge-row above the week's day row.
+    const badgeOf = (p: Locator, text: string) => p.locator('.drp__badge-cell').filter({ hasText: new RegExp(`^${text}$`) });
+
+    test('its text replaces the static badgeTooltip', async ({ page }) => {
+        const p = await open(page, 'badge-cb');
+        await badgeOf(p, '3').hover();
+        const tip = p.locator('.drp__tooltip--visible');
+        await expect(tip).toContainText('cb 15', { timeout: 2000 });
+        await expect(tip).not.toContainText('static tooltip');
+    });
+
+    test('it also supplies a tooltip for a badge that has no static one', async ({ page }) => {
+        const p = await open(page, 'badge-cb');
+        await badgeOf(p, '4').hover();
+        await expect(p.locator('.drp__tooltip--visible')).toContainText('cb 16', { timeout: 2000 });
+    });
+});

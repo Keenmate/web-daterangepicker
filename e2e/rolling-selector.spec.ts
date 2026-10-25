@@ -97,3 +97,54 @@ test('rolling selector is opaque and paints below the sticky month/year header',
         .evaluate(el => Number(getComputedStyle(el).zIndex));
     expect(headerZ).toBeGreaterThan(selectorZ);
 });
+
+// =============================================================================
+// min/max-date + rolling-year-range
+// =============================================================================
+
+test.describe('rolling entries vs restrictions', () => {
+    async function openRolling(page: Page, id: string) {
+        await page.goto(PAGE);
+        const p = page.locator(`#${id}`);
+        await p.locator('input').click();
+        await p.locator('.drp__month-year').first().click();
+        await expect(p.locator('.drp__rolling-selector--visible')).toBeVisible();
+        return p;
+    }
+    const years = (p: ReturnType<Page['locator']>) => p.locator('.drp__rolling-list[data-list="years"] .drp__rolling-item');
+    const month = (p: ReturnType<Page['locator']>, m: number) => p.locator(`.drp__rolling-list[data-list="months"] [data-month="${m}"]`);
+
+    test('min/max-date bound the year list', async ({ page }) => {
+        const p = await openRolling(page, 'minmax');
+        await expect(years(p)).toHaveText(['2026', '2027']);
+    });
+
+    test('months before min-date are disabled; later months are enabled', async ({ page }) => {
+        const p = await openRolling(page, 'minmax');
+        await expect(month(p, 0)).toHaveClass(/drp__rolling-item--disabled/);   // January 2026
+        await expect(month(p, 1)).toHaveClass(/drp__rolling-item--disabled/);   // February 2026
+        await expect(month(p, 2)).not.toHaveClass(/drp__rolling-item--disabled/); // March (min-date month)
+        await expect(month(p, 11)).not.toHaveClass(/drp__rolling-item--disabled/);
+    });
+
+    test('clicking a disabled month does not navigate', async ({ page }) => {
+        const p = await openRolling(page, 'minmax');
+        await month(p, 0).dispatchEvent('click');   // pointer-events: none blocks a real click
+        await expect(p.locator('.drp__month-year').first()).toContainText(/June\s+2026/);
+    });
+
+    test('rolling-year-range relative form "-1:+2" lists the years around the shown year', async ({ page }) => {
+        test.fail(true, 'FINDINGS.md #27');
+        const p = await openRolling(page, 'relative');
+        await expect(years(p)).toHaveText(['2025', '2026', '2027', '2028']);
+    });
+
+    test('changing rolling-year-range at runtime re-renders the year list', async ({ page }) => {
+        await page.goto(PAGE);
+        const p = page.locator('#runtime-range');
+        await p.evaluate((el: any) => { el.setAttribute('rolling-year-range', '2023-2026'); return el.whenSettled(); });
+        await p.locator('input').click();
+        await p.locator('.drp__month-year').first().click();
+        await expect(years(p)).toHaveText(['2023', '2024', '2025', '2026']);
+    });
+});

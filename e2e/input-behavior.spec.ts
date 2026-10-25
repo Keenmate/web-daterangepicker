@@ -150,3 +150,28 @@ test('clear button: range mode clears both halves', async ({ page }) => {
     await expect(inputOf(p)).toHaveValue('');
     await expect(clearOf(p)).not.toHaveClass(/drp__input-clear--visible/);
 });
+
+// =============================================================================
+// progressive parsing: the calendar follows valid typed segments
+// =============================================================================
+
+test.describe('progressive parsing', () => {
+    const header = (p: Locator) => p.locator('.drp__month-year').first();
+
+    test('typing year + month moves the open calendar to that month', async ({ page }) => {
+        const p = pickerById(page, 'progressive');
+        await inputOf(p).click();
+        await expect(header(p)).toContainText(/June\s+2026/);
+        await inputOf(p).pressSequentially('202703');
+        await expect(inputOf(p)).toHaveValue('2027-03-');
+        await expect(header(p)).toContainText(/March\s+2027/);
+    });
+
+    test('completing the day selects it in the moved month', async ({ page }) => {
+        const p = pickerById(page, 'progressive');
+        await inputOf(p).click();
+        await inputOf(p).pressSequentially('20270321');
+        await expect(header(p)).toContainText(/March\s+2027/);
+        await expect(p.locator('.drp__day[data-date="2027-03-21"]')).toHaveClass(/drp__day--selected/);
+    });
+});

@@ -17,6 +17,24 @@
         <web-daterangepicker id="picker" selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">min-date="2026-03-10" max-date="2027-08-20"</div>
+        <web-daterangepicker id="minmax" selection-mode="single" initial-date="2026-06-15"
+            min-date="2026-03-10" max-date="2027-08-20"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">rolling-year-range="-1:+2" (relative form from the input's description)</div>
+        <web-daterangepicker id="relative" selection-mode="single" initial-date="2026-06-15"
+            rolling-year-range="-1:+2"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">rolling-year-range="2024-2025", changed at runtime by the spec</div>
+        <web-daterangepicker id="runtime-range" selection-mode="single" initial-date="2025-06-15"
+            rolling-year-range="2024-2025"></web-daterangepicker>
+    </div>
+
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

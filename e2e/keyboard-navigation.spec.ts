@@ -109,3 +109,68 @@ test('"t" key navigates the active column to today', async ({ page }) => {
     await expect(picker(page).locator('.drp__month-year').first()).toContainText(/May\s+2026/);
     await expect(dayByDate(page, '2026-05-22')).toHaveClass(/drp__day--today/);
 });
+
+// =============================================================================
+// one test per remaining key (focus starts at June 1 when today isn't in view)
+// =============================================================================
+
+const header = (page: Page) => picker(page).locator('.drp__month-year').first();
+
+test('ArrowLeft moves focus back one day', async ({ page }) => {
+    await openPicker(page);
+    await page.keyboard.press('ArrowDown');   // June 8
+    await page.keyboard.press('ArrowLeft');
+    await expect(focusedDay(page)).toHaveAttribute('data-date', '2026-06-07');
+});
+
+test('ArrowUp moves focus back a full week', async ({ page }) => {
+    await openPicker(page);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');   // June 15
+    await page.keyboard.press('ArrowUp');
+    await expect(focusedDay(page)).toHaveAttribute('data-date', '2026-06-08');
+});
+
+test('End jumps focus to the last day of the visible month', async ({ page }) => {
+    await openPicker(page);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('End');
+    await expect(focusedDay(page)).toHaveAttribute('data-date', '2026-06-30');
+});
+
+test('Ctrl+ArrowRight goes to the next month keeping the day index', async ({ page }) => {
+    await openPicker(page);
+    await page.keyboard.press('ArrowDown');   // index 7 = June 8
+    await page.keyboard.press('Control+ArrowRight');
+    await expect(header(page)).toContainText(/July\s+2026/);
+    await expect(focusedDay(page)).toHaveAttribute('data-date', '2026-07-08');
+});
+
+test('Ctrl+ArrowLeft goes to the previous month keeping the day index', async ({ page }) => {
+    await openPicker(page);
+    await page.keyboard.press('ArrowDown');   // index 7
+    await page.keyboard.press('Control+ArrowLeft');
+    await expect(header(page)).toContainText(/May\s+2026/);
+    await expect(focusedDay(page)).toHaveAttribute('data-date', '2026-05-08');
+});
+
+test('Ctrl+Home goes to January 1st; pressed again, to the previous year', async ({ page }) => {
+    await openPicker(page);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Control+Home');
+    await expect(header(page)).toContainText(/January\s+2026/);
+    await expect(dayByDate(page, '2026-01-01')).toHaveClass(/drp__day--focused/);
+    await page.keyboard.press('Control+Home');
+    await expect(header(page)).toContainText(/January\s+2025/);
+});
+
+test('Ctrl+End goes to December 31st; pressed again, to the next year', async ({ page }) => {
+    await openPicker(page);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Control+End');
+    await expect(header(page)).toContainText(/December\s+2026/);
+    await expect(dayByDate(page, '2026-12-31')).toHaveClass(/drp__day--focused/);
+    await page.keyboard.press('Control+End');
+    await expect(header(page)).toContainText(/December\s+2027/);
+});
+

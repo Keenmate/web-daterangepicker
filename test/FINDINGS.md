@@ -268,6 +268,23 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     when the input text was never user-edited. Pinned by `api-extras.spec.ts`
     "selectedDates setter (multiple) → --selected on each day".
 
+26. **DRP-14 — Ctrl+Home / Ctrl+End can leave two focused days (timing race, low priority).**
+    Where: `src/date-picker.ts` keydown handler, the Ctrl+Home / Ctrl+End branches
+    (~l.1995-2035, ~l.2074-2110): they re-render and then add `--focused` to the new day in
+    a `setTimeout`, without the `querySelectorAll('.drp__day--focused').forEach(remove)`
+    the plain Home/End branches do. Symptom: ArrowRight immediately followed by Ctrl+Home
+    (keys sent back-to-back, as Playwright does) → both Jan 1 and Jan 2 carry
+    `drp__day--focused`, persistently. With a pause between the keys only one is focused,
+    so it's a race — no pinned test (it would be flaky); seen in a probe on 2026-10-24.
+    Fix: clear stale `--focused` classes before adding the new one, as Home/End do.
+
+27. **DRP-15 — `rolling-year-range` relative form from the docs doesn't parse.**
+    The input's description (`src/web-component.ts` ~l.124) says "e.g. `-5:+5` or absolute
+    years", but `parseYearRange()` (`src/date-picker-rendering.ts` ~l.20) only knows
+    `"2022-2026"` / `"2024"`; `"-1:+2"` splits on `-` into `NaN` bounds → an empty year list.
+    Fix: support `±N:±M` relative to the shown year (or fix the description). **Open
+    question for the user:** which one? Pinned by `rolling-selector.spec.ts`.
+
 ---
 
 Add new entries below as more specs land.
