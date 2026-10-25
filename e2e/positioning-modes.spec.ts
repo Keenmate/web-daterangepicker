@@ -104,13 +104,28 @@ test.describe('modal mode', () => {
 
 test.describe('modal mode extras', () => {
     test('opening from the input blurs it (suppresses the mobile keyboard)', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #29');
         const p = pickerById(page, 'modal');
         await p.locator('input').click();
         await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
         const inputFocused = await p.evaluate((el) =>
             el.shadowRoot!.activeElement === el.shadowRoot!.querySelector('input'));
         expect(inputFocused).toBe(false);
+    });
+
+    test('a keyboard-focused open blurs the input and Escape hands focus back (no reopen)', async ({ page }) => {
+        const p = pickerById(page, 'modal');
+        await p.evaluate((el: any) => el.shadowRoot.querySelector('input').focus());   // focus trigger opens the modal
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+        const focusedWhileOpen = await p.evaluate((el) =>
+            el.shadowRoot!.activeElement === el.shadowRoot!.querySelector('input'));
+        expect(focusedWhileOpen).toBe(false);
+        await page.keyboard.press('Escape');
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+        const inputFocused = await p.evaluate((el) =>
+            el.shadowRoot!.activeElement === el.shadowRoot!.querySelector('input'));
+        expect(inputFocused).toBe(true);
+        await page.waitForTimeout(100);
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
     });
 
     test('the grid always renders 6 weeks (42 cells), even for a 5-week month', async ({ page }) => {

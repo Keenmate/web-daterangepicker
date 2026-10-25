@@ -297,6 +297,8 @@ function armGhostClickGuard(picker: any) {
 /** Modal mode: backdrop, body scroll lock, blur input to suppress mobile keyboard. */
 function enterModal(picker: any) {
     clearFloatingGeometry(picker);
+    // Read before armGhostClickGuard() consumes it.
+    const isPointerOpen = !!picker.openViaPointer;
     armGhostClickGuard(picker);
     ensureModalBackdrop(picker).classList.add('drp__backdrop--visible');
     lockBodyScroll();
@@ -304,14 +306,38 @@ function enterModal(picker: any) {
     // instead of navigating away (same as full-screen).
     pushOverlayHistory(picker);
     // Remember if input was focused so we can restore on close.
-    if (picker.input && document.activeElement === picker.input) {
+    // Compare against the input's own root: inside the web component's shadow root
+    // `document.activeElement` is the HOST, never the input (FINDINGS #29).
+    const root = picker.input?.getRootNode() as Document | ShadowRoot | undefined;
+    const isFocused = !!picker.input && root?.activeElement === picker.input;
+    if (picker.input && isFocused) {
+        // Keyboard / programmatic focus opened it — hand focus back on close.
         picker.modalRestoreFocus = true;
         picker.input.blur();
     } else {
+        // A press on the input opens on pointerdown, BEFORE the press focuses the
+        // input — drop that trailing focus (one-shot, short-lived). No focus restore
+        // on close for a pointer open: that would bring the soft keyboard back up.
+        if (picker.input && isPointerOpen) blurTrailingFocus(picker);
         picker.modalRestoreFocus = false;
     }
     picker.calendar.classList.add('drp__picker--modal');
     // Modal is centered purely via CSS — no Floating UI involvement.
+}
+
+/** One-shot: blur the input when the opening press focuses it after the modal opened. */
+function blurTrailingFocus(picker: any) {
+    const input = picker.input as HTMLInputElement;
+    const onFocus = () => {
+        cleanup();
+        if (picker.presentation === 'modal' && picker.calendar.classList.contains('drp__picker--visible')) input.blur();
+    };
+    const cleanup = () => {
+        input.removeEventListener('focus', onFocus);
+        clearTimeout(timer);
+    };
+    const timer = setTimeout(cleanup, 700);
+    input.addEventListener('focus', onFocus);
 }
 
 /** Reverse enterModal(): hide backdrop, unlock scroll, restore focus. */

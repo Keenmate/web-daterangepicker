@@ -43,7 +43,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `modal` mode: centered overlay + backdrop                     | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: backdrop click closes                           | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: body scroll locked while open                   | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
-| `modal` mode: input blurred to suppress mobile keyboard (FINDINGS #29) | ✗ test.fail | `positioning-modes.spec.ts` | `positioning-modes.html` |
+| `modal` mode: input blurred to suppress mobile keyboard; focus restored on close after a keyboard open (FINDINGS #29, fixed) | ✓ | `positioning-modes.spec.ts` | `positioning-modes.html` |
 | `modal` mode: container-query inner layout tiers              | ✗      |      |         |
 | `mobile-modal-breakpoint` auto-engages modal at small widths  | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Positioning-mode flip leaves no zombie floating picker / drift warning | ✓ | `mode-flip.spec.ts` | `mode-flip.html` |

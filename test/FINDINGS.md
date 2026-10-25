@@ -343,7 +343,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     `getComputedStyle(host).direction === 'rtl'`. **Open question for the user:** is RTL a
     supported target? Pinned by `rtl.spec.ts` (2 tests; the mirrored layout is ✓).
 
-29. **DRP-17 — modal mode never blurs the input inside the web component.**
+29. **~~DRP-17 — modal mode never blurs the input inside the web component.~~** ✅ FIXED
     Where: `src/date-picker-ui.ts` `enterModal()` checks `document.activeElement ===
     picker.input`; inside the shadow root `document.activeElement` is the *host*, so the
     check is always false — the input keeps focus (mobile keyboard stays up over the
@@ -351,6 +351,12 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     blurs unconditionally, so full-screen is fine.) Fix: compare against
     `(picker.input.getRootNode() as Document | ShadowRoot).activeElement`. Pinned by
     `positioning-modes.spec.ts` "opening from the input blurs it".
+    **Fixed (2026-10-25):** `enterModal()` checks the input's own root's `activeElement`.
+    A pointer press opens on `pointerdown`, before the press focuses the input, so a one-shot
+    listener also drops that trailing focus. Focus is handed back on close only when the
+    input had focus before opening (keyboard / programmatic) — not after a tap, which would
+    bring the soft keyboard back. New spec: keyboard-focused open → blurred → Escape
+    restores focus without reopening.
 
 ---
 

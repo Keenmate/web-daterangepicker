@@ -104,6 +104,8 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   seconds — both rebuild with the committed time preserved.
 - Multiple mode: assigning `selectedDates` / `selectedRanges` writes the `N selection(s)` input
   text, so the next open no longer wipes the assigned selection.
+- Modal presentation blurs the input on open inside the web component (the soft keyboard stayed
+  up over the modal), and hands focus back on close when the input had it before opening.
 
 ### Added
 
