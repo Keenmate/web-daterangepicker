@@ -38,7 +38,7 @@ presentation flags. `DayContext.element` (the day cell) → `cellElement`.
 | `{ action: 'custom', text, onClick }` | `{ id: 'my-id', text, onClick }` (`action` only for built-ins: `today` / `now` / `clear` / `apply`; string shorthand `'today'`) |
 | `isVisibleCallback` / `isDisabledCallback` | `getIsVisibleCallback` / `getIsDisabledCallback` |
 | `onClick(ctx)` — custom buttons only, ran AFTER `custom-action` | `onClick(detail)` for every button; order: `beforeActionCallback` → `onClick` → built-in → `action` event — **the event is a notification after the fact** (core #15): a listener sees the state the built-in left (after `today` the date is selected). To prevent a built-in, return `false` from `beforeActionCallback`. |
-| — | `icon`, `isDanger`, `isActive` (+ `getIsActiveCallback`, renders `aria-pressed`), `getIconCallback` |
+| — | `icon`, `isDanger`, `isToggled` (+ `getIsToggledCallback`, renders `aria-pressed`), `getIconCallback` |
 | — | `beforeActionCallback(detail)` — `false` cancels the click entirely (async OK; the button is busy meanwhile) |
 | `<button data-action="custom" data-x="…">` in `showMessage` HTML → `detail.data` | `data-action="custom" data-id="…"` → `action` event with `source: 'message'`, other `data-*` in `detail.dataset` |
 
@@ -65,8 +65,8 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
 ### Added
 
 - `icon` on action buttons renders as a glyph (`.drp__button-icon`, plain text) before the
-  label; `isDanger` / `isActive` get default styling (`drp__button--danger` /
-  `drp__button--active`, the latter with `aria-pressed="true"`).
+  label; `isDanger` / `isToggled` get default styling (`drp__button--danger` /
+  `drp__button--toggled`, the latter with `aria-pressed="true"`).
 - `controller.reloadMonthData()` — re-run `getMonthDataCallback` for the visible months.
   Setting `getMonthDataCallback` after the first paint now loads the visible months
   immediately (it used to wait for the first navigation).

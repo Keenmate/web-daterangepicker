@@ -48,7 +48,7 @@ Custom action buttons, preset buttons ("This week" / "Last 30 days"),
 controlling Today / Clear / Apply visibility via the
 `is-*-button-shown` attributes, commit modes, the multi-range
 selection mode, and the dynamic action-item callback API (`getTextCallback`,
-`getIsVisibleCallback`, `getIsDisabledCallback`, `getIsActiveCallback`,
+`getIsVisibleCallback`, `getIsDisabledCallback`, `getIsToggledCallback`,
 `beforeActionCallback`).
 
 ## Visual & data customization

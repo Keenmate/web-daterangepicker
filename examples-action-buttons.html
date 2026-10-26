@@ -824,10 +824,10 @@ picker.getCustomStylesCallback = <span class="keyword">()</span> <span class="ke
           <td>Destructive action; adds the <code>drp__button--danger</code> class.</td>
         </tr>
         <tr>
-          <td><code>isActive</code></td>
+          <td><code>isToggled</code></td>
           <td><code>boolean</code></td>
           <td><code>false</code></td>
-          <td>Toggle state is on; adds <code>drp__button--active</code> and <code>aria-pressed="true"</code>. Still clickable.</td>
+          <td>Toggle state is on; adds <code>drp__button--toggled</code> and <code>aria-pressed="true"</code>. Still clickable.</td>
         </tr>
       </tbody>
     </table>
@@ -853,7 +853,7 @@ picker.getCustomStylesCallback = <span class="keyword">()</span> <span class="ke
           <td>Dynamic disabled state based on picker state.</td>
         </tr>
         <tr>
-          <td><code>getIsActiveCallback</code></td>
+          <td><code>getIsToggledCallback</code></td>
           <td><code>(ctx) =&gt; boolean</code></td>
           <td>Dynamic toggle state.</td>
         </tr>
@@ -880,7 +880,7 @@ picker.getCustomStylesCallback = <span class="keyword">()</span> <span class="ke
     <div class="code-block"><code><span class="comment">// Callback priority chain:</span>
 getIsVisibleCallback → isVisible → <span class="keyword">true</span>
 getIsDisabledCallback → isDisabled → <span class="keyword">false</span>
-getIsActiveCallback → isActive → <span class="keyword">false</span>
+getIsToggledCallback → isToggled → <span class="keyword">false</span>
 getTextCallback → text → localized built-in label
 getClassCallback → cssClass → <span class="string">''</span>
 getTooltipCallback → tooltip → <span class="string">''</span></code></div>
@@ -992,10 +992,10 @@ observeViewport((env) => {
     </div>
   </div>
 
-  <!-- 16. action event, beforeActionCallback, isDanger / isActive, data-action in messages -->
+  <!-- 16. action event, beforeActionCallback, isDanger / isToggled, data-action in messages -->
   <div class="card">
     <h2>AB17 · The <code>action</code> Event, <code>beforeActionCallback</code> &amp; Toggle Buttons</h2>
-    <p>Every button click (built-ins too) fires the <code>action</code> event; <code>detail.action</code> is the built-in name or <code>'custom'</code>, <code>detail.id</code> names a custom button. <code>beforeActionCallback</code> can veto a click (return <code>false</code>). <code>isActive</code> / <code>getIsActiveCallback</code> render a toggle (<code>aria-pressed</code>), <code>isDanger</code> marks a destructive button. A button inside <code>showMessage()</code> HTML with <code>data-action="custom" data-id="…"</code> fires the same event with <code>source: 'message'</code> and its other <code>data-*</code> in <code>detail.dataset</code>.</p>
+    <p>Every button click (built-ins too) fires the <code>action</code> event; <code>detail.action</code> is the built-in name or <code>'custom'</code>, <code>detail.id</code> names a custom button. <code>beforeActionCallback</code> can veto a click (return <code>false</code>). <code>isToggled</code> / <code>getIsToggledCallback</code> render a toggle (<code>aria-pressed</code>), <code>isDanger</code> marks a destructive button. A button inside <code>showMessage()</code> HTML with <code>data-action="custom" data-id="…"</code> fires the same event with <code>source: 'message'</code> and its other <code>data-*</code> in <code>detail.dataset</code>.</p>
 
     <div class="form-group">
       <label>Weekends toggle, guarded Clear, message button</label>
@@ -1013,7 +1013,7 @@ observeViewport((env) => {
 picker.actionButtons = [
   <span class="string">'today'</span>,
   { <span class="property">id</span>: <span class="string">'weekends'</span>, <span class="property">text</span>: <span class="string">'Weekends'</span>,
-    <span class="property">getIsActiveCallback</span>: () <span class="keyword">=></span> !weekendsOff,
+    <span class="property">getIsToggledCallback</span>: () <span class="keyword">=></span> !weekendsOff,
     <span class="property">onClick</span>: ({ element }) <span class="keyword">=></span> {
       weekendsOff = !weekendsOff;
       element.disabledWeekdays = weekendsOff ? [0, 6] : [];
@@ -1545,7 +1545,7 @@ picker.addEventListener(<span class="string">'action'</span>, (e) <span class="k
       }
     `;
 
-    // 16. action event, beforeActionCallback, isActive / isDanger, data-action in messages
+    // 16. action event, beforeActionCallback, isToggled / isDanger, data-action in messages
     const actionEventPicker = document.querySelector('#action-event-picker');
     const actionEventLog = document.querySelector('#action-event-log');
     let weekendsOff = false;
@@ -1555,7 +1555,7 @@ picker.addEventListener(<span class="string">'action'</span>, (e) <span class="k
         id: 'weekends',
         text: 'Weekends',
         tooltip: 'Toggle whether weekends can be picked',
-        getIsActiveCallback: () => !weekendsOff,
+        getIsToggledCallback: () => !weekendsOff,
         onClick: ({ element }) => {
           weekendsOff = !weekendsOff;
           element.disabledWeekdays = weekendsOff ? [0, 6] : [];
@@ -1580,7 +1580,7 @@ picker.addEventListener(<span class="string">'action'</span>, (e) <span class="k
       if (id === 'keep') e.detail.controller.hideMessage();
     });
     actionEventPicker.getCustomStylesCallback = () => `
-      .drp__button--active { background: #2563eb !important; color: white !important; }
+      .drp__button--toggled { background: #2563eb !important; color: white !important; }
       .drp__button--danger { color: #dc2626 !important; border-color: #dc2626 !important; }
     `;
   </script>

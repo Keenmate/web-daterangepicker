@@ -251,7 +251,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `beforeActionCallback` returning `false` (async) cancels everything | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Each custom button gets its own tooltip                       | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `getTextCallback` / `getClassCallback` / `getTooltipCallback` via ctx | ✓ | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
-| `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsActiveCallback` via ctx | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsToggledCallback` via ctx | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Custom items render `data-action="custom"` + `data-id`; string shorthand renders a built-in | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 
 ## 17. Form association

@@ -582,10 +582,10 @@ picker.addEventListener('action', (e) => {
 | `icon` | `string` | Icon (glyph / markup) |
 | `tooltip` | `string` | Tooltip text |
 | `cssClass` | `string` | Extra CSS classes |
-| `isVisible` / `isDisabled` / `isDanger` / `isActive` | `boolean` | Static flags (`isActive` renders `aria-pressed="true"`) |
+| `isVisible` / `isDisabled` / `isDanger` / `isToggled` | `boolean` | Static flags (`isToggled` renders `aria-pressed="true"`) |
 | `getTextCallback` / `getIconCallback` / `getTooltipCallback` | `(ctx: PickerContext) => string` | Dynamic text / icon / tooltip |
 | `getClassCallback` | `(ctx: PickerContext) => string \| string[]` | Dynamic classes |
-| `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsActiveCallback` | `(ctx: PickerContext) => boolean` | Dynamic flags |
+| `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsToggledCallback` | `(ctx: PickerContext) => boolean` | Dynamic flags |
 | `onClick` | `(detail: DateRangePickerActionEventDetail) => void \| Promise<void>` | Click handler (any button, built-ins too); awaited — the button is busy meanwhile |
 
 Render-time callbacks (`get*Callback`) receive the **picker context**

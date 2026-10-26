@@ -97,8 +97,8 @@
   background-color: var(--drp-message-error-bg);
 }
 
-/* `isActive` — toggle state ("pressed"), rendered with aria-pressed="true" */
-.drp__button--active {
+/* `isToggled` — toggle state ("pressed"), rendered with aria-pressed="true" */
+.drp__button--toggled {
   border-color: var(--drp-accent-color);
   color: var(--drp-accent-color);
 }

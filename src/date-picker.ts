@@ -859,8 +859,8 @@ class DateRangePickerEngine {
             buttonEl.className = `drp__button drp__button--${resolved.action}`;
             if (resolved.cssClass) buttonEl.classList.add(...resolved.cssClass.split(' '));
             if (resolved.isDanger) buttonEl.classList.add('drp__button--danger');
-            if (resolved.isActive) {
-                buttonEl.classList.add('drp__button--active');
+            if (resolved.isToggled) {
+                buttonEl.classList.add('drp__button--toggled');
                 buttonEl.setAttribute('aria-pressed', 'true');
             }
             // Icon: a glyph / short text before the label (set as text, never HTML).

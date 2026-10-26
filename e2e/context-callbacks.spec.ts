@@ -37,12 +37,12 @@ test('getClassCallback receives the presentation flags', async ({ page }) => {
     await expect(buttonByText(p, 'HASCTX')).toHaveClass(/ctxclass-floating/);
 });
 
-test('getIsVisibleCallback / getIsDisabledCallback / getIsActiveCallback', async ({ page }) => {
+test('getIsVisibleCallback / getIsDisabledCallback / getIsToggledCallback', async ({ page }) => {
     const p = pickerById(page, 'ctx-actions');
     await expect(buttonByText(p, 'HIDDEN')).toHaveCount(0);
     await expect(buttonByText(p, 'DISABLED')).toBeDisabled();
     await expect(buttonByText(p, 'ACTIVE')).toHaveAttribute('aria-pressed', 'true');
-    await expect(buttonByText(p, 'ACTIVE')).toHaveClass(/drp__button--active/);
+    await expect(buttonByText(p, 'ACTIVE')).toHaveClass(/drp__button--toggled/);
 });
 
 test('custom items render data-action="custom" + data-id; string shorthand renders a built-in', async ({ page }) => {
