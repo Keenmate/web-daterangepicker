@@ -106,6 +106,8 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   text, so the next open no longer wipes the assigned selection.
 - Modal presentation blurs the input on open inside the web component (the soft keyboard stayed
   up over the modal), and hands focus back on close when the input had it before opening.
+- Keyboard navigation (Ctrl+Home / Ctrl+End, Ctrl+arrows, PageUp / PageDown, `t`) no longer
+  leaves a second, stale focused day after quick key presses.
 
 ### Added
 

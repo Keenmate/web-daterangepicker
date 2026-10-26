@@ -1878,6 +1878,7 @@ class DateRangePickerEngine {
                         if (newDays) {
                             // Try to maintain same day index, or use last day if month is shorter
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
+                            this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                             newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                         }
@@ -1899,6 +1900,7 @@ class DateRangePickerEngine {
                         if (newDays) {
                             // Try to maintain same day index, or use last day if month is shorter
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
+                            this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                             newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                         }
@@ -1966,6 +1968,7 @@ class DateRangePickerEngine {
                         const todayIndex = Array.from(days).findIndex(day => day.classList.contains('drp__day--today'));
                         if (todayIndex !== -1) {
                             this.focusedDayIndex = todayIndex;
+                            this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             days[todayIndex].classList.add('drp__day--focused');
                             days[todayIndex].scrollIntoView({ block: 'nearest' });
                         }
@@ -1983,6 +1986,7 @@ class DateRangePickerEngine {
                     if (newDays) {
                         // Try to maintain same day index, or use last day if month is shorter
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
+                        this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                         newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                         newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
@@ -1999,6 +2003,7 @@ class DateRangePickerEngine {
                     if (newDays) {
                         // Try to maintain same day index, or use last day if month is shorter
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
+                        this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                         newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                         newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                     }
@@ -2045,6 +2050,7 @@ class DateRangePickerEngine {
                             const days = daysContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                             if (days) {
                                 this.focusedDayIndex = 0;
+                                this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 days[0]?.classList.add('drp__day--focused');
                                 days[0]?.scrollIntoView({ block: 'nearest' });
                             }
@@ -2129,6 +2135,7 @@ class DateRangePickerEngine {
                             const newDays = newContainer?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
                             if (newDays) {
                                 this.focusedDayIndex = newDays.length - 1;
+                                this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
                                 newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
                             }

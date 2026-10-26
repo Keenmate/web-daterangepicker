@@ -164,6 +164,18 @@ test('Ctrl+Home goes to January 1st; pressed again, to the previous year', async
     await expect(header(page)).toContainText(/January\s+2025/);
 });
 
+// FINDINGS #26: back-to-back keys used to leave the previous day's focus ring too.
+for (const [key, date] of [['Control+Home', '2026-01-01'], ['Control+End', '2026-12-31']] as const) {
+    test(`ArrowRight immediately followed by ${key} leaves exactly one focused day`, async ({ page }) => {
+        await openPicker(page);
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press(key);
+        await expect(dayByDate(page, date)).toHaveClass(/drp__day--focused/);
+        await page.waitForTimeout(50);
+        await expect(focusedDay(page)).toHaveCount(1);
+    });
+}
+
 test('Ctrl+End goes to December 31st; pressed again, to the next year', async ({ page }) => {
     await openPicker(page);
     await page.keyboard.press('ArrowRight');

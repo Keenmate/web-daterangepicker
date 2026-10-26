@@ -88,7 +88,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Keyboard: arrows (day), Ctrl+arrows / PgUp/PgDn (month)       | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Home/End (start/end of month)                       | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Ctrl+Home/End (year jump, step year-by-year)        | ✓      | `keyboard-navigation.spec.ts`, `navigation-extras.spec.ts` | `keyboard-navigation.html`, `navigation-extras.html` |
-| Keyboard: Ctrl+Home/End leave a single focused day (FINDINGS #26, race — untested) | ✗ | | |
+| Keyboard: Ctrl+Home/End leave a single focused day (FINDINGS #26, fixed) | ✓ | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: `t` jumps to today                                  | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Enter selects, Escape closes                        | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Tab cycles between month columns                    | ✓      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |

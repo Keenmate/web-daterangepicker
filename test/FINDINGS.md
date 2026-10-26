@@ -316,7 +316,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     multiple mode, which cleared the input outright) writes the `N selection(s)` text a pick
     writes. New spec covers both setters surviving an open.
 
-26. **DRP-14 — Ctrl+Home / Ctrl+End can leave two focused days (timing race, low priority).**
+26. **~~DRP-14 — Ctrl+Home / Ctrl+End can leave two focused days (timing race, low priority).~~** ✅ FIXED
     Where: `src/date-picker.ts` keydown handler, the Ctrl+Home / Ctrl+End branches
     (~l.1995-2035, ~l.2074-2110): they re-render and then add `--focused` to the new day in
     a `setTimeout`, without the `querySelectorAll('.drp__day--focused').forEach(remove)`
@@ -325,6 +325,11 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     `drp__day--focused`, persistently. With a pause between the keys only one is focused,
     so it's a race — no pinned test (it would be flaky); seen in a probe on 2026-10-24.
     Fix: clear stale `--focused` classes before adding the new one, as Home/End do.
+    **Fixed (2026-10-25):** every keyboard branch that adds `--focused` (Ctrl+arrows,
+    Ctrl+Home/End, PageUp/Down, `t`) now clears stale rings first. The back-to-back case
+    turned out deterministic, so it is tested: `keyboard-navigation.spec.ts` "ArrowRight
+    immediately followed by Control+Home/End leaves exactly one focused day" (fails 5/5
+    without the fix, passes 5/5 with it).
 
 27. **DRP-15 — `rolling-year-range` relative form from the docs doesn't parse.**
     The input's description (`src/web-component.ts` ~l.124) says "e.g. `-5:+5` or absolute
