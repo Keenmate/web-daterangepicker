@@ -191,7 +191,7 @@ export type DateRangePickerAction = 'today' | 'now' | 'clear' | 'apply';
  * One footer action button (core `ActionItem`). Built-ins set `action`
  * (`'today'`, `'now'`, `'clear'`, `'apply'`); a custom button omits it and sets
  * `id`. Dynamic fields use `get*Callback(ctx)`; `onClick(detail)` runs first,
- * then the `action` event, then the built-in behaviour.
+ * then the built-in behaviour, then the `action` event (it sees the new state).
  */
 export type DateRangePickerActionItem = ActionItem<PickerContext, DateRangePickerAction>;
 

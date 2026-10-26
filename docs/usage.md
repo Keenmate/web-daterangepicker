@@ -713,8 +713,9 @@ picker.beforeMonthChangeCallback = (ctx) => {
 Display contextual messages in the calendar with interactive buttons.
 Any element inside the message (or summary, or custom-rendered day content)
 carrying `data-action` is an **action trigger**: clicking it runs
-`beforeActionCallback` → the `action` event (`onAction`) → the built-in, if
-`data-action` names one (`today` / `now` / `clear` / `apply`).
+`beforeActionCallback` → the built-in, if `data-action` names one (`today` /
+`now` / `clear` / `apply`) → the `action` event (`onAction`), which sees the
+state the built-in left.
 
 ```js
 const picker = document.querySelector('web-daterangepicker');
@@ -755,7 +756,7 @@ picker.hideMessage();
 **Action-trigger attributes:**
 
 - `data-action="custom" data-id="…"` — fires the `action` event with `action: 'custom'`, `id` from `data-id`, `source: 'message'` (or `'summary'` / `'calendar'`), `triggerElement`, and the remaining `data-*` attributes in `detail.dataset`.
-- `data-action="today" | "now" | "clear" | "apply"` — fires the `action` event, then runs that built-in.
+- `data-action="today" | "now" | "clear" | "apply"` — runs that built-in, then fires the `action` event.
 - The message's own ✕ close button is internal and fires nothing; to dismiss from your own button, handle its `action` event and call `hideMessage()`.
 
 ### Locking (read-only)

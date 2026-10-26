@@ -4,7 +4,7 @@ import { test, expect, Page, Locator, pickerById, calendarOf } from './fixtures'
  * The core interaction model (web-components-core `/actions`, SPEC §12.5 / §12.12):
  *   - action-item callbacks receive the picker context { controller, element, presentation… }
  *   - one `action` event (+ `onAction`) for every activation, built-in or custom,
- *     in the order beforeActionCallback → onClick → action → built-in
+ *     in the order beforeActionCallback → onClick → built-in → action
  *   - `on*` twins receive the detail; `controller` / `element` are non-enumerable
  *   - HTML-authored triggers (`data-action="custom" data-id`) in showMessage content
  *
@@ -69,13 +69,13 @@ test('each custom button gets its OWN tooltip (not the first custom one)', async
 // action event — order, detail, built-ins, veto
 // =============================================================================
 
-test('order: beforeActionCallback → onClick → onAction → action event → built-in; one detail object', async ({ page }) => {
+test('order: beforeActionCallback → onClick → built-in → onAction → action event; one detail object', async ({ page }) => {
     const p = pickerById(page, 'ctx-events');
     const result = await p.evaluate(async (el: any) => {
         const log: string[] = [];
         const seen: any[] = [];
         el.beforeActionCallback = (d: any) => { log.push('before'); seen.push(d); };
-        el.onAction = (d: any) => { log.push('onAction'); seen.push(d); };
+        el.onAction = (d: any) => { log.push('onAction:' + (el.controller.getSelectedDate() ? 'selected' : 'empty')); seen.push(d); };
         el.addEventListener('action', (e: any) => {
             log.push('event:' + (el.controller.getSelectedDate() ? 'selected' : 'empty'));
             seen.push(e.detail);
@@ -96,8 +96,8 @@ test('order: beforeActionCallback → onClick → onAction → action event → 
             isSelectedAfter: !!el.controller.getSelectedDate(),
         };
     });
-    // The built-in (selectToday) runs AFTER the event — the listener still saw no selection.
-    expect(result.log).toEqual(['before', 'onClick', 'onAction', 'event:empty']);
+    // The built-in (selectToday) runs BEFORE the event — onAction / the listener see the selection.
+    expect(result.log).toEqual(['before', 'onClick', 'onAction:selected', 'event:selected']);
     expect(result.isSelectedAfter).toBe(true);
     expect(result.isSameObject).toBe(true);
     expect(result.action).toBe('today');

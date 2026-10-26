@@ -2553,8 +2553,8 @@ class DateRangePickerEngine {
 
     /**
      * Run one action-item activation through core `runAction` (SPEC §12.12):
-     * `beforeActionCallback` → item `onClick` → `action` event (`onAction`) →
-     * built-in behaviour. A footer button maps back to its item; consumer HTML
+     * `beforeActionCallback` → item `onClick` → built-in behaviour → `action`
+     * event (`onAction`) — a notification after the fact. A footer button maps back to its item; consumer HTML
      * (`data-action="custom" data-id="…"` in a message / summary / custom render)
      * gets a synthetic item. `data-action` may also name a built-in (`today`, …).
      */

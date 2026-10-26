@@ -593,8 +593,9 @@ Render-time callbacks (`get*Callback`) receive the **picker context**
 action bar re-renders.
 
 **Click order:** `beforeActionCallback(detail)` (element property; return `false`
-to cancel everything, may be async) → item `onClick(detail)` → `action` event /
-`onAction` → built-in behaviour (`today` / `now` / `clear` / `apply`).
+to cancel everything, may be async) → item `onClick(detail)` → built-in behaviour
+(`today` / `now` / `clear` / `apply`) → `action` event / `onAction` (a notification
+after the fact — the listener sees the new selection).
 
 ```javascript
 picker.beforeActionCallback = (detail) => {
@@ -620,7 +621,7 @@ picker.beforeActionCallback = (detail) => {
 
 Any element with `data-action` inside the calendar's message, summary or
 custom-rendered content is an action trigger too — it runs the same pipeline
-(`beforeActionCallback` → `action` event → built-in). Use
+(`beforeActionCallback` → built-in → `action` event). Use
 `data-action="custom" data-id="…"` for your own actions; other `data-*`
 attributes arrive in `detail.dataset`. `data-action="today"` (etc.) runs that
 built-in.

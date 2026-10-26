@@ -247,7 +247,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Summary loader added in `select` handler survives commit re-render | ✓ | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | Action-item render callbacks receive the picker context (`controller`, `element`, presentation) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `onClick` receives the action detail (`action`, `id`, `source`) | ✓    | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
-| Order: `beforeActionCallback` → `onClick` → `onAction` → `action` event → built-in (one detail) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| Order: `beforeActionCallback` → `onClick` → built-in → `onAction` → `action` event (one detail) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `beforeActionCallback` returning `false` (async) cancels everything | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Each custom button gets its own tooltip                       | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `getTextCallback` / `getClassCallback` / `getTooltipCallback` via ctx | ✓ | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
