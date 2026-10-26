@@ -85,7 +85,8 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 
 - Min/max dates, disabled dates, disabled weekdays, and rolling year/month ranges are implemented; the constraint pipeline lives in `Validation.isDateDisabled` plus `getAvailableYearRange` / `getAvailableMonthRange` on the core class
 - For new options that should be reactive at runtime, add a row to `ATTRIBUTE_TABLE` in `web-component.ts` — it is the single source of truth that drives both `observedAttributes` and the initial parse (`parseAttributesFromTable` in `initializePicker`), so the two can no longer drift. (The only remaining hand-coordinated pair is `DUAL_PATH_KEYS` for the `disabledDates` + `*Member` data-prop family.)
-- Most attribute changes today trigger a full picker rebuild via `destroy() + initializePicker()` — selection state is lost. A surgical `updateOptions(partial)` API is the architectural fix; until it lands, treat any new option that changes at runtime carefully
+- Runtime changes: `on:'update'` inputs patch the live engine via `updateOptions(partial)`; an `on:'reinit'` input, or a key in the engine's `STRUCTURAL_KEYS` (which makes `updateOptions` return false), rebuilds via `#rebuildPreservingSelection()` — the committed selection is snapshotted and restored. A new option whose DOM is built once in `createCalendar()` must go into `STRUCTURAL_KEYS`.
+- Lifecycle is build-once (web-components-core): `disconnect()` → `engine.deactivate()` (drops document/window listeners, overlay group, floating autoUpdate, open-sheet chrome — keeps all state), `connect()` → `engine.activate()`. A DOM move keeps selection and open state. New document/window-level listeners must be detached in both `destroy()` and `deactivate()` and re-attached in `activate()`.
 
 ### Adding New CSS Variables
 
