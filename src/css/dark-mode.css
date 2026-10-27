@@ -21,51 +21,28 @@
    wins over the page in both directions (same specificity, later wins).
 
    Selector order mirrors the canonical pattern in
-   `guidelines/web-components/color-scheme.md`. Each block re-declares the
-   `--drp-*` variables whose `light-dark()` defaults would otherwise pick the
-   wrong branch. The `--base-*` chain is preserved at the front of every
-   declaration so consumers who DO set the cross-component taxonomy still win.
-
-   Keep dark values in sync with the DARK branch of the corresponding
-   `light-dark()` calls in `variables.css`. If you change one, change both.
+   `guidelines/web-components/color-scheme.md`. Setting `color-scheme` is all a
+   block needs: every color default in `variables.css` is `light-dark()` (or
+   mixes from one), and `light-dark()` resolves against the inherited
+   `color-scheme` wherever the variable is used — no per-mode copies to keep
+   in sync.
    ============================================================================== */
 
 /* === DARK — page / theme-source signal (signal #4) === */
 :host([data-context-theme="dark"]) {
   color-scheme: dark;
-  --drp-dropdown-bg:        var(--base-dropdown-bg, var(--base-elevated-bg, #1a1a1a));
-  --drp-border-color:       var(--base-border-color, #3a3a3a);
-  --drp-text-primary:       var(--base-text-color-1, #f5f5f5);
-  --drp-text-secondary:     var(--base-text-color-3, #a3a3a3);
-  --drp-tooltip-bg:         var(--base-tooltip-bg, #f5f5f5);
-  --drp-tooltip-text-color: var(--base-tooltip-text-color, #1a1a1a);
-  --drp-input-bg:           var(--base-input-bg, var(--drp-dropdown-bg, #1a1a1a));
 }
 
 /* === LIGHT — page / theme-source signal (signal #4): a light section or page
    restores the LIGHT branch defaults even when the OS prefers dark. === */
 :host([data-context-theme="light"]) {
   color-scheme: light;
-  --drp-dropdown-bg:        var(--base-dropdown-bg, var(--base-elevated-bg, #ffffff));
-  --drp-border-color:       var(--base-border-color, #e5e7eb);
-  --drp-text-primary:       var(--base-text-color-1, #111827);
-  --drp-text-secondary:     var(--base-text-color-3, #6b7280);
-  --drp-tooltip-bg:         var(--base-tooltip-bg, #111827);
-  --drp-tooltip-text-color: var(--base-tooltip-text-color, #ffffff);
-  --drp-input-bg:           var(--base-input-bg, var(--drp-dropdown-bg, #ffffff));
 }
 
 /* === DARK — per-instance attribute (host, signal #5) === */
 :host([data-theme="dark"]),
 :host([data-bs-theme="dark"]) {
   color-scheme: dark;
-  --drp-dropdown-bg:        var(--base-dropdown-bg, var(--base-elevated-bg, #1a1a1a));
-  --drp-border-color:       var(--base-border-color, #3a3a3a);
-  --drp-text-primary:       var(--base-text-color-1, #f5f5f5);
-  --drp-text-secondary:     var(--base-text-color-3, #a3a3a3);
-  --drp-tooltip-bg:         var(--base-tooltip-bg, #f5f5f5);
-  --drp-tooltip-text-color: var(--base-tooltip-text-color, #1a1a1a);
-  --drp-input-bg:           var(--base-input-bg, var(--drp-dropdown-bg, #1a1a1a));
 }
 
 /* === LIGHT — per-instance attribute (host, signal #5): force one picker back
@@ -73,11 +50,4 @@
 :host([data-theme="light"]),
 :host([data-bs-theme="light"]) {
   color-scheme: light;
-  --drp-dropdown-bg:        var(--base-dropdown-bg, var(--base-elevated-bg, #ffffff));
-  --drp-border-color:       var(--base-border-color, #e5e7eb);
-  --drp-text-primary:       var(--base-text-color-1, #111827);
-  --drp-text-secondary:     var(--base-text-color-3, #6b7280);
-  --drp-tooltip-bg:         var(--base-tooltip-bg, #111827);
-  --drp-tooltip-text-color: var(--base-tooltip-text-color, #ffffff);
-  --drp-input-bg:           var(--base-input-bg, var(--drp-dropdown-bg, #ffffff));
 }

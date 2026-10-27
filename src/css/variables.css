@@ -106,48 +106,49 @@
      Color variables follow this priority chain:
        1. External override: --drp-accent-color: #custom
        2. Base theme value: var(--base-primary-color)
-       3. Hardcoded default fallback */
+       3. Standalone fallback (no contract loaded). Inputs (accent, main bg, text color,
+          shadow color) fall back to the contract's default values; everything derived from
+          them falls back to the contract's FORMULA on the --drp-* input, so a standalone
+          --drp-accent-color override brings its hover and on-accent text along
+          (checked by `npm run check:contract` and e2e/contract-parity.spec.ts). */
 
-  /* Core Colors
-     Dropdown / popover backgrounds primarily read --base-dropdown-bg; the new
-     --base-elevated-bg is a second-tier fallback in the cross-component taxonomy
-     so consumers themeing several KeenMate components can declare one shared
-     elevated surface. */
-  --drp-dropdown-bg: var(--base-dropdown-bg, var(--base-elevated-bg, light-dark(#ffffff, #1a1a1a)));
-  /* Default kept in step with web-multiselect's rc07 contrast fix — the old
-     light-dark(#e5e7eb, #3a3a3a) was near-invisible on both schemes. */
-  --drp-border-color: var(--base-border-color, light-dark(#cbd5e1, #52525b));
+  /* Core Colors — the surface + shadow inputs (contract defaults) the derived colors mix from. */
+  --drp-main-bg: var(--base-main-bg, light-dark(#ffffff, #1e293b));
+  --drp-shadow-color: var(--base-shadow-color, light-dark(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.4)));
+  /* Dropdown / popover background: the contract's --base-dropdown-bg (= the main bg). */
+  --drp-dropdown-bg: var(--base-dropdown-bg, var(--drp-main-bg));
+  /* Divider: the main bg's hue shifted in lightness (contract formula). The field outline
+     (--drp-input-border-color) is stronger. */
+  --drp-border-color: var(--base-border-color, light-dark(oklch(from var(--drp-main-bg) calc(l - 0.096) c h), oklch(from var(--drp-main-bg) calc(l + 0.192) c h)));
+  --drp-disabled-bg: var(--base-disabled-bg, light-dark(oklch(from var(--drp-main-bg) calc(l - 0.024) c h), oklch(from var(--drp-main-bg) calc(l + 0.048) c h)));
   /* Full border string - inherits from theme-designer --base-border */
   --drp-border: var(--base-border, var(--drp-border-width-base) solid var(--drp-border-color));
   /* Hover / active surface backgrounds. --drp-primary-bg paints hover states
      (day cell hover, nav-button hover, header hover, rolling-list hover);
-     --drp-primary-bg-hover is one step stronger (active/pressed states). The
-     color-mix fallback keeps the hover visible on dark themes — a flat
-     `var(--base-main-bg)` substrate used to make hover collapse onto the panel
-     background. Mixes 8% / 14% of --drp-text-primary into --base-main-bg, so the
-     highlight is always a visible step toward the text color in both modes. */
-  --drp-primary-bg: var(--base-hover-bg, color-mix(in srgb, var(--drp-text-primary) 8%, var(--base-main-bg, light-dark(#ffffff, #1a1a1a))));
-  --drp-primary-bg-hover: var(--base-active-bg, color-mix(in srgb, var(--drp-text-primary) 14%, var(--base-main-bg, light-dark(#ffffff, #1a1a1a))));
+     --drp-primary-bg-hover is one step stronger (active/pressed states). Both are the
+     contract's translucent overlays of the main bg's own hue, visible on any surface in
+     both modes. */
+  --drp-primary-bg: var(--base-hover-bg, light-dark(color-mix(in oklch, oklch(from var(--drp-main-bg) calc(l - 0.45) c h) 14%, transparent), color-mix(in oklch, oklch(from var(--drp-main-bg) calc(l + 0.45) c h) 28%, transparent)));
+  --drp-primary-bg-hover: var(--base-active-bg, light-dark(color-mix(in oklch, oklch(from var(--drp-main-bg) calc(l - 0.45) c h) 24%, transparent), color-mix(in oklch, oklch(from var(--drp-main-bg) calc(l + 0.45) c h) 48%, transparent)));
 
   /* Accent Colors */
   --drp-accent-color: var(--base-primary-color, #3b82f6);
-  --drp-accent-color-hover: var(--base-primary-color-hover, #2563eb);
+  --drp-accent-color-hover: var(--base-primary-color-hover, light-dark(color-mix(in srgb, black 15%, var(--drp-accent-color)), color-mix(in srgb, white 15%, var(--drp-accent-color))));
 
-  /* Text Colors
-     Light mode = the original dark-on-light palette. Dark mode = the same
-     hierarchy inverted (#f5f5f5 / #a3a3a3) so primary/secondary keep the same
-     relative contrast steps. text-color-on-accent stays white in both modes —
-     the accent color is the same blue in both, and white-on-blue reads in both. */
-  --drp-text-primary: var(--base-text-color-1, light-dark(#111827, #f5f5f5));
-  --drp-text-secondary: var(--base-text-color-3, light-dark(#6b7280, #a3a3a3));
-  --drp-text-color-on-accent: var(--base-on-primary-text-color, #ffffff);
+  /* Text Colors: text-color-1, and step 3 = it mixed 55% into the main bg (contract).
+     text-color-on-accent = black or white by APCA contrast on the accent (contract formula);
+     with the contract loaded it follows --base-primary-color, so set it together with
+     --drp-accent-color when you override the accent on top of the contract. */
+  --drp-text-primary: var(--base-text-color-1, light-dark(#334155, #f1f5f9));
+  --drp-text-secondary: var(--base-text-color-3, color-mix(in srgb, var(--drp-text-primary) 55%, var(--drp-main-bg)));
+  --drp-text-color-on-accent: var(--base-on-primary-text-color, color(from color(from var(--drp-accent-color) srgb calc(0.21 * r * r * (0.4 + r * (0.82 - 0.22 * r)) + 0.72 * g * g * (0.4 + g * (0.82 - 0.22 * g)) + 0.07 * b * b * (0.4 + b * (0.82 - 0.22 * b))) 0 0) srgb clamp(0, (0.34 - r) * 1e9, 1) clamp(0, (0.34 - r) * 1e9, 1) clamp(0, (0.34 - r) * 1e9, 1)));
   --drp-button-accent-text-color: var(--drp-text-color-on-accent);
 
   /* Tooltip Colors
      Tooltips invert relative to the page: dark tooltip on light page, light
      tooltip on dark page. Themed via the shared --base-tooltip-bg. */
-  --drp-tooltip-bg: var(--base-tooltip-bg, light-dark(#111827, #f5f5f5));
-  --drp-tooltip-text-color: var(--base-tooltip-text-color, light-dark(#ffffff, #1a1a1a));
+  --drp-tooltip-bg: var(--base-tooltip-bg, light-dark(color-mix(in srgb, var(--drp-text-primary) 85%, var(--drp-main-bg)), oklch(from var(--drp-main-bg) calc(l + 0.15) c h)));
+  --drp-tooltip-text-color: var(--base-tooltip-text-color, light-dark(var(--drp-main-bg), var(--drp-text-primary)));
 
   /* Loader — the default visual is a spinner, but the tokens are named
      generically so a consumer can restyle it into any loader shape. */
@@ -169,9 +170,9 @@
   --drp-border-radius-lg: calc(var(--base-border-radius-lg, 0.8) * var(--drp-rem));  /* 8px */
   --drp-border-radius: var(--drp-border-radius-md);
 
-  /* Picker popup elevation. Prefers the shared --base token (light-dark aware —
-     deepens on dark themes); the flat two-layer shadow is the standalone fallback. */
-  --drp-shadow-xl: var(--base-dropdown-box-shadow, 0 20px 25px -5px var(--base-shadow-color, rgba(0, 0, 0, 0.1)), 0 8px 10px -6px var(--base-shadow-color, rgba(0, 0, 0, 0.1)));
+  /* Picker popup elevation: the shared dropdown shadow (contract formula on
+     --drp-shadow-color, which deepens in dark mode). */
+  --drp-shadow-xl: var(--base-dropdown-box-shadow, 0 8px 16px var(--drp-shadow-color));
 
   /* ==========================================================================
      TRANSITIONS & ANIMATIONS
@@ -181,7 +182,7 @@
      timing change. */
   --drp-transition-fast: 150ms;
   /* Easing is an exact match for --base-ease-standard, so it flows from the shared token. */
-  --drp-easing-snappy: var(--base-ease-standard, cubic-bezier(0.4, 0.0, 0.2, 1));
+  --drp-easing-snappy: var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
 
   /* ==========================================================================
      Z-INDEX LAYERS
@@ -275,29 +276,31 @@
   /* ==========================================================================
      OPACITY VALUES
      ========================================================================== */
-  --drp-opacity-disabled: 0.6;
+  --drp-opacity-disabled: var(--base-disabled-opacity, 0.65);
   --drp-opacity-other-month: 0.5;
   --drp-opacity-hover: 0.8;
   --drp-opacity-dragging: 0.7;
   /* Applied to a region frozen by the scoped read-only lock (see states.css).
      Defaults to the disabled opacity so a locked region greys out like a
      disabled control; set to 1 to keep locked regions at full opacity. */
-  --drp-opacity-locked: var(--drp-opacity-disabled, 0.6);
+  --drp-opacity-locked: var(--drp-opacity-disabled);
 
   /* ==========================================================================
      INPUT FIELD SEMANTIC VARIABLES
      ========================================================================== */
-  --drp-input-bg: var(--base-input-bg, var(--drp-dropdown-bg, light-dark(#ffffff, #1a1a1a)));
+  --drp-input-bg: var(--base-input-bg, var(--drp-main-bg));
   --drp-input-color: var(--base-input-text-color, var(--drp-text-primary));
-  /* Input field borders - uses theme-designer --base-input-border (full border) */
-  --drp-input-border: var(--base-input-border, var(--drp-border));
+  /* Input field border: the control outline (contract: text mixed 45% / 35% into the bg),
+     stronger than the --drp-border-color divider. */
+  --drp-input-border-color: var(--base-input-border-color, light-dark(color-mix(in srgb, var(--drp-text-primary) 45%, var(--drp-main-bg)), color-mix(in srgb, var(--drp-text-primary) 35%, var(--drp-main-bg))));
+  --drp-input-border: var(--base-input-border, var(--drp-border-width-base) solid var(--drp-input-border-color));
   --drp-input-border-hover: var(--base-input-border-hover, var(--drp-border-width-base) solid var(--drp-accent-color));
   --drp-input-border-focus: var(--base-input-border-focus, var(--drp-border-width-base) solid var(--drp-accent-color));
   --drp-input-placeholder-color: var(--base-input-placeholder-color, var(--drp-text-secondary));
-  --drp-input-bg-disabled: var(--base-input-bg-disabled, var(--drp-primary-bg));
+  --drp-input-bg-disabled: var(--base-input-bg-disabled, var(--drp-disabled-bg));
 
   /* Input Focus State */
-  --drp-input-focus-shadow-color: var(--base-input-shadow-color-focus, rgba(59, 130, 246, 0.1));
+  --drp-input-focus-shadow-color: var(--base-input-shadow-color-focus, color-mix(in srgb, var(--drp-accent-color) 5%, transparent));
   --drp-input-focus-shadow-size: 3px;
   --drp-input-icon-opacity: 0.6;
 
@@ -537,7 +540,7 @@
   --drp-day-selected-color-hover: var(--drp-day-selected-color);
   --drp-day-focused-outline: var(--drp-accent-color);
   --drp-day-disabled-color: var(--drp-text-secondary);
-  --drp-day-disabled-bg: var(--base-disabled-bg, transparent);
+  --drp-day-disabled-bg: var(--drp-disabled-bg);
   --drp-day-other-month-color: var(--drp-text-secondary);
   --drp-day-range-bg: var(--drp-accent-color);
   --drp-day-range-bg-hover: var(--drp-accent-color-hover);

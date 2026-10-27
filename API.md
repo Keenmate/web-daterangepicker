@@ -1013,18 +1013,23 @@ web-daterangepicker {
 
 ### Colors
 
+Each reads its `--base-*` token first; the defaults below apply without the contract
+(inputs = the contract's defaults, derived = the contract's formula on the `--drp-*` input).
+
 | Property | Default | Description |
 |----------|---------|-------------|
-| `--drp-card-bg` | `#ffffff` | Calendar background |
-| `--drp-border-color` | `#e5e7eb` | Border color |
-| `--drp-primary-bg` | `#f3f4f6` | Primary background (hover states) |
-| `--drp-primary-bg-hover` | `#e5e7eb` | Primary background hover |
+| `--drp-main-bg` | `light-dark(#ffffff, #1e293b)` | Main surface; source of the derived surfaces |
+| `--drp-dropdown-bg` | `var(--drp-main-bg)` | Calendar background |
+| `--drp-border-color` | main bg shifted in lightness | Divider color |
+| `--drp-input-border-color` | text mixed 45% / 35% into the bg | Field outline |
+| `--drp-primary-bg` | translucent overlay of the bg's hue | Hover background |
+| `--drp-primary-bg-hover` | stronger overlay | Active / pressed background |
 | `--drp-accent-color` | `#3b82f6` | Accent color (selected, focused) |
-| `--drp-accent-color-hover` | `#2563eb` | Accent color hover |
-| `--drp-text-primary` | `#111827` | Primary text color |
-| `--drp-text-secondary` | `#6b7280` | Secondary text color |
-| `--drp-accent-text-color` | `#ffffff` | Text color on accent backgrounds |
-| `--drp-button-text-color` | `#ffffff` | Button text color |
+| `--drp-accent-color-hover` | accent 15% toward black / white | Accent color hover |
+| `--drp-text-primary` | `light-dark(#334155, #f1f5f9)` | Primary text color |
+| `--drp-text-secondary` | text mixed 55% into the bg | Secondary text color |
+| `--drp-text-color-on-accent` | black or white by APCA on the accent | Text color on accent backgrounds |
+| `--drp-button-accent-text-color` | `var(--drp-text-color-on-accent)` | Accent button text color |
 
 ### Spacing
 

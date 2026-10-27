@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — contract parity</title>
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>contract parity</h1>
+    <p>Targeted by <code>e2e/contract-parity.spec.ts</code>: one plain picker, no theme of its own.
+       The spec renders it with and without <code>@keenmate/base-css-variables</code>.</p>
+
+    <web-daterangepicker id="parity" selection-mode="range" initial-date="2026-06-15"></web-daterangepicker>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

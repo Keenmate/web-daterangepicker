@@ -1,0 +1,20 @@
+{
+  "$comment": "Deliberate differences from @keenmate/base-css-variables, read by `npm run check:contract` (base-contract-check). Each entry needs a reason.",
+  "allow": [
+    {
+      "token": "--base-rem",
+      "rule": "C2",
+      "reason": "Standalone the component sizes in 10px units (its multipliers assume 1 unit = 10px); the contract's 1rem relies on pure-admin's html { font-size: 10px }."
+    },
+    {
+      "token": "--base-font-family",
+      "rule": "C2",
+      "reason": "Standalone the picker inherits the page font instead of imposing the contract's system stack."
+    },
+    {
+      "token": "--base-icon-calendar",
+      "rule": "C1",
+      "reason": "Forward reference: the contract has no calendar icon yet; the inline Lucide glyph holds until it does, then re-skins without an edit here."
+    }
+  ]
+}

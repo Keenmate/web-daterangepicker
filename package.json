@@ -44,8 +44,9 @@
     "analyze": "cem analyze",
     "check:vars": "node scripts/check-variable-manifest.mjs",
     "check:vars:strict": "node scripts/check-variable-manifest.mjs --strict",
+    "check:contract": "base-contract-check src",
     "docs:api": "node scripts/gen-api-docs.mjs",
-    "build": "npm run clean:dist && npm run check:vars:strict && npm run analyze && npm run docs:api && vite build && tsc",
+    "build": "npm run clean:dist && npm run check:vars:strict && npm run check:contract && npm run analyze && npm run docs:api && vite build && tsc",
     "build:types": "tsc",
     "build:full": "vite build && tsc",
     "preview": "vite preview",
@@ -85,6 +86,7 @@
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
+    "@keenmate/base-css-variables": "^2.0.0-rc05",
     "@playwright/test": "^1.60.0",
     "custom-element-jet-brains-integration": "^1.7.0",
     "custom-element-vs-code-integration": "^1.5.0",

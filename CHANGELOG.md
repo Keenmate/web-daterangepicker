@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — standalone colors follow the contract
+
+Without `@keenmate/base-css-variables` on the page the picker used hand-picked fallbacks that
+had drifted from the contract (a fixed `#2563eb` hover that ignored the accent, `#1a1a1a` dark
+surface, per-mode copies in `dark-mode.css`). Inputs now fall back to the contract's defaults
+and derived colors to the contract's **formula on the `--drp-*` token**, so a standalone
+`--drp-accent-color` override brings its hover and on-accent text along.
+
+- **Accent:** `--drp-accent-color` stays `#3b82f6` (the contract's default since
+  base-css-variables 2.0.0-rc05); hover = accent 15% toward black / white (was `#2563eb`); `--drp-text-color-on-accent` black or white by APCA (was white); the
+  focus halo is the accent at 5%.
+- **Surfaces / text:** new `--drp-main-bg` (`#ffffff` / dark `#1e293b`, was `#1a1a1a`),
+  `--drp-disabled-bg`, `--drp-shadow-color`; `--drp-text-primary` the contract's slate
+  (`#334155` / `#f1f5f9`); `--drp-text-secondary`, `--drp-border-color`, hover / active
+  (`--drp-primary-bg[-hover]`, now the contract's overlays), tooltip and the popup shadow
+  (`0 8px 16px`) are the contract formulas. `--drp-dropdown-bg` reads `--base-dropdown-bg`
+  then the main bg (the `--base-elevated-bg` middle tier is gone — with the contract loaded it
+  was never reached).
+- **The field outline is its own token:** new `--drp-input-border-color` (the contract's control
+  outline, text mixed 45% / 35% into the bg) for `--drp-input-border`, instead of the
+  `--drp-border` divider.
+- **Disabled:** `--drp-opacity-disabled` reads `--base-disabled-opacity` (0.65; was a fixed
+  0.6, also with the contract loaded); disabled days and the disabled input use the contract's
+  disabled surface (were transparent / the hover fill).
+- **`dark-mode.css`** only sets `color-scheme` per signal: every default is `light-dark()`, so
+  the per-mode `--drp-*` copies (which had drifted) are gone.
+- **`npm run check:contract`** (in `build`): `@keenmate/base-css-variables` ^2.0.0-rc05 as a
+  devDependency; `base-contract-check src` fails on unknown `--base-*` reads and drifted
+  fallbacks (10px rem base, inherited font and the forward `--base-icon-calendar` read are
+  allowlisted in `contract-check.json`). New `e2e/contract-parity.spec.ts` compares every color
+  token with and without the contract (light / dark, plus a custom accent). The dark-mode
+  selected-day check measures APCA (|Lc| >= 45, the contract's rule for text on fills) instead
+  of WCAG 2.
+
 ### Changed — BREAKING (interaction model, web-components-core rc15)
 
 Callbacks, events and action buttons follow the shared KeenMate interaction model

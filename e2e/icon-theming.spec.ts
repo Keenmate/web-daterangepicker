@@ -77,16 +77,16 @@ test('--drp-shadow-xl chains to --base-dropdown-box-shadow (dark-mode elevation)
     // Host sets a sentinel shadow; the picker popup elevation should adopt it.
     expect(await hostVar(page, 'base-tokens', '--drp-shadow-xl'))
         .toBe('0 1px 2px rgb(1 2 3 / 0.5)');
-    // …and with no base override, it resolves to the flat two-layer fallback
-    // (tinted by --base-shadow-color, which falls back to rgba(0, 0, 0, 0.1)).
+    // …and with no base override, it resolves to the contract's dropdown shadow formula on
+    // --drp-shadow-color (the contract's shadow color: 15% black light / 40% dark).
     expect(await hostVar(page, 'default-icon', '--drp-shadow-xl'))
-        .toBe('0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)');
+        .toBe('0 8px 16px light-dark(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.4))');
 });
 
 test('--drp-easing-snappy chains to --base-ease-standard', async ({ page }) => {
     expect(await hostVar(page, 'base-tokens', '--drp-easing-snappy'))
         .toBe('cubic-bezier(0.1, 0.2, 0.3, 0.4)');
-    // Fallback is the exact standard curve when no base token is set.
+    // Fallback is the contract's standard curve when no base token is set.
     expect(await hostVar(page, 'default-icon', '--drp-easing-snappy'))
-        .toBe('cubic-bezier(0.4, 0.0, 0.2, 1)');
+        .toBe('cubic-bezier(0.4, 0, 0.2, 1)');
 });

@@ -81,6 +81,58 @@ function contrastRatio(a: [number, number, number], b: [number, number, number])
 }
 
 /**
+ * APCA lightness contrast (Lc, APCA-W3 0.0.98G) of text on a background, both [r, g, b] 0-255.
+ * The contract picks text on fills by APCA (`--base-on-<role>-text-color`) and requires
+ * |Lc| >= 45 for every default fill, so fills are measured the same way here.
+ */
+function apcaLc(text: [number, number, number], bg: [number, number, number]): number {
+    const y = ([r, g, b]: [number, number, number]) => {
+        const v = 0.2126729 * (r / 255) ** 2.4 + 0.7151522 * (g / 255) ** 2.4 + 0.072175 * (b / 255) ** 2.4;
+        return v < 0.022 ? v + (0.022 - v) ** 1.414 : v;
+    };
+    const yt = y(text), yb = y(bg);
+    if (yb > yt) {
+        const s = (yb ** 0.56 - yt ** 0.57) * 1.14;
+        return s < 0.1 ? 0 : (s - 0.027) * 100;
+    }
+    const s = (yb ** 0.65 - yt ** 0.62) * 1.14;
+    return s > -0.1 ? 0 : (s + 0.027) * 100;
+}
+
+/**
+ * Computed colors as `rgba(…)`. The contract's formulas (`color-mix(in oklch, …)`, relative
+ * colors) serialize as `oklch(…)` / `color(srgb …)`; painting one pixel on a canvas converts any
+ * CSS color to 8-bit sRGB.
+ */
+function toRgba(scope: Locator, colors: string[]): Promise<string[]> {
+    return scope.evaluate((_el, list) => {
+        const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!;
+        return list.map((c) => {
+            ctx.clearRect(0, 0, 1, 1);
+            ctx.fillStyle = c;
+            ctx.fillRect(0, 0, 1, 1);
+            const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+            return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+        });
+    }, colors);
+}
+
+/** The effective [text, background] a day cell paints (backgrounds composited). */
+async function dayColors(day: Locator, container: Locator): Promise<[[number, number, number], [number, number, number]]> {
+    const [dayStyles, containerBg] = await Promise.all([
+        day.evaluate(el => {
+            const cs = getComputedStyle(el);
+            return { color: cs.color, bg: cs.backgroundColor };
+        }),
+        container.evaluate(el => getComputedStyle(el).backgroundColor)
+    ]);
+    const [c, b, cb] = await toRgba(day, [dayStyles.color, dayStyles.bg, containerBg]);
+    const effectiveBg = compositeOver(parseColor(b), parseColor(cb));
+    const effectiveText = compositeOver(parseColor(c), [...effectiveBg, 1]);
+    return [effectiveText, effectiveBg];
+}
+
+/**
  * Read the effective text-over-rendered-background contrast of a day cell.
  * Composites the cell's (possibly semi-transparent) background over the calendar's
  * background so we measure what the eye actually sees, not just the inline color values.
@@ -93,9 +145,10 @@ async function measureDayContrast(day: Locator, container: Locator): Promise<num
         }),
         container.evaluate(el => getComputedStyle(el).backgroundColor)
     ]);
-    const text = parseColor(dayStyles.color);
-    const dayBg = parseColor(dayStyles.bg);
-    const baseBg = parseColor(containerBg);
+    const [c, b, cb] = await toRgba(day, [dayStyles.color, dayStyles.bg, containerBg]);
+    const text = parseColor(c);
+    const dayBg = parseColor(b);
+    const baseBg = parseColor(cb);
     // Composite day bg over calendar bg (handles semi-transparent day highlights),
     // then composite text over the result (handles semi-transparent text, rare but possible).
     const effectiveBg = compositeOver(dayBg, baseBg);
@@ -171,6 +224,10 @@ test('selected day stays readable on a dark page', async ({ page }) => {
     const selected = p.locator('.drp__day--selected').first();
     await expect(selected).toHaveCount(1);
 
-    const ratio = await measureDayContrast(selected, calendar(p));
-    expect(ratio, `selected contrast ratio was ${ratio.toFixed(2)}:1 — needs at least 3:1`).toBeGreaterThanOrEqual(3);
+    // The selected day is the accent FILL with the contract's text-on-fill (black or white
+    // picked by APCA), so it is held to the contract's fill rule: |Lc| >= 45. (WCAG 2 under-
+    // rates white on bright mid-tones such as the default sky accent: 2.8:1, Lc ~ 60.)
+    const [text, bg] = await dayColors(selected, calendar(p));
+    const lc = Math.abs(apcaLc(text, bg));
+    expect(lc, `selected day APCA contrast was Lc ${lc.toFixed(1)} — needs at least 45`).toBeGreaterThanOrEqual(45);
 });
