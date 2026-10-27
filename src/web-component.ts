@@ -302,7 +302,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // §12.8: static shell CSS via one shared, cached CSSStyleSheet (per string).
     adoptStyles(this.#shadow, styles);
     // Per-instance replaceable slot for getCustomStylesCallback CSS.
-    this.#customStyles = createStyleSlot(this.#shadow, { className: 'drp-custom-styles' });
+    this.#customStyles = createStyleSlot(this.#shadow, { cssClass: 'drp-custom-styles' });
   }
 
   // ── core lifecycle hooks ──────────────────────────────────────────────────
