@@ -11,7 +11,7 @@
 <body>
     <h1>defer / ready</h1>
     <p>Targeted by <code>e2e/defer-ready.spec.ts</code>. <code>#attr</code> is released by
-       removing <code>defer</code>, <code>#api</code> by <code>el.ready()</code>;
+       removing <code>defer</code>, <code>#api</code> by <code>el.release()</code>;
        <code>#plain</code> is not deferred.</p>
 
     <div class="fixture" id="home">
@@ -20,7 +20,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">defer — released by el.ready()</div>
+        <div class="fixture-label">defer — released by el.release()</div>
         <web-daterangepicker id="api" defer initial-date="2026-06-15"></web-daterangepicker>
     </div>
 

@@ -86,21 +86,35 @@ test('setting .value populates the input field', async ({ page }) => {
     await expect(inputOf(p)).toHaveValue('2026-07-04');
 });
 
-test('setting .disabled = true disables the input element', async ({ page }) => {
+test('setting .isDisabled = true disables the input element', async ({ page }) => {
     const p = pickerById(page, 'basic');
 
-    await p.evaluate((el: any) => { el.disabled = true; });
+    await p.evaluate((el: any) => { el.isDisabled = true; });
     await expect(inputOf(p)).toBeDisabled();
 
     // Setting back to false re-enables.
-    await p.evaluate((el: any) => { el.disabled = false; });
+    await p.evaluate((el: any) => { el.isDisabled = false; });
     await expect(inputOf(p)).toBeEnabled();
 });
 
-test('disabled = true suppresses calendar open even via programmatic clicks', async ({ page }) => {
+test('an ancestor <fieldset disabled> disables the input (core isEffectivelyDisabled)', async ({ page }) => {
+    const p = pickerById(page, 'basic');
+    await p.evaluate((el: any) => {
+        const fs = document.createElement('fieldset');
+        el.parentElement.insertBefore(fs, el);
+        fs.appendChild(el);
+        fs.disabled = true;
+    });
+    await expect(inputOf(p)).toBeDisabled();
+    expect(await p.evaluate((el: any) => el.isDisabled)).toBe(false); // the authored value is kept
+    await p.evaluate((el: any) => { el.parentElement.disabled = false; });
+    await expect(inputOf(p)).toBeEnabled();
+});
+
+test('isDisabled = true suppresses calendar open even via programmatic clicks', async ({ page }) => {
     const p = pickerById(page, 'basic');
 
-    await p.evaluate((el: any) => { el.disabled = true; });
+    await p.evaluate((el: any) => { el.isDisabled = true; });
 
     // Force a click past the browser's pointer-events block on the input
     // and confirm the picker still doesn't open (open() guards on input.disabled).
@@ -108,7 +122,7 @@ test('disabled = true suppresses calendar open even via programmatic clicks', as
     await expect(calendarOf(p)).toBeHidden();
 
     // Re-enabling restores normal open behavior.
-    await p.evaluate((el: any) => { el.disabled = false; });
+    await p.evaluate((el: any) => { el.isDisabled = false; });
     await inputOf(p).click();
     await expect(calendarOf(p)).toBeVisible();
 });

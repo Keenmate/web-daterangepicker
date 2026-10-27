@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — v2 API naming unification (**BREAKING**, no aliases)
+
+One vocabulary across the KeenMate components (web-components-core naming pass, 2026-10-27).
+
+- **BREAKING — `defer` / ready / destroy come from core `BlissElement`.** The component's own
+  `deferRender` input, `ready()` method, `isReady` getter and `is-ready` attribute are gone.
+  Use `defer` (attribute) / `el.shouldDefer`, `el.release()` (was `el.ready()`), the core `ready`
+  event (+ `onReady`), the `ready` attribute and `:state(ready)` (were `is-ready`), `el.isReady`
+  and `el.whenReady()`. New: `el.destroy()` (core) tears the picker down for good (engine, its
+  DOM / listeners, the hidden form inputs); `el.isDestroyed`.
+- **BREAKING — `disabled` property → `isDisabled`** (attribute stays `disabled`). An ancestor
+  `<fieldset disabled>` now disables the picker too (core `isEffectivelyDisabled`).
+- **BREAKING — the `readonly` property is removed** (duplicate of `isReadonly`; attribute stays
+  `readonly`). Read the live lock state from `lockedAspects`.
+
 ### Changed — standalone colors follow the contract
 
 Without `@keenmate/base-css-variables` on the page the picker used hand-picked fallbacks that

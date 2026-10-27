@@ -20,12 +20,12 @@ web-daterangepicker:not(:defined) {
 }
 
 /* Deferred render gate held: the author set `defer` and hasn't released it yet
-   (`el.ready()` / removing the attribute). While held the element builds no shadow
+   (`el.release()` / removing the attribute). While held the element builds no shadow
    content, so — like the :not(:defined) window above — reserve ~input height so
    releasing the gate doesn't shift layout. Input-anchored modes (floating/modal)
-   land exactly on this; inline (calendar-first) still grows past it. The element
-   sets `is-ready` on its first build, which lifts this rule. */
-:host([defer]:not([is-ready])) {
+   land exactly on this; inline (calendar-first) still grows past it. Core sets the
+   `ready` attribute on the first build, which lifts this rule. */
+:host([defer]:not([ready])) {
   display: block;
   min-height: calc(3.5 * var(--drp-rem, 10px));
 }

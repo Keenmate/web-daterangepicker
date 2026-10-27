@@ -123,7 +123,7 @@ test('the readonly attribute is a full lock and reflects to lockedAspects', asyn
     await p.evaluate((el: any) => el.setAttribute('readonly', ''));
     expect(await p.evaluate((el: any) => el.lockedAspects.sort()))
         .toEqual(['actions', 'navigation', 'open', 'selection']);
-    expect(await p.evaluate((el: any) => el.readonly)).toBe(true);
+    expect(await p.evaluate((el: any) => el.isReadonly)).toBe(true);
 
     await enabledDays(p).nth(3).click();
     await expect(selectedCells(p)).toHaveCount(0);
@@ -186,7 +186,7 @@ test('toggleLock() flips the whole lock on and back off', async ({ page }) => {
     const p = pickerById(page, 'lockpick');
 
     await p.evaluate((el: any) => el.toggleLock());
-    expect(await p.evaluate((el: any) => el.readonly)).toBe(true);
+    expect(await p.evaluate((el: any) => el.lockedAspects.length)).toBe(4);
 
     await p.evaluate((el: any) => el.toggleLock());
     expect(await p.evaluate((el: any) => el.lockedAspects)).toEqual([]);

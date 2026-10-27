@@ -155,8 +155,8 @@ const INPUTS: readonly InputDef[] = [
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range `2026-06-10 - 2026-06-14` or `2026-06-10/2026-06-14`, multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
-  { configKey: 'disabled',                     attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the input.' },
-  { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), on: 'update', description: 'Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks.' },
+  { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction, not submitted). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`); `el.isDisabled` keeps the authored value.' },
+  { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), on: 'update', description: 'Full read-only lock (freezes every interaction aspect; the value is still submitted). Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating/modal only).' },
   { configKey: 'enableTransitions',            attribute: 'enable-transitions',            converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Opt into calendar open/close CSS transitions.' },
   { configKey: 'mobilePresentation',           attribute: 'mobile-presentation',           converter: toEnum(MOBILE_PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment.' },
@@ -164,7 +164,6 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'fullscreenTitle',              attribute: 'fullscreen-title',              converter: toText({ isNullable: true }), on: 'update', description: 'Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button.' },
   { configKey: 'fullscreenInput',              attribute: 'fullscreen-input',              converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
   { configKey: 'compactBelow',                 attribute: 'compact-below',                 converter: toInt({ min: 0 }), on: 'update', description: 'Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change.' },
-  { configKey: 'deferRender',                  attribute: 'defer',                         converter: toBool('presence'), on: 'reinit', description: 'Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `getCustomStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes.' },
 
   // ── Complex property data (property-only) ─────────────────────────────────
   { configKey: 'specialDates',                 converter: toObjectArray(), on: 'update', type: 'DecoratedDate[]', description: 'Array of decorated-date objects (badges, tooltips, per-day classes). Property-only.' },
@@ -205,7 +204,7 @@ const EVENTS = [
   { name: 'change', description: 'Fires right after `select` for form-style change wiring; the same detail object. Twin: `onChange(detail)`.' },
   { name: 'action', description: 'An action button or a `data-action` trigger (e.g. a button in `showMessage` HTML) was activated. `detail`: `action` (built-in name or `custom`), `id`, `item`, `source` (`action-buttons` | `message` | `summary` | `calendar`), `sourceEvent`, `triggerElement`, `dataset` (the trigger’s other `data-*`), plus `controller` / `element`. Fires after the item’s `onClick`, before the built-in behaviour. Twin: `onAction(detail)`.' },
   { name: 'month-change', description: 'The visible month(s) changed (any navigation). `detail`: `monthIndex`, `year`, `month` (0-11), `visibleMonths`. Twin: `onMonthChange(detail)`.' },
-  { name: 'ready', description: 'The picker was built and painted for the first time (once per element lifetime). Fires right after the first build — synchronously during upgrade for a normal element, or when the render gate is released (`el.ready()` / removing `defer`) for a deferred one. `detail`: `controller` / `element`. Twin: `onReady(detail)`.' },
+  { name: 'ready', description: 'The picker was built and is live for the first time (once per element lifetime; core `BlissElement`). Fires right after the first build — synchronously during upgrade for a normal element, or when the `defer` gate is released (`el.release()` / removing `defer`) for a deferred one. The host then has the `ready` attribute and matches `:state(ready)`; `el.whenReady()` resolves. `detail`: `controller` / `element`. Twin: `onReady(detail)`.' },
 ] as const;
 
 /**
@@ -214,8 +213,8 @@ const EVENTS = [
  * before the merged config is handed to the picker.
  */
 const NON_PICKER_KEYS = new Set([
-  'inputValue', 'placeholder', 'disabled', 'isReadonly', 'inputSize', 'enableTransitions',
-  'mobilePresentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow', 'deferRender',
+  'inputValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize', 'enableTransitions',
+  'mobilePresentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow',
   'formFieldName', 'valueFormat', 'getValueFormatCallback',
   'placeholderFormatMask', 'placeholderTimeFormatMask',
 ]);
@@ -278,9 +277,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   // Dev-mode custom-styles lint: `--drp-*` names already warned about, so a
   // re-apply (or a reactive update) doesn't re-spam the console.
   #customStyleVarsWarned = new Set<string>();
-  // Render gate (`defer`): true once released via ready() / attribute removal /
-  // first build. Latched — a later re-added `defer` must not re-hold the gate.
-  #released = false;
   // Light-DOM hidden <input>(s) that carry the selection into form submission
   // (web-multiselect's model). Children of the host, so they sit inside the
   // <form> and submit under `name`; the host itself never calls setFormValue.
@@ -310,11 +306,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   /** Structural change (or first connect): rebuild the picker. */
   protected override reinit(): void {
     // reinit() runs on first connect (isConnected true) and on later on:'reinit'
-    // changes. connect() covers the plain-reconnect (DOM move) case. While the
-    // render gate is held (`defer` set, not yet released) skip the build — config
-    // keeps accumulating and lands whole on release. Removing the `defer`
-    // attribute flips deferRender false, so this same reinit then builds.
-    if (!this.isConnected || this.#renderHeld()) return;
+    // changes. connect() covers the plain-reconnect (DOM move) case. The `defer`
+    // gate is core's (SPEC §6.3): while it holds, core runs no reinit() at all.
+    if (!this.isConnected) return;
     // A structural change on a live picker carries the committed selection across
     // the rebuild (FINDINGS #21) — otherwise state reset to empty while the input
     // kept the old text. The first build has nothing to carry.
@@ -333,7 +327,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       this.#refreshFormValue();
     }
     if ('placeholder' in partial) this.#applyPlaceholder();
-    if ('disabled' in partial && this.#inputElement) { this.#inputElement.disabled = !!partial.disabled; this.#updateInputClear(); }
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock() : this.#picker.unlock(); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
     if ('enableTransitions' in partial) this.#applyTransitionStyles();
@@ -377,7 +370,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    */
   protected override connect(): void {
     if (this.#picker) this.#picker.activate();
-    else if (!this.#renderHeld()) this.#buildPicker();
+    else this.#buildPicker();
     // The device-adaptive presentation runs off core's environment observable,
     // which BlissElement (un)subscribes automatically because we override
     // environmentChanged() — no per-connect wiring needed here.
@@ -389,6 +382,28 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    */
   protected override disconnect(): void {
     this.#picker?.deactivate();
+  }
+
+  /**
+   * The effective disabled state flipped — the `isDisabled` input (`disabled`
+   * attribute) or an ancestor `<fieldset disabled>` (core merges both). A disabled
+   * input can't open the calendar, isn't focusable and drops the ✕.
+   */
+  protected override disabledChanged(isDisabled: boolean): void {
+    if (this.#inputElement && this.#inputElement.type !== 'hidden') this.#inputElement.disabled = isDisabled;
+    this.#updateInputClear();
+  }
+
+  /**
+   * Final teardown (core `destroy()`): release what `disconnect()` keeps — the
+   * engine (its DOM, listeners, tooltips, positioning) and the light-DOM hidden
+   * form input(s). The element is inert afterwards.
+   */
+  protected override destroyCallback(): void {
+    this.#picker?.destroy();
+    this.#picker = undefined;
+    for (const el of this.#hiddenInputs) el.remove();
+    this.#hiddenInputs = [];
   }
 
   /**
@@ -407,11 +422,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#picker?.destroy();
     this.#picker = undefined;
     this.#buildPicker(true);
-  }
-
-  /** Whether the initial render is being held by the `defer` gate (not yet released). */
-  #renderHeld(): boolean {
-    return this.config.deferRender === true && !this.#released;
   }
 
   /**
@@ -474,18 +484,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#applyPresentation(getEnvironment());
     // Apply transition styles once the calendar DOM exists.
     setTimeout(() => this.#applyTransitionStyles(), 0);
-
-    // First build of this element's lifetime: latch the gate open (a later
-    // re-added `defer` must not re-hold), reflect `is-ready` for CSS hooks
-    // (`:host([defer]:not([is-ready]))` can reserve space while deferred), and
-    // announce `ready` once. `is-ready`'s presence is the once-guard: a later
-    // rebuild (reinit) or disconnect/reconnect re-enters #buildPicker but never
-    // re-fires.
-    if (!this.hasAttribute('is-ready')) {
-      this.#released = true;
-      this.setAttribute('is-ready', '');
-      this.emit('ready');
-    }
+    // `ready` (event, attribute, :state(ready), whenReady) is core's — announced
+    // once after the first build goes live.
   }
 
   #ensureInput(): void {
@@ -505,7 +505,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       input.classList.add('drp__input');
       this.#applyPlaceholderTo(input);
     }
-    if (this.config.disabled && !isHidden) input.disabled = true;
+    if (this.isEffectivelyDisabled && !isHidden) input.disabled = true;
 
     if (isHidden) {
       this.#shadow.appendChild(input);
@@ -1006,27 +1006,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     p.syncInputFromSelection();
   }
 
-  // ── render gate (`defer`) ─────────────────────────────────────────────────
-
-  /**
-   * Release the `defer` render gate: build the picker now (once), with every
-   * option, callback and listener wired while deferred already in place. No-op
-   * when the element wasn't deferred or is already built. `flush()` first so a
-   * synchronous `el.value = …; el.getCustomStylesCallback = …; el.ready()` lands
-   * those pending writes in the single build rather than after it. Latched — the
-   * gate never re-closes. Fires the `ready` event on the first build.
-   */
-  ready(): void {
-    this.#released = true;
-    this.flush(); // apply pending input writes (may itself build via reinit())
-    if (this.isConnected && !this.#picker) this.#buildPicker();
-  }
-
-  /** Whether the picker has been built (the `ready` event has fired). False while a `defer` gate is still held. */
-  get isReady(): boolean {
-    return this.hasAttribute('is-ready');
-  }
-
   // ── imperative API (flush pending writes, then delegate to the picker) ─────
 
   /** Open the calendar (floating/modal modes). */
@@ -1118,16 +1097,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    */
   get value(): string { return this.getInputValue(); }
   set value(val: string) { this.setInputValue(val); }
-
-  /**
-   * Full read-only lock, reflected to the `readonly` attribute. Reads back `true`
-   * only when every aspect is locked. For partial locks use `lock([...])`.
-   */
-  get readonly(): boolean { return this.#picker ? this.#picker.readonly : this.hasAttribute('readonly'); }
-  set readonly(value: boolean) {
-    if (value) this.setAttribute('readonly', '');
-    else this.removeAttribute('readonly');
-  }
 
   /**
    * The selection as ranges. Range mode: always the committed selection — a plain

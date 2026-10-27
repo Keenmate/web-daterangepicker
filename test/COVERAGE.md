@@ -307,7 +307,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Opening a second picker closes the first                      | ✓      | `single-active.spec.ts`      | `single-active.html`      |
-| External `km-overlay-activated` closes an open picker         | ✓      | `single-active.spec.ts`      | `single-active.html`      |
+| External `km-overlay-activate` closes an open picker         | ✓      | `single-active.spec.ts`      | `single-active.html`      |
 | `overlay-group`: different groups coexist, same group dismisses, ungrouped independent | ✓ | `single-active.spec.ts` | `single-active.html` |
 
 ## 22. Time picker

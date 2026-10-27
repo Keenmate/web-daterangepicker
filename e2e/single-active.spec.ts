@@ -30,7 +30,7 @@ test('opening a second datepicker closes the first', async ({ page }) => {
     await expect(calendarOf(a)).toBeHidden(); // A dismissed when B opened
 });
 
-test('an external km-overlay-activated event (no core import) closes an open datepicker', async ({ page }) => {
+test('an external km-overlay-activate event (no core import) closes an open datepicker', async ({ page }) => {
     // Proves the framework-agnostic path: a Svelte / plain-DOM popover that never imported
     // core just dispatches the document event, and the calendar dismisses.
     const a = page.locator('#drp-a');
@@ -39,7 +39,7 @@ test('an external km-overlay-activated event (no core import) closes an open dat
 
     await page.evaluate(() =>
         document.dispatchEvent(
-            new CustomEvent('km-overlay-activated', { detail: { source: 'external-popover' } }),
+            new CustomEvent('km-overlay-activate', { detail: { source: 'external-popover' } }),
         ),
     );
     await expect(calendarOf(a)).toBeHidden();
