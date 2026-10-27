@@ -235,7 +235,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     `update()` now rebuilds via `#rebuildPreservingSelection()` when the engine refuses a
     partial (the committed time survives).
 
-19. **DRP-7 — `display-time-format-mask` is accepted but never used.**
+19. **~~DRP-7 — `display-time-format-mask` is accepted but never used.~~** ✅ FIXED
     Where: `src/web-component.ts` `#applyPlaceholderTo()` only reads `displayFormatMask` /
     `dateFormatMask`; `displayTimeFormatMask` is passed to the engine and stored, nothing
     reads it. Symptom: `<web-daterangepicker picker-mode="time" display-time-format-mask="hh:mm">`
@@ -243,6 +243,11 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     mode combine `(displayFormatMask ?? dateFormatMask) + ' ' + displayTimeFormatMask`.
     **Open question for the user:** is that the intended meaning? Pinned by
     `time-picker.spec.ts`.
+    **Fixed (2026-10-27, user decision):** renamed to what they are — `placeholder-format-mask`
+    / `placeholder-time-format-mask` (BREAKING). Date mode unchanged; `time` → the time hint;
+    `datetime` → date hint + ' ' + time hint; an unset placeholder time mask falls back to
+    `time-format-mask` (like the date one to `date-format-mask`). The hint is re-derived on a
+    runtime mode change. Unpinned + 3 new specs in `time-picker.spec.ts`.
 
 20. **~~DRP-8 — runtime `time-format-mask` change is ignored.~~** ✅ FIXED
     Where: `src/date-picker.ts` `updateOptions()` re-parses `formatInfo` for

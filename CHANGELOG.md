@@ -43,6 +43,16 @@ and derived colors to the contract's **formula on the `--drp-*` token**, so a st
 
 ### Changed — BREAKING (API cleanup)
 
+- **BREAKING** — `display-format-mask` → **`placeholder-format-mask`** and
+  `display-time-format-mask` → **`placeholder-time-format-mask`** (properties
+  `placeholderFormatMask` / `placeholderTimeFormatMask`; the engine options
+  `displayFormatMask` / `displayTimeFormatMask` are gone — they never did anything there). The
+  names now say what they are: only the placeholder hint. The shown text is
+  `date-format-mask` / `time-format-mask`, the submitted value `value-format` (ISO).
+  The derived hint (no explicit `placeholder`) now covers every picker mode: date — the date
+  hint (doubled in `range` mode, unchanged); `time` — `placeholder-time-format-mask`, else
+  `time-format-mask` (it showed nothing); `datetime` — date hint + `' '` + time hint. It
+  also follows a runtime `picker-mode` / `selection-mode` change (FINDINGS #19).
 - **BREAKING** — `value` is no longer reflected: `el.value = x` / `setInputValue(x)` set the
   current selection (parsed — display or ISO form) and do NOT write the `value` attribute. The
   attribute is the default, like a native input's `defaultValue`: it is the initial selection

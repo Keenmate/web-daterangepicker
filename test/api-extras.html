@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test — API extras: setters, messages, displayFormatMask</title>
+    <title>Test — API extras: setters, messages, placeholderFormatMask</title>
     <link rel="stylesheet" href="test-fixtures.css">
     <style>
         web-daterangepicker { display: block; max-width: 320px; }
@@ -31,17 +31,17 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">display-format-mask — localized hint fills the placeholder when no explicit placeholder is set</div>
+        <div class="fixture-label">placeholder-format-mask — localized hint fills the placeholder when no explicit placeholder is set</div>
         <web-daterangepicker id="display-mask-hint" selection-mode="single"
             date-format-mask="DD.MM.YYYY"
-            display-format-mask="dd.mm.rrrr"></web-daterangepicker>
+            placeholder-format-mask="dd.mm.rrrr"></web-daterangepicker>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">explicit placeholder wins over display-format-mask</div>
+        <div class="fixture-label">explicit placeholder wins over placeholder-format-mask</div>
         <web-daterangepicker id="placeholder-wins" selection-mode="single"
             date-format-mask="DD.MM.YYYY"
-            display-format-mask="dd.mm.rrrr"
+            placeholder-format-mask="dd.mm.rrrr"
             placeholder="Vyberte datum"></web-daterangepicker>
     </div>
 
@@ -56,10 +56,10 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">range mode — doubled display-format-mask hint</div>
+        <div class="fixture-label">range mode — doubled placeholder-format-mask hint</div>
         <web-daterangepicker id="range-hint-display" selection-mode="range"
             date-format-mask="DD.MM.YYYY"
-            display-format-mask="dd.mm.rrrr"></web-daterangepicker>
+            placeholder-format-mask="dd.mm.rrrr"></web-daterangepicker>
     </div>
 
     <div class="fixture">

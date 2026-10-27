@@ -159,7 +159,23 @@ test.describe('time-display variants', () => {
     }
 });
 
-test('display-time-format-mask is the placeholder hint when no placeholder is set', async ({ page }) => {
-    test.fail(true, 'FINDINGS.md #19');
+test('placeholder-time-format-mask is the placeholder hint in time mode (FINDINGS #19)', async ({ page }) => {
     await expect(inputOf(pickerById(page, 'masked'))).toHaveAttribute('placeholder', 'hh:mm');
+});
+
+test('time mode without a placeholder mask falls back to time-format-mask', async ({ page }) => {
+    await expect(inputOf(pickerById(page, 'masked-fallback'))).toHaveAttribute('placeholder', 'HH.mm');
+});
+
+test('datetime: the hint is the date placeholder mask + " " + the time placeholder mask', async ({ page }) => {
+    await expect(inputOf(pickerById(page, 'masked-dt'))).toHaveAttribute('placeholder', 'dd.mm.rrrr hh:mm');
+    await expect(inputOf(pickerById(page, 'masked-dt-fallback'))).toHaveAttribute('placeholder', 'YYYY-MM-DD HH:mm');
+});
+
+test('the placeholder hint follows a runtime mask / picker-mode change', async ({ page }) => {
+    const p = pickerById(page, 'masked');
+    await p.evaluate((el: any) => { el.setAttribute('placeholder-time-format-mask', 'hh.mm'); return el.whenSettled(); });
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'hh.mm');
+    await p.evaluate((el: any) => { el.setAttribute('picker-mode', 'datetime'); return el.whenSettled(); });
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'YYYY-MM-DD hh.mm');
 });

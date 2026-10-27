@@ -103,7 +103,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Custom `date-format-mask` (YYYY-MM-DD, DD.MM.YYYY, etc.)      | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Progressive parsing: calendar follows valid typed segments    | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
-| `displayFormatMask` fills placeholder when no explicit one    | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
+| `placeholder-format-mask` fills placeholder when no explicit one | ✓   | `api-extras.spec.ts`         | `api-extras.html`         |
 
 ## 7. Date restrictions
 
@@ -317,7 +317,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `time-display` clock / wheel / compact each commit            | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
 | Apply fires `select` (FINDINGS #17, fixed)                    | ✓      | `time-picker.spec.ts`   | `time-picker.html`        |
 | Runtime `time-display` switch renders the new UI (FINDINGS #18, fixed) | ✓ | `time-picker.spec.ts` | `time-picker.html`        |
-| `display-time-format-mask` as placeholder hint (FINDINGS #19) | ✗ test.fail | `time-picker.spec.ts`   | `time-picker.html`        |
+| `placeholder-time-format-mask` hint in time mode; fallback to `time-format-mask`; datetime = date + ' ' + time hint; follows runtime changes (FINDINGS #19, fixed) | ✓ | `time-picker.spec.ts` | `time-picker.html` |
 | `hour-cycle` h12 (1-12 + AM/PM, formats `hh:mm a`); derived from the mask | ✓ | `time-options.spec.ts` | `time-options.html` |
 | Runtime `hour-cycle` switch keeps the time (FINDINGS #21, fixed) | ✓ | `time-options.spec.ts`  | `time-options.html`       |
 | `time-step` (declared + runtime)                              | ✓      | `time-options.spec.ts`       | `time-options.html`       |

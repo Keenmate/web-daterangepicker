@@ -3,7 +3,7 @@
  * string(s) submitted under the control's `name`.
  *
  * This is intentionally a **stable, ISO-8601** view of the selection, independent
- * of `displayFormatMask` / `dateFormatMask` (which are for humans). A server sees
+ * of `dateFormatMask` / `timeFormatMask` / the placeholder masks (which are for humans). A server sees
  * `2026-06-15`, never `Jun 15, 2026`. The rendering side (light-DOM hidden inputs)
  * lives in `web-component.ts`; everything here is pure so it can be reasoned about
  * and tested in isolation. Mirrors web-multiselect's `value-format` model.

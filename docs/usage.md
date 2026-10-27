@@ -107,7 +107,8 @@ use camelCase (`selectionMode`).
 | `disabled-weekdays` | `string` | — | Comma-separated day numbers to disable (e.g., `"0,6"` for weekends) |
 | `disabled-dates` | `string` | — | Comma-separated ISO dates to disable (e.g., `"2026-06-13, 2026-06-14, 2026-12-25"`). The `disabledDates` property still wins if both paths are set. |
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range selection modes](#range-selection-modes)) |
-| `display-format-mask` | `string` | Same as `date-format-mask` | Localized format hint shown to users (`'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German, …). Used as input placeholder when no explicit `placeholder` is set. Validation still uses `date-format-mask`. |
+| `placeholder-format-mask` | `string` | Same as `date-format-mask` | Only the input placeholder hint (when no explicit `placeholder`) — a localized form of the mask (`'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German, …). Doubled around ` - ` in `range` mode. The shown text and parsing follow `date-format-mask`; the submitted value is ISO (`value-format`). |
+| `placeholder-time-format-mask` | `string` | Same as `time-format-mask` | The time part of the placeholder hint: alone in `time` mode, after the date hint (`date + ' ' + time`) in `datetime` mode. |
 | `should-highlight-disabled-in-range` | `boolean` | `true` | Highlight disabled dates within a selected range. `false` = only highlight enabled dates. |
 | `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | How a selection is committed and when the calendar closes. `selection` = commit and close as soon as the pick completes, no Apply button; `apply` = render an Apply button and stage the pick until it is clicked; `manual` = never auto-commit or auto-close and render no built-in Apply button (app drives commit/close via custom action buttons) |
 | `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
@@ -273,7 +274,7 @@ changes by reading `target.form` (e.g. Phoenix LiveView's `phx-change`) resolve
 the parent form correctly.
 
 **The submitted value is always stable ISO-8601** — independent of
-`date-format-mask` / `display-format-mask`, so a locale display mask never leaks
+`date-format-mask` / `time-format-mask` (the shown text) and the placeholder masks, so a locale mask never leaks
 into your form data. `value-format` picks how the selection is serialized:
 
 | `value-format` | Single | Range | Multiple |

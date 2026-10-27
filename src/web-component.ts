@@ -106,8 +106,8 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'isSummaryShown',               attribute: 'is-summary-shown',              converter: toBool('tristate'), on: 'reinit', description: 'Show the range summary (day/night counts) block.' },
 
   // ── In-place (→ update): the engine patches these without a rebuild ───────
-  { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ default: 'YYYY-MM-DD' }), on: 'update', description: 'Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators).' },
-  { configKey: 'displayFormatMask',            attribute: 'display-format-mask',           converter: toText({ isNullable: true }), on: 'update', description: 'Localized format hint shown as the input placeholder (when no explicit `placeholder`). In `range` mode the hint is doubled around " - " (e.g. `YYYY-MM-DD - YYYY-MM-DD`).' },
+  { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ default: 'YYYY-MM-DD' }), on: 'update', description: 'The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any separators). Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-format-mask`.' },
+  { configKey: 'placeholderFormatMask',        attribute: 'placeholder-format-mask',       converter: toText({ isNullable: true }), on: 'update', description: 'The date part of the input PLACEHOLDER hint (when no explicit `placeholder`) — a localized form of the mask, e.g. `dd.mm.rrrr`; unset falls back to `date-format-mask`. Only the hint: the shown text follows `date-format-mask`, the submitted value `value-format`. `range` mode doubles it around " - " (`dd.mm.rrrr - dd.mm.rrrr`); `datetime` appends the time hint (`placeholder-time-format-mask`).' },
   { configKey: 'isUnifiedHeaderInteractive',   attribute: 'is-unified-header-interactive', converter: toBool('presence'), on: 'update', description: 'Make the unified grid header clickable (opens the rolling selector).' },
   { configKey: 'calendarPlacement',            attribute: 'calendar-placement',            converter: toText({ isNullable: true }), on: 'update', description: 'Floating-UI placement for the popover (default `bottom-start`).' },
   { configKey: 'weekStartDay',                 attribute: 'week-start-day',                converter: toWeekStartDay(), on: 'update', type: "'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6", description: 'First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday).' },
@@ -127,8 +127,8 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'shouldCloseOnScroll',          attribute: 'should-close-on-scroll',        converter: toBool('tristate'), on: 'update', description: 'Close the floating calendar when the page scrolls.' },
   { configKey: 'isTodayButtonShown',           attribute: 'is-today-button-shown',         converter: toBool('tristate'), on: 'update', description: 'Show the “Today” action button.' },
   { configKey: 'isClearButtonShown',           attribute: 'is-clear-button-shown',         converter: toBool('tristate'), on: 'update', description: 'Show the “Clear” action button.' },
-  { configKey: 'timeFormatMask',               attribute: 'time-format-mask',              converter: toText({ default: 'HH:mm' }), on: 'update', description: 'Parse/format mask for times (HH/mm/ss).' },
-  { configKey: 'displayTimeFormatMask',        attribute: 'display-time-format-mask',      converter: toText({ isNullable: true }), on: 'update', description: 'Localized display mask for the time portion.' },
+  { configKey: 'timeFormatMask',               attribute: 'time-format-mask',              converter: toText({ default: 'HH:mm' }), on: 'update', description: 'The SHOWN time text (time / datetime modes): how the selected time is written into the input, and how typed / `value` text is parsed (HH/H, hh/h, mm, ss, a). Also derives the hour cycle / seconds. Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-time-format-mask`.' },
+  { configKey: 'placeholderTimeFormatMask',    attribute: 'placeholder-time-format-mask',  converter: toText({ isNullable: true }), on: 'update', description: 'The time part of the input PLACEHOLDER hint (when no explicit `placeholder`) — e.g. `hh:mm`; unset falls back to `time-format-mask`. `time` mode shows it alone; `datetime` shows the date hint + " " + it. Only the hint: the shown text follows `time-format-mask`, the submitted value `value-format`.' },
   { configKey: 'timeStep',                     attribute: 'time-step',                     converter: toInt({ min: 1 }), on: 'update', description: 'Minute step for the time picker.' },
   { configKey: 'isNowButtonShown',             attribute: 'is-now-button-shown',           converter: toBool('tristate'), on: 'update', description: 'Show the “Now” button in time/datetime mode.' },
   { configKey: 'timeDisplay',                  attribute: 'time-display',                  converter: toEnum(TIME_DISPLAYS, { default: 'rolls' }), on: 'update', description: 'Time-picker UI: `rolls`, `clock`, `wheel`, or `compact`.' },
@@ -144,7 +144,7 @@ const INPUTS: readonly InputDef[] = [
 
   // ── Form integration (NON-picker; light-DOM hidden input[s], like web-multiselect) ──
   { configKey: 'formFieldName',                attribute: 'name',                          converter: toText({ isNullable: true }), on: 'update', description: 'HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`.' },
-  { configKey: 'valueFormat',                  attribute: 'value-format',                  converter: toEnum(VALUE_FORMATS, { default: 'iso' }), on: 'update', description: `Serialization of the submitted value (stable ISO-8601, independent of the display masks):
+  { configKey: 'valueFormat',                  attribute: 'value-format',                  converter: toEnum(VALUE_FORMATS, { default: 'iso' }), on: 'update', description: `The SUBMITTED form value — always stable ISO-8601, independent of the shown text (\`date-format-mask\` / \`time-format-mask\`) and the placeholder hint (\`placeholder-format-mask\` / \`placeholder-time-format-mask\`). Serialization:
 - \`iso\` (default) — one field; a single date/time as-is, a range as \`start/end\`, multiple joined by \`,\`.
 - \`json\` — one field; \`JSON.stringify\` of the selection (scalar/object for single/range, array for multiple).
 - \`array\` — multiple \`name[]\` fields, one per date; a range contributes \`start\` and \`end\`.` },
@@ -152,7 +152,7 @@ const INPUTS: readonly InputDef[] = [
 
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range `2026-06-10 - 2026-06-14` or `2026-06-10/2026-06-14`, multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
-  { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`).' },
+  { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
   { configKey: 'disabled',                     attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the input.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), on: 'update', description: 'Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating/modal only).' },
@@ -215,6 +215,7 @@ const NON_PICKER_KEYS = new Set([
   'inputValue', 'placeholder', 'disabled', 'isReadonly', 'inputSize', 'enableTransitions',
   'mobilePresentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow', 'deferRender',
   'formFieldName', 'valueFormat', 'getValueFormatCallback',
+  'placeholderFormatMask', 'placeholderTimeFormatMask',
 ]);
 
 /**
@@ -334,10 +335,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock() : this.#picker.unlock(); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
     if ('enableTransitions' in partial) this.#applyTransitionStyles();
-    if ('displayFormatMask' in partial) this.#applyPlaceholder();
-    // date-format-mask feeds the range-mode placeholder fallback, so re-derive the
-    // hint when it changes at runtime (no-op for an explicit placeholder).
-    if ('dateFormatMask' in partial) this.#applyPlaceholder();
+    // The masks feed the derived placeholder hint (no-op for an explicit placeholder).
+    if ('placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
+      || 'dateFormatMask' in partial || 'timeFormatMask' in partial) this.#applyPlaceholder();
     if ('getCustomStylesCallback' in partial || 'customStyles' in partial) this.#applyCustomStyles();
     if ('mobilePresentation' in partial && this.#picker) {
       // Presentation policy changed at runtime — the environment observable won't
@@ -433,6 +433,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       this.#inputClearButton = undefined;
     }
     this.#ensureInput();
+    // A reused input keeps its old hint — re-derive it for the (possibly new) modes.
+    this.#applyPlaceholder();
 
     // Seed the responsive-compaction state from the current box BEFORE assembling
     // config: `sizeChanged()` fires only after layout, so the first build must measure
@@ -740,7 +742,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   // ── element-level styling helpers ─────────────────────────────────────────
 
   #applyPlaceholder(): void {
-    if (this.#inputElement) this.#applyPlaceholderTo(this.#inputElement);
+    if (this.#inputElement && this.#inputElement.type !== 'hidden') this.#applyPlaceholderTo(this.#inputElement);
   }
 
   #applyPlaceholderTo(input: HTMLInputElement): void {
@@ -748,18 +750,19 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     const explicit = this.config.placeholder as string | null;
     if (explicit != null) { input.placeholder = explicit; return; }
 
-    // Otherwise derive a format hint. Prefer the localized display-format-mask; for
-    // plain date pickers fall back to the parse mask so a hint always shows without
-    // the consumer hardcoding one. (Time/datetime need an explicit placeholder or
-    // display-format-mask — the date mask alone is an incomplete hint.) Range mode
-    // doubles the hint around the canonical " - " separator (mirroring the committed
-    // range form) so users see they type a start AND an end — e.g.
-    // "YYYY-MM-DD - YYYY-MM-DD" for range vs the single-date "YYYY-MM-DD".
-    const isRange = (this.config.selectionMode as string) === 'range';
-    const isDateMode = ((this.config.pickerMode as string) ?? 'date') === 'date';
-    const base = (this.config.displayFormatMask as string | null)
-      ?? (isDateMode ? (this.config.dateFormatMask as string | null) : null);
-    input.placeholder = base ? (isRange ? `${base} - ${base}` : base) : '';
+    // Otherwise derive a format hint from the placeholder masks, each falling back
+    // to its shown-text mask so a hint always shows without the consumer hardcoding
+    // one: date → the date hint (range mode doubles it around the canonical " - ",
+    // mirroring the committed form — "YYYY-MM-DD - YYYY-MM-DD"); time → the time
+    // hint; datetime → date hint + ' ' + time hint (the committed form again).
+    const pickerMode = (this.config.pickerMode as string) ?? 'date';
+    const dateHint = (this.config.placeholderFormatMask as string | null)
+      ?? (this.config.dateFormatMask as string | null) ?? 'YYYY-MM-DD';
+    const timeHint = (this.config.placeholderTimeFormatMask as string | null)
+      ?? (this.config.timeFormatMask as string | null) ?? 'HH:mm';
+    if (pickerMode === 'time') input.placeholder = timeHint;
+    else if (pickerMode === 'datetime') input.placeholder = `${dateHint} ${timeHint}`;
+    else input.placeholder = (this.config.selectionMode as string) === 'range' ? `${dateHint} - ${dateHint}` : dateHint;
   }
 
   #applyInputSizeStyles(): void {

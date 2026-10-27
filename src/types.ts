@@ -226,10 +226,12 @@ export interface DatePickerOptions {
    * `datetime` is incompatible with monthLayout `grid` — both fall back with a console warning.
    */
   pickerMode?: PickerMode;
-  /** Time format for time / datetime modes. Tokens: HH/H, hh/h, mm/m, ss/s, a. Default: 'HH:mm'. */
+  /**
+   * The SHOWN time text (the input, time / datetime modes) — and what typed / `value` text is
+   * parsed with. Tokens: HH/H, hh/h, mm/m, ss/s, a. Default: 'HH:mm'. The submitted form value
+   * is always ISO (`value-format`), independent of this mask.
+   */
   timeFormatMask?: string;
-  /** Optional separate display format for the time portion (mirrors displayFormatMask). Falls back to timeFormatMask. */
-  displayTimeFormatMask?: string;
   /** Minute (and second) increment for the rolls. Default: 1. */
   timeStep?: number;
   /**
@@ -256,7 +258,11 @@ export interface DatePickerOptions {
   calendarPlacement?: string;
   /** Number of month columns shown side by side. Default: 1. */
   visibleMonthsCount?: number;
-  /** Date format for the input and parsing. Tokens: YYYY/YY, MM/M, DD/D with any separators. Default: 'YYYY-MM-DD'. */
+  /**
+   * The SHOWN date text (the input) — and what typed / `value` text is parsed with. Tokens:
+   * YYYY/YY, MM/M, DD/D with any separators. Default: 'YYYY-MM-DD'. The submitted form value is
+   * always ISO (`value-format`), independent of this mask.
+   */
   dateFormatMask?: string;
   /**
    * When the calendar opens. Default: `focus`.
@@ -501,8 +507,6 @@ export interface DatePickerOptions {
   // Internationalization
   /** Locale for UI strings and date formatting. 'auto' (default) detects from the browser; or pass 'en', 'de', 'fr', 'es', etc. */
   locale?: string | 'auto';
-  /** Separate format mask for display only (e.g. 'dd/mm/aaaa'). Falls back to dateFormatMask when unset. */
-  displayFormatMask?: string;
   /** Override any UI strings (buttons, labels) individually. */
   customStrings?: Partial<LocaleStrings>;
   /** Custom month names (exactly 12, index 0 = January). Overrides locale names. Example: ['Jan', … , 'Dec']. */

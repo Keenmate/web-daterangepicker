@@ -98,8 +98,8 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `is-seconds-shown` | `boolean \| null` | — | Show a seconds field in time/datetime mode. |
 | `hour-cycle` | `'h12' \| 'h24'` | — | 12- or 24-hour clock for time/datetime mode. |
 | `is-summary-shown` | `boolean \| null` | — | Show the range summary (day/night counts) block. |
-| `date-format-mask` | `string` | `'YYYY-MM-DD'` | Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators). |
-| `display-format-mask` | `string \| null` | — | Localized format hint shown as the input placeholder (when no explicit `placeholder`). In `range` mode the hint is doubled around " - " (e.g. `YYYY-MM-DD - YYYY-MM-DD`). |
+| `date-format-mask` | `string` | `'YYYY-MM-DD'` | The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any separators). Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-format-mask`. |
+| `placeholder-format-mask` | `string \| null` | — | The date part of the input PLACEHOLDER hint (when no explicit `placeholder`) — a localized form of the mask, e.g. `dd.mm.rrrr`; unset falls back to `date-format-mask`. Only the hint: the shown text follows `date-format-mask`, the submitted value `value-format`. `range` mode doubles it around " - " (`dd.mm.rrrr - dd.mm.rrrr`); `datetime` appends the time hint (`placeholder-time-format-mask`). |
 | `is-unified-header-interactive` | `boolean` | — | Make the unified grid header clickable (opens the rolling selector). |
 | `calendar-placement` | `string \| null` | — | Floating-UI placement for the popover (default `bottom-start`). |
 | `week-start-day` | `'auto' \| 0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6` | — | First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday). |
@@ -119,8 +119,8 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `should-close-on-scroll` | `boolean \| null` | — | Close the floating calendar when the page scrolls. |
 | `is-today-button-shown` | `boolean \| null` | — | Show the “Today” action button. |
 | `is-clear-button-shown` | `boolean \| null` | — | Show the “Clear” action button. |
-| `time-format-mask` | `string` | `'HH:mm'` | Parse/format mask for times (HH/mm/ss). |
-| `display-time-format-mask` | `string \| null` | — | Localized display mask for the time portion. |
+| `time-format-mask` | `string` | `'HH:mm'` | The SHOWN time text (time / datetime modes): how the selected time is written into the input, and how typed / `value` text is parsed (HH/H, hh/h, mm, ss, a). Also derives the hour cycle / seconds. Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-time-format-mask`. |
+| `placeholder-time-format-mask` | `string \| null` | — | The time part of the input PLACEHOLDER hint (when no explicit `placeholder`) — e.g. `hh:mm`; unset falls back to `time-format-mask`. `time` mode shows it alone; `datetime` shows the date hint + " " + it. Only the hint: the shown text follows `time-format-mask`, the submitted value `value-format`. |
 | `time-step` | `number` | — | Minute step for the time picker. |
 | `is-now-button-shown` | `boolean \| null` | — | Show the “Now” button in time/datetime mode. |
 | `time-display` | `'rolls' \| 'clock' \| 'wheel' \| 'compact'` | `'rolls'` | Time-picker UI: `rolls`, `clock`, `wheel`, or `compact`. |
@@ -132,9 +132,9 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `day-tooltip-member` | `string \| null` | — | Property name holding a day tooltip string. |
 | `is-disabled-member` | `string \| null` | — | Property name flagging a decorated date as disabled. |
 | `name` | `string \| null` | — | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
-| `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | Serialization of the submitted value (stable ISO-8601, independent of the display masks): - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
+| `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | The SUBMITTED form value — always stable ISO-8601, independent of the shown text (`date-format-mask` / `time-format-mask`) and the placeholder hint (`placeholder-format-mask` / `placeholder-time-format-mask`). Serialization: - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
 | `value` | `string \| null` | — | The initial / default value — like a native input's `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range `2026-06-10 - 2026-06-14` or `2026-06-10/2026-06-14`, multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute. |
-| `placeholder` | `string \| null` | — | Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`). |
+| `placeholder` | `string \| null` | — | Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint. |
 | `disabled` | `boolean` | — | Disable the input. |
 | `readonly` | `boolean` | — | Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks. |
 | `input-size` | `string` | `'md'` | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
@@ -217,8 +217,7 @@ The `disabled-dates-handling` attribute controls behavior when selecting ranges 
   selection-mode="single"
   locale="es"
   date-format-mask="YYYY-MM-DD"
-  display-format-mask="dd/mm/aaaa"
-  placeholder="Selecciona una fecha">
+  placeholder-format-mask="dd/mm/aaaa">
 </web-daterangepicker>
 
 <!-- Size variants - coordinated input and calendar sizing -->
@@ -275,7 +274,6 @@ When instantiating the engine (`DateRangePickerEngine`) directly (not using web 
 | `disabledDatesHandling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | Range behavior over disabled dates |
 | `shouldHighlightDisabledInRange` | `boolean` | `true` | Highlight disabled dates in range |
 | `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and Intl date formatting. Built-in: `'en'`, `'de'`, `'fr'`, `'es'` |
-| `displayFormatMask` | `string` | Same as `dateFormatMask` | Localized format mask for display (e.g., `'dd/mm/aaaa'` for Spanish) |
 | `customStrings` | `Partial<LocaleStrings>` | `undefined` | Override built-in UI strings (Today, Clear, Apply, etc.) |
 | `monthNames` | `string[]` | locale-based | Override month names. 12 strings, indexed by month: `[0]`=January … `[11]`=December |
 | `weekdayNames` | `string[]` | locale-based | Override weekday header labels. 7 strings, indexed by day-of-week: `[0]`=Sunday … `[6]`=Saturday (`weekStartDay` only rotates the display, not this mapping) |
@@ -308,7 +306,6 @@ const pickerES = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   locale: 'es',
   dateFormatMask: 'YYYY-MM-DD',
-  displayFormatMask: 'dd/mm/aaaa',
   customStrings: {
     today: 'Hoy',
     clear: 'Borrar',
@@ -1562,8 +1559,8 @@ The web component provides convenient property accessors for JavaScript:
 | `isSecondsShown` | `boolean \| null` | Read/Write | Show a seconds field in time/datetime mode. |
 | `hourCycle` | `'h12' \| 'h24'` | Read/Write | 12- or 24-hour clock for time/datetime mode. |
 | `isSummaryShown` | `boolean \| null` | Read/Write | Show the range summary (day/night counts) block. |
-| `dateFormatMask` | `string` | Read/Write | Parse/format mask for dates (YYYY/YY, MM/M, DD/D with any separators). |
-| `displayFormatMask` | `string \| null` | Read/Write | Localized format hint shown as the input placeholder (when no explicit `placeholder`). In `range` mode the hint is doubled around " - " (e.g. `YYYY-MM-DD - YYYY-MM-DD`). |
+| `dateFormatMask` | `string` | Read/Write | The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any separators). Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-format-mask`. |
+| `placeholderFormatMask` | `string \| null` | Read/Write | The date part of the input PLACEHOLDER hint (when no explicit `placeholder`) — a localized form of the mask, e.g. `dd.mm.rrrr`; unset falls back to `date-format-mask`. Only the hint: the shown text follows `date-format-mask`, the submitted value `value-format`. `range` mode doubles it around " - " (`dd.mm.rrrr - dd.mm.rrrr`); `datetime` appends the time hint (`placeholder-time-format-mask`). |
 | `isUnifiedHeaderInteractive` | `boolean` | Read/Write | Make the unified grid header clickable (opens the rolling selector). |
 | `calendarPlacement` | `string \| null` | Read/Write | Floating-UI placement for the popover (default `bottom-start`). |
 | `weekStartDay` | `'auto' \| 0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6` | Read/Write | First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday). |
@@ -1583,8 +1580,8 @@ The web component provides convenient property accessors for JavaScript:
 | `shouldCloseOnScroll` | `boolean \| null` | Read/Write | Close the floating calendar when the page scrolls. |
 | `isTodayButtonShown` | `boolean \| null` | Read/Write | Show the “Today” action button. |
 | `isClearButtonShown` | `boolean \| null` | Read/Write | Show the “Clear” action button. |
-| `timeFormatMask` | `string` | Read/Write | Parse/format mask for times (HH/mm/ss). |
-| `displayTimeFormatMask` | `string \| null` | Read/Write | Localized display mask for the time portion. |
+| `timeFormatMask` | `string` | Read/Write | The SHOWN time text (time / datetime modes): how the selected time is written into the input, and how typed / `value` text is parsed (HH/H, hh/h, mm, ss, a). Also derives the hour cycle / seconds. Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-time-format-mask`. |
+| `placeholderTimeFormatMask` | `string \| null` | Read/Write | The time part of the input PLACEHOLDER hint (when no explicit `placeholder`) — e.g. `hh:mm`; unset falls back to `time-format-mask`. `time` mode shows it alone; `datetime` shows the date hint + " " + it. Only the hint: the shown text follows `time-format-mask`, the submitted value `value-format`. |
 | `timeStep` | `number` | Read/Write | Minute step for the time picker. |
 | `isNowButtonShown` | `boolean \| null` | Read/Write | Show the “Now” button in time/datetime mode. |
 | `timeDisplay` | `'rolls' \| 'clock' \| 'wheel' \| 'compact'` | Read/Write | Time-picker UI: `rolls`, `clock`, `wheel`, or `compact`. |
@@ -1596,9 +1593,9 @@ The web component provides convenient property accessors for JavaScript:
 | `dayTooltipMember` | `string \| null` | Read/Write | Property name holding a day tooltip string. |
 | `isDisabledMember` | `string \| null` | Read/Write | Property name flagging a decorated date as disabled. |
 | `formFieldName` | `string \| null` | Read/Write | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
-| `valueFormat` | `'iso' \| 'json' \| 'array'` | Read/Write | Serialization of the submitted value (stable ISO-8601, independent of the display masks): - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
+| `valueFormat` | `'iso' \| 'json' \| 'array'` | Read/Write | The SUBMITTED form value — always stable ISO-8601, independent of the shown text (`date-format-mask` / `time-format-mask`) and the placeholder hint (`placeholder-format-mask` / `placeholder-time-format-mask`). Serialization: - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
 | `getValueFormatCallback` | `(ctx: FormValueSelection & PickerContext) => string` | Read/Write | Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value. Overrides `value-format`. Property-only. |
-| `placeholder` | `string \| null` | Read/Write | Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`). |
+| `placeholder` | `string \| null` | Read/Write | Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint. |
 | `disabled` | `boolean` | Read/Write | Disable the input. |
 | `inputSize` | `string` | Read/Write | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
 | `enableTransitions` | `boolean` | Read/Write | Opt into calendar open/close CSS transitions. |
@@ -1757,30 +1754,37 @@ The picker will:
 <web-daterangepicker locale="en"></web-daterangepicker>
 ```
 
-#### Dual Mask System
+#### Masks: shown text, placeholder hint, submitted value
 
-Use `date-format-mask` for validation (English tokens) and `display-format-mask` for visual display (localized tokens):
+Four separate concerns, four attributes:
+
+| Attribute | What it controls | Example |
+|---|---|---|
+| `date-format-mask` / `time-format-mask` | The **shown text** — what the picker writes into the input, and how typed / `value` text is parsed (English tokens: `YYYY MM DD`, `HH mm ss a`) | `DD.MM.YYYY`, `HH:mm` |
+| `placeholder-format-mask` / `placeholder-time-format-mask` | Only the **placeholder hint** shown while the input is empty (localized tokens); each falls back to its shown-text mask | `tt.mm.jjjj`, `hh:mm` |
+| `value-format` | The **submitted** form value — always ISO-8601, independent of the masks | `2026-06-10`, `2026-06-10/2026-06-14` |
+
+The derived hint (no explicit `placeholder`): date mode — the date hint (doubled around ` - ` in `range` mode); `time` — the time hint; `datetime` — date hint + `' '` + time hint.
 
 ```html
-<!-- Spanish: Show "dd/mm/aaaa" to users, validate with "YYYY-MM-DD" -->
+<!-- Spanish: hint "dd/mm/aaaa", shows / parses "YYYY-MM-DD" -->
 <web-daterangepicker
   date-format-mask="YYYY-MM-DD"
-  display-format-mask="dd/mm/aaaa"
+  placeholder-format-mask="dd/mm/aaaa"
   locale="es">
 </web-daterangepicker>
 
-<!-- German: Show "tt.mm.jjjj" to users, validate with "DD.MM.YYYY" -->
+<!-- German datetime: hint "tt.mm.jjjj ss:mm", shows "10.06.2026 14:30" -->
 <web-daterangepicker
+  picker-mode="datetime"
   date-format-mask="DD.MM.YYYY"
-  display-format-mask="tt.mm.jjjj"
+  placeholder-format-mask="tt.mm.jjjj"
+  placeholder-time-format-mask="ss:mm"
   locale="de">
 </web-daterangepicker>
 ```
 
-**How it works:**
-- `date-format-mask`: Used for parsing and validation (always use English: YYYY, MM, DD)
-- `display-format-mask`: Shown to users as a hint (use localized: aaaa for año, jjjj for jahr, etc.)
-- Both masks must represent the same format structure, just with different language tokens
+Both masks of a pair must describe the same structure, just with different language tokens.
 
 #### Custom String Overrides
 
@@ -1821,8 +1825,7 @@ const engine = new DateRangePickerEngine(input, {
   selection-mode="range"
   locale="es"
   date-format-mask="YYYY-MM-DD"
-  display-format-mask="dd/mm/aaaa"
-  placeholder="Selecciona fechas"
+  placeholder-format-mask="dd/mm/aaaa"
   visible-months-count="2">
 </web-daterangepicker>
 
@@ -1845,7 +1848,6 @@ const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   locale: 'de',
   dateFormatMask: 'DD.MM.YYYY',
-  displayFormatMask: 'tt.mm.jjjj',
   customStrings: {
     today: 'Jetzt',
     clear: 'Zurücksetzen',
@@ -1866,7 +1868,7 @@ const picker = new DateRangePickerEngine(inputElement, {
 | Month names (January, February...) | Intl API (`Intl.DateTimeFormat`) | ❌ No (browser-provided) |
 | Button labels (Today, Clear, Apply) | Built-in locale strings | ✅ Yes (via `customStrings`) |
 | Summary text (day, days, night, nights) | Built-in locale strings | ✅ Yes (via `customStrings`) |
-| Display format mask hint | `display-format-mask` attribute | ✅ Yes |
+| Placeholder format hint | `placeholder-format-mask` / `placeholder-time-format-mask` attributes | ✅ Yes |
 | Week start day | Intl API (`Intl.Locale.weekInfo`) | ✅ Yes (via `week-start-day`) |
 
 ### Custom Summary Formatting

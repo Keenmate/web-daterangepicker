@@ -2,7 +2,7 @@ import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, inputOf
 
 /**
  * Programmatic property setters: selectedDate, selectedRanges. Message API:
- * showMessage / hideMessage. displayFormatMask vs dateFormatMask.
+ * showMessage / hideMessage. placeholderFormatMask vs dateFormatMask.
  *
  * Fixture: test/api-extras.html
  */
@@ -86,23 +86,23 @@ test('showMessage auto-hides after the supplied timeout', async ({ page }) => {
 });
 
 // =============================================================================
-// display-format-mask as auto-placeholder hint
+// placeholder-format-mask as auto-placeholder hint
 // =============================================================================
 
-test('display-format-mask becomes the input placeholder when no explicit placeholder is set', async ({ page }) => {
+test('placeholder-format-mask becomes the input placeholder when no explicit placeholder is set', async ({ page }) => {
     const p = pickerById(page, 'display-mask-hint');
     // The Czech-style localized hint ("dd.mm.rrrr") surfaces in the input
     // even though date-format-mask uses English tokens (DD.MM.YYYY).
     await expect(inputOf(p)).toHaveAttribute('placeholder', 'dd.mm.rrrr');
 });
 
-test('an explicit placeholder attribute wins over display-format-mask', async ({ page }) => {
+test('an explicit placeholder attribute wins over placeholder-format-mask', async ({ page }) => {
     const p = pickerById(page, 'placeholder-wins');
     await expect(inputOf(p)).toHaveAttribute('placeholder', 'Vyberte datum');
 });
 
 // a plain single date picker auto-derives the format hint from date-format-mask
-// (no explicit placeholder / display-format-mask needed).
+// (no explicit placeholder / placeholder-format-mask needed).
 test('single mode: placeholder auto-derives from the default date-format-mask', async ({ page }) => {
     const p = pickerById(page, 'single-default');
     await expect(inputOf(p)).toHaveAttribute('placeholder', 'YYYY-MM-DD');
@@ -115,7 +115,7 @@ test('range mode: placeholder doubles the default date-format-mask hint', async 
     await expect(inputOf(p)).toHaveAttribute('placeholder', 'YYYY-MM-DD - YYYY-MM-DD');
 });
 
-test('range mode: placeholder doubles the localized display-format-mask hint', async ({ page }) => {
+test('range mode: placeholder doubles the localized placeholder-format-mask hint', async ({ page }) => {
     const p = pickerById(page, 'range-hint-display');
     await expect(inputOf(p)).toHaveAttribute('placeholder', 'dd.mm.rrrr - dd.mm.rrrr');
 });

@@ -45,8 +45,24 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">display-time-format-mask="hh:mm" with no explicit placeholder</div>
-        <web-daterangepicker id="masked" picker-mode="time" display-time-format-mask="hh:mm"></web-daterangepicker>
+        <div class="fixture-label">placeholder-time-format-mask="hh:mm" with no explicit placeholder</div>
+        <web-daterangepicker id="masked" picker-mode="time" placeholder-time-format-mask="hh:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">time, no placeholder masks — falls back to time-format-mask="HH.mm"</div>
+        <web-daterangepicker id="masked-fallback" picker-mode="time" time-format-mask="HH.mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">datetime — placeholder-format-mask="dd.mm.rrrr" + placeholder-time-format-mask="hh:mm"</div>
+        <web-daterangepicker id="masked-dt" picker-mode="datetime" date-format-mask="DD.MM.YYYY"
+            placeholder-format-mask="dd.mm.rrrr" placeholder-time-format-mask="hh:mm"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">datetime, no placeholder masks — date-format-mask + time-format-mask</div>
+        <web-daterangepicker id="masked-dt-fallback" picker-mode="datetime"></web-daterangepicker>
     </div>
 
     <pre data-testid="time-picker-log"></pre>
