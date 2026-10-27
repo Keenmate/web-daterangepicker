@@ -12,6 +12,9 @@ export { WebDaterangepickerElement } from './web-component';
 // callback / event surface — contexts expose the public `controller` facade.
 export { DateRangePickerEngine } from './date-picker';
 
+// The built-in English UI labels (the defaults `labels` overrides key by key).
+export { DEFAULT_LABELS } from './date-picker-locales';
+
 // Device / viewport detection — re-exported from the core so consumers get the
 // same "what device am I on" signal the component itself reacts to
 // (environmentChanged / the presentation ladder), from ONE import surface and
@@ -49,7 +52,7 @@ export type {
     ChangeEventDetail, MonthChangeEventDetail, ReadyEventDetail, OpenEventDetail, CloseEventDetail,
     LoaderTarget, LockAspect,
     // Supporting types
-    DayMetadata, DecoratedDate, LocaleStrings
+    DayMetadata, DecoratedDate, DateRangePickerLabels
 } from './types';
 
 // Form-value serialization types (for typing getValueFormatCallback / value-format)

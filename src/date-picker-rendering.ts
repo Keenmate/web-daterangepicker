@@ -6,6 +6,7 @@
  */
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
+import { formatLabel } from './date-picker-locales';
 import { hasEnabledDaysInYear } from './date-picker-validation';
 import * as Validation from './date-picker-validation';
 import { renderingLogger } from './logger';
@@ -870,8 +871,8 @@ export function renderTimePicker(picker: any) {
             const amSelected = time.ampm === 'am' ? 'drp__rolling-item--selected' : '';
             const pmSelected = time.ampm === 'pm' ? 'drp__rolling-item--selected' : '';
             ampmContainer.innerHTML = `
-                <div class="drp__rolling-item ${amSelected}" data-ampm="am"><span class="drp__rolling-item-text">${picker.localeStrings.am}</span></div>
-                <div class="drp__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp__rolling-item-text">${picker.localeStrings.pm}</span></div>
+                <div class="drp__rolling-item ${amSelected}" data-ampm="am"><span class="drp__rolling-item-text">${picker.labels.am}</span></div>
+                <div class="drp__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp__rolling-item-text">${picker.labels.pm}</span></div>
             `;
         }
     }
@@ -919,7 +920,7 @@ export function renderClockPicker(picker: any) {
         let ampmIndicator = '';
         if (is12h) {
             const ampm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
-            ampmIndicator = `<span class="drp__clock-header-ampm">${ampm === 'pm' ? picker.localeStrings.pm : picker.localeStrings.am}</span>`;
+            ampmIndicator = `<span class="drp__clock-header-ampm">${ampm === 'pm' ? picker.labels.pm : picker.labels.am}</span>`;
         }
         headerEl.innerHTML = `
             <button type="button" class="drp__clock-header-digit ${hoursActive}" data-clock-step="hours">${hourLabel}</button>
@@ -1091,8 +1092,8 @@ export function renderClockPicker(picker: any) {
             const amSelected = effectiveAmpm === 'am' ? 'drp__clock-ampm-button--selected' : '';
             const pmSelected = effectiveAmpm === 'pm' ? 'drp__clock-ampm-button--selected' : '';
             ampmEl.innerHTML = `
-                <button type="button" class="drp__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.localeStrings.am}</button>
-                <button type="button" class="drp__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.localeStrings.pm}</button>
+                <button type="button" class="drp__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.labels.am}</button>
+                <button type="button" class="drp__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.labels.pm}</button>
             `;
         }
     }
@@ -1239,8 +1240,8 @@ export function renderWheelPicker(picker: any) {
     // AM/PM (h12 only)
     if (is12h) {
         const items = [
-            { value: 'am', label: picker.localeStrings.am, selected: time.ampm === 'am' },
-            { value: 'pm', label: picker.localeStrings.pm, selected: time.ampm === 'pm' },
+            { value: 'am', label: picker.labels.am, selected: time.ampm === 'am' },
+            { value: 'pm', label: picker.labels.pm, selected: time.ampm === 'pm' },
         ];
         renderColumn('ampm', items, focusAmpm);
     }
@@ -1393,7 +1394,7 @@ export function updateSummary(picker: any) {
                 endDate: picker._selectedEndDate,
                 selectionMode: picker.options.selectionMode,
                 disabledDatesHandling: picker.options.disabledDatesHandling,
-                localeStrings: picker.localeStrings,
+                labels: picker.labels,
                 isPreview: false
             });
 
@@ -1407,9 +1408,9 @@ export function updateSummary(picker: any) {
         } else {
             // Default format
             summary.innerHTML = `
-                <span class="drp__summary-count">${days} ${days === 1 ? picker.localeStrings.day : picker.localeStrings.days}</span>
+                <span class="drp__summary-count">${formatLabel(days === 1 ? picker.labels.day : picker.labels.days, { count: days })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${nights} ${nights === 1 ? picker.localeStrings.night : picker.localeStrings.nights}</span>
+                <span class="drp__summary-count">${formatLabel(nights === 1 ? picker.labels.night : picker.labels.nights, { count: nights })}</span>
             `;
         }
     } else {
@@ -1492,7 +1493,7 @@ export function updateSummaryWithPreview(picker: any) {
                 endDate: picker.dragPreviewEnd,
                 selectionMode: picker.options.selectionMode,
                 disabledDatesHandling: picker.options.disabledDatesHandling,
-                localeStrings: picker.localeStrings,
+                labels: picker.labels,
                 isPreview: true
             });
 
@@ -1506,10 +1507,10 @@ export function updateSummaryWithPreview(picker: any) {
         } else {
             // Default format with preview label
             summary.innerHTML = `
-                <span style="opacity: 0.7;">${picker.localeStrings.preview}: </span>
-                <span class="drp__summary-count">${days} ${days === 1 ? picker.localeStrings.day : picker.localeStrings.days}</span>
+                <span style="opacity: 0.7;">${picker.labels.preview}: </span>
+                <span class="drp__summary-count">${formatLabel(days === 1 ? picker.labels.day : picker.labels.days, { count: days })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${nights} ${nights === 1 ? picker.localeStrings.night : picker.localeStrings.nights}</span>
+                <span class="drp__summary-count">${formatLabel(nights === 1 ? picker.labels.night : picker.labels.nights, { count: nights })}</span>
             `;
         }
     }

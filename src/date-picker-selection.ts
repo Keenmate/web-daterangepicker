@@ -6,6 +6,7 @@
 
 import { showLoader, hideLoader, showMessage, hideMessage } from './date-picker-ui';
 import { runBeforeCallback } from '@keenmate/web-components-core';
+import { formatLabel } from './date-picker-locales';
 import type { BeforeSelectContext, DateRange } from './types';
 import { validationLogger, selectionLogger } from './logger';
 import log from './logger';
@@ -231,7 +232,7 @@ function formatInputValue(picker: any): string | null {
     }
     if (mode === 'multiple') {
         const count = picker._selectedDates.length + picker._selectedRanges.length;
-        return count > 0 ? `${count} selection(s)` : '';
+        return count > 0 ? formatLabel(picker.labels.selectionCount, { count }) : '';
     }
     return null;
 }
@@ -402,7 +403,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 
         // Update input to show count (only if Apply button is NOT required)
         const count = picker._selectedDates.length + picker._selectedRanges.length;
-        commitInputValue(picker, count > 0 ? `${count} selection(s)` : '');
+        commitInputValue(picker, count > 0 ? formatLabel(picker.labels.selectionCount, { count }) : '');
 
         // Multiple mode always defers events (inherently requires Apply button)
         // Store pending selection for onChange callback

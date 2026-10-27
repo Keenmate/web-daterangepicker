@@ -424,13 +424,14 @@ function buildFullscreenHeader(picker: any) {
     // the mask + form value, and otherwise sits offscreen behind the fixed sheet). It
     // takes over the flex-growing header slot, so it wins over a title.
     const wantsInput = !!(picker.options.isFullscreenInputShown && picker.input);
-    const merged = !picker.options.fullscreenTitle && !wantsInput;
+    const fullscreenTitle = picker.labels.fullscreenTitle;
+    const merged = !fullscreenTitle && !wantsInput;
     if (wantsInput) {
         relocateInputIntoHeader(picker, header);
     } else if (!merged) {
         const title = document.createElement('span');
         title.className = 'drp__fullscreen-title';
-        title.textContent = picker.options.fullscreenTitle;
+        title.textContent = fullscreenTitle;
         header.appendChild(title);
     } else {
         // No title → the ✕ merges into the month-navigation row instead of taking its
@@ -442,7 +443,7 @@ function buildFullscreenHeader(picker: any) {
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'drp__fullscreen-close';
-    closeBtn.setAttribute('aria-label', picker.localeStrings?.close || 'Close');
+    closeBtn.setAttribute('aria-label', picker.labels.close);
     closeBtn.addEventListener('click', () => close(picker));
     header.appendChild(closeBtn);
 

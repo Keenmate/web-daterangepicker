@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator, pickerById, calendarOf, inputOf, open } from './fixtures';
 
 /**
- * locale, customStrings, monthNames override, week-start-day.
+ * locale (Intl names), labels, monthNames override, week-start-day.
  *
  * Fixture: test/locale.html
  */
@@ -32,14 +32,31 @@ test('locale="de" uses German weekday headers (Mo Di Mi Do Fr Sa So)', async ({ 
 });
 
 // =============================================================================
-// customStrings
+// labels
 // =============================================================================
 
-test('customStrings overrides individual button labels (Today → "Jump")', async ({ page }) => {
+test('labels overrides individual button labels (Today → "Jump"); the rest stay English', async ({ page }) => {
     const p = await open(page, 'custom-strings');
 
-    const todayBtn = p.locator('.drp__button--today');
-    await expect(todayBtn).toHaveText('Jump');
+    await expect(p.locator('.drp__button--today')).toHaveText('Jump');
+    await expect(p.locator('.drp__button--clear')).toHaveText('Clear');
+});
+
+test('locale="de" translates only Intl names — UI strings stay English without labels', async ({ page }) => {
+    const p = await open(page, 'de');
+    await expect(p.locator('.drp__button--today')).toHaveText('Today');
+});
+
+test('labels JSON attribute: {count} placeholders in the range summary, live update keeps the selection', async ({ page }) => {
+    const p = await open(page, 'labels-attr');
+    await p.locator('.drp__day[data-date="2026-06-10"]').click();
+    await p.locator('.drp__day[data-date="2026-06-13"]').click();
+    await expect(p.locator('.drp__summary')).toContainText('4 Tage');
+    await expect(p.locator('.drp__summary')).toContainText('3 Nächte');
+    await p.evaluate((el: any) => { el.labels = { days: '{count} dní', nights: '{count} nocí' }; return el.whenSettled(); });
+    await p.evaluate((el: any) => el.open());
+    await expect(p.locator('.drp__summary')).toContainText('4 dní');
+    expect(await p.evaluate((el: any) => el.selectedRanges.length)).toBe(1);
 });
 
 // =============================================================================

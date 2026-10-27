@@ -327,18 +327,12 @@ export interface DatePickerOptions {
   shouldFullscreenAutofocus?: boolean;
 
   /**
-   * Optional heading shown in the phone full-screen overlay header, beside the
-   * close (✕) button. Unset → just the close button.
-   */
-  fullscreenTitle?: string | null;
-
-  /**
    * In the phone full-screen overlay, relocate the date input into the header so
    * it's visible and typeable above the sheet (the offscreen trigger field would
    * otherwise sit behind the fixed sheet). Gets `inputmode="numeric"` so the phone
    * shows a digits keypad — the input mask supplies the separators, so no `/`/`.`
    * key is needed. Default `false`. Only affects the `fullscreen` presentation;
-   * takes over the header row, so `fullscreenTitle` is not shown alongside it.
+   * takes over the header row, so `labels.fullscreenTitle` is not shown alongside it.
    */
   isFullscreenInputShown?: boolean;
 
@@ -539,10 +533,10 @@ export interface DatePickerOptions {
   isSummaryShown?: boolean;
 
   // Internationalization
-  /** Locale for UI strings and date formatting. 'auto' (default) detects from the browser; or pass 'en', 'de', 'fr', 'es', etc. */
+  /** Locale (BCP-47) for `Intl` month / weekday names. 'auto' (default) uses the browser language. UI strings are `labels`. */
   locale?: string | 'auto';
-  /** Override any UI strings (buttons, labels) individually. */
-  customStrings?: Partial<LocaleStrings>;
+  /** UI strings (partial; English defaults for the rest). See {@link DateRangePickerLabels}. */
+  labels?: Partial<DateRangePickerLabels> | null;
   /** Custom month names (exactly 12, index 0 = January). Overrides locale names. Example: ['Jan', … , 'Dec']. */
   monthNames?: string[];
   /** Custom weekday names (exactly 7, index 0 = Sunday … 6 = Saturday, always — weekStartDay only rotates the display). Overrides locale names. */
@@ -641,27 +635,38 @@ export interface DatePickerOptions {
   getMonthDataCallback?: (ctx: MonthChangeContext) => MonthData | null | void | Promise<MonthData | null | void>;
 }
 
-export interface LocaleStrings {
-  // Button labels
+/**
+ * The UI strings (`labels` input; English defaults, set any subset). `{count}` is
+ * interpolated where noted. Month / weekday names come from `Intl` (`locale`).
+ */
+export interface DateRangePickerLabels {
+  /** Built-in action buttons. */
   today: string;
   clear: string;
   apply: string;
+  now: string;
+  /** The ✕ that closes the full-screen sheet / a message (ARIA label). */
+  close: string;
 
-  // Summary text
+  /** Range summary: the hover/drag preview prefix and the counts (`{count}`). */
   preview: string;
   day: string;
   days: string;
   night: string;
   nights: string;
+  /** The input text in multiple mode (`{count}`). */
+  selectionCount: string;
 
-  // Time picker (used in pickerMode 'time' / 'datetime')
+  /** Time picker (pickerMode `time` / `datetime`). */
   time: string;
-  now: string;
   am: string;
   pm: string;
   hours: string;
   minutes: string;
   seconds: string;
+
+  /** Heading in the phone full-screen sheet beside the ✕; empty = no heading. */
+  fullscreenTitle: string;
 }
 
 export interface DateRange {
@@ -810,7 +815,8 @@ export interface SummaryContext extends PickerContext {
   // Context
   selectionMode: 'single' | 'range' | 'multiple';
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
-  localeStrings: LocaleStrings;
+  /** The resolved UI labels. */
+  labels: DateRangePickerLabels;
 
   // Preview flag (true when dragging)
   isPreview?: boolean;

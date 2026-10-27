@@ -43,6 +43,7 @@ import {
   type MobilePresentation,
 } from '@keenmate/web-components-core';
 import { DateRangePickerEngine } from './date-picker';
+import { resolveLabels } from './date-picker-locales';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList, toYearRange } from './converters';
 import {
   serializeFormValue, isoDate, isoDateTime, isoTime,
@@ -50,7 +51,7 @@ import {
 } from './form-value';
 import type {
   DatePickerOptions, DateRange, DecoratedDate, DayContext, DayMetadata, BeforeSelectResult,
-  DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, LocaleStrings,
+  DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, DateRangePickerLabels,
   BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthData, MonthChangeEventDetail,
   ReadyEventDetail, OpenEventDetail, CloseEventDetail, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
   ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext, ShowMessageOptions,
@@ -118,7 +119,8 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'disabledDates',                attribute: 'disabled-dates',                converter: toDisabledDates(), on: 'update', type: 'Array<Date | string>', description: 'Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string.' },
   { configKey: 'disabledDatesHandling',        attribute: 'disabled-dates-handling',       converter: toEnum(DISABLED_HANDLING), on: 'update', description: 'Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`.' },
   { configKey: 'shouldHighlightDisabledInRange', attribute: 'highlight-disabled-in-range',   converter: toBool('tristate'), on: 'update', description: 'Visually mark disabled dates that fall inside a selected range.' },
-  { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ default: 'auto' }), on: 'update', description: 'BCP-47 locale, or `auto` to detect from the browser.' },
+  { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ default: 'auto' }), on: 'update', description: 'BCP-47 locale for the `Intl` month / weekday names, or `auto` (the browser language). UI strings are `labels`.' },
+  { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none). Property, or a JSON attribute: `labels=\'{"today":"Heute","days":"{count} Tage"}\'`. Month / weekday names come from `Intl` via `locale`.' },
   { configKey: 'monthNames',                   attribute: 'month-names',                   converter: toPipeList(12), on: 'update', type: 'string[]', description: 'Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`.' },
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
   { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toYearRange(), on: 'update', type: 'string | null', description: 'Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY\'s year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one.' },
@@ -161,14 +163,12 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'isTransitionEnabled',          attribute: 'enable-transition',             converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Opt into calendar open/close CSS transitions.' },
   { configKey: 'mobilePresentation',           attribute: 'mobile-presentation',           converter: toEnum(MOBILE_PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment.' },
   { configKey: 'shouldFullscreenAutofocus',    attribute: 'fullscreen-autofocus',          converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
-  { configKey: 'fullscreenTitle',              attribute: 'fullscreen-title',              converter: toText({ isNullable: true }), on: 'update', description: 'Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button.' },
   { configKey: 'isFullscreenInputShown',       attribute: 'show-fullscreen-input',         converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
   { configKey: 'compactBelow',                 attribute: 'compact-below',                 converter: toInt({ min: 0 }), on: 'update', description: 'Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change.' },
 
   // ── Complex property data (property-only) ─────────────────────────────────
   { configKey: 'specialDates',                 converter: toObjectArray(), on: 'update', type: 'DecoratedDate[]', description: 'Array of decorated-date objects (badges, tooltips, per-day classes). Property-only.' },
   { configKey: 'actionButtons',                converter: toValue({ validate: (v): v is unknown[] => Array.isArray(v) }), on: 'update', type: "(DateRangePickerActionItem | 'today' | 'now' | 'clear' | 'apply')[]", description: 'Footer action buttons (core `ActionItem`s). Built-ins: `action: \'today\' | \'now\' | \'clear\' | \'apply\'` (or the bare string); a custom button sets `id` (and no `action`). Clicks fire the `action` event. Property-only; when unset the built-ins for the mode apply.' },
-  { configKey: 'customStrings',                converter: toObject(), on: 'update', type: 'Partial<LocaleStrings>', description: 'Per-instance locale string overrides. Property-only.' },
 
   // ── Callbacks (property-only; cosmetic/data → update) ─────────────────────
   { configKey: 'getDateMetadataCallback',      converter: cb(), on: 'update', type: '(ctx: DayContext) => DayMetadata | null', description: 'Compute per-day metadata (badges, classes, disabled) dynamically.' },
@@ -330,6 +330,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       this.#refreshFormValue();
     }
     if ('placeholder' in partial) this.#applyPlaceholder();
+    if ('labels' in partial) this.#inputClearButton?.setAttribute('aria-label', resolveLabels(partial.labels as Partial<DateRangePickerLabels> | null).clear);
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock() : this.#picker.unlock(); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
     if ('isTransitionEnabled' in partial) this.#applyTransitionStyles();
@@ -521,7 +522,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       const clear = document.createElement('button');
       clear.type = 'button';
       clear.className = 'drp__input-clear';
-      clear.setAttribute('aria-label', 'Clear');
+      clear.setAttribute('aria-label', resolveLabels(this.config.labels as Partial<DateRangePickerLabels> | null).clear);
       clear.tabIndex = -1;
       // mousedown+preventDefault so the tap doesn't blur the field first; the clear
       // runs on click and re-focuses the input.

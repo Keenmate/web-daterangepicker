@@ -45,6 +45,16 @@ test('the ✕ close button dismisses the full-screen sheet', async ({ page }) =>
   await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--visible/);
 });
 
+test('labels.fullscreenTitle shows a heading; labels.close is the ✕ ARIA label', async ({ page }) => {
+  await page.goto('/test/mobile-presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.evaluate(async (el: any) => { el.labels = { fullscreenTitle: 'Choose dates', close: 'Zavřít' }; await el.whenSettled(); el.open(); });
+  await expect(host.locator('.drp__fullscreen-title')).toHaveText('Choose dates');
+  await expect(host.locator('.drp__fullscreen-close')).toHaveAttribute('aria-label', 'Zavřít');
+  await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--fs-merged-header/);
+});
+
 test('with no title, the ✕ merges into the month-nav row and stays on top', async ({ page }) => {
   await page.goto('/test/mobile-presentation.html');
   const host = page.locator('#picker'); // no fullscreen-title

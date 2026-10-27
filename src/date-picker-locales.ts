@@ -1,116 +1,64 @@
 /**
  * Date Picker Locales
  *
- * Built-in locale strings and Intl API helpers for internationalization.
+ * UI labels (`labels`, English defaults) and the Intl helpers for month / weekday
+ * names. Month and weekday names, and the resolved locale, come from `Intl` — there
+ * are no built-in language tables; translate the UI strings via `labels`.
  */
 
-import type { LocaleStrings } from './types';
+import type { DateRangePickerLabels } from './types';
 import log from './logger';
 
-/**
- * Built-in locale strings for supported languages
- */
-const LOCALE_STRINGS: Record<string, LocaleStrings> = {
-  en: {
-    today: 'Today',
-    clear: 'Clear',
-    apply: 'Apply',
-    preview: 'Preview',
-    day: 'day',
-    days: 'days',
-    night: 'night',
-    nights: 'nights',
-    time: 'Time',
-    now: 'Now',
-    am: 'AM',
-    pm: 'PM',
-    hours: 'Hours',
-    minutes: 'Minutes',
-    seconds: 'Seconds'
-  },
-  de: {
-    today: 'Heute',
-    clear: 'Löschen',
-    apply: 'Anwenden',
-    preview: 'Vorschau',
-    day: 'Tag',
-    days: 'Tage',
-    night: 'Nacht',
-    nights: 'Nächte',
-    time: 'Zeit',
-    now: 'Jetzt',
-    am: 'AM',
-    pm: 'PM',
-    hours: 'Stunden',
-    minutes: 'Minuten',
-    seconds: 'Sekunden'
-  },
-  fr: {
-    today: 'Aujourd\'hui',
-    clear: 'Effacer',
-    apply: 'Appliquer',
-    preview: 'Aperçu',
-    day: 'jour',
-    days: 'jours',
-    night: 'nuit',
-    nights: 'nuits',
-    time: 'Heure',
-    now: 'Maintenant',
-    am: 'AM',
-    pm: 'PM',
-    hours: 'Heures',
-    minutes: 'Minutes',
-    seconds: 'Secondes'
-  },
-  es: {
-    today: 'Hoy',
-    clear: 'Limpiar',
-    apply: 'Aplicar',
-    preview: 'Vista previa',
-    day: 'día',
-    days: 'días',
-    night: 'noche',
-    nights: 'noches',
-    time: 'Hora',
-    now: 'Ahora',
-    am: 'AM',
-    pm: 'PM',
-    hours: 'Horas',
-    minutes: 'Minutos',
-    seconds: 'Segundos'
-  }
-};
+/** Built-in English UI labels. `{count}` is interpolated by {@link formatLabel}. */
+export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
+  today: 'Today',
+  clear: 'Clear',
+  apply: 'Apply',
+  now: 'Now',
+  close: 'Close',
+  preview: 'Preview',
+  day: '{count} day',
+  days: '{count} days',
+  night: '{count} night',
+  nights: '{count} nights',
+  selectionCount: '{count} selection(s)',
+  time: 'Time',
+  am: 'AM',
+  pm: 'PM',
+  hours: 'Hours',
+  minutes: 'Minutes',
+  seconds: 'Seconds',
+  fullscreenTitle: '',
+});
 
 /**
- * Detect locale from browser if 'auto', otherwise use provided locale
+ * Resolve the effective labels: the instance `labels` (partial) over the English
+ * defaults. The single resolution seam — a page-wide source (core `/locale`) slots
+ * in between the two later. Non-string overrides are ignored.
  */
-export function resolveLocale(locale: string | 'auto'): string {
-  if (locale !== 'auto') {
-    return locale;
+export function resolveLabels(labels?: Partial<DateRangePickerLabels> | null): DateRangePickerLabels {
+  const out: DateRangePickerLabels = { ...DEFAULT_LABELS };
+  if (labels && typeof labels === 'object') {
+    for (const [key, value] of Object.entries(labels)) {
+      if (typeof value === 'string' && key in out) (out as unknown as Record<string, string>)[key] = value;
+    }
   }
+  return out;
+}
 
-  // Try to get browser locale
-  if (typeof navigator !== 'undefined' && navigator.language) {
-    // Extract language code (e.g., 'en-US' -> 'en')
-    const browserLocale = navigator.language.split('-')[0].toLowerCase();
-    // Return if we have built-in support, otherwise fallback to 'en'
-    return LOCALE_STRINGS[browserLocale] ? browserLocale : 'en';
-  }
-
-  return 'en'; // Default fallback
+/** Interpolate `{name}` placeholders in a label (`formatLabel('{count} days', { count: 3 })`). */
+export function formatLabel(template: string, params: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? String(params[name]) : match));
 }
 
 /**
- * Get locale strings for a given locale, with optional custom overrides
+ * The locale used for `Intl` (month / weekday names): the given BCP-47 tag, or the
+ * browser's language for `auto` (`en` when unavailable).
  */
-export function getLocaleStrings(locale: string, customStrings?: Partial<LocaleStrings>): LocaleStrings {
-  const resolvedLocale = resolveLocale(locale);
-  const baseStrings = LOCALE_STRINGS[resolvedLocale] || LOCALE_STRINGS.en;
-
-  // Merge with custom strings if provided
-  return customStrings
-    ? { ...baseStrings, ...customStrings }
-    : baseStrings;
+export function resolveLocale(locale: string | 'auto' | null | undefined): string {
+  if (locale && locale !== 'auto') return locale;
+  if (typeof navigator !== 'undefined' && navigator.language) return navigator.language;
+  return 'en';
 }
 
 /**

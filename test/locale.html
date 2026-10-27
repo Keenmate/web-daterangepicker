@@ -19,7 +19,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">customStrings overrides only the Today button label</div>
+        <div class="fixture-label">labels overrides only the Today button label</div>
         <web-daterangepicker id="custom-strings" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
@@ -70,10 +70,16 @@
             weekday-names="Po|Út|St"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">labels JSON attribute — {count} placeholders</div>
+        <web-daterangepicker id="labels-attr" selection-mode="range" initial-date="2026-06-15"
+            labels='{"days":"{count} Tage","nights":"{count} Nächte"}'></web-daterangepicker>
+    </div>
+
     <script type="module">
         // No whenDefined() — _liftPreUpgradeProperties handles late upgrade.
         // Direct property setters; no need to reach into el.picker.
-        document.getElementById('custom-strings').customStrings = { today: 'Jump' };
+        document.getElementById('custom-strings').labels = { today: 'Jump' };
         document.getElementById('numeric-months').monthNames = [
             '01','02','03','04','05','06','07','08','09','10','11','12'
         ];

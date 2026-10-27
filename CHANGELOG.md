@@ -58,6 +58,19 @@ One vocabulary across the KeenMate components (web-components-core naming pass, 
   `selectedEndDate`, `selectedTime`, `selectedDatetime` replace `getSelectedDate()`,
   `getSelectedDates()`, `getSelectedRanges()`, `getSelectedDatetime()` and `getSelectedRange()`
   (use `selectedStartDate` / `selectedEndDate`).
+- **BREAKING — UI strings are one `labels` object** (property, or JSON attribute
+  `labels='{"today":"Heute"}'`; partial over English defaults, exported as `DEFAULT_LABELS`). It
+  replaces `customStrings` and the built-in `de` / `fr` / `es` string tables — **no built-in
+  translations any more**: `locale` now only picks the `Intl` month / weekday names (and `auto` uses
+  the full browser language instead of falling back to `en` for languages without a table). Keys:
+  `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and
+  `selectionCount` with a `{count}` placeholder (were bare words — `day: 'day'` is now
+  `day: '{count} day'`), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, and `fullscreenTitle`
+  (replaces the `fullscreen-title` attribute / `fullscreenTitle` option). The multiple-mode input
+  text ("3 selection(s)"), the ✕ ARIA labels and the input clear button now come from `labels`
+  too. Type `LocaleStrings` → `DateRangePickerLabels`; `SummaryContext.localeStrings` → `labels`.
+  Changing `labels` at runtime re-renders in place (date mode) or rebuilds keeping the selection
+  (time / datetime).
 - **BREAKING — removed duplicate element methods:** `getInputValue()` / `setInputValue()` (use the
   `value` property) and the deprecated `setMonthNames()` (use `monthNames`).
 

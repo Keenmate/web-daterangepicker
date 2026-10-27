@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { ShowMessageOptions, DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
+import type { ShowMessageOptions, DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, DateRangePickerLabels, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -21,7 +21,7 @@ import * as Selection from './date-picker-selection';
 import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
-import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
+import { resolveLocale, resolveLabels, formatLabel, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
 import { createPresentationContext, registerOverlay, withComponentContext, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
@@ -219,7 +219,8 @@ class DateRangePickerEngine {
 
     // Internationalization
     locale: string = 'en';
-    localeStrings: LocaleStrings;
+    /** The resolved UI labels (`labels` over the English defaults). */
+    labels: DateRangePickerLabels;
     weekdayNames: string[] = [];
     monthNames: string[] = [];
 
@@ -262,7 +263,7 @@ class DateRangePickerEngine {
             disabledDatesHandling: options.disabledDatesHandling || 'allow',
             shouldHighlightDisabledInRange: options.shouldHighlightDisabledInRange ?? true,
             locale: options.locale || 'auto',
-            customStrings: options.customStrings,
+            labels: options.labels ?? null,
             monthNames: options.monthNames,
             weekdayNames: options.weekdayNames,
             renderSummaryCallback: options.renderSummaryCallback,
@@ -300,8 +301,7 @@ class DateRangePickerEngine {
             isNowButtonShown: options.isNowButtonShown ?? true,
             timeDisplay: options.timeDisplay || 'rolls',
             shouldFullscreenAutofocus: options.shouldFullscreenAutofocus || false,
-            isFullscreenInputShown: options.isFullscreenInputShown || false,
-            fullscreenTitle: options.fullscreenTitle
+            isFullscreenInputShown: options.isFullscreenInputShown || false
         };
 
         // Runtime presentation of the OPEN calendar chrome, for non-inline pickers.
@@ -367,7 +367,7 @@ class DateRangePickerEngine {
 
         // Initialize internationalization
         this.locale = resolveLocale(this.options.locale);
-        this.localeStrings = getLocaleStrings(this.locale, this.options.customStrings);
+        this.labels = resolveLabels(this.options.labels);
         this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
         this.monthNames = this.options.monthNames || getMonthNames(this.locale);
         drpLogger.debug('Locale:', this.locale, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
@@ -705,6 +705,11 @@ class DateRangePickerEngine {
         if (STRUCTURAL_KEYS.some(changed)) {
             return false;
         }
+        // The time picker's static headings (Time / Hours / AM…) are built once with
+        // the calendar — new labels there need a rebuild (the host carries the selection).
+        if (changed('labels') && this.options.pickerMode !== 'date') {
+            return false;
+        }
 
         // Captured before the merge (afterwards partial and options agree).
         const isMonthDataSourceChanged = changed('getMonthDataCallback');
@@ -718,9 +723,9 @@ class DateRangePickerEngine {
         if (has('weekStartDay')) {
             this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay);
         }
-        if (has('locale') || has('customStrings') || has('monthNames') || has('weekdayNames')) {
+        if (has('locale') || has('labels') || has('monthNames') || has('weekdayNames')) {
             this.locale = resolveLocale(this.options.locale);
-            this.localeStrings = getLocaleStrings(this.locale, this.options.customStrings);
+            this.labels = resolveLabels(this.options.labels);
             this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
             this.monthNames = this.options.monthNames || getMonthNames(this.locale);
         }
@@ -734,6 +739,11 @@ class DateRangePickerEngine {
         // Re-render is the universal post-step. Calendar DOM structure is unchanged,
         // so this just updates content/classes/inline styles.
         this.renderCalendar();
+        // Labels feed the summary text and the message ✕ (outside the re-rendered grid).
+        if (has('labels')) {
+            this.updateSummary();
+            this.calendar.querySelector('.drp__message-close')?.setAttribute('aria-label', this.labels.close);
+        }
 
         // A month-data source set (or replaced) after the first paint loads for the
         // months already on screen — same as on the initial open.
@@ -889,10 +899,10 @@ class DateRangePickerEngine {
     /** Built-in label for a built-in action (used when the item sets no `text`). */
     private getBuiltInItemDefaults(action: DateRangePickerActionItem['action']): { text?: string } | undefined {
         switch (action) {
-            case 'today': return { text: this.localeStrings.today };
-            case 'now': return { text: this.localeStrings.now };
-            case 'clear': return { text: this.localeStrings.clear };
-            case 'apply': return { text: this.localeStrings.apply };
+            case 'today': return { text: this.labels.today };
+            case 'now': return { text: this.labels.now };
+            case 'clear': return { text: this.labels.clear };
+            case 'apply': return { text: this.labels.apply };
             default: return undefined;
         }
     }
@@ -1349,13 +1359,13 @@ class DateRangePickerEngine {
                     </div>
                 `;
                 timePicker.innerHTML = `
-                    <div class="drp__time-label">${this.localeStrings.time}</div>
+                    <div class="drp__time-label">${this.labels.time}</div>
                     <div class="drp__wheel-rolls">
                         <div class="drp__wheel-band" aria-hidden="true"></div>
-                        ${wheelColumn('hours', this.localeStrings.hours)}
-                        ${wheelColumn('minutes', this.localeStrings.minutes)}
-                        ${isSecondsShown ? wheelColumn('seconds', this.localeStrings.seconds) : ''}
-                        ${is12h ? wheelColumn('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp__wheel-column--ampm') : ''}
+                        ${wheelColumn('hours', this.labels.hours)}
+                        ${wheelColumn('minutes', this.labels.minutes)}
+                        ${isSecondsShown ? wheelColumn('seconds', this.labels.seconds) : ''}
+                        ${is12h ? wheelColumn('ampm', `${this.labels.am}/${this.labels.pm}`, 'drp__wheel-column--ampm') : ''}
                     </div>
                 `;
             } else if (this.options.timeDisplay === 'compact') {
@@ -1365,7 +1375,7 @@ class DateRangePickerEngine {
                 // value (no DOM rebuild per render).
                 const sep = `<span class="drp__compact-sep">:</span>`;
                 timePicker.innerHTML = `
-                    <div class="drp__time-label">${this.localeStrings.time}</div>
+                    <div class="drp__time-label">${this.labels.time}</div>
                     <div class="drp__compact-row">
                         <button type="button" class="drp__compact-pill" data-compact-field="hours">--</button>
                         ${sep}
@@ -1373,8 +1383,8 @@ class DateRangePickerEngine {
                         ${isSecondsShown ? sep + `<button type="button" class="drp__compact-pill" data-compact-field="seconds">--</button>` : ''}
                         ${is12h ? `
                             <div class="drp__compact-ampm">
-                                <button type="button" class="drp__compact-ampm-button" data-compact-ampm="am">${this.localeStrings.am}</button>
-                                <button type="button" class="drp__compact-ampm-button" data-compact-ampm="pm">${this.localeStrings.pm}</button>
+                                <button type="button" class="drp__compact-ampm-button" data-compact-ampm="am">${this.labels.am}</button>
+                                <button type="button" class="drp__compact-ampm-button" data-compact-ampm="pm">${this.labels.pm}</button>
                             </div>
                         ` : ''}
                     </div>
@@ -1390,12 +1400,12 @@ class DateRangePickerEngine {
                     </div>
                 `;
                 timePicker.innerHTML = `
-                    <div class="drp__time-label">${this.localeStrings.time}</div>
+                    <div class="drp__time-label">${this.labels.time}</div>
                     <div class="drp__time-rolls">
-                        ${column('hours', this.localeStrings.hours)}
-                        ${column('minutes', this.localeStrings.minutes)}
-                        ${isSecondsShown ? column('seconds', this.localeStrings.seconds) : ''}
-                        ${is12h ? column('ampm', `${this.localeStrings.am}/${this.localeStrings.pm}`, 'drp__time-roll--ampm') : ''}
+                        ${column('hours', this.labels.hours)}
+                        ${column('minutes', this.labels.minutes)}
+                        ${isSecondsShown ? column('seconds', this.labels.seconds) : ''}
+                        ${is12h ? column('ampm', `${this.labels.am}/${this.labels.pm}`, 'drp__time-roll--ampm') : ''}
                     </div>
                 `;
             }
@@ -1422,7 +1432,7 @@ class DateRangePickerEngine {
         this.messageElement.className = 'drp__message';
         this.messageElement.innerHTML = `
             <span class="drp__message-text"></span>
-            <button class="drp__message-close" data-drp-action="hide-message">&times;</button>
+            <button class="drp__message-close" data-drp-action="hide-message" aria-label="${this.labels.close.replace(/"/g, '&quot;')}">&times;</button>
         `;
         this.calendar.appendChild(this.messageElement);
 
@@ -2308,8 +2318,8 @@ class DateRangePickerEngine {
         if (minute > 59 || second > 59) return null;
         if (m[4] != null) {
             const marker = m[4].toLowerCase();
-            const isPm = marker === 'pm' || marker === String(this.localeStrings.pm).toLowerCase();
-            const isAm = marker === 'am' || marker === String(this.localeStrings.am).toLowerCase();
+            const isPm = marker === 'pm' || marker === String(this.labels.pm).toLowerCase();
+            const isAm = marker === 'am' || marker === String(this.labels.am).toLowerCase();
             if ((!isPm && !isAm) || hour < 1 || hour > 12) return null;
             hour = (hour % 12) + (isPm ? 12 : 0);
         }
@@ -2462,7 +2472,7 @@ class DateRangePickerEngine {
             formatted = formatted.replace(len === 2 ? /ss/ : /s/, pad(s, len));
         }
         if (info.parts.ampm) {
-            const label = h24 >= 12 ? this.localeStrings.pm : this.localeStrings.am;
+            const label = h24 >= 12 ? this.labels.pm : this.labels.am;
             formatted = formatted.replace(/a/, label);
         }
 
@@ -2576,7 +2586,7 @@ class DateRangePickerEngine {
     private writeMultipleInputText() {
         if (!this.input) return;
         const count = this._selectedDates.length + this._selectedRanges.length;
-        this.input.value = count > 0 ? `${count} selection(s)` : '';
+        this.input.value = count > 0 ? formatLabel(this.labels.selectionCount, { count }) : '';
     }
 
     /**
