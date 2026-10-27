@@ -281,6 +281,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `lock()` / `unlock()` / `toggleLock()`                        | ✓      | `lock.spec.ts`               | `lock.html`               |
 | Aspect locks: selection, actions, navigation (incl. rolling), open | ✓ | `lock.spec.ts`               | `lock.html`               |
 | `readonly` attribute = full lock, reflects to `lockedAspects` | ✓      | `lock.spec.ts`               | `lock.html`               |
+| `isReadonly = false` removes the `readonly` attribute (reflects) | ✓ | `lock.spec.ts` | `lock.html` |
 | Full lock does not block the programmatic API                 | ✓      | `lock.spec.ts`               | `lock.html`               |
 
 ## 19. Device-adaptive presentation & mobile
@@ -334,7 +335,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `open` / `close` events + `onOpen` / `onClose` fire once per transition; no `select` event | ✓ | `events-api.spec.ts` | `events-api.html` |
-| `<fieldset disabled>` disables the input (core `isEffectivelyDisabled`); `isDisabled` keeps the authored value | ✓ | `events-api.spec.ts` | `events-api.html` |
+| `<fieldset disabled>` disables the input (core `isEffectivelyDisabled`); the fieldset never writes `isDisabled` | ✓ | `events-api.spec.ts` | `events-api.html` |
+| `disabled` attribute → `isDisabled = false` re-enables (reflects); fieldset toggle while own attribute set | ✓ | `events-api.spec.ts` | `events-api.html` |
 | `labels.fullscreenTitle` heading + `labels.close` ✕ ARIA label | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
 | `defer` holds the build; attribute removal / core `release()` builds once; `ready` never re-fires (reinit, reconnect); `ready` attribute / `isReady` / `whenReady()` / `:state(ready)`; `destroy()` tears down + inert | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
 | DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |

@@ -51,6 +51,17 @@ test('lock() freezes day selection; unlock() restores it', async ({ page }) => {
     await expect(selectedCells(p)).not.toHaveCount(0);
 });
 
+test('readonly attribute -> isReadonly = false removes the attribute and unlocks (reflects)', async ({ page }) => {
+    const p = pickerById(page, 'lockpick');
+    await p.evaluate((el: any) => el.setAttribute('readonly', ''));
+    expect(await p.evaluate((el: any) => el.lockedAspects.length)).toBe(4);
+    await p.evaluate((el: any) => { el.isReadonly = false; });
+    expect(await p.evaluate((el: any) => el.hasAttribute('readonly'))).toBe(false);
+    expect(await p.evaluate((el: any) => el.lockedAspects)).toEqual([]);
+    await p.evaluate((el: any) => { el.isReadonly = true; });
+    expect(await p.evaluate((el: any) => el.hasAttribute('readonly'))).toBe(true);
+});
+
 test('lock(["selection","actions"]) freezes the range but keeps < > navigation live', async ({ page }) => {
     const p = pickerById(page, 'lockpick');
 

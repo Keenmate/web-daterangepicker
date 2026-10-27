@@ -73,6 +73,9 @@ One vocabulary across the KeenMate components (web-components-core naming pass, 
   (time / datetime).
 - **BREAKING — removed duplicate element methods:** `getInputValue()` / `setInputValue()` (use the
   `value` property) and the deprecated `setMonthNames()` (use `monthNames`).
+- **`isReadonly` now reflects** to the `readonly` attribute (like `isDisabled` → `disabled`),
+  so `el.isReadonly = false` on an authored `<web-daterangepicker readonly>` also removes the
+  attribute (CSS `[readonly]` and the browser's constraint-validation bar follow the property).
 
 ### Changed — standalone colors follow the contract
 

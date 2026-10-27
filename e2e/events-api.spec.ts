@@ -136,7 +136,44 @@ test('an ancestor <fieldset disabled> disables the input (core isEffectivelyDisa
         fs.disabled = true;
     });
     await expect(inputOf(p)).toBeDisabled();
-    expect(await p.evaluate((el: any) => el.isDisabled)).toBe(false); // the authored value is kept
+    expect(await p.evaluate((el: any) => el.isDisabled)).toBe(false); // the fieldset never writes isDisabled
+    await p.evaluate((el: any) => { el.parentElement.disabled = false; });
+    await expect(inputOf(p)).toBeEnabled();
+});
+
+test('disabled attribute -> isDisabled = false re-enables (reflects; not stuck by formDisabledCallback)', async ({ page }) => {
+    const p = pickerById(page, 'basic');
+    await p.evaluate((el: any) => el.setAttribute('disabled', ''));
+    await expect(inputOf(p)).toBeDisabled();
+    expect(await p.evaluate((el: any) => el.matches(':disabled'))).toBe(true);
+    await p.evaluate((el: any) => { el.isDisabled = false; });
+    expect(await p.evaluate((el: any) => el.hasAttribute('disabled'))).toBe(false);
+    await expect(inputOf(p)).toBeEnabled();
+    expect(await p.evaluate((el: any) => el.matches(':disabled'))).toBe(false);
+    await inputOf(p).click();
+    await expect(calendarOf(p)).toBeVisible();
+});
+
+test('fieldset toggle while disabled by its own attribute, then the attribute cleared', async ({ page }) => {
+    const p = pickerById(page, 'basic');
+    await p.evaluate((el: any) => {
+        const fs = document.createElement('fieldset');
+        el.parentElement.insertBefore(fs, el);
+        fs.appendChild(el);
+        fs.disabled = true;
+        el.isDisabled = true;
+    });
+    await expect(inputOf(p)).toBeDisabled();
+    // Fieldset re-enabled: still disabled by the own attribute.
+    await p.evaluate((el: any) => { el.parentElement.disabled = false; });
+    await expect(inputOf(p)).toBeDisabled();
+    // Own attribute cleared: enabled.
+    await p.evaluate((el: any) => { el.isDisabled = false; });
+    await expect(inputOf(p)).toBeEnabled();
+    // Fieldset disabled again: disabled, isDisabled untouched.
+    await p.evaluate((el: any) => { el.parentElement.disabled = true; });
+    await expect(inputOf(p)).toBeDisabled();
+    expect(await p.evaluate((el: any) => el.isDisabled)).toBe(false);
     await p.evaluate((el: any) => { el.parentElement.disabled = false; });
     await expect(inputOf(p)).toBeEnabled();
 });
