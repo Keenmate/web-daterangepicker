@@ -77,7 +77,7 @@ async function callBeforeSelectCallback(
     }
     const message = picker.messageSeq !== messageSeq ? 'shown-by-callback' : undefined;
 
-    if (gate.isCancelled) {
+    if (gate.isRejected) {
         if (isRangeMarkedInvalid && !(selection instanceof Date)) {
             return { isValid: false, message, showInvalidRange: true, invalidStart: selection.start, invalidEnd: selection.end };
         }

@@ -186,7 +186,7 @@ export async function handleBeforeMonthChange(
 
         if (beforeFn) {
             const gate = await runBeforeCallback(withLoader(picker, beforeFn, loader), ctx, 'beforeMonthChangeCallback');
-            if (gate.isCancelled) {
+            if (gate.isRejected) {
                 navigationLogger.debug(`handleBeforeMonthChange() - navigation blocked for ${targetYear}-${targetMonth + 1}`);
                 return false;
             }
