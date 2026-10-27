@@ -117,7 +117,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `disabledDates` (specific dates)                              | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `initial-date` controls opening month                         | ✓      | `date-restrictions.spec.ts`  | `date-restrictions.html`  |
 | `rolling-year-range` (absolute; runtime change)               | ✓      | `date-restrictions.spec.ts`, `rolling-selector.spec.ts` | `date-restrictions.html`, `rolling-selector.html` |
-| `rolling-year-range` relative `-1:+2` (FINDINGS #27)          | ✗ test.fail | `rolling-selector.spec.ts` | `rolling-selector.html` |
+| `rolling-year-range` relative `-1:+2` (from today's year), mixed `2023:+1`, single `2026`; invalid → warn + keep (FINDINGS #27, fixed) | ✓ | `rolling-selector.spec.ts` | `rolling-selector.html` |
 | `rolling-month-range`                                         | ✗      |      |         |
 | Rolling selector: min/max-date bound years, disable months; disabled month inert | ✓ | `rolling-selector.spec.ts` | `rolling-selector.html` |
 

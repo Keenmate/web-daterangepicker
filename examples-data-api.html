@@ -506,7 +506,17 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
           rolling-year-range="2024-2026"
           placeholder="YYYY-MM-DD">
         </web-daterangepicker>
-        <small>Rolling selector only shows years 2024, 2025, 2026 (instead of ±50 years)</small>
+        <small>Rolling selector only shows years 2024, 2025, 2026 (instead of the shown year ±1)</small>
+      </div>
+
+      <div class="form-group">
+        <label>Relative Year Range (-5:+5)</label>
+        <web-daterangepicker
+          selection-mode="single"
+          rolling-year-range="-5:+5"
+          placeholder="YYYY-MM-DD">
+        </web-daterangepicker>
+        <small>Five years either side of <strong>today's</strong> year — moves with the calendar date, not with the shown month. Mixed forms work too: <code>2020:+2</code></small>
       </div>
 
       <div class="form-group">

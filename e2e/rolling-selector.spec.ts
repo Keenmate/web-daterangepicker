@@ -133,9 +133,43 @@ test.describe('rolling entries vs restrictions', () => {
         await expect(p.locator('.drp__month-year').first()).toContainText(/June\s+2026/);
     });
 
-    test('rolling-year-range relative form "-1:+2" lists the years around the shown year', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #27');
+    test('rolling-year-range relative form "-1:+2" lists the years around today (FINDINGS #27)', async ({ page }) => {
         const p = await openRolling(page, 'relative');
+        await expect(years(p)).toHaveText(['2025', '2026', '2027', '2028']);
+    });
+
+    test('the relative form counts from TODAY\'s year, not the shown year', async ({ page }) => {
+        const p = await openRolling(page, 'relative-shown');
+        await expect(years(p)).toHaveText(['2025', '2026', '2027']);
+    });
+
+    test('mixed absolute:relative form "2023:+1"', async ({ page }) => {
+        const p = await openRolling(page, 'mixed');
+        await expect(years(p)).toHaveText(['2023', '2024', '2025', '2026', '2027']);
+    });
+
+    test('a single absolute year "2026"', async ({ page }) => {
+        const p = await openRolling(page, 'single-year');
+        await expect(years(p)).toHaveText(['2026']);
+    });
+
+    test('an invalid rolling-year-range warns and keeps the previous value', async ({ page }) => {
+        const warnings: string[] = [];
+        page.on('console', (m) => { if (m.type() === 'warning') warnings.push(m.text()); });
+        await page.goto(PAGE);
+        const p = page.locator('#relative');
+        const kept = await p.evaluate(async (el: any) => {
+            el.setAttribute('rolling-year-range', 'hroch');
+            await el.whenSettled();
+            const afterAttr = el.rollingYearRange;
+            el.rollingYearRange = '5:3';          // property path: malformed too
+            await el.whenSettled();
+            return [afterAttr, el.rollingYearRange];
+        });
+        expect(kept).toEqual(['-1:+2', '-1:+2']);
+        expect(warnings.some((w) => w.includes('hroch'))).toBe(true);
+        await p.locator('input').click();
+        await p.locator('.drp__month-year').first().click();
         await expect(years(p)).toHaveText(['2025', '2026', '2027', '2028']);
     });
 

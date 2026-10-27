@@ -56,6 +56,31 @@ export function detectWeekStartDay(weekStartDay: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 
  * pickerMode where the H/M/S carry meaning. String inputs that lack a time
  * portion accept either `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm[:ss]` ISO forms.
  */
+/**
+ * Parse a `rollingYearRange` spec into absolute years, or `null` when malformed:
+ * - `2024` — one year; `2022-2026` — absolute bounds
+ * - `A:B` — each side either signed (`-5`, `+2`, `+0`: relative to `todayYear`) or an
+ *   absolute 4-digit year: `-5:+5`, `2020:+2`, `-1:2030`
+ * `min > max` is malformed.
+ */
+export function parseYearRangeSpec(spec: string, todayYear: number): { min: number; max: number } | null {
+    const s = spec.trim();
+    let m = /^(\d{4})$/.exec(s);
+    if (m) return { min: Number(m[1]), max: Number(m[1]) };
+    m = /^(\d{4})\s*-\s*(\d{4})$/.exec(s);
+    if (m) {
+        const min = Number(m[1]), max = Number(m[2]);
+        return min <= max ? { min, max } : null;
+    }
+    m = /^([+-]\d{1,3}|\d{4})\s*:\s*([+-]\d{1,3}|\d{4})$/.exec(s);
+    if (m) {
+        const side = (v: string) => (/^[+-]/.test(v) ? todayYear + Number(v) : Number(v));
+        const min = side(m[1]), max = side(m[2]);
+        return min <= max ? { min, max } : null;
+    }
+    return null;
+}
+
 export function normalizeDate(dateInput: Date | string, preserveTime: boolean = false): Date | null {
     if (!dateInput) return null;
 

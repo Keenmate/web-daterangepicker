@@ -103,6 +103,7 @@ use camelCase (`selectionMode`).
 | `disabled` | `boolean` | `false` | Disable the picker |
 | `week-start-day` | `'auto' \| 0–6` | `'auto'` | First day of week (0 = Sunday, 1 = Monday, …; `'auto'` detects from locale) |
 | `min-date` | `string` | — | Minimum selectable date (`YYYY-MM-DD`) |
+| `rolling-year-range` | `string` | shown year ±1 | Years offered by the rolling year selector: `2024`, `2022-2026`, relative `-5:+5` (signed sides count from today's year) or mixed `2020:+2`. A malformed value warns and keeps the previous one |
 | `max-date` | `string` | — | Maximum selectable date (`YYYY-MM-DD`) |
 | `disabled-weekdays` | `string` | — | Comma-separated day numbers to disable (e.g., `"0,6"` for weekends) |
 | `disabled-dates` | `string` | — | Comma-separated ISO dates to disable (e.g., `"2026-06-13, 2026-06-14, 2026-12-25"`). The `disabledDates` property still wins if both paths are set. |

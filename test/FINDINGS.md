@@ -356,12 +356,17 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     immediately followed by Control+Home/End leaves exactly one focused day" (fails 5/5
     without the fix, passes 5/5 with it).
 
-27. **DRP-15 — `rolling-year-range` relative form from the docs doesn't parse.**
+27. **~~DRP-15 — `rolling-year-range` relative form from the docs doesn't parse.~~** ✅ FIXED
     The input's description (`src/web-component.ts` ~l.124) says "e.g. `-5:+5` or absolute
     years", but `parseYearRange()` (`src/date-picker-rendering.ts` ~l.20) only knows
     `"2022-2026"` / `"2024"`; `"-1:+2"` splits on `-` into `NaN` bounds → an empty year list.
     Fix: support `±N:±M` relative to the shown year (or fix the description). **Open
     question for the user:** which one? Pinned by `rolling-selector.spec.ts`.
+    **Fixed (2026-10-27, user decision):** relative to TODAY's year (not the shown one).
+    `parseYearRangeSpec()` (`date-picker-validation.ts`) accepts `2024`, `2022-2026`,
+    `-5:+5` and mixed `2020:+2`; the element's new `toYearRange()` converter reports a
+    malformed value invalid (core: warn + keep previous). Description fixed. Unpinned + 4 new
+    specs.
 
 28. **DRP-16 — no RTL handling: chevrons and arrow keys don't mirror.**
     In a `dir="rtl"` context the header and grid mirror through flexbox/grid (prev sits on

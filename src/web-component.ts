@@ -43,7 +43,7 @@ import {
   type MobilePresentation,
 } from '@keenmate/web-components-core';
 import { DateRangePickerEngine } from './date-picker';
-import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList } from './converters';
+import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList, toYearRange } from './converters';
 import {
   serializeFormValue, isoDate, isoDateTime, isoTime,
   type FormValueFormat, type FormValueSelection, type FormValueItem,
@@ -121,7 +121,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ default: 'auto' }), on: 'update', description: 'BCP-47 locale, or `auto` to detect from the browser.' },
   { configKey: 'monthNames',                   attribute: 'month-names',                   converter: toPipeList(12), on: 'update', type: 'string[]', description: 'Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`.' },
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
-  { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toText({ isNullable: true }), on: 'update', description: 'Constrains the rolling year selector (e.g. `-5:+5` or absolute years).' },
+  { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toYearRange(), on: 'update', type: 'string | null', description: 'Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY\'s year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one.' },
   { configKey: 'rollingMonthRange',            attribute: 'rolling-month-range',           converter: toText({ isNullable: true }), on: 'update', description: 'Constrains the rolling month selector.' },
   { configKey: 'commitMode',                   attribute: 'commit-mode',                   converter: toEnum(COMMIT_MODE), on: 'update', description: 'How a selection is COMMITTED (written + `select`/`change`): `selection` — every completed pick is written; `apply` — picks are staged until the Apply button; `manual` — picks are only staged until the app calls `apply()` (no built-in button). Closing is separate: `should-close-on-select`, `should-close-on-outside-click`, `should-close-on-scroll`; closing without `apply()` discards a staged pick. Default `selection` (`apply` for time/datetime and `multiple`).' },
   { configKey: 'shouldCloseOnSelect',          attribute: 'should-close-on-select',        converter: toBool('tristate'), on: 'update', description: 'Close the calendar when a pick completes in `commit-mode="selection"` (default true). `false` keeps it open to adjust while every pick is still written — the booking.com flow. No effect in `apply` / `manual` (Apply / the app closes).' },

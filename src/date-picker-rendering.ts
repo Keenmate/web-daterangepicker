@@ -11,33 +11,25 @@ import * as Validation from './date-picker-validation';
 import { renderingLogger } from './logger';
 
 /**
- * Parse year range string to min/max values
- * @param range - Examples: "2024" (single year), "2022-2026" (range)
- * @param currentYear - Current year for default range
+ * Resolve the rolling year range to min/max years.
+ * @param range - `rollingYearRange`: "2024", "2022-2026", or relative "-5:+5" / mixed
+ *   "2020:+2" (signed sides are relative to TODAY's year — see `parseYearRangeSpec`)
+ * @param currentYear - Year the default (no range) ±1 window centres on
  * @param picker - Picker instance to check for minDate/maxDate constraints
  * @returns { min: number, max: number }
  */
 export function parseYearRange(range: string | undefined, currentYear: number, picker?: any): { min: number, max: number } {
-    if (!range) {
-        // If no explicit range but minDate/maxDate are set, use those to constrain years
-        if (picker?.normalizedMinDate || picker?.normalizedMaxDate) {
-            const minYear = picker.normalizedMinDate ? picker.normalizedMinDate.getFullYear() : currentYear - 1;
-            const maxYear = picker.normalizedMaxDate ? picker.normalizedMaxDate.getFullYear() : currentYear + 1;
-            return { min: minYear, max: maxYear };
-        }
-        // Default: current year ± 1 year (total 3 years)
-        return { min: currentYear - 1, max: currentYear + 1 };
+    const todayYear = (picker?.today instanceof Date ? picker.today : new Date()).getFullYear();
+    const parsed = range ? Validation.parseYearRangeSpec(range, todayYear) : null;
+    if (parsed) return parsed;
+    // Unset (or a malformed spec — only reachable via the engine API, the element's
+    // converter rejects it): minDate/maxDate years when set, else currentYear ± 1.
+    if (picker?.normalizedMinDate || picker?.normalizedMaxDate) {
+        const minYear = picker.normalizedMinDate ? picker.normalizedMinDate.getFullYear() : currentYear - 1;
+        const maxYear = picker.normalizedMaxDate ? picker.normalizedMaxDate.getFullYear() : currentYear + 1;
+        return { min: minYear, max: maxYear };
     }
-
-    if (range.includes('-')) {
-        // Range format: "2022-2026"
-        const [minStr, maxStr] = range.split('-');
-        return { min: parseInt(minStr, 10), max: parseInt(maxStr, 10) };
-    } else {
-        // Single year: "2024"
-        const year = parseInt(range, 10);
-        return { min: year, max: year };
-    }
+    return { min: currentYear - 1, max: currentYear + 1 };
 }
 
 /**

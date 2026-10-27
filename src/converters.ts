@@ -16,6 +16,7 @@
 import { toCustom } from '@keenmate/web-components-core';
 import type { Converter } from '@keenmate/web-components-core';
 import { drpLogger } from './logger';
+import { parseYearRangeSpec } from './date-picker-validation';
 
 type WeekStart = 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -72,6 +73,27 @@ export function toDisabledDates(): Converter<(Date | string)[] | undefined> {
     },
     // Property path: any array (of Date or string) is accepted as-is.
     { validate: (v): v is (Date | string)[] | undefined => v === undefined || Array.isArray(v) },
+  );
+}
+
+/**
+ * `rolling-year-range`: `2024`, `2022-2026`, relative `-5:+5` (signed sides are
+ * relative to today's year) or mixed `2020:+2`. A malformed spec is reported as
+ * invalid (core warns and keeps the previous value). Absent → `null` (unset).
+ */
+export function toYearRange(): Converter<string | null> {
+  const isValid = (v: unknown): v is string | null =>
+    v == null || (typeof v === 'string' && parseYearRangeSpec(v, new Date().getFullYear()) !== null);
+  return toCustom<string | null>(
+    (raw, reportInvalid) => {
+      if (raw === null || raw.trim() === '') return null;
+      if (parseYearRangeSpec(raw, new Date().getFullYear()) === null) {
+        reportInvalid?.('expected "2024", "2022-2026", "-5:+5" or "2020:+2"');
+        return null;
+      }
+      return raw.trim();
+    },
+    { validate: isValid, toAttribute: (v) => v ?? null },
   );
 }
 

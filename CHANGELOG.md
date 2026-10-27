@@ -181,6 +181,10 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   up over the modal), and hands focus back on close when the input had it before opening.
 - Keyboard navigation (Ctrl+Home / Ctrl+End, Ctrl+arrows, PageUp / PageDown, `t`) no longer
   leaves a second, stale focused day after quick key presses.
+- `rolling-year-range` understands the relative form its description promised: `-5:+5` (signed
+  sides count from TODAY's year, not the shown one) and mixed `2020:+2`, next to `2022-2026` /
+  `2024`. A malformed value (it used to produce an empty year list) warns and keeps the
+  previous value (FINDINGS #27).
 - `selectedRanges` in range mode always returns the selection: a plain click range reads
   `[{ start, end }]` (it read `[]`), independent ranges and `disabled-dates-handling="split"`
   pieces read all of them. Getter and setter agree; `selectedStartDate` / `selectedEndDate`

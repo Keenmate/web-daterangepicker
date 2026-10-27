@@ -24,7 +24,7 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">rolling-year-range="-1:+2" (relative form from the input's description)</div>
+        <div class="fixture-label">rolling-year-range="-1:+2" (relative to today's year, 2026 under the pinned clock)</div>
         <web-daterangepicker id="relative" selection-mode="single" initial-date="2026-06-15"
             rolling-year-range="-1:+2"></web-daterangepicker>
     </div>
@@ -33,6 +33,24 @@
         <div class="fixture-label">rolling-year-range="2024-2025", changed at runtime by the spec</div>
         <web-daterangepicker id="runtime-range" selection-mode="single" initial-date="2025-06-15"
             rolling-year-range="2024-2025"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">rolling-year-range="-1:+1" while showing 2027 — relative to TODAY (2026), not the shown year</div>
+        <web-daterangepicker id="relative-shown" selection-mode="single" initial-date="2027-06-15"
+            rolling-year-range="-1:+1"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">mixed rolling-year-range="2023:+1"</div>
+        <web-daterangepicker id="mixed" selection-mode="single" initial-date="2026-06-15"
+            rolling-year-range="2023:+1"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">single year rolling-year-range="2026"</div>
+        <web-daterangepicker id="single-year" selection-mode="single" initial-date="2026-06-15"
+            rolling-year-range="2026"></web-daterangepicker>
     </div>
 
     <script type="module" src="/src/index.ts"></script>

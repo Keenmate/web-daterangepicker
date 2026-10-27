@@ -427,7 +427,11 @@ export interface DatePickerOptions {
   initialDate?: Date | string;
 
   // Rolling selector configuration
-  /** Year range for the rolling year selector. Examples: "2024" (single) or "2022-2026" (range). Default: current year ± 50. */
+  /**
+   * Years offered by the rolling year selector (and the navigable year span): "2024" (one year),
+   * "2022-2026" (absolute), "-5:+5" (signed sides relative to TODAY's year) or mixed "2020:+2".
+   * Default: the shown year ± 1 (or the minDate / maxDate years). A malformed spec is ignored.
+   */
   rollingYearRange?: string;
   /** Month range for the rolling month selector, format "MM-MM". Examples: "01-12" (all), "06-08" (summer). Default: "01-12". */
   rollingMonthRange?: string;
