@@ -264,7 +264,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Selection submits the ISO value under `name` (single entry)   | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Programmatic `value` reflected into the submission            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `form.reset()` clears selection + submitted value             | ✓      | `form-association.spec.ts`   | `form-association.html`   |
-| `form.reset()` restores the default `value` attribute (FINDINGS #13, fixed) | ✓ | `api-extras.spec.ts` | `api-extras.html` |
+| `form.reset()` restores the selection parsed from the default `value` attribute (FINDINGS #13) | ✓ | `api-extras.spec.ts`, `form-association.spec.ts` | `api-extras.html`, `form-association.html` |
+| `value` attribute = initial selection; `el.value` / `setInputValue()` never write the attribute; submit sends current state | ✓ | `form-association.spec.ts` | `form-association.html` |
+| Invalid `value` attribute → warning, empty selection, attribute untouched | ✓ | `form-association.spec.ts` | `form-association.html` |
 | Inline picker submits via hidden field                        | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Range → ISO interval; split range → each sub-range            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `value-format` json / array; `getValueFormatCallback`         | ✓      | `form-association.spec.ts`   | `form-association.html`   |

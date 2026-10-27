@@ -928,6 +928,28 @@ export function selectNow(picker: any) {
     commitTimeSelection(picker);
 }
 
+/**
+ * Remember the current selection as the committed one — what closing without
+ * Apply reverts to (apply mode).
+ */
+export function storeCommittedSnapshot(picker: any) {
+    if (picker.options.selectionMode === 'range') {
+        picker.committedStartDate = picker._selectedStartDate;
+        picker.committedEndDate = picker._selectedEndDate;
+        // Snapshot the multi-range result too, so cancel-without-Apply can revert it.
+        picker.committedRanges = picker._selectedRanges.map((r: DateRange) => ({
+            start: new Date(r.start),
+            end: new Date(r.end)
+        }));
+    } else if (picker.options.selectionMode === 'single') {
+        picker.committedDate = picker._selectedDate;
+    }
+    // Time/datetime modes also commit the time parts so close() can revert.
+    if (picker.options.pickerMode !== 'date') {
+        picker.committedTime = picker._selectedTime ? { ...picker._selectedTime } : null;
+    }
+}
+
 export function apply(picker: any) {
     // Apply commits the selection — clear any pinned summary override.
     picker.summaryOverride = null;
@@ -945,22 +967,7 @@ export function apply(picker: any) {
     const pending = picker.pendingSelection;
     picker.pendingSelection = null;
 
-    // Store committed values
-    if (picker.options.selectionMode === 'range') {
-        picker.committedStartDate = picker._selectedStartDate;
-        picker.committedEndDate = picker._selectedEndDate;
-        // Snapshot the multi-range result too, so cancel-without-Apply can revert it.
-        picker.committedRanges = picker._selectedRanges.map((r: DateRange) => ({
-            start: new Date(r.start),
-            end: new Date(r.end)
-        }));
-    } else if (picker.options.selectionMode === 'single') {
-        picker.committedDate = picker._selectedDate;
-    }
-    // Time/datetime modes also commit the time parts so close() can revert.
-    if (picker.options.pickerMode !== 'date') {
-        picker.committedTime = picker._selectedTime ? { ...picker._selectedTime } : null;
-    }
+    storeCommittedSnapshot(picker);
 
     // Fire the deferred callback once the committed snapshot is stored, so the
     // listener (and the host's form value) reads the committed state.

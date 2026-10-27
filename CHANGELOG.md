@@ -43,6 +43,14 @@ and derived colors to the contract's **formula on the `--drp-*` token**, so a st
 
 ### Changed — BREAKING (API cleanup)
 
+- **BREAKING** — `value` is no longer reflected: `el.value = x` / `setInputValue(x)` set the
+  current selection (parsed — display or ISO form) and do NOT write the `value` attribute. The
+  attribute is the default, like a native input's `defaultValue`: it is the initial selection
+  (now parsed right away, not on the next open) and `form.reset()` restores the selection
+  parsed from it (it used to clear the selection and only put the text back). An unparseable
+  value (`value="hroch"`) warns via the logger and leaves the selection empty; the attribute is
+  left as written. The submitted value is always the current selection (a string `value` that
+  isn't a selection is no longer submitted verbatim).
 - **BREAKING** — `show-debug-info` / `showDebugInfo` is removed (attribute, property and
   engine option). Turn logging up with core's switches instead: `el.enableLogging()` /
   `el.disableLogging()` (this element's instance loggers, core `BlissElement`),

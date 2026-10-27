@@ -137,3 +137,59 @@ test('getValueFormatCallback overrides serialization', async ({ page }) => {
     await dayByDate(p, '2026-06-15').click();
     expect(await formValue(page, 'fc')).toBe('D:2026-06-15');
 });
+
+// ── `value` is not reflected: the attribute is the form.reset() default ──────────
+
+test('the value attribute is the initial selection', async ({ page }) => {
+    const p = page.locator('#picker-default');
+    await expect(visibleInput(p)).toHaveValue('2026-06-10 - 2026-06-14');
+    const range = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
+    expect(range).toEqual([10, 14]);
+    expect(await formValue(page, 'fd')).toBe('2026-06-10/2026-06-14');
+});
+
+test('setting value / setInputValue() from JS leaves the value attribute unchanged', async ({ page }) => {
+    const p = page.locator('#picker-default');
+    const attrs = await p.evaluate(async (el: any) => {
+        el.value = '2026-07-01 - 2026-07-03';
+        await el.whenSettled();
+        const a = el.getAttribute('value');
+        el.setInputValue('2026-08-01/2026-08-05');
+        await el.whenSettled();
+        return [a, el.getAttribute('value'), el.value];
+    });
+    expect(attrs).toEqual(['2026-06-10 - 2026-06-14', '2026-06-10 - 2026-06-14', '2026-08-01 - 2026-08-05']);
+    const range = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
+    expect(range).toEqual([1, 5]);
+});
+
+test('submit sends the current state, form.reset() goes back to the value attribute', async ({ page }) => {
+    const p = page.locator('#picker-default');
+    await p.evaluate((el: any) => { el.value = '2026-07-01 - 2026-07-03'; });
+    // What a submit would send (the form's own FormData at submit time).
+    const submitted = await page.evaluate(() => new Promise<string | null>((resolve) => {
+        const form = document.getElementById('fd') as HTMLFormElement;
+        form.addEventListener('submit', (e) => { e.preventDefault(); resolve(new FormData(form).get('range') as string); }, { once: true });
+        form.requestSubmit();
+    }));
+    expect(submitted).toBe('2026-07-01/2026-07-03');
+
+    await page.locator('#reset-default').click();
+    await expect(visibleInput(p)).toHaveValue('2026-06-10 - 2026-06-14');
+    const range = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
+    expect(range).toEqual([10, 14]);
+    expect(await formValue(page, 'fd')).toBe('2026-06-10/2026-06-14');
+    expect(await p.evaluate((el: any) => el.getAttribute('value'))).toBe('2026-06-10 - 2026-06-14');
+});
+
+test('an invalid value attribute warns, leaves the selection empty and the attribute untouched', async ({ page }) => {
+    const warnings: string[] = [];
+    page.on('console', (m) => { if (m.type() === 'warning') warnings.push(m.text()); });
+    await page.reload();
+    const p = page.locator('#picker-invalid');
+    await expect(visibleInput(p)).toHaveValue('');
+    expect(await p.evaluate((el: any) => el.selectedDate)).toBeNull();
+    expect(await p.evaluate((el: any) => el.getAttribute('value'))).toBe('hroch');
+    expect(await formValue(page, 'fx')).toBe('');
+    expect(warnings.some((w) => w.includes('hroch'))).toBe(true);
+});

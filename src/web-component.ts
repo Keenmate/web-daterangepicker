@@ -151,7 +151,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(ctx: FormValueSelection & PickerContext) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value. Overrides `value-format`. Property-only.' },
 
   // ── Element-level attributes (NON-picker; handled by this element) ────────
-  { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property.' },
+  { configKey: 'inputValue',                   attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range `2026-06-10 - 2026-06-14` or `2026-06-10/2026-06-14`, multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`).' },
   { configKey: 'disabled',                     attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the input.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), on: 'update', description: 'Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks.' },
@@ -282,6 +282,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   // (web-multiselect's model). Children of the host, so they sit inside the
   // <form> and submit under `name`; the host itself never calls setFormValue.
   #hiddenInputs: HTMLInputElement[] = [];
+  // A `value` property assigned before the picker was built — applied on the first build.
+  #pendingValue: string | null = null;
 
   // Container-responsive compaction (core `sizeChanged` hook). `#narrowMax` is the
   // px threshold derived from `compact-below` (0 = disabled); `#isNarrow` is the
@@ -320,11 +322,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   /** Cosmetic change: element-level side effects, then patch the picker in place. */
   protected override update(partial: Record<string, unknown>): void {
     // Element-level (non-picker) side effects.
-    if ('inputValue' in partial) {
-      if (this.#inputElement) this.#inputElement.value = (partial.inputValue as string | null) ?? '';
-      this.#refreshFormValue(); // keep form submission in sync with a programmatic value
-      this.#updateInputClear();
-    }
+    // The `value` attribute changed (e.g. a server-rendered patch): it becomes the
+    // current selection, like a native input that hasn't been edited.
+    if ('inputValue' in partial) this.#applyValueText((partial.inputValue as string | null) ?? '', 'value attribute');
     // Form wiring changes (name / serialization) re-render the hidden input(s).
     if ('formFieldName' in partial || 'valueFormat' in partial || 'getValueFormatCallback' in partial) {
       this.#refreshFormValue();
@@ -390,18 +390,13 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   }
 
   /**
-   * Form reset: back to the declared default — the `value` attribute (like a
-   * native input's `defaultValue`), else empty. `flush()` first so a reset right
-   * after a `setAttribute('value', …)` sees it. The picker re-syncs its selection
-   * from the restored text on the next open, as for the `value` setter.
+   * Form reset: the selection goes back to the one parsed from the `value`
+   * attribute (the default, like a native input's `defaultValue`), else empty.
+   * `flush()` first so a reset right after a `setAttribute('value', …)` sees it.
    */
   formResetCallback(): void {
     this.flush();
-    const defaultValue = this.getAttribute('value') ?? '';
-    this.#picker?.clearSelection();
-    if (this.#inputElement) this.#inputElement.value = defaultValue;
-    this.#updateInputClear();
-    this.#refreshFormValue(); // empty selection → the default text (or nothing)
+    this.#applyValueText(this.getAttribute('value') ?? '', 'value attribute');
   }
 
   // ── picker lifecycle ──────────────────────────────────────────────────────
@@ -409,7 +404,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   #rebuildPicker(): void {
     this.#picker?.destroy();
     this.#picker = undefined;
-    this.#buildPicker();
+    this.#buildPicker(true);
   }
 
   /** Whether the initial render is being held by the `defer` gate (not yet released). */
@@ -417,7 +412,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     return this.config.deferRender === true && !this.#released;
   }
 
-  #buildPicker(): void {
+  /**
+   * Build the engine. `isRebuild`: a structural rebuild whose caller restores the
+   * selection snapshot — the `value` default is applied on the first build only.
+   */
+  #buildPicker(isRebuild = false): void {
     const mode = (this.config.positioningMode as string) ?? 'floating';
 
     // Reconcile the input shell with the current positioning mode. floating/modal
@@ -447,8 +446,20 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // must survive a rebuild).
     if (this.config.isReadonly) this.#picker.lock();
 
-    // Seed the hidden form input(s) (a rebuild starts with an empty selection, so
-    // this reflects any pre-filled `value` or clears stale inputs from a prior mode).
+    // First build: the selection starts from the `value` attribute (the default),
+    // then a `value` property assigned before the build. A rebuild's caller
+    // restores the selection snapshot instead.
+    if (!isRebuild) {
+      const initial = this.config.inputValue as string | null;
+      if (initial) this.#applyValueText(initial, 'value attribute');
+      if (this.#pendingValue !== null) {
+        const pending = this.#pendingValue;
+        this.#pendingValue = null;
+        this.#applyValueText(pending, 'value property');
+      }
+    }
+
+    // Seed the hidden form input(s) (also clears stale inputs from a prior mode).
     this.#refreshFormValue();
 
     this.#applyCustomStyles();
@@ -490,8 +501,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       input.classList.add('drp__input');
       this.#applyPlaceholderTo(input);
     }
-    const value = this.config.inputValue as string | null;
-    if (value) input.value = value;
     if (this.config.disabled && !isHidden) input.disabled = true;
 
     if (isHidden) {
@@ -680,18 +689,28 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#renderHiddenInputs(format, values);
   }
 
-  /**
-   * Refresh the hidden form input(s). A programmatic string `value` set while
-   * nothing is selected has no structured selection to serialize, so it submits
-   * verbatim as a single field; otherwise the picker's selection is the source.
-   */
+  /** Refresh the hidden form input(s) from the picker's current selection. */
   #refreshFormValue(): void {
-    const iv = this.config.inputValue as string | null;
-    if (iv && this.#currentSelection().items.length === 0) {
-      this.#renderHiddenInputs('iso', [iv]);
-      return;
-    }
     this.#updateFormValue();
+  }
+
+  /**
+   * Set the current selection from a value string (the `value` attribute / form
+   * reset default, or the `value` property) through the engine's parser, then
+   * sync the submitted value and the ✕. An unparseable value warns and leaves the
+   * selection empty — the attribute itself is never rewritten (`value` is not a
+   * reflected input).
+   */
+  #applyValueText(text: string, source: 'value attribute' | 'value property'): void {
+    const picker = this.#picker;
+    if (!picker) return;
+    if (!picker.setSelectionFromText(text)) {
+      this.log.SELECTION.warn(
+        `${source} "${text}" is not a valid ${picker.options.pickerMode} value for ` +
+        `selection-mode="${picker.options.selectionMode}" — the selection is left empty.`,
+      );
+    }
+    this.#afterSelectionSet();
   }
 
   /**
@@ -1047,12 +1066,17 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   /** The currently locked aspects (read-only snapshot). */
   get lockedAspects(): LockAspect[] { this.flush(); return this.#picker?.lockedAspects ?? []; }
 
-  /** The current text in the input (floating/modal modes); `''` when there is no input. */
+  /** The current value — the selection as the input shows it (`''` when nothing is selected). */
   getInputValue(): string { this.flush(); return this.#inputElement?.value || ''; }
-  /** Set the input text and reflect it to the `value` attribute. */
+  /**
+   * Set the current selection from a value string (same forms as the `value`
+   * attribute). Does NOT write the `value` attribute — that stays the default
+   * `form.reset()` returns to. An unparseable value warns and clears the selection.
+   */
   setInputValue(value: string): void {
-    if (this.#inputElement) this.#inputElement.value = value;
-    this.setAttribute('value', value);
+    this.flush();
+    if (this.#picker) this.#applyValueText(value ?? '', 'value property');
+    else this.#pendingValue = value ?? '';
   }
 
   /**
@@ -1070,7 +1094,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   // ── live-state accessors (read the picker/input, not the config) ──────────
 
-  /** Text value of the input. */
+  /**
+   * The current value — the selection as the input shows it. Assigning sets the
+   * selection (same forms as the `value` attribute) without touching the
+   * attribute, which stays the `form.reset()` default.
+   */
   get value(): string { return this.getInputValue(); }
   set value(val: string) { this.setInputValue(val); }
 

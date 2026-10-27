@@ -98,7 +98,7 @@ use camelCase (`selectionMode`).
 | `date-format-mask` | `string` | `'YYYY-MM-DD'` | Date format (`YYYY-MM-DD`, `DD.MM.YYYY`, `MM/DD/YYYY`, …) |
 | `visible-months-count` | `number` | `1` (single), `2` (range) | Number of months to display |
 | `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How the calendar opens (focus = on input focus, typing = when user types, manual = programmatic only) |
-| `value` | `string` | — | Current value |
+| `value` | `string` | — | Initial / default value (like a native input's `defaultValue`): parsed into the selection on build and restored by `form.reset()`. The `value` **property** sets the current value without writing the attribute. |
 | `placeholder` | `string` | — | Input placeholder |
 | `disabled` | `boolean` | `false` | Disable the picker |
 | `week-start-day` | `'auto' \| 0–6` | `'auto'` | First day of week (0 = Sunday, 1 = Monday, …; `'auto'` detects from locale) |
@@ -192,7 +192,7 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 | `toggle()` | Toggle calendar visibility |
 | `clearSelection()` | Clear the current selection |
 | `getInputValue()` | Get the current value as a string |
-| `setInputValue(value: string)` | Set the value |
+| `setInputValue(value: string)` | Set the current selection from a value string (display or ISO form); does not touch the `value` attribute |
 | `showMessage(html, type?, autoHide?)` | Display a message in the calendar with custom HTML content |
 | `hideMessage()` | Hide the currently displayed message |
 | `toggleMessage(html?, type?, autoHide?)` | Toggle the message block |
@@ -264,7 +264,10 @@ control — no wrapper or manual hidden input needed. It works the same in
 ```
 
 Under the hood the control renders a light-DOM hidden `<input>` inside the form
-(the same approach as `<web-multiselect>`) and clears it on `form.reset()`. It
+(the same approach as `<web-multiselect>`). `form.reset()` restores the selection
+parsed from the `value` attribute — the default, like a native input's
+`defaultValue` (empty without one); setting `el.value` from JS changes the current
+selection only, never the attribute. It
 also exposes `el.form` / `event.target.form`, so frameworks that delegate form
 changes by reading `target.form` (e.g. Phoenix LiveView's `phx-change`) resolve
 the parent form correctly.

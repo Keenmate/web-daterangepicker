@@ -79,6 +79,23 @@
         </form>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">range with a declared default value attribute (the form.reset() target)</div>
+        <form id="fd">
+            <web-daterangepicker id="picker-default" name="range" selection-mode="range"
+                value="2026-06-10 - 2026-06-14"></web-daterangepicker>
+            <button type="reset" id="reset-default">Reset</button>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">invalid value attribute (value="hroch")</div>
+        <form id="fx">
+            <web-daterangepicker id="picker-invalid" name="range" selection-mode="single"
+                value="hroch"></web-daterangepicker>
+        </form>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
         customElements.whenDefined('web-daterangepicker').then(() => {

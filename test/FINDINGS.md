@@ -166,6 +166,10 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     **Fixed (2026-10-25):** `formResetCallback()` flushes, restores the `value` attribute
     into the input (selection re-syncs from it on the next open, as for the `value` setter)
     and re-renders the hidden input from it; empty when there is no default.
+    **Follow-up (2026-10-27, user decision):** `value` is not reflected any more — `el.value` /
+    `setInputValue()` set the current selection only; the attribute is the default.
+    `formResetCallback()` now restores the SELECTION parsed from the attribute (not just the
+    text); an invalid attribute warns and leaves the selection empty.
 
 14. **~~DRP-2 — `getInputValue()` / `value` getter don't `flush()`.~~** ✅ FIXED
     Where: `src/web-component.ts` `getInputValue()` / `get value()` (~l.982, 1004). Symptom:

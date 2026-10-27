@@ -2247,6 +2247,135 @@ class DateRangePickerEngine {
         };
     }
 
+    /**
+     * Parse one date written in the configured `dateFormatMask` (e.g. `10.06.2026`)
+     * or as ISO `YYYY-MM-DD`. Strict: every part present and the date real.
+     */
+    parseDateText(text: string): Date | null {
+        const t = text.trim();
+        const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+        const build = (y: number, m: number, d: number): Date | null => {
+            const date = new Date(y, m - 1, d);
+            return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d ? date : null;
+        };
+        const { separator, parts } = this.formatInfo;
+        if (separator && parts.year && parts.month && parts.day) {
+            const segs = t.split(separator);
+            if (segs.length === 3 && segs.every((s) => /^\d+$/.test(s))) {
+                const ys = segs[parts.year.index];
+                const isYearComplete = ys.length === parts.year.length;
+                const y = parts.year.length === 2 ? 2000 + Number(ys) : Number(ys);
+                const date = isYearComplete ? build(y, Number(segs[parts.month.index]), Number(segs[parts.day.index])) : null;
+                if (date) return date;
+            }
+        }
+        return iso ? build(Number(iso[1]), Number(iso[2]), Number(iso[3])) : null;
+    }
+
+    /**
+     * Parse a time — `HH:mm`, `HH:mm:ss` (`:` or `.`), optionally with an am/pm
+     * marker (`am`/`pm` or the locale's labels).
+     */
+    parseTimeText(text: string): SelectedTime | null {
+        const m = /^(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?(?:\s*(\S+))?$/.exec(text.trim());
+        if (!m) return null;
+        let hour = Number(m[1]);
+        const minute = Number(m[2]);
+        const second = m[3] != null ? Number(m[3]) : 0;
+        if (minute > 59 || second > 59) return null;
+        if (m[4] != null) {
+            const marker = m[4].toLowerCase();
+            const isPm = marker === 'pm' || marker === String(this.localeStrings.pm).toLowerCase();
+            const isAm = marker === 'am' || marker === String(this.localeStrings.am).toLowerCase();
+            if ((!isPm && !isAm) || hour < 1 || hour > 12) return null;
+            hour = (hour % 12) + (isPm ? 12 : 0);
+        }
+        if (hour > 23) return null;
+        return { hour, minute, second, ampm: hour >= 12 ? 'pm' : 'am' };
+    }
+
+    /**
+     * Set the committed selection from a value string — the `value` attribute
+     * (also the `form.reset()` default) and the `value` property. Accepts what the
+     * picker writes into its input (the `dateFormatMask` / `timeFormatMask` form)
+     * and the ISO form it submits:
+     * - single: `2026-06-10`; datetime: `2026-06-10 14:30` / `2026-06-10T14:30`; time: `14:30`
+     * - range: `start - end` or `start/end`; several ranges joined by `, `
+     * - multiple: dates and ranges joined by `,`
+     *
+     * Synchronous; runs no callbacks and fires no events. `''` clears. An
+     * unparseable value clears the selection and returns `false` (the caller warns).
+     */
+    setSelectionFromText(text: string): boolean {
+        const value = (text ?? '').trim();
+        const pm = this.options.pickerMode;
+        const sm = this.options.selectionMode;
+        const parseRange = (s: string): DateRange | null => {
+            const parts = s.includes('/') ? s.split('/') : s.split(' - ');
+            if (parts.length !== 2) return null;
+            const a = this.parseDateText(parts[0]);
+            const b = this.parseDateText(parts[1]);
+            if (!a || !b) return null;
+            return a <= b ? { start: a, end: b } : { start: b, end: a };
+        };
+
+        let date: Date | null = null;
+        let time: SelectedTime | null = null;
+        let ranges: DateRange[] = [];
+        const dates: Date[] = [];
+        let isValid = true;
+        if (value) {
+            if (pm === 'time') {
+                time = this.parseTimeText(value);
+                isValid = !!time;
+            } else if (pm === 'datetime') {
+                const m = /^(\S+)[T\s]+(.+)$/.exec(value);
+                date = m ? this.parseDateText(m[1]) : null;
+                time = m ? this.parseTimeText(m[2]) : null;
+                isValid = !!date && !!time;
+            } else if (sm === 'range') {
+                const pieces = value.split(',').map((s) => parseRange(s.trim()));
+                isValid = pieces.every((r) => r !== null);
+                ranges = pieces as DateRange[];
+            } else if (sm === 'multiple') {
+                for (const piece of value.split(',').map((s) => s.trim())) {
+                    const isRange = piece.includes('/') || piece.includes(' - ');
+                    const r = isRange ? parseRange(piece) : null;
+                    const d = isRange ? null : this.parseDateText(piece);
+                    if (r) ranges.push(r);
+                    else if (d) dates.push(d);
+                    else isValid = false;
+                }
+            } else {
+                date = this.parseDateText(value);
+                isValid = !!date;
+            }
+        }
+
+        Selection.clearSelection(this);
+        if (isValid && value) {
+            if (pm === 'time') this._selectedTime = time;
+            else if (pm === 'datetime') { this._selectedDate = date; this._selectedTime = time; }
+            else if (sm === 'range') {
+                this._selectedStartDate = new Date(ranges[0].start);
+                this._selectedEndDate = new Date(ranges[ranges.length - 1].end);
+                this._selectedRanges = ranges.length > 1 ? ranges.map((r) => ({ start: new Date(r.start), end: new Date(r.end) })) : [];
+            } else if (sm === 'multiple') { this._selectedRanges = ranges; this._selectedDates = dates; }
+            else this._selectedDate = date;
+            // Show the month of the (first) selected date.
+            const anchor = date ?? ranges[0]?.start ?? dates[0] ?? null;
+            if (anchor && pm !== 'time') {
+                this._monthDates = this._monthDates.map((_, i) => new Date(anchor.getFullYear(), anchor.getMonth() + i, 1));
+            }
+        }
+        Selection.storeCommittedSnapshot(this);
+        this.syncInputFromSelection();
+        this.summaryOverride = null;
+        this.renderCalendar();
+        this.updateSummary();
+        return isValid;
+    }
+
     formatDate(date: Date | null): string {
         if (!date) return '';
         const year = date.getFullYear();

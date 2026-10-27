@@ -133,7 +133,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `is-disabled-member` | `string \| null` | — | Property name flagging a decorated date as disabled. |
 | `name` | `string \| null` | — | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
 | `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | Serialization of the submitted value (stable ISO-8601, independent of the display masks): - `iso` (default) — one field; a single date/time as-is, a range as `start/end`, multiple joined by `,`. - `json` — one field; `JSON.stringify` of the selection (scalar/object for single/range, array for multiple). - `array` — multiple `name[]` fields, one per date; a range contributes `start` and `end`. |
-| `value` | `string \| null` | — | Text value of the control (the formatted selection). Reflected to the live input in floating/modal modes and to the hidden form-value input in inline mode; read/write via the `value` property. |
+| `value` | `string \| null` | — | The initial / default value — like a native input's `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range `2026-06-10 - 2026-06-14` or `2026-06-10/2026-06-14`, multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute. |
 | `placeholder` | `string \| null` | — | Input placeholder. When unset, plain date pickers auto-derive it from display-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`). |
 | `disabled` | `boolean` | — | Disable the input. |
 | `readonly` | `boolean` | — | Full read-only lock (freezes every interaction aspect). Read/write via the `readonly` property, or use `lock()` for partial locks. |
@@ -352,7 +352,7 @@ Available on `<web-daterangepicker>` element:
 | `toggleLock()` | `(aspects?: LockAspect \| LockAspect[]) => void` | Toggle the given aspect(s), or the whole lock when called with no argument. |
 | `isAspectLocked()` | `(aspect: LockAspect) => boolean` | True when the given aspect is currently locked. |
 | `getInputValue()` | `() => string` | The current text in the input (floating/modal modes); `''` when there is no input. |
-| `setInputValue()` | `(value: string) => void` | Set the input text and reflect it to the `value` attribute. |
+| `setInputValue()` | `(value: string) => void` | Set the current selection from a value string (same forms as the `value` attribute). Does NOT write the `value` attribute — that stays the default `form.reset()` returns to. An unparseable value warns and clears the selection. |
 | `setMonthNames()` | `(monthNames: string[]) => void` | Set custom month names. **(deprecated)** |
 | `setRollingItemAlignment()` | `(alignment: 'flex-start' \| 'center' \| 'flex-end') => void` | Align items within the rolling year/month selector (`flex-start` \| `center` \| `flex-end`). |
 <!-- GEN:methods:end -->
@@ -1534,7 +1534,7 @@ The web component provides convenient property accessors for JavaScript:
 |----------|------|--------|-------------|
 | `isReady` | `boolean` | Read-only | Whether the picker has been built (the `ready` event has fired). False while a `defer` gate is still held. |
 | `lockedAspects` | `LockAspect[]` | Read-only | The currently locked aspects (read-only snapshot). |
-| `value` | `string` | Read/Write | Text value of the input. |
+| `value` | `string` | Read/Write | The current value — the selection as the input shows it. Assigning sets the selection (same forms as the `value` attribute) without touching the attribute, which stays the `form.reset()` default. |
 | `readonly` | `boolean` | Read/Write | Full read-only lock, reflected to the `readonly` attribute. Reads back `true` only when every aspect is locked. For partial locks use `lock([...])`. |
 | `selectedRanges` | `DateRange[]` | Read/Write | The selection as ranges. Range mode: always the committed selection — a plain click range reads `[{ start, end }]`, independent ranges (a `beforeSelectCallback` returning several, or an assigned array) and `split` pieces read all of them; `[]` when nothing is selected. Multiple mode: its independent ranges. Assigning replaces the selection and reads back the same. `selectedStartDate` / `selectedEndDate` stay the outer envelope. |
 | `selectedDates` | `Date[]` | Read/Write | Committed dates (multiple mode). Assigning replaces the selection. |
