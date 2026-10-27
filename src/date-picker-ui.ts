@@ -7,7 +7,7 @@
 
 // All positioning goes through core `@keenmate/web-components-core/positioning`:
 // `anchor()` (the calendar popover + day/badge tooltips) with its first-class
-// `shouldUseFixedContainingBlock` (the narrowed containing-block heuristic) + `onDrift` (the
+// `shouldUseFixedContainingBlock` (the narrowed containing-block heuristic) + `driftCallback` (the
 // drift diagnostic) options — core owns both. This file keeps only the
 // daterangepicker-branded warning copy (see warnDrift). daterangepicker no longer
 // depends on `@floating-ui/dom` directly.
@@ -21,7 +21,7 @@ import type { LoaderTarget } from './types';
 
 /**
  * Surface a daterangepicker-branded, once-per-instance warning when core's drift
- * check (`anchor`'s `onDrift`) reports the calendar didn't land where it was
+ * check (`anchor`'s `driftCallback`) reports the calendar didn't land where it was
  * positioned — an ancestor establishes a fixed containing block the heuristic
  * doesn't recognize (typically `contain` / `container-type`). Core owns the drift
  * measurement + culprit identification (`detectFixedDrift`, SPEC §12.2); this keeps
@@ -257,7 +257,7 @@ function setupFloatingAnchor(picker: any) {
         // (resize→reposition→re-hover loop); reposition only on scroll/ancestor moves.
         autoUpdateOptions: { elementResize: false },
         // One-shot drift warning if an unrecognized ancestor CB still shifts the panel.
-        onDrift: (report: DriftReport) => warnDrift(picker, report),
+        driftCallback: (report: DriftReport) => warnDrift(picker, report),
     });
 
     // Close on viewport resize (in either direction). With elementResize off, we
