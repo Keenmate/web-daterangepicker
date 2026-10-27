@@ -164,3 +164,45 @@ test('individual: change.detail.dates is a flat list of enabled dates inside the
     // 10, 11, 14, 15 — four enabled dates, 12+13 excluded.
     expect(detail.dates?.length).toBe(4);
 });
+
+// =============================================================================
+// selectedRanges always returns the selection (range mode)
+// =============================================================================
+
+const dayPairs = (p: Locator) => p.evaluate((el: any) =>
+    el.selectedRanges.map((r: any) => [r.start.getDate(), r.end.getDate()]));
+
+test('selectedRanges: a plain click range reads [{ start, end }]; nothing selected reads []', async ({ page }) => {
+    const p = await open(page, 'allow');
+    expect(await dayPairs(p)).toEqual([]);
+    await dayByDate(p, '2026-06-16').click();
+    await dayByDate(p, '2026-06-19').click();
+    expect(await dayPairs(p)).toEqual([[16, 19]]);
+    // The envelope accessors agree.
+    expect(await p.evaluate((el: any) => [el.selectedStartDate.getDate(), el.selectedEndDate.getDate()])).toEqual([16, 19]);
+});
+
+test('selectedRanges: split handling reads every enabled piece; the envelope stays start..end', async ({ page }) => {
+    const p = await open(page, 'split');
+    await dayByDate(p, '2026-06-10').click();
+    await dayByDate(p, '2026-06-15').click();
+    expect(await dayPairs(p)).toEqual([[10, 11], [14, 15]]);
+    expect(await p.evaluate((el: any) => [el.selectedStartDate.getDate(), el.selectedEndDate.getDate()])).toEqual([10, 15]);
+});
+
+test('selectedRanges: getter and setter agree (one range and several)', async ({ page }) => {
+    const p = pickerById(page, 'allow');
+    await p.evaluate((el: any) => { el.selectedRanges = [{ start: new Date(2026, 5, 2), end: new Date(2026, 5, 4) }]; });
+    expect(await dayPairs(p)).toEqual([[2, 4]]);
+    await p.evaluate((el: any) => {
+        el.selectedRanges = [
+            { start: new Date(2026, 5, 2), end: new Date(2026, 5, 4) },
+            { start: new Date(2026, 5, 20), end: new Date(2026, 5, 22) },
+        ];
+    });
+    expect(await dayPairs(p)).toEqual([[2, 4], [20, 22]]);
+    expect(await p.evaluate((el: any) => [el.selectedStartDate.getDate(), el.selectedEndDate.getDate()])).toEqual([2, 22]);
+    // Round-trip.
+    await p.evaluate((el: any) => { el.selectedRanges = el.selectedRanges; });
+    expect(await dayPairs(p)).toEqual([[2, 4], [20, 22]]);
+});

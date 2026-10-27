@@ -1536,7 +1536,7 @@ The web component provides convenient property accessors for JavaScript:
 | `lockedAspects` | `LockAspect[]` | Read-only | The currently locked aspects (read-only snapshot). |
 | `value` | `string` | Read/Write | Text value of the input. |
 | `readonly` | `boolean` | Read/Write | Full read-only lock, reflected to the `readonly` attribute. Reads back `true` only when every aspect is locked. For partial locks use `lock([...])`. |
-| `selectedRanges` | `DateRange[]` | Read/Write | Committed ranges (range mode). Assigning replaces the selection. |
+| `selectedRanges` | `DateRange[]` | Read/Write | The selection as ranges. Range mode: always the committed selection — a plain click range reads `[{ start, end }]`, independent ranges (a `beforeSelectCallback` returning several, or an assigned array) and `split` pieces read all of them; `[]` when nothing is selected. Multiple mode: its independent ranges. Assigning replaces the selection and reads back the same. `selectedStartDate` / `selectedEndDate` stay the outer envelope. |
 | `selectedDates` | `Date[]` | Read/Write | Committed dates (multiple mode). Assigning replaces the selection. |
 | `selectedDate` | `Date \| null` | Read/Write | Committed date (single mode). Assigning replaces the selection. |
 | `selectedStartDate` | `Date \| null` | Read-only | Committed range start (read-only; set a range via `selectedRanges`). |

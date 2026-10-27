@@ -54,10 +54,10 @@ test('a move keeps the committed selection and the input value', async ({ page }
     const p = pickerById(page, 'picker');
     await expect(page.locator('#slot-b #picker')).toHaveCount(1);
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
-    // A plain clicked range lives in selectedStartDate/EndDate (selectedRanges is only
-    // populated for independent multi-ranges).
     const range = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
     expect(range).toEqual([10, 12]);
+    const ranges = await p.evaluate((el: any) => el.selectedRanges.map((r: any) => [r.start.getDate(), r.end.getDate()]));
+    expect(ranges).toEqual([[10, 12]]);
     await inputOf(p).click();
     await expect(dayByDate(p, '2026-06-10')).toHaveClass(/drp__day--range-start/);
 });

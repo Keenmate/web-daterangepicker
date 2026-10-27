@@ -268,6 +268,9 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     **Follow-up (2026-10-27, user decision):** a `selection-mode` / `picker-mode` flip carries
     what the new mode can represent (reformatted for it) and otherwise clears the input too —
     the input always shows what the selection holds. `e2e/mode-flip.spec.ts` (5 tests).
+    **Follow-up (2026-10-27, user decision):** `selectedRanges` in range mode now always
+    returns the selection (`[{ start, end }]` for a plain click range; independent / `split`
+    pieces all of them). `e2e/disabled-handling.spec.ts` (3 tests).
 
 22. **DRP-10 — `commit-mode="manual"` commits on every pick (docs say it never does).**
     `src/types.ts` / CHANGELOG 2.0: "`manual` — never auto-commit or auto-close … the app

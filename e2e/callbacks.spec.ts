@@ -157,13 +157,13 @@ test('starting a new range clears a prior multi-range result', async ({ page }) 
     await dayByDate(p, '2026-06-18').click();
     await dayByDate(p, '2026-06-22').click();
 
-    // A plain single range is cleared out of _selectedRanges (it lives in the
-    // start/end envelope), so the prior 2-range result is gone.
+    // A plain single range replaces the prior 2-range result: selectedRanges reads
+    // the one new range.
     const state = await p.evaluate((el: any) => {
         const iso = (d: Date | null) => (d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : null);
         return { count: el.selectedRanges.length, start: iso(el.selectedStartDate), end: iso(el.selectedEndDate) };
     });
-    expect(state.count).toBe(0);
+    expect(state.count).toBe(1);
     expect([state.start, state.end]).toEqual(['2026-06-18', '2026-06-22']);
     await expect(dayByDate(p, '2026-06-10')).not.toHaveClass(/drp__day--range-start/);
     await expect(dayByDate(p, '2026-06-18')).toHaveClass(/drp__day--range-start/);

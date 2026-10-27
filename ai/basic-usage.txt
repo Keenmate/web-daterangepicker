@@ -200,7 +200,9 @@ Select multiple individual dates or ranges:
 
 Access selections:
 const dates = picker.selectedDates;    // Array of Date objects
-const ranges = picker.selectedRanges;  // Array of { start, end }
+const ranges = picker.selectedRanges;  // Array of { start, end } — range mode: always the
+                                       // selection ([{start,end}] for a plain range, every
+                                       // piece for independent/split ranges, [] when empty)
 
 INLINE MODE (Always Visible)
 -----------------------------

@@ -23,6 +23,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Range: drag-to-adjust end                                     | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Range: drag-to-adjust with touch pointer events               | ✓      | `drag-adjust-touch.spec.ts`  | `drag-adjust.html`        |
 | Multiple-date selection (toggle individual days)              | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
+| `selectedRanges` (range mode) always returns the selection: plain `[{start,end}]`, `split` pieces, independent ranges; getter/setter round-trip | ✓ | `disabled-handling.spec.ts` | `disabled-handling.html` |
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `commitMode`: `'selection'` (default) / `'apply'` / `'manual'`  | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `commit-mode="manual"`: no close, no Apply; custom button → `controller.apply()` commits | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |

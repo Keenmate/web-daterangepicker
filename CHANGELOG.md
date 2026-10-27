@@ -151,6 +151,11 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   up over the modal), and hands focus back on close when the input had it before opening.
 - Keyboard navigation (Ctrl+Home / Ctrl+End, Ctrl+arrows, PageUp / PageDown, `t`) no longer
   leaves a second, stale focused day after quick key presses.
+- `selectedRanges` in range mode always returns the selection: a plain click range reads
+  `[{ start, end }]` (it read `[]`), independent ranges and `disabled-dates-handling="split"`
+  pieces read all of them. Getter and setter agree; `selectedStartDate` / `selectedEndDate`
+  stay the outer envelope. `controller.getSelectedRanges()` follows, and the submitted value
+  of a `split` range is its pieces after a rebuild / programmatic change too.
 - A `selection-mode` / `picker-mode` flip no longer leaves the old text in the input: what the
   new mode can represent is carried over and reformatted (single date → multiple, range →
   multiple, the date part between `date` / `datetime`, the time part between `datetime` /

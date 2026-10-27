@@ -2348,10 +2348,31 @@ class DateRangePickerEngine {
     }
 
     /**
-     * Get/set selected ranges (for multiple mode or programmatic multi-range selection)
+     * The selection as ranges. Range mode: always the committed selection — the
+     * independent ranges when several were committed (callback `adjustedRanges` or
+     * an assigned array), the enabled pieces under `disabledDatesHandling: 'split'`,
+     * otherwise the plain `[{ start, end }]`; `[]` when nothing is selected.
+     * Multiple mode: its independent ranges (single dates are in `selectedDates`).
+     * Assigning replaces the selection — what you assign reads back.
      */
     get selectedRanges(): DateRange[] {
-        return [...this._selectedRanges];
+        if (this._selectedRanges.length > 0) return this.independentRanges;
+        if (this.options.selectionMode === 'range' && this._selectedStartDate && this._selectedEndDate) {
+            if (this.options.disabledDatesHandling === 'split') {
+                return this.splitRangeByDisabled(this._selectedStartDate, this._selectedEndDate);
+            }
+            return [{ start: new Date(this._selectedStartDate), end: new Date(this._selectedEndDate) }];
+        }
+        return [];
+    }
+
+    /**
+     * The independently committed ranges only (`[]` for a plain start..end range).
+     * @internal Selection snapshot for a rebuild — the envelope is snapshotted
+     * separately so a plain / split range is restored as one range, not as pieces.
+     */
+    get independentRanges(): DateRange[] {
+        return this._selectedRanges.map(r => ({ start: new Date(r.start), end: new Date(r.end) }));
     }
 
     set selectedRanges(ranges: DateRange[]) {

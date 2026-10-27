@@ -159,9 +159,9 @@ Assigning to any of these re-renders and syncs the input — no manual
 |---|---|---|---|
 | `selectedDate` | get / set | `Date \| null` | single mode |
 | `selectedDates` | get / set | `Date[]` | multiple mode |
-| `selectedRanges` | get / set | `DateRange[]` | range / multiple mode |
-| `selectedStartDate` | get | `Date \| null` | range start (set a range via `selectedRanges`) |
-| `selectedEndDate` | get | `Date \| null` | range end |
+| `selectedRanges` | get / set | `DateRange[]` | range mode: always the selection — `[{ start, end }]` for a plain range, every piece for independent / `split` ranges, `[]` when empty; multiple mode: its ranges |
+| `selectedStartDate` | get | `Date \| null` | range start — the outer envelope (set a range via `selectedRanges`) |
+| `selectedEndDate` | get | `Date \| null` | range end — the outer envelope |
 | `selectedTime` | get / set | `SelectedTime \| null` | time / datetime modes |
 | `selectedDatetime` | get / set | `Date \| null` (set accepts `Date \| string`) | composed value; the setter accepts an ISO datetime and splits it into date + time |
 

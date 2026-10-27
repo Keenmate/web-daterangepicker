@@ -653,16 +653,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
         const d = pickerMode === 'datetime' ? picker.selectedDatetime : picker.selectedDate;
         if (d) items.push(pickerMode === 'datetime' ? isoDateTime(d, showSeconds) : isoDate(d));
       } else if (selectionMode === 'range') {
-        // selectedRanges is populated when a callback commits independent ranges;
-        // otherwise the plain start..end envelope.
-        const ranges = picker.selectedRanges;
-        if (ranges.length > 0) {
-          for (const r of ranges) items.push({ start: isoDate(r.start), end: isoDate(r.end) });
-        } else {
-          const s = picker.selectedStartDate;
-          const e = picker.selectedEndDate;
-          if (s && e) items.push({ start: isoDate(s), end: isoDate(e) });
-        }
+        // Every committed range: the plain start..end, the split pieces, or the
+        // independent ranges a callback / assignment committed.
+        for (const r of picker.selectedRanges) items.push({ start: isoDate(r.start), end: isoDate(r.end) });
       } else {
         // multiple: independent ranges or individual dates (date granularity).
         const ranges = picker.selectedRanges;
@@ -892,7 +885,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     return {
       date: p.selectedDate,
       dates: p.selectedDates,
-      ranges: p.selectedRanges,
+      ranges: p.independentRanges,
       startDate: p.selectedStartDate,
       endDate: p.selectedEndDate,
       time: p.selectedTime,
@@ -1091,7 +1084,14 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     else this.removeAttribute('readonly');
   }
 
-  /** Committed ranges (range mode). Assigning replaces the selection. */
+  /**
+   * The selection as ranges. Range mode: always the committed selection — a plain
+   * click range reads `[{ start, end }]`, independent ranges (a `beforeSelectCallback`
+   * returning several, or an assigned array) and `split` pieces read all of them;
+   * `[]` when nothing is selected. Multiple mode: its independent ranges. Assigning
+   * replaces the selection and reads back the same. `selectedStartDate` /
+   * `selectedEndDate` stay the outer envelope.
+   */
   get selectedRanges(): DateRange[] { this.flush(); return this.#picker?.selectedRanges || []; }
   set selectedRanges(ranges: DateRange[]) { this.flush(); if (this.#picker) { this.#picker.selectedRanges = ranges; this.#afterSelectionSet(); } }
 
