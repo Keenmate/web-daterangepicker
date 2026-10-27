@@ -43,6 +43,18 @@ and derived colors to the contract's **formula on the `--drp-*` token**, so a st
 
 ### Changed — BREAKING (API cleanup)
 
+- **BREAKING** — commit vs. close are two separate axes (FINDINGS #22). `commit-mode` is commit
+  only: `selection` writes every completed pick, `apply` stages until the Apply button, and
+  `manual` now really **stages** too — a click no longer writes the input or fires `select` /
+  `change`; nothing is committed until the app calls `apply()`, and `close()` / Escape / an
+  outside click discard the staged pick. Closing has its own options: new
+  **`should-close-on-select`** (default `true`; `selection` mode),
+  new **`should-close-on-outside-click`** (default `true`, `false` in `manual` unless set; also
+  covers the modal backdrop) and the existing `should-close-on-scroll`. Escape and `close()`
+  always close. The booking.com flow (written immediately, stays open to adjust) is
+  `commit-mode="selection" should-close-on-select="false"`. Migrating a `manual` picker that
+  relied on clicks being written: use `should-close-on-select="false"` instead. The engine's
+  `requiresApplyButton()` is now `stagesSelection()`.
 - **BREAKING** — `display-format-mask` → **`placeholder-format-mask`** and
   `display-time-format-mask` → **`placeholder-time-format-mask`** (properties
   `placeholderFormatMask` / `placeholderTimeFormatMask`; the engine options

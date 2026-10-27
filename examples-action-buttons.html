@@ -45,11 +45,11 @@
 
     <div class="grid">
       <div class="form-group">
-        <label>No Buttons (Manual Close Only)</label>
-        <small>commit-mode="manual" is-today-button-shown="false" is-clear-button-shown="false"</small>
+        <label>No Buttons (stays open after a pick)</label>
+        <small>should-close-on-select="false" is-today-button-shown="false" is-clear-button-shown="false"</small>
         <web-daterangepicker
           selection-mode="range"
-          commit-mode="manual"
+          should-close-on-select="false"
           is-today-button-shown="false"
           is-clear-button-shown="false">
         </web-daterangepicker>
@@ -175,12 +175,12 @@
   <!-- 2. Auto-Close Control -->
   <div class="card">
     <h2>AB03 · Commit Mode (when the pick commits &amp; the calendar closes)</h2>
-    <p>The <code>commit-mode</code> attribute governs how a selection is committed and the calendar dismissed — it merges the old <code>auto-close</code> and <code>is-apply-button-shown</code> into one axis.</p>
+    <p>The <code>commit-mode</code> attribute governs how a selection is <strong>committed</strong> (written to the input, <code>select</code> / <code>change</code> fired). Closing is a separate axis: <code>should-close-on-select</code>, <code>should-close-on-outside-click</code> and <code>should-close-on-scroll</code>; Escape and <code>close()</code> always close, and closing discards a staged (not yet applied) pick.</p>
 
     <div class="grid">
       <div class="form-group">
         <label>commit-mode="manual" (App-Driven)</label>
-        <small>Never auto-commits or auto-closes, and shows no built-in Apply button — you drive close via your own buttons</small>
+        <small>Picks are only staged — nothing is written until the app calls <code>apply()</code> (here the custom "Done" button). No built-in Apply button; an outside click doesn't close (Escape does, discarding the staged pick)</small>
         <div class="field-row">
           <web-daterangepicker
             class="field-grow"
@@ -205,6 +205,22 @@
             commit-mode="selection">
           </web-daterangepicker>
           <button class="clear-btn" onclick="clearPicker('commit-selection')" title="Clear selection">&times;</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>commit-mode="selection" should-close-on-select="false" (booking.com flow)</label>
+        <small>Every completed pick is written immediately (select / change fire), but the calendar stays open so the guest can adjust the dates. Escape / outside click closes, keeping the value.</small>
+        <div class="field-row">
+          <web-daterangepicker
+            class="field-grow"
+            id="commit-booking"
+            selection-mode="range"
+            visible-months-count="2"
+            commit-mode="selection"
+            should-close-on-select="false">
+          </web-daterangepicker>
+          <button class="clear-btn" onclick="clearPicker('commit-booking')" title="Clear selection">&times;</button>
         </div>
       </div>
 
@@ -1099,6 +1115,10 @@ picker.addEventListener(<span class="string">'action'</span>, (e) <span class="k
     await customElements.whenDefined('web-daterangepicker');
 
     // Clear picker function for commit-mode examples
+    document.querySelector('#commit-manual').actionButtons = [
+      { id: 'done', text: 'Done', onClick: ({ controller }) => controller.apply() }
+    ];
+
     window.clearPicker = (id) => {
       document.querySelector(`#${id}`)?.clearSelection();
     };

@@ -115,7 +115,9 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `weekday-names` | `string[]` | — | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rolling-year-range` | `string \| null` | — | Constrains the rolling year selector (e.g. `-5:+5` or absolute years). |
 | `rolling-month-range` | `string \| null` | — | Constrains the rolling month selector. |
-| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | — | How a selection is committed + the calendar dismissed: `selection` (commit & close on pick), `apply` (Apply button commits), or `manual` (app-driven, no built-in button). |
+| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | — | How a selection is COMMITTED (written + `select`/`change`): `selection` — every completed pick is written; `apply` — picks are staged until the Apply button; `manual` — picks are only staged until the app calls `apply()` (no built-in button). Closing is separate: `should-close-on-select`, `should-close-on-outside-click`, `should-close-on-scroll`; closing without `apply()` discards a staged pick. Default `selection` (`apply` for time/datetime and `multiple`). |
+| `should-close-on-select` | `boolean \| null` | — | Close the calendar when a pick completes in `commit-mode="selection"` (default true). `false` keeps it open to adjust while every pick is still written — the booking.com flow. No effect in `apply` / `manual` (Apply / the app closes). |
+| `should-close-on-outside-click` | `boolean \| null` | — | Close the floating calendar on a click outside it (the modal on a backdrop click). Default true — false when `commit-mode="manual"` unless set explicitly. A staged pick is discarded on close. Escape and `close()` always close. |
 | `should-close-on-scroll` | `boolean \| null` | — | Close the floating calendar when the page scrolls. |
 | `is-today-button-shown` | `boolean \| null` | — | Show the “Today” action button. |
 | `is-clear-button-shown` | `boolean \| null` | — | Show the “Clear” action button. |
@@ -382,7 +384,7 @@ reachable from the element; `el.picker` was removed.)
 | `selectToday()` | `() => void` | Select today (and the current time in datetime mode) |
 | `selectNow()` | `() => void` | Select the current time (time / datetime modes) |
 | `clearSelection()` | `() => void` | Clear the selection |
-| `apply()` | `() => void` | Commit a pending selection (Apply / `commit-mode="apply"`) |
+| `apply()` | `() => void` | Commit a staged selection (the Apply button in `commit-mode="apply"`; the app in `commit-mode="manual"`) |
 | `open()` / `close()` / `toggle()` | `() => void` | Drive the popover |
 | `setPresentation(next)` | `('floating' \| 'modal' \| 'fullscreen') => void` | Swap the presentation in place (selection preserved) |
 | `prevMonth(monthIndex?)` / `nextMonth(monthIndex?)` | `(monthIndex?: number) => void` | Step a month column (default: the active one) |
@@ -524,6 +526,35 @@ picker.onSelect = (detail) => console.log('Selected:', detail.formattedValue);
 picker.onAction = (detail) => console.log('Action:', detail.action, detail.id, detail.dataset);
 
 picker.onSelect = null; // detach
+```
+
+### Commit vs. close
+
+Two separate axes. `commit-mode` decides when a pick is **committed** (written to the
+input + `select` / `change`):
+
+| `commit-mode` | A completed pick… | Commit path |
+|---|---|---|
+| `selection` (date default) | is written immediately | every pick |
+| `apply` (time / datetime / `multiple` default) | is staged | the built-in Apply button |
+| `manual` | is staged | the app calls `apply()` (e.g. a custom action button); no built-in button |
+
+Closing is configured on its own:
+
+| Attribute | Default | Closes when… |
+|---|---|---|
+| `should-close-on-select` | `true` | a pick completes (`commit-mode="selection"` only) |
+| `should-close-on-outside-click` | `true` (`false` in `commit-mode="manual"` unless set) | a click lands outside the floating calendar / on the modal backdrop |
+| `should-close-on-scroll` | `true` | the page scrolls (floating; never while a pick is staged) |
+
+Escape and `close()` always close. Closing without `apply()` discards a staged pick.
+
+The booking.com flow — every pick is written right away, but the calendar stays open so the
+dates can be adjusted:
+
+```html
+<web-daterangepicker selection-mode="range" visible-months-count="2"
+  commit-mode="selection" should-close-on-select="false"></web-daterangepicker>
 ```
 
 ### Action Buttons
@@ -1576,7 +1607,9 @@ The web component provides convenient property accessors for JavaScript:
 | `weekdayNames` | `string[]` | Read/Write | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rollingYearRange` | `string \| null` | Read/Write | Constrains the rolling year selector (e.g. `-5:+5` or absolute years). |
 | `rollingMonthRange` | `string \| null` | Read/Write | Constrains the rolling month selector. |
-| `commitMode` | `'selection' \| 'apply' \| 'manual'` | Read/Write | How a selection is committed + the calendar dismissed: `selection` (commit & close on pick), `apply` (Apply button commits), or `manual` (app-driven, no built-in button). |
+| `commitMode` | `'selection' \| 'apply' \| 'manual'` | Read/Write | How a selection is COMMITTED (written + `select`/`change`): `selection` — every completed pick is written; `apply` — picks are staged until the Apply button; `manual` — picks are only staged until the app calls `apply()` (no built-in button). Closing is separate: `should-close-on-select`, `should-close-on-outside-click`, `should-close-on-scroll`; closing without `apply()` discards a staged pick. Default `selection` (`apply` for time/datetime and `multiple`). |
+| `shouldCloseOnSelect` | `boolean \| null` | Read/Write | Close the calendar when a pick completes in `commit-mode="selection"` (default true). `false` keeps it open to adjust while every pick is still written — the booking.com flow. No effect in `apply` / `manual` (Apply / the app closes). |
+| `shouldCloseOnOutsideClick` | `boolean \| null` | Read/Write | Close the floating calendar on a click outside it (the modal on a backdrop click). Default true — false when `commit-mode="manual"` unless set explicitly. A staged pick is discarded on close. Escape and `close()` always close. |
 | `shouldCloseOnScroll` | `boolean \| null` | Read/Write | Close the floating calendar when the page scrolls. |
 | `isTodayButtonShown` | `boolean \| null` | Read/Write | Show the “Today” action button. |
 | `isClearButtonShown` | `boolean \| null` | Read/Write | Show the “Clear” action button. |

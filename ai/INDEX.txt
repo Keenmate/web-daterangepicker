@@ -95,6 +95,7 @@ button icons, font awesome → action-buttons.txt
 preset ranges, quick select → action-buttons.txt
 last week, this month, quarter → action-buttons.txt
 commit-mode behavior → action-buttons.txt
+should-close-on-select, should-close-on-outside-click (close options) → action-buttons.txt
 
 POSITIONING & LAYOUT
 --------------------

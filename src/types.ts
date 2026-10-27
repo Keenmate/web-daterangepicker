@@ -329,20 +329,36 @@ export interface DatePickerOptions {
   fullscreenInput?: boolean;
 
   /**
-   * How a selection is committed and the calendar dismissed (floating mode only).
-   * Merges the old `autoClose` + `isApplyButtonShown` into one axis.
-   * Default: `selection` for date mode; `apply` for time/datetime and multiple mode.
+   * How a selection is COMMITTED (written to the input, `select` / `change` fired).
+   * Closing is a separate axis — see `shouldCloseOnSelect`, `shouldCloseOnOutsideClick`,
+   * `shouldCloseOnScroll`. Default: `selection` for date mode; `apply` for time/datetime
+   * and multiple mode.
    *
-   * - `selection` — commit and close as soon as a selection completes (single click,
-   *   range completion, drag-adjust). No Apply button. Multiple mode can't use this
-   *   (it collects several dates), so it falls back to `apply`.
-   * - `apply` — render an Apply button; the selection is staged until it's clicked,
-   *   which commits the value and closes.
-   * - `manual` — never auto-commit or auto-close, and render no built-in Apply button.
-   *   The app drives commit/close itself via custom action buttons (ActionButton.onClick
-   *   calling `apply()` / `close()`).
+   * - `selection` — a completed pick (single click, range completion, drag-adjust) is
+   *   written immediately. Closes on it unless `shouldCloseOnSelect: false`.
+   * - `apply` — render an Apply button; picks are staged until it's clicked, which
+   *   commits the value and closes.
+   * - `manual` — picks are only STAGED; nothing is written until the app calls
+   *   `apply()` (e.g. from a custom action button). No built-in Apply button.
+   *
+   * In `apply` / `manual`, closing without `apply()` (`close()`, Escape, outside click)
+   * discards the staged pick.
    */
   commitMode?: 'selection' | 'apply' | 'manual';
+
+  /**
+   * Close the calendar when a pick completes in `commitMode: 'selection'`. Default `true`.
+   * `false` keeps it open to adjust — the value is still written on every pick (the
+   * booking.com flow). No effect in `apply` / `manual` (Apply / the app closes).
+   */
+  shouldCloseOnSelect?: boolean;
+
+  /**
+   * Close the floating calendar on a click outside it (and the modal on a backdrop
+   * click). Default `true` — `false` when `commitMode` is `manual` unless set explicitly.
+   * A staged pick is discarded on close. Escape and `close()` always close.
+   */
+  shouldCloseOnOutsideClick?: boolean | null;
 
   /**
    * Controls whether the calendar closes when user scrolls the page (floating mode only)

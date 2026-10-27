@@ -186,14 +186,16 @@ test.describe('Apply button (range mode)', () => {
 // commit-mode="manual"
 // =============================================================================
 
-test('commit-mode="manual": single mode does NOT close after selecting a day', async ({ page }) => {
+test('commit-mode="manual": a single-mode pick only stages — the picker stays open, nothing is written', async ({ page }) => {
     const p = await open(page, 'single-never');
 
     await dayByDate(p, '2026-06-20').click();
 
-    // Value committed, but picker stays open.
-    await expect(inputOf(p)).toHaveValue('2026-06-20');
+    // Staged (the day shows selected), not committed: the input stays empty, picker open.
+    await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp__day--selected/);
+    await expect(inputOf(p)).toHaveValue('');
     await expect(calendarOf(p)).toBeVisible();
+    await expect(page.getByTestId('selection-modes-log')).toHaveText('');
 });
 
 test.describe('commit-mode="manual" (range, app-driven commit)', () => {
@@ -208,12 +210,45 @@ test.describe('commit-mode="manual" (range, app-driven commit)', () => {
         await expect(p.locator('.drp__button[data-id="done"]')).toBeVisible();
     });
 
-    test('nothing is committed (no select/change) until the app calls controller.apply()', async ({ page }) => {
-        test.fail(true, 'FINDINGS.md #22');
+    test('nothing is committed (no select/change) until the app calls controller.apply() (FINDINGS #22)', async ({ page }) => {
         const p = await open(page, 'range-manual');
         await dayByDate(p, '2026-06-10').click();
         await dayByDate(p, '2026-06-12').click();
         await page.waitForTimeout(100);
+        await expect(log(page)).toHaveText('');
+        await expect(inputOf(p)).toHaveValue('');
+    });
+
+    test('an outside click does not close by default (manual); Escape closes and discards the staged range', async ({ page }) => {
+        const p = await open(page, 'range-manual');
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-12').click();
+        await page.mouse.click(5, 5);
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+
+        await page.keyboard.press('Escape');
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+        await expect(inputOf(p)).toHaveValue('');
+        expect(await p.evaluate((el: any) => el.selectedRanges)).toEqual([]);
+        await expect(log(page)).toHaveText('');
+    });
+
+    test('close() discards the staged range', async ({ page }) => {
+        const p = await open(page, 'range-manual');
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-12').click();
+        await p.evaluate((el: any) => el.close());
+        await expect(inputOf(p)).toHaveValue('');
+        expect(await p.evaluate((el: any) => el.selectedStartDate)).toBeNull();
+    });
+
+    test('should-close-on-outside-click="true" overrides the manual default: closes and discards', async ({ page }) => {
+        const p = await open(page, 'range-manual-outside');
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-12').click();
+        await page.mouse.click(5, 5);
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+        await expect(inputOf(p)).toHaveValue('');
         await expect(log(page)).toHaveText('');
     });
 
@@ -226,4 +261,50 @@ test.describe('commit-mode="manual" (range, app-driven commit)', () => {
         await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
         await expect(log(page)).toContainText('select:range-manual:2026-06-10 - 2026-06-12');
     });
+});
+
+// =============================================================================
+// close options (separate from commit-mode)
+// =============================================================================
+
+test.describe('booking.com flow: commit-mode="selection" should-close-on-select="false"', () => {
+    const log = (page: Page) => page.getByTestId('selection-modes-log');
+
+    test('every completed range is written immediately and the calendar stays open to adjust', async ({ page }) => {
+        const p = await open(page, 'range-booking');
+        await dayByDate(p, '2026-06-10').click();
+        await dayByDate(p, '2026-06-12').click();
+        await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
+        await expect(log(page)).toContainText('select:range-booking:2026-06-10 - 2026-06-12');
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+
+        // Adjust: a new pick replaces the value, still open.
+        await dayByDate(p, '2026-06-11').click();
+        await dayByDate(p, '2026-06-14').click();
+        await expect(inputOf(p)).toHaveValue('2026-06-11 - 2026-06-14');
+        await expect(log(page)).toContainText('select:range-booking:2026-06-11 - 2026-06-14');
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+
+        // Closing keeps the committed value (nothing is staged).
+        await page.keyboard.press('Escape');
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+        await expect(inputOf(p)).toHaveValue('2026-06-11 - 2026-06-14');
+    });
+});
+
+test('should-close-on-outside-click="false": an outside click leaves the calendar open; Escape still closes', async ({ page }) => {
+    const p = await open(page, 'single-outside-off');
+    await page.mouse.click(5, 5);
+    await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
+    await page.keyboard.press('Escape');
+    await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
+});
+
+test('should-close-on-select can be toggled at runtime', async ({ page }) => {
+    const p = pickerById(page, 'single');
+    await p.evaluate((el: any) => { el.setAttribute('should-close-on-select', 'false'); return el.whenSettled(); });
+    await inputOf(p).click();
+    await dayByDate(p, '2026-06-20').click();
+    await expect(inputOf(p)).toHaveValue('2026-06-20');
+    await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
 });

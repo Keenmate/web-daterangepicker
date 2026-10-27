@@ -283,6 +283,8 @@ class DateRangePickerEngine {
             isDisabledMember: options.isDisabledMember,
             commitMode: options.commitMode || 'selection',
             shouldCloseOnScroll: options.shouldCloseOnScroll ?? true,
+            shouldCloseOnSelect: options.shouldCloseOnSelect ?? true,
+            shouldCloseOnOutsideClick: options.shouldCloseOnOutsideClick ?? null,
             actionButtons: options.actionButtons,
             isTodayButtonShown: options.isTodayButtonShown ?? true,
             isClearButtonShown: options.isClearButtonShown ?? true,
@@ -561,7 +563,7 @@ class DateRangePickerEngine {
                 }
 
                 // Don't close if Apply button is required (user needs to explicitly apply/cancel)
-                if (this.requiresApplyButton()) {
+                if (this.stagesSelection()) {
                     drpLogger.debug('Window scroll detected - NOT closing (Apply button required)');
                     return;
                 }
@@ -589,7 +591,7 @@ class DateRangePickerEngine {
                 return;
             }
 
-            if (this.presentation === 'floating') {
+            if (this.presentation === 'floating' && this.closesOnOutsideClick()) {
                 // Floating mode: close entire calendar
                 this.close();
             } else {
@@ -1184,23 +1186,30 @@ class DateRangePickerEngine {
     }
 
     /**
-     * Determine if events/callbacks should be deferred until Apply button click
-     * @returns true if Apply button is required and events should be deferred
+     * Whether a pick only STAGES the selection (nothing written, no `select` /
+     * `change`) until `apply()` commits it: `commitMode` `apply` (the Apply button
+     * calls it) and `manual` (the app calls it). Closing discards a staged pick.
      */
-    requiresApplyButton(): boolean {
-        // Only defer selection commitment in `apply` commit mode.
-        return this.options.commitMode === 'apply';
+    stagesSelection(): boolean {
+        return this.options.commitMode === 'apply' || this.options.commitMode === 'manual';
     }
 
     /**
-     * Determine if calendar should auto-close after selection
-     * @returns true if calendar should auto-close
+     * Whether a completed pick closes the calendar: `commitMode: 'selection'` with
+     * `shouldCloseOnSelect` (default true). Multiple mode never closes on a pick.
      */
     shouldAutoClose(): boolean {
-        // Multiple mode never auto-closes on selection (inherently requires Apply or manual close)
         if (this.options.selectionMode === 'multiple') return false;
+        return this.options.commitMode === 'selection' && this.options.shouldCloseOnSelect !== false;
+    }
 
-        return this.options.commitMode === 'selection';
+    /**
+     * Whether a click outside the floating calendar (or on the modal backdrop)
+     * closes it: `shouldCloseOnOutsideClick` when set, otherwise true — except in
+     * `commitMode: 'manual'`, where the app owns closing (default false).
+     */
+    closesOnOutsideClick(): boolean {
+        return this.options.shouldCloseOnOutsideClick ?? this.options.commitMode !== 'manual';
     }
 
     createCalendar() {
@@ -2528,7 +2537,7 @@ class DateRangePickerEngine {
             this._selectedEndDate = new Date(last.end);
 
             // Update input value for range mode
-            if (this.input && !this.requiresApplyButton()) {
+            if (this.input && !this.stagesSelection()) {
                 this.input.value = this._selectedRanges.length > 1
                     ? this._selectedRanges.map(r => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`).join(', ')
                     : `${this.formatDate(this._selectedStartDate)} - ${this.formatDate(this._selectedEndDate)}`;
@@ -2538,7 +2547,7 @@ class DateRangePickerEngine {
             // leaving it empty made the next open() re-sync from '' and wipe the
             // assigned selection (FINDINGS #25).
             this.writeMultipleInputText();
-        } else if (this.input && !this.requiresApplyButton()) {
+        } else if (this.input && !this.stagesSelection()) {
             // Clear input if no ranges or not in range mode
             this.input.value = '';
         }

@@ -121,7 +121,7 @@ function commitSelection(picker: any) {
  * on Apply (in which case the value is shown after the user clicks Apply).
  */
 export function commitInputValue(picker: any, value: string) {
-    if (picker.input && !picker.requiresApplyButton()) {
+    if (picker.input && !picker.stagesSelection()) {
         picker.input.value = value;
     }
 }
@@ -370,7 +370,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         const payload = picker.options.pickerMode === 'datetime' ? picker.selectedDatetime : finalDate;
 
         // Defer onSelect callback if Apply button is required
-        if (picker.requiresApplyButton()) {
+        if (picker.stagesSelection()) {
             picker.pendingSelection = payload;
         } else {
             if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(payload));
@@ -473,7 +473,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 
             // Defer onSelect callback if Apply button is required. A multi-range
             // result is delivered as the DateRange[] array; a plain range as {start,end}.
-            if (picker.requiresApplyButton()) {
+            if (picker.stagesSelection()) {
                 picker.pendingSelection = selection;
             } else {
                 if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(selection));
@@ -514,7 +514,7 @@ export function selectToday(picker: any) {
     commitInputValue(picker, picker.formatDate(picker._selectedDate));
 
     // Defer onSelect callback if Apply button is required
-    if (picker.requiresApplyButton()) {
+    if (picker.stagesSelection()) {
         picker.pendingSelection = payload;
     } else {
         if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(payload));
@@ -585,7 +585,7 @@ function commitTimeSelection(picker: any) {
     commitInputValue(picker, formatted);
     // onSelect receives the composed Date when the picker has time semantics.
     const payload = picker.selectedDatetime;
-    if (picker.requiresApplyButton()) {
+    if (picker.stagesSelection()) {
         picker.pendingSelection = payload;
     } else if (picker.options.onSelect) {
         picker.options.onSelect(picker.buildSelectDetail(payload));
@@ -954,7 +954,7 @@ export function apply(picker: any) {
     // Apply commits the selection — clear any pinned summary override.
     picker.summaryOverride = null;
     // Always update input if dates are selected (handles custom buttons, programmatic setting).
-    // Bypasses the requiresApplyButton gate — this is the Apply action itself.
+    // Bypasses the staging gate — this is the Apply action itself.
     if (picker.input) {
         const formatted = formatInputValue(picker);
         if (formatted !== null) picker.input.value = formatted;

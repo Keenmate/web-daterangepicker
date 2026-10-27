@@ -374,7 +374,7 @@ export async function onDragEnd(picker: any, event: PointerEvent) {
 
             // Defer onSelect callback if Apply button is required. A multi-range
             // result is delivered as the DateRange[] array; a plain range as {start,end}.
-            if (picker.requiresApplyButton()) {
+            if (picker.stagesSelection()) {
                 picker.pendingSelection = selection;
             } else {
                 if (picker.options.onSelect) {
@@ -984,7 +984,7 @@ async function commitTypedRange(picker: any) {
         if (!validation.message) hideMessage(picker);
         commitInputValue(picker, formatRangeInput(picker));
 
-        if (picker.requiresApplyButton()) {
+        if (picker.stagesSelection()) {
             picker.pendingSelection = selection;
         } else if (picker.options.onSelect) {
             picker.options.onSelect(picker.buildSelectDetail(selection));

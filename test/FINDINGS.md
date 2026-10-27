@@ -281,7 +281,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     returns the selection (`[{ start, end }]` for a plain click range; independent / `split`
     pieces all of them). `e2e/disabled-handling.spec.ts` (3 tests).
 
-22. **DRP-10 — `commit-mode="manual"` commits on every pick (docs say it never does).**
+22. **~~DRP-10 — `commit-mode="manual"` commits on every pick (docs say it never does).~~** ✅ FIXED
     `src/types.ts` / CHANGELOG 2.0: "`manual` — never auto-commit or auto-close … the app
     drives commit/close via custom action buttons calling `apply()` / `close()`". Actual:
     `requiresApplyButton()` is true only for `apply`, so in `manual` mode every pick writes
@@ -291,6 +291,14 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     stage like `apply` (just without the button), or commit-without-close (then fix the
     docs)? Pinned by `selection-modes.spec.ts` "nothing is committed … until the app calls
     controller.apply()".
+    **Fixed (2026-10-27, user decision):** commit and close are separate axes. `manual` stages
+    like `apply` (engine `stagesSelection()`, was `requiresApplyButton()`), just without the
+    button; `close()` / Escape / outside click discard the staged pick. Close options: new
+    `should-close-on-select` (default true, `selection` mode) and `should-close-on-outside-click`
+    (default true; false in `manual` unless set; also the modal backdrop), plus
+    `should-close-on-scroll`. Commit-without-close (booking.com) =
+    `commit-mode="selection" should-close-on-select="false"`. Unpinned; the old "single mode does
+    NOT close" test now asserts the pick is only staged; 6 new specs.
 
 23. **~~DRP-11 — stray `console.log('[wheel] commit', …)` in production code.~~** ✅ FIXED
     Where: `src/date-picker-selection.ts` `commitWheelScroll()`. Every wheel commit logs an

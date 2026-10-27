@@ -108,6 +108,8 @@ function ensureModalBackdrop(picker: any): HTMLElement {
     backdrop.addEventListener('click', (e) => {
         if (e.target !== backdrop || !pressedOnBackdrop) return;
         pressedOnBackdrop = false;
+        // The backdrop is the modal's "outside" — same switch as the floating outside click.
+        if (!picker.closesOnOutsideClick()) return;
         uiLogger.debug('Backdrop pressed - closing modal');
         close(picker);
     });
@@ -151,7 +153,7 @@ export function open(picker: any) {
     uiLogger.debug('open() - adding visible class');
 
     // Store original input value if Apply button is required (for restore on close without Apply)
-    if (picker.requiresApplyButton() && picker.input) {
+    if (picker.stagesSelection() && picker.input) {
         picker.originalInputValue = picker.input.value;
         uiLogger.debug('open() - stored original input value:', picker.originalInputValue);
     }
@@ -601,7 +603,7 @@ export function close(picker: any) {
     picker.hoverPreviewEnd = null;
 
     // Restore original input value and selection state if closed without Apply
-    if (picker.requiresApplyButton() && picker.pendingSelection && picker.input) {
+    if (picker.stagesSelection() && picker.pendingSelection && picker.input) {
         uiLogger.debug('close() - restoring original input value:', picker.originalInputValue);
         // Restore input value
         if (picker.originalInputValue !== null) {

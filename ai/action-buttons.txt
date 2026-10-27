@@ -23,9 +23,10 @@ Control visibility of the defaults:
 The Apply button is not toggled directly. It is rendered when
 commit-mode="apply" (see below) and omitted for 'selection' and 'manual'.
 
-COMMIT-MODE CONTROL
--------------------
-Control how a selection is committed and when the calendar closes:
+COMMIT-MODE CONTROL (commit) + CLOSE OPTIONS (close)
+----------------------------------------------------
+Two separate axes. commit-mode = when a pick is COMMITTED (written to the
+input, select/change fired):
 
 <!-- Web Component -->
 <web-daterangepicker
@@ -33,15 +34,27 @@ Control how a selection is committed and when the calendar closes:
 </web-daterangepicker>
 
 Modes:
-- 'selection' - Commit and close as soon as the pick completes (single
-                click, range completion, drag-adjust). No Apply button.
+- 'selection' - Every completed pick (single click, range completion,
+                drag-adjust) is written immediately. No Apply button.
                 Default for date mode. (Not available in 'multiple' mode.)
-- 'apply'     - Render an Apply button; the pick is staged until Apply is
+- 'apply'     - Render an Apply button; picks are staged until Apply is
                 clicked, which commits and closes. Default for time/datetime
                 and for 'multiple' selection mode.
-- 'manual'    - Never auto-commit or auto-close, and render no built-in Apply
-                button. The app drives commit/close via custom action buttons
-                (onClick: (d) => { d.controller.apply(); d.controller.close(); }).
+- 'manual'    - Picks are only STAGED; nothing is written until the app calls
+                apply() (e.g. onClick: (d) => d.controller.apply()). No built-in
+                Apply button.
+
+Close options:
+- should-close-on-select        default true; closes when a pick completes
+                                (commit-mode="selection" only)
+- should-close-on-outside-click default true; false when commit-mode="manual"
+                                unless set explicitly
+- should-close-on-scroll        default true (floating)
+Escape and close() always close. Closing without apply() discards a staged pick.
+
+booking.com flow (written immediately, calendar stays open to adjust):
+<web-daterangepicker selection-mode="range"
+  commit-mode="selection" should-close-on-select="false"></web-daterangepicker>
 
 CUSTOM ACTION BUTTONS
 ---------------------

@@ -123,7 +123,9 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
   { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toText({ isNullable: true }), on: 'update', description: 'Constrains the rolling year selector (e.g. `-5:+5` or absolute years).' },
   { configKey: 'rollingMonthRange',            attribute: 'rolling-month-range',           converter: toText({ isNullable: true }), on: 'update', description: 'Constrains the rolling month selector.' },
-  { configKey: 'commitMode',                   attribute: 'commit-mode',                   converter: toEnum(COMMIT_MODE), on: 'update', description: 'How a selection is committed + the calendar dismissed: `selection` (commit & close on pick), `apply` (Apply button commits), or `manual` (app-driven, no built-in button).' },
+  { configKey: 'commitMode',                   attribute: 'commit-mode',                   converter: toEnum(COMMIT_MODE), on: 'update', description: 'How a selection is COMMITTED (written + `select`/`change`): `selection` — every completed pick is written; `apply` — picks are staged until the Apply button; `manual` — picks are only staged until the app calls `apply()` (no built-in button). Closing is separate: `should-close-on-select`, `should-close-on-outside-click`, `should-close-on-scroll`; closing without `apply()` discards a staged pick. Default `selection` (`apply` for time/datetime and `multiple`).' },
+  { configKey: 'shouldCloseOnSelect',          attribute: 'should-close-on-select',        converter: toBool('tristate'), on: 'update', description: 'Close the calendar when a pick completes in `commit-mode="selection"` (default true). `false` keeps it open to adjust while every pick is still written — the booking.com flow. No effect in `apply` / `manual` (Apply / the app closes).' },
+  { configKey: 'shouldCloseOnOutsideClick',    attribute: 'should-close-on-outside-click', converter: toBool('tristate'), on: 'update', description: 'Close the floating calendar on a click outside it (the modal on a backdrop click). Default true — false when `commit-mode="manual"` unless set explicitly. A staged pick is discarded on close. Escape and `close()` always close.' },
   { configKey: 'shouldCloseOnScroll',          attribute: 'should-close-on-scroll',        converter: toBool('tristate'), on: 'update', description: 'Close the floating calendar when the page scrolls.' },
   { configKey: 'isTodayButtonShown',           attribute: 'is-today-button-shown',         converter: toBool('tristate'), on: 'update', description: 'Show the “Today” action button.' },
   { configKey: 'isClearButtonShown',           attribute: 'is-clear-button-shown',         converter: toBool('tristate'), on: 'update', description: 'Show the “Clear” action button.' },
@@ -595,7 +597,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
     const picker = this.#picker;
     // Deferred until Apply — don't fire yet (apply() re-invokes onSelect later).
-    if (picker && picker.requiresApplyButton() && picker.hasPendingSelection) return;
+    if (picker && picker.stagesSelection() && picker.hasPendingSelection) return;
 
     // `detail` is the canonical payload the core built via buildSelectDetail() — the
     // SAME object the public `onSelect` callback receives (date(s)/range(s) plus the

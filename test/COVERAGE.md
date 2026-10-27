@@ -27,7 +27,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `commitMode`: `'selection'` (default) / `'apply'` / `'manual'`  | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `commit-mode="manual"`: no close, no Apply; custom button → `controller.apply()` commits | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
-| `commit-mode="manual"`: nothing commits before `apply()` (FINDINGS #22) | ✗ test.fail | `selection-modes.spec.ts` | `selection-modes.html` |
+| `commit-mode="manual"`: picks only stage — nothing written / no events before `apply()` (FINDINGS #22, fixed) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `commit-mode="manual"`: outside click doesn't close by default; Escape / `close()` discard the staged pick | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `should-close-on-outside-click` (`false` in selection mode; `true` overriding the manual default) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `should-close-on-select="false"` — booking.com flow: written on every pick, stays open; runtime toggle | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 
 ## 2. Positioning modes
 
