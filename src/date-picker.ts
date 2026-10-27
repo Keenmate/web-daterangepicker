@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
+import type { ShowMessageOptions, DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -1196,7 +1196,7 @@ class DateRangePickerEngine {
 
     /**
      * Whether a pick only STAGES the selection (nothing written, no `select` /
-     * `change`) until `apply()` commits it: `commitMode` `apply` (the Apply button
+     * `change`) until `commit()` commits it: `commitMode` `apply` (the Apply button
      * calls it) and `manual` (the app calls it). Closing discards a staged pick.
      */
     stagesSelection(): boolean {
@@ -1422,7 +1422,7 @@ class DateRangePickerEngine {
         this.messageElement.className = 'drp__message';
         this.messageElement.innerHTML = `
             <span class="drp__message-text"></span>
-            <button class="drp__message-close" data-drp-action="close-message">&times;</button>
+            <button class="drp__message-close" data-drp-action="hide-message">&times;</button>
         `;
         this.calendar.appendChild(this.messageElement);
 
@@ -1603,7 +1603,7 @@ class DateRangePickerEngine {
             else if (action === 'unified-next') this.unifiedNextMonth();
             else if (action === 'toggle-rolling') this.toggleRollingSelector(monthIndex);
             else if (action === 'toggle-unified-rolling') this.toggleUnifiedRollingSelector();
-            else if (action === 'close-message') this.hideMessage();
+            else if (action === 'hide-message') this.hideMessage();
             else if (target.closest('[data-hour], [data-hour12]')) {
                 const el = target.closest('[data-hour], [data-hour12]') as HTMLElement;
                 if (el.dataset.hour !== undefined) {
@@ -2770,7 +2770,7 @@ class DateRangePickerEngine {
         if (action === 'today') this.selectToday();
         else if (action === 'now') this.selectNow();
         else if (action === 'clear') this.clearSelection();
-        else if (action === 'apply') this.apply();
+        else if (action === 'apply') this.commit();
     }
 
     /**
@@ -2965,15 +2965,14 @@ class DateRangePickerEngine {
     hideTooltip() { return UI.hideTooltip(this); }
     /** Bumped by every public showMessage — lets beforeSelectCallback detect a message the consumer showed. */
     messageSeq = 0;
-    showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { this.messageSeq++; return UI.showMessage(this, content, type, autoHide); }
+    /** Show a message; `opts.type` styles it (omit for raw-HTML content), `opts.autoHideMs` hides it after that many ms. */
+    showMessage(content: string, opts?: ShowMessageOptions) { this.messageSeq++; return UI.showMessage(this, content, opts?.type, opts?.autoHideMs); }
     hideMessage() { return UI.hideMessage(this); }
-    toggleMessage(content?: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number) { return UI.toggleMessage(this, content, type, autoHide); }
     showSummary(content: string) { return UI.showSummary(this, content); }
     hideSummary() { return UI.hideSummary(this); }
     refreshSummary() { return Rendering.updateSummary(this); }
     showLoader(target?: LoaderTarget) { return UI.showLoader(this, target); }
     hideLoader(target?: LoaderTarget) { return UI.hideLoader(this, target); }
-    toggleLoader(target?: LoaderTarget) { return UI.toggleLoader(this, target); }
 
     // Lock methods - scoped read-only. lock()/unlock() with no arg act on every aspect.
     lock(aspects?: LockAspect | LockAspect[]) { return Lock.lock(this, aspects); }
@@ -3056,7 +3055,8 @@ class DateRangePickerEngine {
     async selectDay(dayElement: HTMLElement) { return await Selection.selectDay(this, dayElement); }
     selectToday() { return Selection.selectToday(this); }
     clearSelection() { return Selection.clearSelection(this); }
-    apply() { return Selection.apply(this); }
+    /** Commit the staged selection (what the Apply button / `commit-mode="manual"` app does). */
+    commit() { return Selection.commit(this); }
 
     /**
      * The engine's own facade (see {@link DateRangePickerController}), memoized.
@@ -3067,20 +3067,18 @@ class DateRangePickerEngine {
     getController(): DateRangePickerController {
         const picker = this;
         return (this._controller ??= {
-            getSelectedDate: () => picker.selectedDate,
-            getSelectedRange: () => {
-                const start = picker.selectedStartDate;
-                const end = picker.selectedEndDate;
-                return start && end ? { start, end } : null;
-            },
-            getSelectedRanges: () => picker.selectedRanges,
-            getSelectedDates: () => picker.selectedDates,
-            getSelectedDatetime: () => picker.selectedDatetime,
+            get selectedDate() { return picker.selectedDate; },
+            get selectedDates() { return picker.selectedDates; },
+            get selectedRanges() { return picker.selectedRanges; },
+            get selectedStartDate() { return picker.selectedStartDate; },
+            get selectedEndDate() { return picker.selectedEndDate; },
+            get selectedTime() { return picker.selectedTime; },
+            get selectedDatetime() { return picker.selectedDatetime; },
             get isOpen() { return picker.isOpen; },
             selectToday: () => { picker.selectToday(); },
             selectNow: () => { picker.selectNow(); },
             clearSelection: () => { picker.clearSelection(); },
-            apply: () => { picker.apply(); },
+            commit: () => { picker.commit(); },
             open: () => { picker.open(); },
             close: () => { picker.close(); },
             toggle: () => { picker.toggle(); },
@@ -3089,7 +3087,7 @@ class DateRangePickerEngine {
             nextMonth: (monthIndex = picker.activeMonthIndex) => { picker.nextMonth(monthIndex); },
             lock: (aspects) => { picker.lock(aspects); },
             unlock: (aspects) => { picker.unlock(aspects); },
-            showMessage: (content, opts) => { picker.showMessage(content, opts?.type, opts?.autoHideMs); },
+            showMessage: (content, opts) => { picker.showMessage(content, opts); },
             hideMessage: () => { picker.hideMessage(); },
             showSummary: (content) => { picker.showSummary(content); },
             hideSummary: () => { picker.hideSummary(); },

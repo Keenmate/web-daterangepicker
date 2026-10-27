@@ -27,17 +27,21 @@ export interface ShowMessageOptions {
  * the picker; the internal engine is not part of the public API.
  */
 export interface DateRangePickerController {
-  // ── read current selection ──────────────────────────────────────────────
+  // ── read current selection (read-only mirrors of the element's properties) ──
   /** The selected date (single mode), or null. */
-  getSelectedDate(): Date | null;
-  /** The selected range (`{start,end}`) derived from the current endpoints, or null. */
-  getSelectedRange(): DateRange | null;
-  /** All committed ranges (range mode; one entry for a simple range, N for split/multi-range). */
-  getSelectedRanges(): DateRange[];
-  /** The selected dates (multiple mode), or the enabled dates of a range under `individual`/`split`. */
-  getSelectedDates(): Date[];
+  readonly selectedDate: Date | null;
+  /** The selected dates (multiple mode). */
+  readonly selectedDates: Date[];
+  /** All committed ranges (range mode: one entry for a plain range, N for split / multi-range; multiple mode: its ranges). */
+  readonly selectedRanges: DateRange[];
+  /** Range start (the outer envelope), or null. */
+  readonly selectedStartDate: Date | null;
+  /** Range end (the outer envelope), or null. */
+  readonly selectedEndDate: Date | null;
+  /** The selected time (time / datetime modes), or null. */
+  readonly selectedTime: SelectedTime | null;
   /** The composed Date when the picker has time semantics (datetime mode), or null. */
-  getSelectedDatetime(): Date | null;
+  readonly selectedDatetime: Date | null;
   /** Whether the calendar popover is currently open (floating/modal modes). */
   readonly isOpen: boolean;
 
@@ -48,8 +52,8 @@ export interface DateRangePickerController {
   selectNow(): void;
   /** Clear the current selection. */
   clearSelection(): void;
-  /** Commit a pending selection (Apply / `commit-mode="apply"`). */
-  apply(): void;
+  /** Commit the staged selection (what Apply does; the app's call in `commit-mode="manual"`). */
+  commit(): void;
 
   // ── drive the calendar ──────────────────────────────────────────────────
   open(): void;
@@ -82,7 +86,7 @@ export interface DateRangePickerController {
 }
 
 /**
- * Where a loader (spinner) is mounted by showLoader()/hideLoader()/toggleLoader().
+ * Where a loader (spinner) is mounted by showLoader()/hideLoader().
  * - 'calendar' (default): full-calendar overlay
  * - 'message': in-block spinner inside the message area
  * - 'summary': in-block spinner inside the range summary area
@@ -349,9 +353,9 @@ export interface DatePickerOptions {
    * - `apply` — render an Apply button; picks are staged until it's clicked, which
    *   commits the value and closes.
    * - `manual` — picks are only STAGED; nothing is written until the app calls
-   *   `apply()` (e.g. from a custom action button). No built-in Apply button.
+   *   `commit()` (e.g. from a custom action button). No built-in Apply button.
    *
-   * In `apply` / `manual`, closing without `apply()` (`close()`, Escape, outside click)
+   * In `apply` / `manual`, closing without `commit()` (`close()`, Escape, outside click)
    * discards the staged pick.
    */
   commitMode?: 'selection' | 'apply' | 'manual';

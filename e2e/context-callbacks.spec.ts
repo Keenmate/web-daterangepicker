@@ -75,9 +75,9 @@ test('order: beforeActionCallback → onClick → built-in → onAction → acti
         const log: string[] = [];
         const seen: any[] = [];
         el.beforeActionCallback = (d: any) => { log.push('before'); seen.push(d); };
-        el.onAction = (d: any) => { log.push('onAction:' + (el.controller.getSelectedDate() ? 'selected' : 'empty')); seen.push(d); };
+        el.onAction = (d: any) => { log.push('onAction:' + (el.controller.selectedDate ? 'selected' : 'empty')); seen.push(d); };
         el.addEventListener('action', (e: any) => {
-            log.push('event:' + (el.controller.getSelectedDate() ? 'selected' : 'empty'));
+            log.push('event:' + (el.controller.selectedDate ? 'selected' : 'empty'));
             seen.push(e.detail);
         });
         el.actionButtons = [{ action: 'today', onClick: (d: any) => { log.push('onClick'); seen.push(d); } }];
@@ -93,7 +93,7 @@ test('order: beforeActionCallback → onClick → built-in → onAction → acti
             hasController: typeof d.controller?.selectToday === 'function',
             elementIsHost: d.element === el,
             keys: Object.keys(d).sort(),
-            isSelectedAfter: !!el.controller.getSelectedDate(),
+            isSelectedAfter: !!el.controller.selectedDate,
         };
     });
     // The built-in (selectToday) runs BEFORE the event — onAction / the listener see the selection.
@@ -120,7 +120,7 @@ test('beforeActionCallback returning false (async) cancels onClick, the event an
         await el.whenSettled();
         el.shadowRoot.querySelector('.drp__button[data-action="today"]').click();
         await new Promise((r) => setTimeout(r, 50));
-        return { log, isSelected: !!el.controller.getSelectedDate() };
+        return { log, isSelected: !!el.controller.selectedDate };
     });
     expect(result.log).toEqual([]);
     expect(result.isSelected).toBe(false);
@@ -176,7 +176,7 @@ test('onChange receives the detail (same object as the change event), not the Cu
             hasDate: twin.date instanceof Date,
             composed: evt.composed,
             bubbles: evt.bubbles,
-            hasController: typeof twin.controller?.getSelectedDate === 'function',
+            hasController: typeof twin.controller?.commit === 'function' && 'selectedDate' in twin.controller,
         };
     });
     expect(result.isDetail).toBe(true);
@@ -207,9 +207,9 @@ test('beforeSelectCallback returning null clears the selection', async ({ page }
         root.querySelector('.drp__day[data-date="2026-06-10"]').click();
         root.querySelector('.drp__day[data-date="2026-06-12"]').click();
         await new Promise((r) => setTimeout(r, 100));
-        return el.controller.getSelectedRange();
+        return [el.controller.selectedStartDate, el.controller.selectedEndDate, el.controller.selectedRanges.length];
     });
-    expect(result).toBeNull();
+    expect(result).toEqual([null, null, 0]);
 });
 
 test('icon renders as a glyph before the label; isDanger adds the modifier; no internal data-* in dataset', async ({ page }) => {

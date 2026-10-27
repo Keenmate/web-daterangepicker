@@ -54,7 +54,7 @@ test('showMessage renders the message element with the configured type class', a
     await inputOf(p).click();
     await expect(calendarOf(p)).toBeVisible();
 
-    await p.evaluate((el: any) => el.showMessage('Heads up', 'warning'));
+    await p.evaluate((el: any) => el.showMessage('Heads up', { type: 'warning' }));
 
     const msg = p.locator('.drp__message');
     await expect(msg).toHaveClass(/drp__message--visible/);
@@ -66,7 +66,7 @@ test('hideMessage removes the --visible modifier', async ({ page }) => {
     const p = pickerById(page, 'messages');
 
     await inputOf(p).click();
-    await p.evaluate((el: any) => el.showMessage('Heads up', 'info'));
+    await p.evaluate((el: any) => el.showMessage('Heads up', { type: 'info' }));
     const msg = p.locator('.drp__message');
     await expect(msg).toHaveClass(/drp__message--visible/);
 
@@ -78,7 +78,7 @@ test('showMessage auto-hides after the supplied timeout', async ({ page }) => {
     const p = pickerById(page, 'messages');
 
     await inputOf(p).click();
-    await p.evaluate((el: any) => el.showMessage('Brief', 'info', 200));
+    await p.evaluate((el: any) => el.showMessage('Brief', { type: 'info', autoHideMs: 200 }));
 
     const msg = p.locator('.drp__message');
     await expect(msg).toHaveClass(/drp__message--visible/);
@@ -291,7 +291,7 @@ test.describe('setters keep the input and the form value in sync', () => {
 
     test('the value getter reads a just-written value attribute synchronously', async ({ page }) => {
         const p = pickerById(page, 'api-value');
-        const read = await p.evaluate((el: any) => { el.setAttribute('value', '2026-06-10'); return [el.value, el.getInputValue()]; });
+        const read = await p.evaluate((el: any) => { el.setAttribute('value', '2026-06-10'); return [el.value, el.value]; });
         expect(read).toEqual(['2026-06-10', '2026-06-10']);
     });
 });

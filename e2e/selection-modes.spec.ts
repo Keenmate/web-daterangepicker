@@ -210,7 +210,7 @@ test.describe('commit-mode="manual" (range, app-driven commit)', () => {
         await expect(p.locator('.drp__button[data-id="done"]')).toBeVisible();
     });
 
-    test('nothing is committed (no select/change) until the app calls controller.apply() (FINDINGS #22)', async ({ page }) => {
+    test('nothing is committed (no change) until the app calls controller.commit() (FINDINGS #22)', async ({ page }) => {
         const p = await open(page, 'range-manual');
         await dayByDate(p, '2026-06-10').click();
         await dayByDate(p, '2026-06-12').click();
@@ -252,7 +252,7 @@ test.describe('commit-mode="manual" (range, app-driven commit)', () => {
         await expect(log(page)).toHaveText('');
     });
 
-    test('controller.apply() (custom Done button) commits the range and closes', async ({ page }) => {
+    test('controller.commit() (custom Done button) commits the range and closes', async ({ page }) => {
         const p = await open(page, 'range-manual');
         await dayByDate(p, '2026-06-10').click();
         await dayByDate(p, '2026-06-12').click();

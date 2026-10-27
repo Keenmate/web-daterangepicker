@@ -45,6 +45,21 @@ One vocabulary across the KeenMate components (web-components-core naming pass, 
 - **New `open` / `close` events** (+ `onOpen` / `onClose` twins; engine options `onOpen` / `onClose`):
   the calendar popover opened / closed (any reason). Detail: the context (`controller`, `element`,
   presentation flags). Inline mode never fires them.
+- **BREAKING — `apply()` → `commit()`** (controller and engine; new on the element too): commits
+  the staged selection. The Apply button label, the `apply` action id and `commit-mode="apply"`
+  stay.
+- **BREAKING — `showMessage(content, { type, autoHideMs })`** on the element (was positional
+  `showMessage(content, type, autoHide)`; the controller already used the options form).
+  `toggleMessage()` and `toggleLoader()` are removed — use `showMessage()` / `hideMessage()` and
+  `showLoader()` / `hideLoader()`. The message's built-in ✕ uses the internal action
+  `hide-message` (was `close-message`).
+- **BREAKING — controller selection state is read-only properties named like the element's:**
+  `controller.selectedDate`, `selectedDates`, `selectedRanges`, `selectedStartDate`,
+  `selectedEndDate`, `selectedTime`, `selectedDatetime` replace `getSelectedDate()`,
+  `getSelectedDates()`, `getSelectedRanges()`, `getSelectedDatetime()` and `getSelectedRange()`
+  (use `selectedStartDate` / `selectedEndDate`).
+- **BREAKING — removed duplicate element methods:** `getInputValue()` / `setInputValue()` (use the
+  `value` property) and the deprecated `setMonthNames()` (use `monthNames`).
 
 ### Changed — standalone colors follow the contract
 

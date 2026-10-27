@@ -950,8 +950,8 @@ export function storeCommittedSnapshot(picker: any) {
     }
 }
 
-export function apply(picker: any) {
-    // Apply commits the selection — clear any pinned summary override.
+export function commit(picker: any) {
+    // Commit (the Apply button / app) writes the staged selection — clear any pinned summary override.
     picker.summaryOverride = null;
     // Always update input if dates are selected (handles custom buttons, programmatic setting).
     // Bypasses the staging gate — this is the Apply action itself.

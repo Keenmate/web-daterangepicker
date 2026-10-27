@@ -148,13 +148,13 @@ test('the value attribute is the initial selection', async ({ page }) => {
     expect(await formValue(page, 'fd')).toBe('2026-06-10/2026-06-14');
 });
 
-test('setting value / setInputValue() from JS leaves the value attribute unchanged', async ({ page }) => {
+test('setting value from JS (twice) leaves the value attribute unchanged', async ({ page }) => {
     const p = page.locator('#picker-default');
     const attrs = await p.evaluate(async (el: any) => {
         el.value = '2026-07-01 - 2026-07-03';
         await el.whenSettled();
         const a = el.getAttribute('value');
-        el.setInputValue('2026-08-01/2026-08-05');
+        el.value = '2026-08-01/2026-08-05';
         await el.whenSettled();
         return [a, el.getAttribute('value'), el.value];
     });

@@ -793,17 +793,6 @@ export function hideLoader(picker: any, target: LoaderTarget = 'calendar'): void
 }
 
 /**
- * Toggle the loader for the given target (default 'calendar').
- */
-export function toggleLoader(picker: any, target: LoaderTarget = 'calendar'): void {
-    if (picker.loaders?.[target]) {
-        hideLoader(picker, target);
-    } else {
-        showLoader(picker, target);
-    }
-}
-
-/**
  * Show a message in the message area
  * @param picker - The date picker instance
  * @param content - Message content (plain text when type is provided, or full HTML for custom styling)
@@ -875,22 +864,6 @@ export function hideMessage(picker: any): void {
 
     // Hide the message
     picker.messageElement.classList.remove('drp__message--visible');
-}
-
-/**
- * Toggle the message area. If currently visible, hide it; otherwise show `content`.
- */
-export function toggleMessage(
-    picker: any,
-    content: string = '',
-    type?: 'error' | 'warning' | 'info' | 'success',
-    autoHide?: number
-): void {
-    if (picker.messageElement?.classList.contains('drp__message--visible')) {
-        hideMessage(picker);
-    } else {
-        showMessage(picker, content, type, autoHide);
-    }
 }
 
 /**

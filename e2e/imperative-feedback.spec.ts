@@ -69,7 +69,7 @@ test('hideSummary drops the override and re-derives from the current selection',
 });
 
 // =============================================================================
-// showLoader / hideLoader / toggleLoader (scoped)
+// showLoader / hideLoader (scoped)
 // =============================================================================
 
 test("showLoader() mounts the full-calendar overlay; hideLoader() removes it", async ({ page }) => {
@@ -133,13 +133,13 @@ test("summary loader added in a change handler survives the commit re-render", a
     await expect(summaryOf(p).locator('.drp__inline-loader')).toHaveCount(1);
 });
 
-test("toggleLoader('summary') shows then hides the in-block spinner", async ({ page }) => {
+test("showLoader('summary') / hideLoader('summary') show then hide the in-block spinner", async ({ page }) => {
     const p = pickerById(page, 'feedback');
 
-    await p.evaluate((el: any) => el.toggleLoader('summary'));
+    await p.evaluate((el: any) => el.showLoader('summary'));
     await expect(summaryOf(p).locator('.drp__inline-loader')).toHaveCount(1);
 
-    await p.evaluate((el: any) => el.toggleLoader('summary'));
+    await p.evaluate((el: any) => el.hideLoader('summary'));
     await expect(summaryOf(p).locator('.drp__inline-loader')).toHaveCount(0);
 });
 
@@ -155,16 +155,17 @@ test('showLoader() is single-instance per target — a second call does not stac
 });
 
 // =============================================================================
-// toggleMessage
+// showMessage (raw HTML) / the built-in ✕ (hide-message)
 // =============================================================================
 
-test('toggleMessage shows the message with content, then hides it on the next call', async ({ page }) => {
+test('showMessage with raw HTML shows it; the built-in close button hides it', async ({ page }) => {
     const p = pickerById(page, 'feedback');
 
-    await p.evaluate((el: any) => el.toggleMessage('<span class="msg">hi</span>'));
+    await p.evaluate((el: any) => el.showMessage('<span class="msg">hi</span>'));
     await expect(messageOf(p)).toHaveClass(/drp__message--visible/);
     await expect(messageOf(p).locator('.msg')).toHaveText('hi');
 
-    await p.evaluate((el: any) => el.toggleMessage());
+    await p.evaluate((el: any) => el.showMessage('Typed', { type: 'info' }));
+    await messageOf(p).locator('[data-drp-action="hide-message"]').click();
     await expect(messageOf(p)).not.toHaveClass(/drp__message--visible/);
 });

@@ -53,7 +53,7 @@ import type {
   DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, LocaleStrings,
   BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthData, MonthChangeEventDetail,
   ReadyEventDetail, OpenEventDetail, CloseEventDetail, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
-  ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext,
+  ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext, ShowMessageOptions,
 } from './types';
 import styles from './css/main.css?inline';
 
@@ -123,7 +123,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
   { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toYearRange(), on: 'update', type: 'string | null', description: 'Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY\'s year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one.' },
   { configKey: 'rollingMonthRange',            attribute: 'rolling-month-range',           converter: toText({ isNullable: true }), on: 'update', description: 'Constrains the rolling month selector.' },
-  { configKey: 'commitMode',                   attribute: 'commit-mode',                   converter: toEnum(COMMIT_MODE), on: 'update', description: 'How a selection is COMMITTED (written + `select`/`change`): `selection` — every completed pick is written; `apply` — picks are staged until the Apply button; `manual` — picks are only staged until the app calls `apply()` (no built-in button). Closing is separate: `close-on-select`, `close-on-outside-click`, `close-on-scroll`; closing without `apply()` discards a staged pick. Default `selection` (`apply` for time/datetime and `multiple`).' },
+  { configKey: 'commitMode',                   attribute: 'commit-mode',                   converter: toEnum(COMMIT_MODE), on: 'update', description: 'How a selection is COMMITTED (written + `change`): `selection` — every completed pick is written; `apply` — picks are staged until the Apply button; `manual` — picks are only staged until the app calls `commit()` (no built-in button). Closing is separate: `close-on-select`, `close-on-outside-click`, `close-on-scroll`; closing without `commit()` discards a staged pick. Default `selection` (`apply` for time/datetime and `multiple`).' },
   { configKey: 'shouldCloseOnSelect',          attribute: 'close-on-select',               converter: toBool('tristate'), on: 'update', description: 'Close the calendar when a pick completes in `commit-mode="selection"` (default true). `false` keeps it open to adjust while every pick is still written — the booking.com flow. No effect in `apply` / `manual` (Apply / the app closes).' },
   { configKey: 'shouldCloseOnOutsideClick',    attribute: 'close-on-outside-click',        converter: toBool('tristate'), on: 'update', description: 'Close the floating calendar on a click outside it (the modal on a backdrop click). Default true — false when `commit-mode="manual"` unless set explicitly. A staged pick is discarded on close. Escape and `close()` always close.' },
   { configKey: 'shouldCloseOnScroll',          attribute: 'close-on-scroll',               converter: toBool('tristate'), on: 'update', description: 'Close the floating calendar when the page scrolls.' },
@@ -1026,16 +1026,22 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#updateInputClear();
   }
 
-  /** Show an inline message; `autoHide` (ms) dismisses it automatically. */
-  showMessage(content: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number): void {
-    this.flush(); this.#picker?.showMessage(content, type, autoHide);
+  /**
+   * Commit the staged selection — what the Apply button does, and the app's call in
+   * `commit-mode="manual"`. Writes the value, fires `change`, closes the popover.
+   */
+  commit(): void { this.flush(); this.#picker?.commit(); }
+
+  /**
+   * Show a message in the calendar. `content` is HTML; `opts.type`
+   * (`info` | `warning` | `error` | `success`) styles it (omit for raw-HTML content),
+   * `opts.autoHideMs` hides it after that many ms.
+   */
+  showMessage(content: string, opts?: ShowMessageOptions): void {
+    this.flush(); this.#picker?.showMessage(content, opts);
   }
-  /** Hide the current inline message. */
+  /** Hide the current message. */
   hideMessage(): void { this.flush(); this.#picker?.hideMessage(); }
-  /** Toggle the inline message on/off. */
-  toggleMessage(content?: string, type?: 'error' | 'warning' | 'info' | 'success', autoHide?: number): void {
-    this.flush(); this.#picker?.toggleMessage(content, type, autoHide);
-  }
 
   /** Write custom HTML into the summary block (pins until the next selection change). */
   showSummary(content: string): void { this.flush(); this.#picker?.showSummary(content); }
@@ -1048,8 +1054,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   showLoader(target?: LoaderTarget): void { this.flush(); this.#picker?.showLoader(target); }
   /** Hide the loader for the given target (default `calendar`). */
   hideLoader(target?: LoaderTarget): void { this.flush(); this.#picker?.hideLoader(target); }
-  /** Toggle the loader for the given target (default `calendar`). */
-  toggleLoader(target?: LoaderTarget): void { this.flush(); this.#picker?.toggleLoader(target); }
 
   /**
    * Freeze user interaction. No argument locks every aspect (full read-only lock);
@@ -1066,25 +1070,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   /** The currently locked aspects (read-only snapshot). */
   get lockedAspects(): LockAspect[] { this.flush(); return this.#picker?.lockedAspects ?? []; }
 
-  /** The current value — the selection as the input shows it (`''` when nothing is selected). */
-  getInputValue(): string { this.flush(); return this.#inputElement?.value || ''; }
-  /**
-   * Set the current selection from a value string (same forms as the `value`
-   * attribute). Does NOT write the `value` attribute — that stays the default
-   * `form.reset()` returns to. An unparseable value warns and clears the selection.
-   */
-  setInputValue(value: string): void {
-    this.flush();
-    if (this.#picker) this.#applyValueText(value ?? '', 'value property');
-    else this.#pendingValue = value ?? '';
-  }
-
-  /**
-   * Set custom month names.
-   * @deprecated Assign the `monthNames` property instead.
-   */
-  setMonthNames(monthNames: string[]): void { (this as unknown as { monthNames: string[] }).monthNames = monthNames; }
-
   /** Align items within the rolling year/month selector (`flex-start` | `center` | `flex-end`). */
   setRollingItemAlignment(alignment: 'flex-start' | 'center' | 'flex-end'): void {
     // On the host (inherits into the shadow tree, beats the `:host` default) so it
@@ -1099,8 +1084,14 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * selection (same forms as the `value` attribute) without touching the
    * attribute, which stays the `form.reset()` default.
    */
-  get value(): string { return this.getInputValue(); }
-  set value(val: string) { this.setInputValue(val); }
+  get value(): string { this.flush(); return this.#inputElement?.value || ''; }
+  set value(val: string) {
+    // An unparseable value warns and clears the selection; the `value` attribute
+    // (the form.reset() default) is never written.
+    this.flush();
+    if (this.#picker) this.#applyValueText(val ?? '', 'value property');
+    else this.#pendingValue = val ?? '';
+  }
 
   /**
    * The selection as ranges. Range mode: always the committed selection — a plain
@@ -1169,16 +1160,18 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     const call = <K extends keyof DateRangePickerController>(name: K) =>
       ((...args: unknown[]) => (engine()?.[name] as ((...a: unknown[]) => unknown) | undefined)?.(...args)) as DateRangePickerController[K];
     return {
-      getSelectedDate: () => engine()?.getSelectedDate() ?? null,
-      getSelectedRange: () => engine()?.getSelectedRange() ?? null,
-      getSelectedRanges: () => engine()?.getSelectedRanges() ?? [],
-      getSelectedDates: () => engine()?.getSelectedDates() ?? [],
-      getSelectedDatetime: () => engine()?.getSelectedDatetime() ?? null,
+      get selectedDate() { return engine()?.selectedDate ?? null; },
+      get selectedDates() { return engine()?.selectedDates ?? []; },
+      get selectedRanges() { return engine()?.selectedRanges ?? []; },
+      get selectedStartDate() { return engine()?.selectedStartDate ?? null; },
+      get selectedEndDate() { return engine()?.selectedEndDate ?? null; },
+      get selectedTime() { return engine()?.selectedTime ?? null; },
+      get selectedDatetime() { return engine()?.selectedDatetime ?? null; },
       get isOpen() { return engine()?.isOpen ?? false; },
       selectToday: call('selectToday'),
       selectNow: call('selectNow'),
       clearSelection: call('clearSelection'),
-      apply: call('apply'),
+      commit: call('commit'),
       open: call('open'),
       close: call('close'),
       toggle: call('toggle'),
