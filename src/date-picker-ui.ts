@@ -202,6 +202,8 @@ export function open(picker: any) {
     applyPresentationChrome(picker);
 
     // Note: Outside click handling is now managed by the clickEvents manager
+
+    picker.options.onOpen?.(picker.ctx({}));
 }
 
 /**
@@ -644,6 +646,8 @@ export function close(picker: any) {
     // Clear the size-middleware constraints so the next open starts fresh.
     picker.calendar.style.maxHeight = '';
     picker.calendar.style.overflowY = '';
+
+    picker.options.onClose?.(picker.ctx({}));
 }
 
 export function toggle(picker: any) {

@@ -13,7 +13,7 @@
  * Dependencies: @floating-ui/dom
  */
 
-import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, SelectEventDetail, DateRangePickerController } from './types';
+import type { DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, LocaleStrings, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -233,9 +233,11 @@ class DateRangePickerEngine {
             dateFormatMask: options.dateFormatMask || 'YYYY-MM-DD',
             calendarOpenTrigger: options.calendarOpenTrigger || 'focus',
             overlayGroup: options.overlayGroup || undefined,
-            onSelect: options.onSelect || undefined,
+            onChange: options.onChange || undefined,
             onAction: options.onAction || undefined,
             onMonthChange: options.onMonthChange || undefined,
+            onOpen: options.onOpen || undefined,
+            onClose: options.onClose || undefined,
             hostElement: options.hostElement || undefined,
             controller: options.controller || undefined,
             isRtl: options.isRtl || undefined,
@@ -1082,20 +1084,20 @@ class DateRangePickerEngine {
     }
 
     /**
-     * Build the standardized {@link SelectEventDetail} for a selection — the single
-     * payload handed to `onSelect` and re-emitted by the web component's
+     * Build the standardized {@link ChangeEventDetail} for a selection — the single
+     * payload handed to `onChange` and re-emitted by the web component's
      * `date-select`/`change` events. Centralizing it here means a core-class consumer
-     * (`new DateRangePicker(el, { onSelect })`) gets the exact same rich breakdown
+     * (`new DateRangePickerEngine(el, { onChange })`) gets the exact same rich breakdown
      * (`enabledDates`/`disabledDates`/`dateRanges`/`dates` per `disabledDatesHandling`)
      * that a web-component listener gets. `formattedValue` is composed from
      * {@link formatDate}; the web component prefers the input's live display string
      * when it re-emits (except for the multi-piece joined forms, which it keeps).
      */
-    buildSelectDetail(selection: Date | DateRange | DateRange[] | Date[]): SelectEventDetail {
+    buildSelectDetail(selection: Date | DateRange | DateRange[] | Date[]): ChangeEventDetail {
         return this.ctx(this.buildSelectFields(selection));
     }
 
-    private buildSelectFields(selection: Date | DateRange | DateRange[] | Date[]): Omit<SelectEventDetail, keyof PickerContext> {
+    private buildSelectFields(selection: Date | DateRange | DateRange[] | Date[]): Omit<ChangeEventDetail, keyof PickerContext> {
         const formatRange = (r: DateRange) => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`;
 
         // Single date.
@@ -1115,7 +1117,7 @@ class DateRangePickerEngine {
 
         // Single range — apply the disabled-dates breakdown for the active handling.
         const { start, end } = selection;
-        const detail: Omit<SelectEventDetail, keyof PickerContext> = { dateRange: selection, formattedValue: formatRange(selection) };
+        const detail: Omit<ChangeEventDetail, keyof PickerContext> = { dateRange: selection, formattedValue: formatRange(selection) };
         switch (this.options.disabledDatesHandling) {
             case 'allow':
                 detail.enabledDates = this.getEnabledDatesInRange(start, end);

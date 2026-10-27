@@ -76,7 +76,7 @@
             { id: 'done', text: 'Done', onClick: (d) => d.controller.apply() }
         ];
         const log = document.querySelector('[data-testid="selection-modes-log"]');
-        for (const type of ['select', 'change']) {
+        for (const type of ['change']) {
             document.addEventListener(type, (e) => {
                 if (e.target.localName !== 'web-daterangepicker') return;
                 log.textContent += `${type}:${e.target.id}:${e.detail?.formattedValue ?? ''}\n`;

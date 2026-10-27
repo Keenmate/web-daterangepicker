@@ -159,16 +159,16 @@ test('internal controls (nav arrows) do not fire the action event', async ({ pag
 });
 
 // =============================================================================
-// select / month-change — twins get the detail
+// change / month-change — twins get the detail
 // =============================================================================
 
-test('onSelect receives the detail (same object as the select event), not the CustomEvent', async ({ page }) => {
+test('onChange receives the detail (same object as the change event), not the CustomEvent', async ({ page }) => {
     const p = pickerById(page, 'ctx-events');
     const result = await p.evaluate(async (el: any) => {
         let twin: any;
         let evt: any;
-        el.onSelect = (d: any) => { twin = d; };
-        el.addEventListener('select', (e: any) => { evt = e; });
+        el.onChange = (d: any) => { twin = d; };
+        el.addEventListener('change', (e: any) => { evt = e; });
         el.shadowRoot.querySelector('.drp__day[data-date="2026-06-10"]').click();
         await new Promise((r) => setTimeout(r, 50));
         return {

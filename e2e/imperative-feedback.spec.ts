@@ -109,14 +109,14 @@ test("showLoader('message') renders an in-block spinner inside the message block
     await expect(messageOf(p).locator('.drp__inline-loader')).toHaveCount(0);
 });
 
-test("summary loader added in a select handler survives the commit re-render", async ({ page }) => {
+test("summary loader added in a change handler survives the commit re-render", async ({ page }) => {
     const p = pickerById(page, 'feedback');
 
-    // Real-world recipe: select fires BEFORE commitSelection()'s updateSummary()
+    // Real-world recipe: change fires BEFORE commitSelection()'s updateSummary()
     // re-render. A naive appendChild would be wiped by that re-render — the loader must
     // persist through derivation exactly like a showSummary() override does.
     await p.evaluate((el: any) => {
-        el.addEventListener('select', (e: any) => {
+        el.addEventListener('change', (e: any) => {
             if (e.detail.dateRange) el.showLoader('summary');
         });
     });

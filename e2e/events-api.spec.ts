@@ -56,6 +56,36 @@ test('change event does NOT fire when the calendar opens (only on selection)', a
     expect(events.length).toBe(0);
 });
 
+test('no separate select event fires — change is the only commit event', async ({ page }) => {
+    const p = pickerById(page, 'basic');
+    await captureEvent(p, 'select');
+    await inputOf(p).click();
+    await dayByDate(p, '2026-06-15').click();
+    expect((await getCaptured(p, 'select')).length).toBe(0);
+});
+
+// =============================================================================
+// open / close events
+// =============================================================================
+
+test('open / close events (and onOpen / onClose twins) fire once per transition', async ({ page }) => {
+    const p = pickerById(page, 'basic');
+    await p.evaluate((el: any) => {
+        el.__log = [];
+        el.addEventListener('open', (e: any) => el.__log.push(`open:${typeof e.detail.controller?.close}`));
+        el.addEventListener('close', () => el.__log.push('close'));
+        el.onOpen = () => el.__log.push('onOpen');
+        el.onClose = () => el.__log.push('onClose');
+    });
+    await inputOf(p).click();
+    await expect(calendarOf(p)).toBeVisible();
+    await p.evaluate((el: any) => el.open()); // already open → no second event
+    await page.keyboard.press('Escape');
+    await expect(calendarOf(p)).toBeHidden();
+    await p.evaluate((el: any) => el.close()); // already closed → nothing
+    expect(await p.evaluate((el: any) => el.__log)).toEqual(['onOpen', 'open:function', 'onClose', 'close']);
+});
+
 // =============================================================================
 // action event
 // =============================================================================

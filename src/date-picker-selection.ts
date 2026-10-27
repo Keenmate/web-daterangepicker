@@ -173,7 +173,7 @@ function moveFocusToDate(picker: any, target: Date): void {
  * can't drift: a callback returning `adjustedRanges` replaces the single range
  * with N pieces (start/end become the envelope); otherwise the single
  * (optionally adjusted) range is stored and `_selectedRanges` is cleared.
- * Returns the payload for onSelect / pendingSelection (a DateRange[] for a
+ * Returns the payload for onChange / pendingSelection (a DateRange[] for a
  * multi-range result, else a single {start,end}).
  */
 export function applyValidatedRangeSelection(
@@ -366,14 +366,14 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         picker._selectedDate = finalDate;
         commitInputValue(picker, picker.formatDate(finalDate));
 
-        // In datetime mode, the payload to onSelect is the composed Date+time.
+        // In datetime mode, the payload to onChange is the composed Date+time.
         const payload = picker.options.pickerMode === 'datetime' ? picker.selectedDatetime : finalDate;
 
-        // Defer onSelect callback if Apply button is required
+        // Defer onChange callback if Apply button is required
         if (picker.stagesSelection()) {
             picker.pendingSelection = payload;
         } else {
-            if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(payload));
+            if (picker.options.onChange) picker.options.onChange(picker.buildSelectDetail(payload));
         }
 
         // Auto-close handling
@@ -405,7 +405,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         commitInputValue(picker, count > 0 ? `${count} selection(s)` : '');
 
         // Multiple mode always defers events (inherently requires Apply button)
-        // Store pending selection for onSelect callback
+        // Store pending selection for onChange callback
         if (picker._selectedRanges.length > 0 && picker._selectedDates.length > 0) {
             picker.pendingSelection = [...picker._selectedRanges, ...picker._selectedDates];
         } else if (picker._selectedRanges.length > 0) {
@@ -471,12 +471,12 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 
             commitInputValue(picker, formatRangeInput(picker));
 
-            // Defer onSelect callback if Apply button is required. A multi-range
+            // Defer onChange callback if Apply button is required. A multi-range
             // result is delivered as the DateRange[] array; a plain range as {start,end}.
             if (picker.stagesSelection()) {
                 picker.pendingSelection = selection;
             } else {
-                if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(selection));
+                if (picker.options.onChange) picker.options.onChange(picker.buildSelectDetail(selection));
             }
 
             // Auto-close handling. Floating closes on range-completion; modal and
@@ -513,11 +513,11 @@ export function selectToday(picker: any) {
     const payload = picker.options.pickerMode === 'datetime' ? picker.selectedDatetime : picker._selectedDate;
     commitInputValue(picker, picker.formatDate(picker._selectedDate));
 
-    // Defer onSelect callback if Apply button is required
+    // Defer onChange callback if Apply button is required
     if (picker.stagesSelection()) {
         picker.pendingSelection = payload;
     } else {
-        if (picker.options.onSelect) picker.options.onSelect(picker.buildSelectDetail(payload));
+        if (picker.options.onChange) picker.options.onChange(picker.buildSelectDetail(payload));
     }
 
     picker.renderCalendar();
@@ -583,12 +583,12 @@ function commitTimeSelection(picker: any) {
         formatted = picker.formatTime(picker._selectedTime);
     }
     commitInputValue(picker, formatted);
-    // onSelect receives the composed Date when the picker has time semantics.
+    // onChange receives the composed Date when the picker has time semantics.
     const payload = picker.selectedDatetime;
     if (picker.stagesSelection()) {
         picker.pendingSelection = payload;
-    } else if (picker.options.onSelect) {
-        picker.options.onSelect(picker.buildSelectDetail(payload));
+    } else if (picker.options.onChange) {
+        picker.options.onChange(picker.buildSelectDetail(payload));
     }
     picker.renderCalendar();
 }
@@ -960,8 +960,8 @@ export function apply(picker: any) {
         if (formatted !== null) picker.input.value = formatted;
     }
 
-    // Take the staged selection, and clear it BEFORE the deferred onSelect fires:
-    // the host bridge suppresses onSelect while a selection is still pending (that's
+    // Take the staged selection, and clear it BEFORE the deferred onChange fires:
+    // the host bridge suppresses onChange while a selection is still pending (that's
     // how a staged pick stays silent until Apply), so clearing it after the call
     // swallowed every Apply's select/change and form-value refresh (FINDINGS #17).
     const pending = picker.pendingSelection;
@@ -971,8 +971,8 @@ export function apply(picker: any) {
 
     // Fire the deferred callback once the committed snapshot is stored, so the
     // listener (and the host's form value) reads the committed state.
-    if (pending && picker.options.onSelect) {
-        picker.options.onSelect(picker.buildSelectDetail(pending));
+    if (pending && picker.options.onChange) {
+        picker.options.onChange(picker.buildSelectDetail(pending));
     }
 
     // Always close on Apply (inline mode never closes; floating and modal both close)

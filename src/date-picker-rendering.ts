@@ -1296,7 +1296,7 @@ export function renderCompactPicker(picker: any) {
  * Re-apply an active in-block summary loader after the summary's className/innerHTML were
  * rewritten by a (re-)render. Without this the spinner is wiped by the very first
  * derivation that follows showLoader('summary') — e.g. the commitSelection() re-render that
- * runs right AFTER a `date-select`/onSelect handler adds it, so the loader never appears.
+ * runs right AFTER a `date-select`/onChange handler adds it, so the loader never appears.
  * The loader must survive re-derivation exactly like a showSummary() override does.
  * See showLoader() in date-picker-ui.ts.
  */

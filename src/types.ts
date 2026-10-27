@@ -280,14 +280,18 @@ export interface DatePickerOptions {
    */
   overlayGroup?: string;
   /**
-   * Engine-level twin of the `select` event (the element bridges it). Receives the
-   * {@link SelectEventDetail} — the same object the `select` / `change` events carry.
+   * Engine-level twin of the `change` event (the element bridges it): a selection was
+   * committed. Receives the {@link ChangeEventDetail} — the same object `change` carries.
    */
-  onSelect?: (detail: SelectEventDetail) => void;
+  onChange?: (detail: ChangeEventDetail) => void;
   /** Engine-level twin of the `action` event (the element bridges it). */
   onAction?: (detail: DateRangePickerActionEventDetail) => void;
   /** Engine-level twin of the `month-change` event (the element bridges it). */
   onMonthChange?: (detail: MonthChangeEventDetail) => void;
+  /** Engine-level twin of the `open` event: the calendar popover opened (floating / modal). */
+  onOpen?: (detail: OpenEventDetail) => void;
+  /** Engine-level twin of the `close` event: the calendar popover closed (any reason). */
+  onClose?: (detail: CloseEventDetail) => void;
   /**
    * Internal: the host element and its controller, so contexts and details carry
    * them. Set by `<web-daterangepicker>`; a standalone engine falls back to its
@@ -725,9 +729,9 @@ export interface MonthDisplay {
 }
 
 /**
- * Detail of the `select` and `change` events and of `onSelect`.
+ * Detail of the `change` event and of `onChange` — a committed selection.
  */
-export interface SelectEventDetail extends PickerContext {
+export interface ChangeEventDetail extends PickerContext {
   date?: Date;
   dateRange?: DateRange | null;
   formattedValue: string;
@@ -747,9 +751,6 @@ export interface SelectEventDetail extends PickerContext {
   getTotalDays?: () => number;
 }
 
-/** Detail of the `change` event — the same object as `select`. */
-export type ChangeEventDetail = SelectEventDetail;
-
 /** Detail of the `month-change` event / `onMonthChange` — after the visible months changed. */
 export interface MonthChangeEventDetail extends PickerContext {
   /** The column that navigated (the anchor column in unified navigation). */
@@ -763,6 +764,12 @@ export interface MonthChangeEventDetail extends PickerContext {
 
 /** Detail of the `ready` event / `onReady` — just the context. */
 export interface ReadyEventDetail extends PickerContext {}
+
+/** Detail of the `open` event / `onOpen` — the calendar opened. Context only. */
+export interface OpenEventDetail extends PickerContext {}
+
+/** Detail of the `close` event / `onClose` — the calendar closed. Context only. */
+export interface CloseEventDetail extends PickerContext {}
 
 // Generic type for specialDates array items
 // Users can pass their own data structures and use *Member properties to map fields

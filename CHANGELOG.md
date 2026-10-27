@@ -38,6 +38,13 @@ One vocabulary across the KeenMate components (web-components-core naming pass, 
   `isFullscreenInputShown` (attribute `fullscreen-input` → `show-fullscreen-input`).
 - **BREAKING — `visibleMonthsCount` → `visibleMonthCount`** (attribute `visible-month-count`).
 - **BREAKING — `formFieldName` → `name`** (property / config key; the attribute was already `name`).
+- **BREAKING — the `select` event (and `onSelect`) is removed.** It fired at exactly the same
+  moments as `change`, with the same detail object, in every commit mode (staged picks in
+  `apply` / `manual` fire neither until committed). Listen to `change` / `onChange`. The detail type
+  `SelectEventDetail` is now `ChangeEventDetail`; the engine option `onSelect` is `onChange`.
+- **New `open` / `close` events** (+ `onOpen` / `onClose` twins; engine options `onOpen` / `onClose`):
+  the calendar popover opened / closed (any reason). Detail: the context (`controller`, `element`,
+  presentation flags). Inline mode never fires them.
 
 ### Changed — standalone colors follow the contract
 

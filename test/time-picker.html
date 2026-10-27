@@ -70,9 +70,9 @@
     <script type="module" src="/src/index.ts"></script>
     <script>
         const log = document.querySelector('[data-testid="time-picker-log"]');
-        document.addEventListener('select', (e) => {
+        document.addEventListener('change', (e) => {
             if (e.target.localName !== 'web-daterangepicker') return;
-            log.textContent += `select:${e.target.id}:${e.detail?.formattedValue ?? ''}\n`;
+            log.textContent += `change:${e.target.id}:${e.detail?.formattedValue ?? ''}\n`;
         });
     </script>
 </body>

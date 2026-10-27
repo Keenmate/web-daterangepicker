@@ -52,8 +52,8 @@ import type {
   DatePickerOptions, DateRange, DecoratedDate, DayContext, DayMetadata, BeforeSelectResult,
   DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, LocaleStrings,
   BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthData, MonthChangeEventDetail,
-  ReadyEventDetail, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
-  SelectEventDetail, SelectedTime, MonthDisplay, PickerContext,
+  ReadyEventDetail, OpenEventDetail, CloseEventDetail, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
+  ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext,
 } from './types';
 import styles from './css/main.css?inline';
 
@@ -193,18 +193,20 @@ const INPUTS: readonly InputDef[] = [
 // the same detail object; every detail carries `controller` + `element`
 // (non-enumerable) and the presentation flags.
 type DrpEvents = {
-  select: SelectEventDetail;
-  change: SelectEventDetail;
+  change: ChangeEventDetail;
   action: DateRangePickerActionEventDetail;
   'month-change': MonthChangeEventDetail;
   ready: ReadyEventDetail;
+  open: OpenEventDetail;
+  close: CloseEventDetail;
 };
 const EVENTS = [
-  { name: 'select', description: 'A date/range/time was selected (or applied). `detail` carries the date(s)/range(s), the formatted value, and — depending on disabled-dates-handling — enabled/disabled/split breakdowns. Twin: `onSelect(detail)`.' },
-  { name: 'change', description: 'Fires right after `select` for form-style change wiring; the same detail object. Twin: `onChange(detail)`.' },
+  { name: 'change', description: 'The selection was committed (the value changed): every completed pick in `commit-mode="selection"`, on Apply / `commit()` in `apply` / `manual`. `detail` carries the date(s)/range(s), the formatted value, and — depending on disabled-dates-handling — enabled/disabled/split breakdowns. Twin: `onChange(detail)`.' },
   { name: 'action', description: 'An action button or a `data-action` trigger (e.g. a button in `showMessage` HTML) was activated. `detail`: `action` (built-in name or `custom`), `id`, `item`, `source` (`action-buttons` | `message` | `summary` | `calendar`), `sourceEvent`, `triggerElement`, `dataset` (the trigger’s other `data-*`), plus `controller` / `element`. Fires after the item’s `onClick`, before the built-in behaviour. Twin: `onAction(detail)`.' },
   { name: 'month-change', description: 'The visible month(s) changed (any navigation). `detail`: `monthIndex`, `year`, `month` (0-11), `visibleMonths`. Twin: `onMonthChange(detail)`.' },
   { name: 'ready', description: 'The picker was built and is live for the first time (once per element lifetime; core `BlissElement`). Fires right after the first build — synchronously during upgrade for a normal element, or when the `defer` gate is released (`el.release()` / removing `defer`) for a deferred one. The host then has the `ready` attribute and matches `:state(ready)`; `el.whenReady()` resolves. `detail`: `controller` / `element`. Twin: `onReady(detail)`.' },
+  { name: 'open', description: 'The calendar popover opened (floating / modal / full-screen; inline never opens). `detail`: `controller` / `element` + the presentation flags. Twin: `onOpen(detail)`.' },
+  { name: 'close', description: 'The calendar popover closed — any reason (pick, Apply, Escape, outside click, scroll, `close()`). A staged, uncommitted pick has already been discarded. `detail`: `controller` / `element` + the presentation flags. Twin: `onClose(detail)`.' },
 ] as const;
 
 /**
@@ -261,11 +263,12 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   // Type-only: core installs the `on<Name>` twins at runtime (§12.5); each is
   // called with the event detail (not the CustomEvent), right before the event.
-  declare onSelect: ((detail: SelectEventDetail) => void) | null;
-  declare onChange: ((detail: SelectEventDetail) => void) | null;
+  declare onChange: ((detail: ChangeEventDetail) => void) | null;
   declare onAction: ((detail: DateRangePickerActionEventDetail) => void) | null;
   declare onMonthChange: ((detail: MonthChangeEventDetail) => void) | null;
   declare onReady: ((detail: ReadyEventDetail) => void) | null;
+  declare onOpen: ((detail: OpenEventDetail) => void) | null;
+  declare onClose: ((detail: CloseEventDetail) => void) | null;
 
   #shadow: ShadowRoot;
   #picker?: DateRangePickerEngine;
@@ -561,7 +564,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   /**
    * Build the picker config from the merged `this.config`, minus the keys the
-   * picker doesn't own, plus the runtime wiring (onSelect bridge + container).
+   * picker doesn't own, plus the runtime wiring (onChange bridge + container).
    */
   #assembleConfig(): Record<string, unknown> {
     // Canonical engine-config assembly (core SPEC §6.1 null-clear contract): a shallow
@@ -579,9 +582,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       cfg.isClearButtonShown = false;
     }
 
-    cfg.onSelect = (detail: SelectEventDetail) => this.#handleDateSelect(detail);
+    cfg.onChange = (detail: ChangeEventDetail) => this.#handleChange(detail);
     cfg.onAction = (detail: DateRangePickerActionEventDetail) => this.emit('action', detail);
     cfg.onMonthChange = (detail: MonthChangeEventDetail) => this.emit('month-change', detail);
+    cfg.onOpen = (detail: OpenEventDetail) => this.emit('open', detail);
+    cfg.onClose = (detail: CloseEventDetail) => this.emit('close', detail);
     // Contexts carry THIS element and its (rebuild-proof) controller, not the engine's.
     cfg.hostElement = this;
     cfg.controller = this.controller;
@@ -592,16 +597,16 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   // ── event bridge ──────────────────────────────────────────────────────────
 
-  #handleDateSelect(detail: SelectEventDetail): void {
+  #handleChange(detail: ChangeEventDetail): void {
     // A calendar/drag selection writes into input.value — reflect it on the clear ✕.
     this.#updateInputClear();
 
     const picker = this.#picker;
-    // Deferred until Apply — don't fire yet (apply() re-invokes onSelect later).
+    // Deferred until Apply — don't fire yet (commit() re-invokes onChange later).
     if (picker && picker.stagesSelection() && picker.hasPendingSelection) return;
 
     // `detail` is the canonical payload the core built via buildSelectDetail() — the
-    // SAME object the public `onSelect` callback receives (date(s)/range(s) plus the
+    // SAME object the public `onChange` twin receives (date(s)/range(s) plus the
     // enabled/disabled/split breakdown per `disabledDatesHandling`). The host layers
     // on only one thing: it prefers the input's live display text for `formattedValue`
     // ("what the user sees" — e.g. "3 selection(s)" in multiple mode), EXCEPT for the
@@ -614,18 +619,17 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       detail.formattedValue = this.#inputElement.value || detail.formattedValue;
     }
 
-    this.#emitSelect(detail);
+    this.#emitChange(detail);
   }
 
   /**
    * Refresh the hidden form input(s) from the just-committed selection, then fire
-   * the outward `select` + `change` pair. The hidden input(s) are what make
+   * the outward `change` event. The hidden input(s) are what make
    * the control submit under its `name` (see #updateFormValue) — carrying a stable
    * ISO value, not the display-formatted string in `detail.formattedValue`.
    */
-  #emitSelect(detail: SelectEventDetail): void {
+  #emitChange(detail: ChangeEventDetail): void {
     this.#updateFormValue(detail);
-    this.emit('select', detail);
     this.emit('change', detail);
   }
 
@@ -642,7 +646,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * submits the real sub-ranges/dates, not the whole envelope. Otherwise (reset,
    * rebuild, programmatic change) read the picker's committed state directly.
    */
-  #currentSelection(detail?: SelectEventDetail): FormValueSelection {
+  #currentSelection(detail?: ChangeEventDetail): FormValueSelection {
     const selectionMode = (this.config.selectionMode as FormValueSelection['selectionMode']) ?? 'single';
     const pickerMode = (this.config.pickerMode as FormValueSelection['pickerMode']) ?? 'date';
     const showSeconds = !!this.config.isSecondsShown;
@@ -684,7 +688,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   }
 
   /** Re-render the hidden form input(s) from the current selection. */
-  #updateFormValue(detail?: SelectEventDetail): void {
+  #updateFormValue(detail?: ChangeEventDetail): void {
     const format = (this.config.valueFormat as FormValueFormat) ?? 'iso';
     const callback = this.config.getValueFormatCallback as ((ctx: FormValueSelection & PickerContext) => string) | undefined;
     const withCtx = callback

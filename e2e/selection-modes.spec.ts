@@ -162,12 +162,12 @@ test.describe('Apply button (range mode)', () => {
 
     // FINDINGS.md #17: Apply used to commit the input silently — no select/change
     // and no refresh of the hidden form input.
-    test('Apply fires select + change once and refreshes the form value', async ({ page }) => {
+    test('Apply fires change once and refreshes the form value', async ({ page }) => {
         const p = pickerById(page, 'range-apply');
         await p.evaluate((el: any) => {
             el.setAttribute('name', 'stay');
             (window as any).__ev = [];
-            for (const t of ['select', 'change']) el.addEventListener(t, () => (window as any).__ev.push(t));
+            for (const t of ['change']) el.addEventListener(t, () => (window as any).__ev.push(t));
         });
         await p.locator('.drp__input').click();
         await dayByDate(p, '2026-06-10').click();
@@ -175,7 +175,7 @@ test.describe('Apply button (range mode)', () => {
         expect(await page.evaluate(() => (window as any).__ev)).toEqual([]);   // staged → silent
         await p.locator('.drp__button--apply').click();
 
-        expect(await page.evaluate(() => (window as any).__ev)).toEqual(['select', 'change']);
+        expect(await page.evaluate(() => (window as any).__ev)).toEqual(['change']);
         const submitted = await p.evaluate((el: any) =>
             [...el.querySelectorAll('input[type="hidden"][name="stay"]')].map((i: any) => i.value));
         expect(submitted).toEqual(['2026-06-10/2026-06-15']);
@@ -259,7 +259,7 @@ test.describe('commit-mode="manual" (range, app-driven commit)', () => {
         await p.locator('.drp__button[data-id="done"]').click();
         await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
         await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
-        await expect(log(page)).toContainText('select:range-manual:2026-06-10 - 2026-06-12');
+        await expect(log(page)).toContainText('change:range-manual:2026-06-10 - 2026-06-12');
     });
 });
 
@@ -275,14 +275,14 @@ test.describe('booking.com flow: commit-mode="selection" close-on-select="false"
         await dayByDate(p, '2026-06-10').click();
         await dayByDate(p, '2026-06-12').click();
         await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-12');
-        await expect(log(page)).toContainText('select:range-booking:2026-06-10 - 2026-06-12');
+        await expect(log(page)).toContainText('change:range-booking:2026-06-10 - 2026-06-12');
         await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
 
         // Adjust: a new pick replaces the value, still open.
         await dayByDate(p, '2026-06-11').click();
         await dayByDate(p, '2026-06-14').click();
         await expect(inputOf(p)).toHaveValue('2026-06-11 - 2026-06-14');
-        await expect(log(page)).toContainText('select:range-booking:2026-06-11 - 2026-06-14');
+        await expect(log(page)).toContainText('change:range-booking:2026-06-11 - 2026-06-14');
         await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
 
         // Closing keeps the committed value (nothing is staged).

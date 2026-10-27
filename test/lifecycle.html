@@ -30,7 +30,7 @@
 
     <script>
         const log = document.querySelector('[data-testid="lifecycle-log"]');
-        for (const type of ['ready', 'select']) {
+        for (const type of ['ready', 'change']) {
             document.addEventListener(type, (e) => {
                 if (e.target.localName !== 'web-daterangepicker') return;
                 log.textContent += `${type}:${e.target.id}\n`;

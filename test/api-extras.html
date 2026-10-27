@@ -94,7 +94,7 @@
 
     <script>
         const apiLog = document.querySelector('[data-testid="api-extras-log"]');
-        for (const type of ['select', 'change']) {
+        for (const type of ['change']) {
             document.addEventListener(type, (e) => {
                 if (e.target.localName !== 'web-daterangepicker') return;
                 apiLog.textContent += `${type}:${e.target.id}\n`;

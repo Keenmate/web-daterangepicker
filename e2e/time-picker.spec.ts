@@ -39,7 +39,7 @@ test.describe('picker-mode="time" (rolls)', () => {
         await expect(p.locator('[data-time-list="minutes"] [data-minute]')).toHaveCount(60);
     });
 
-    test('picking hour + minute commits selectedTime, the input and a select event', async ({ page }) => {
+    test('picking hour + minute commits selectedTime, the input and a change event', async ({ page }) => {
         const p = await open(page, 'time');
         await rollItem(p, 'hours', 'data-hour', 14).click();
         await rollItem(p, 'minutes', 'data-minute', 35).click();
@@ -58,7 +58,7 @@ test.describe('picker-mode="time" (rolls)', () => {
         await rollItem(p, 'hours', 'data-hour', 14).click();
         await rollItem(p, 'minutes', 'data-minute', 35).click();
         await apply(p);
-        await expect(log(page)).toContainText('select:time:14:35');
+        await expect(log(page)).toContainText('change:time:14:35');
     });
 
     test('the selectedTime setter renders the rolls and the input', async ({ page }) => {
