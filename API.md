@@ -143,7 +143,6 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `fullscreen-autofocus` | `boolean` | — | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
 | `fullscreen-title` | `string \| null` | — | Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button. |
 | `fullscreen-input` | `boolean` | — | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
-| `show-debug-info` | `boolean` | — | Enable the picker’s debug logging. |
 | `compact-below` | `number` | — | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
 | `defer` | `boolean` | — | Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `getCustomStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes. |
 | `custom-styles` | `string \| null` | — | Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `getCustomStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `getCustomStylesCallback` wins when both are set. |
@@ -671,13 +670,22 @@ The date picker includes a professional, categorized logging system provided by 
 
 ### Enabling Debug Logging
 
-Add the `show-debug-info` attribute to a picker to turn the `DRP:*` loggers up to `debug` (the level is shared by every picker on the page). Removing it puts them back to the default `warn` — it never silences warnings.
+The `DRP:*` loggers start at `warn`. Turn them up with core's logging switches (there is no attribute — `show-debug-info` was removed in 2.0):
 
-```html
-<web-daterangepicker show-debug-info></web-daterangepicker>
+```js
+// every DRP:* category, shared by every picker on the page
+window.components['web-daterangepicker'].logging.enableLogging();
+window.components['web-daterangepicker'].logging.setLogLevel('warn'); // back to the default
+
+// every KeenMate component on the page
+window.components.logging.enableLogging();
+
+// one element's own instance loggers (core BlissElement), independent of the page level
+document.querySelector('#my-picker').enableLogging();
+document.querySelector('#my-picker').disableLogging();
 ```
 
-The page-wide switch for every KeenMate component is `window.components.logging` (`enableLogging()` / `disableLogging()` / `setLogLevel(level)`); a picker without `show-debug-info` never overrides it.
+Building a picker never changes the level, so a page-wide setting is never overridden.
 
 ### Log Categories
 
@@ -720,12 +728,12 @@ The library uses these log levels:
 | `error` | Critical errors (async validation failures, throwing callbacks, etc.) | Visible by default |
 | `warn` | Warnings (invalid inputs, validation failures) — the default level | Visible by default |
 | `info` | Not currently used | - |
-| `debug` | Development debugging | Only when `show-debug-info` is enabled |
+| `debug` | Development debugging | Only when debug logging is turned on (`enableLogging()`) |
 | `trace` | Not currently used | - |
 
 ### Console Output Example
 
-When `show-debug-info` is enabled, you'll see detailed logs in your browser console:
+With debug logging on, you'll see detailed logs in your browser console:
 
 ```
 [DRP:GENERAL] Week starts on day: 1
@@ -793,8 +801,8 @@ dragLogger.setLevel('trace');
 
 ### Best Practices
 
-1. **Development**: Enable `show-debug-info` on problematic picker instances only to reduce console noise
-2. **Production**: Never ship with `show-debug-info` enabled
+1. **Development**: Use `el.enableLogging()` on problematic picker instances only, or `setCategoryLevel()` for one category, to reduce console noise
+2. **Production**: Never ship with debug logging turned on
 3. **Debugging Selection Issues**: Look for `SELECTION` and `VALIDATION` logs
 4. **Debugging Navigation**: Look for `NAVIGATION` logs with `Col` markers
 5. **Debugging Input Masking**: Look for `INTERACTION` logs with `updateCalendarFromInput`
@@ -806,9 +814,9 @@ dragLogger.setLevel('trace');
 <web-daterangepicker
   selection-mode="range"
   disabled-weekdays="0,6"
-  disabled-dates-handling="block"
-  show-debug-info>
+  disabled-dates-handling="block">
 </web-daterangepicker>
+<script>window.components['web-daterangepicker'].logging.enableLogging();</script>
 ```
 
 Console output when selecting a range:
@@ -1598,7 +1606,6 @@ The web component provides convenient property accessors for JavaScript:
 | `fullscreenAutofocus` | `boolean` | Read/Write | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
 | `fullscreenTitle` | `string \| null` | Read/Write | Optional heading shown in the phone full-screen overlay header, next to the close (✕) button. When unset the header shows just the close button. |
 | `fullscreenInput` | `boolean` | Read/Write | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
-| `showDebugInfo` | `boolean` | Read/Write | Enable the picker’s debug logging. |
 | `compactBelow` | `number` | Read/Write | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
 | `deferRender` | `boolean` | Read/Write | Hold the initial render. When the `defer` attribute is present on upgrade the component builds nothing (reserving space only) — so `value`, callbacks (e.g. `getCustomStylesCallback`), and event listeners can all be wired first, then released with `el.ready()` (or by removing the `defer` attribute, for server-driven frameworks). The release builds the picker ONCE with everything already in place, avoiding the upgrade-then-restyle flash. Absent (default): builds immediately on connect. Latched — once released the gate never re-closes. |
 | `specialDates` | `DecoratedDate[]` | Read/Write | Array of decorated-date objects (badges, tooltips, per-day classes). Property-only. |

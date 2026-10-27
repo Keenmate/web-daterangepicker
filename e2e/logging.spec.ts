@@ -3,8 +3,10 @@ import type { ConsoleMessage, Page } from './fixtures';
 
 /**
  * Logging: the core `/logging` category loggers (`DRP:*`) default to `warn`
- * (no debug lines, warnings visible); `show-debug-info` turns debug on (and back
- * to `warn` when removed).
+ * (no debug lines, warnings visible). Debug is turned on through core's logging
+ * switches — `window.components['web-daterangepicker'].logging`,
+ * `window.components.logging`, or per element `el.enableLogging()`. The old
+ * `show-debug-info` attribute is gone.
  *
  * Fixture: test/logging.html.
  */
@@ -35,23 +37,41 @@ test('quiet by default: load + open + select emit no DRP log lines', async ({ pa
     expect(logs).toEqual([]);
 });
 
-test('show-debug-info enables the DRP loggers; removing it drops the debug lines again', async ({ page }) => {
+test('the web-daterangepicker logging bundle (window.components) turns the DRP loggers to debug and back', async ({ page }) => {
     const logs = captureDrpLogs(page);
     await page.goto(PAGE);
-    const p = page.locator('#picker');
-    await p.evaluate((el: any) => { el.setAttribute('show-debug-info', ''); return el.whenSettled(); });
+    await page.evaluate(() => (window as any).components['web-daterangepicker'].logging.enableLogging());
     await interact(page);
     expect(logs.length).toBeGreaterThan(0);
 
-    await p.evaluate((el: any) => { el.removeAttribute('show-debug-info'); return el.whenSettled(); });
+    await page.evaluate(() => (window as any).components['web-daterangepicker'].logging.setLogLevel('warn'));
     logs.length = 0;
     await interact(page);
     expect(logs).toEqual([]);
 });
 
+test('the removed show-debug-info attribute has no effect (no debug lines)', async ({ page }) => {
+    const logs = captureDrpLogs(page);
+    await page.goto(PAGE);
+    const p = page.locator('#picker');
+    await p.evaluate((el: any) => { el.setAttribute('show-debug-info', ''); return el.whenSettled(); });
+    await interact(page);
+    expect(logs).toEqual([]);
+    expect(await p.evaluate((el: any) => 'showDebugInfo' in el)).toBe(false);
+});
+
+test("el.enableLogging() turns on this element's instance logging only", async ({ page }) => {
+    await page.goto(PAGE);
+    const p = page.locator('#picker');
+    expect(await p.evaluate((el: any) => el.isLoggingEnabled)).toBe(false);
+    await p.evaluate((el: any) => el.enableLogging());
+    expect(await p.evaluate((el: any) => el.isLoggingEnabled)).toBe(true);
+    await p.evaluate((el: any) => el.disableLogging());
+    expect(await p.evaluate((el: any) => el.isLoggingEnabled)).toBe(false);
+});
+
 // Logging alignment with core (default level `warn`, page-wide
-// `window.components.logging`): show-debug-info may turn debug ON, but a picker
-// without it must never silence the bundle.
+// `window.components.logging`): a picker must never silence the bundle.
 
 /** Trigger core's input-validation warning (invalid enum attribute value). */
 async function warnInvalid(page: Page): Promise<void> {
@@ -65,18 +85,7 @@ test('warnings are visible by default (DRP bundle starts at warn, not silent)', 
     expect(logs.some((l) => l.startsWith('warning:') && l.includes('bogus'))).toBe(true);
 });
 
-test('turning show-debug-info off goes back to warn — warnings still show', async ({ page }) => {
-    const logs = captureDrpLogs(page);
-    await page.goto(PAGE);
-    const p = page.locator('#picker');
-    await p.evaluate((el: any) => { el.setAttribute('show-debug-info', ''); return el.whenSettled(); });
-    await p.evaluate((el: any) => { el.removeAttribute('show-debug-info'); return el.whenSettled(); });
-    logs.length = 0;
-    await warnInvalid(page);
-    expect(logs.some((l) => l.startsWith('warning:') && l.includes('bogus'))).toBe(true);
-});
-
-test('a picker without show-debug-info does not override the page-wide window.components.logging switch', async ({ page }) => {
+test('building a picker does not override the page-wide window.components.logging switch', async ({ page }) => {
     const logs = captureDrpLogs(page);
     await page.goto(PAGE);
     await page.evaluate(async () => {

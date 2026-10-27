@@ -41,6 +41,15 @@ and derived colors to the contract's **formula on the `--drp-*` token**, so a st
   selected-day check measures APCA (|Lc| >= 45, the contract's rule for text on fills) instead
   of WCAG 2.
 
+### Changed — BREAKING (API cleanup)
+
+- **BREAKING** — `show-debug-info` / `showDebugInfo` is removed (attribute, property and
+  engine option). Turn logging up with core's switches instead: `el.enableLogging()` /
+  `el.disableLogging()` (this element's instance loggers, core `BlissElement`),
+  `window.components['web-daterangepicker'].logging.enableLogging()` /
+  `.setLogLevel('warn')` (the `DRP:*` categories of every picker on the page), or
+  `window.components.logging…` (every KeenMate component).
+
 ### Changed — BREAKING (interaction model, web-components-core rc15)
 
 Callbacks, events and action buttons follow the shared KeenMate interaction model

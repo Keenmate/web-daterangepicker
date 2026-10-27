@@ -580,7 +580,6 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
           visible-months-count="2"
           disabled-weekdays="0,3,6"
           disabled-dates-handling="block"
-          show-debug-info
           placeholder="Select range"></web-daterangepicker>
         <small>Blocks range from crossing disabled dates. Snaps to last enabled date. (Sundays, Wednesdays, Saturdays disabled)</small>
         <div id="mode-block-output" class="output"></div>
@@ -1745,7 +1744,6 @@ const picker = new DateRangePickerEngine(inputElement, {
   },
 
   // Advanced
-  showDebugInfo: false,                            // Show debug overlay
   dateMember: 'date',                              // Custom date property name
   badgeTextMember: 'badgeText',                    // Custom badge text property
   badgeClassMember: 'badgeClass',                  // Custom badge class property

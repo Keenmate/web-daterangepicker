@@ -338,8 +338,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `enable-transitions`: class on the calendar; runtime toggle reflects | ✓ | `misc-features.spec.ts` | `misc-features.html` |
 | `/logging` `DRP:*` loggers at `warn` by default (no debug lines; warnings visible) | ✓ | `logging.spec.ts` | `logging.html` |
-| `show-debug-info` enables debug at runtime; removal → back to `warn` (never silent) | ✓ | `logging.spec.ts` | `logging.html` |
-| A picker without `show-debug-info` doesn't override `window.components.logging` | ✓ | `logging.spec.ts` | `logging.html` |
+| `window.components['web-daterangepicker'].logging` turns debug on / back to `warn` | ✓ | `logging.spec.ts` | `logging.html` |
+| `el.enableLogging()` / `disableLogging()` per instance (core) | ✓ | `logging.spec.ts` | `logging.html` |
+| Removed `show-debug-info` attribute has no effect | ✓ | `logging.spec.ts` | `logging.html` |
+| Building a picker doesn't override `window.components.logging` | ✓ | `logging.spec.ts` | `logging.html` |
 | RTL: header + grid mirror (prev on the right)                 | ✓      | `rtl.spec.ts`                | `rtl.html`                |
 | RTL: chevrons point outward, ArrowLeft = next day (FINDINGS #28) | ✗ test.fail | `rtl.spec.ts`        | `rtl.html`                |
 | Wheel commit logs via `console.log` (FINDINGS #23, fixed — removed) | ✓ | _no test (console noise)_ |              |

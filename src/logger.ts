@@ -20,8 +20,8 @@
  *
  * Default level is core's `warn` (warnings/errors show, debug/info don't); the
  * page-wide `window.components.logging` switch drives every KeenMate bundle at
- * once. The `show-debug-info` attribute turns this bundle up to `debug` and, when
- * removed, back to `warn` — it never silences.
+ * once. Per element, core's `el.enableLogging()` / `el.disableLogging()` turn
+ * that element's instance loggers (`this.log`) up / back.
  *
  * Enable from the console (or `window.components['web-daterangepicker'].logging`):
  *
@@ -68,11 +68,6 @@ export function enableLogging(): void {
 /** Disable all logging (silent). */
 export function disableLogging(): void {
   logging.disableLogging();
-}
-
-/** Put every category back to the default level (`warn`) — what `show-debug-info` off restores. */
-export function resetLogLevel(): void {
-  logging.setLogLevel('warn');
 }
 
 /** Set the same level on every category. */

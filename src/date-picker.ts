@@ -22,7 +22,7 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
 import { resolveLocale, getLocaleStrings, getWeekdayNames, getMonthNames } from './date-picker-locales';
-import { drpLogger, navigationLogger, enableLogging, resetLogLevel } from './logger';
+import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
 import { createPresentationContext, registerOverlay, withComponentContext, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
@@ -268,7 +268,6 @@ class DateRangePickerEngine {
             beforeMonthChangeCallback: options.beforeMonthChangeCallback,
             getMonthDataCallback: options.getMonthDataCallback,
             beforeActionCallback: options.beforeActionCallback,
-            showDebugInfo: options.showDebugInfo || false,
             rollingYearRange: options.rollingYearRange,
             rollingMonthRange: options.rollingMonthRange,
             getCustomStylesCallback: options.getCustomStylesCallback,
@@ -348,12 +347,6 @@ class DateRangePickerEngine {
         if (this.options.pickerMode !== 'date' && options.commitMode == null) {
             this.options.commitMode = 'apply';
         }
-
-        // showDebugInfo turns the DRP loggers up to debug. Off is a no-op: it must
-        // never silence the bundle (warnings — incl. core's input-validation ones —
-        // stay at the default `warn`), nor override a page-wide
-        // `window.components.logging` setting.
-        if (this.options.showDebugInfo) enableLogging();
 
         // Validate anchor index is within bounds
         if (this.options.isUnifiedNavigationEnabled && this.options.unifiedNavigationAnchorIndex !== undefined) {
@@ -713,8 +706,6 @@ class DateRangePickerEngine {
         // Captured before the merge (afterwards partial and options agree).
         const isMonthDataSourceChanged = changed('getMonthDataCallback');
 
-        const wasDebugInfoShown = !!this.options.showDebugInfo;
-
         // Merge partial into options (only keys present on partial — preserves untouched ones).
         for (const key of Object.keys(partial) as (keyof DatePickerOptions)[]) {
             (this.options as any)[key] = (partial as any)[key];
@@ -735,12 +726,6 @@ class DateRangePickerEngine {
         }
         if (has('minDate') || has('maxDate') || has('disabledDates') || has('specialDates') || has('dateMember')) {
             this.initializeDateRestrictions();
-        }
-        if (has('showDebugInfo')) {
-            // Turning it off only undoes what it turned on: back to the default `warn`
-            // (never silent).
-            if (this.options.showDebugInfo) enableLogging();
-            else if (wasDebugInfoShown) resetLogLevel();
         }
 
         // Re-render is the universal post-step. Calendar DOM structure is unchanged,

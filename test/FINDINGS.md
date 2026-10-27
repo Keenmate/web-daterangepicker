@@ -292,6 +292,8 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     removed. New `logging.spec.ts` tests: warnings visible by default, still visible after
     `show-debug-info` is removed, and a picker without it doesn't override
     `window.components.logging.enableLogging()`.
+    **Follow-up (2026-10-27, user decision):** `show-debug-info` / `showDebugInfo` is removed
+    entirely — core's `el.enableLogging()` / `window.components…logging` are the switches.
 
 24. **~~DRP-12 — the selection setters don't refresh the form value.~~** ✅ FIXED
     Where: `src/web-component.ts` `set selectedDate` / `selectedRanges` / `selectedDates`

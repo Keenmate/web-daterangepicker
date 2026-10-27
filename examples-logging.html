@@ -48,7 +48,7 @@
     </div>
     <div class="note warning">
       <strong>⚠️ Development Only</strong><br>
-      Debug logging is for development only. Never ship with <code>show-debug-info</code> enabled in production!
+      Debug logging is for development only. Never ship a page that turns it on in production!
     </div>
   </div>
 
@@ -110,18 +110,21 @@
 
   <div class="card">
     <h2>LG03 · Basic Logging</h2>
-    <p>Enable debug logging with the <code>show-debug-info</code> attribute:</p>
-    <div class="code-block"><code>&lt;date-range-picker
-  selection-mode="single"
-  show-debug-info&gt;
-&lt;/date-range-picker&gt;</code></div>
+    <p>Turn debug logging on through the component's logging bundle (all pickers on the page), the
+       page-wide switch for every KeenMate component, or one element's instance loggers. This page
+       calls the first one on load.</p>
+    <div class="code-block"><code>// every DRP:* category of every picker on the page
+window.components['web-daterangepicker'].logging.enableLogging();
+// every KeenMate component on the page
+window.components.logging.enableLogging();
+// just this element's own (instance) loggers
+document.querySelector('web-daterangepicker').enableLogging();</code></div>
 
     <div class="form-group">
       <label>Try it - Open console (F12) and interact:</label>
       <web-daterangepicker
         id="basic-debug"
         selection-mode="single"
-        show-debug-info
         placeholder="Click to see logs">
       </web-daterangepicker>
     </div>
@@ -150,7 +153,6 @@
         visible-months-count="2"
         disabled-weekdays="0,6"
         disabled-dates-handling="block"
-        show-debug-info
         placeholder="Select a range">
       </web-daterangepicker>
     </div>
@@ -175,7 +177,6 @@
         id="nav-debug"
         selection-mode="single"
         visible-months-count="3"
-        show-debug-info
         placeholder="Navigate months">
       </web-daterangepicker>
     </div>
@@ -202,7 +203,6 @@
         id="drag-debug"
         selection-mode="range"
         visible-months-count="2"
-        show-debug-info
         placeholder="Select and drag">
       </web-daterangepicker>
     </div>
@@ -266,8 +266,8 @@ Example:
   <div class="card">
     <h2>LG09 · Best Practices</h2>
     <ul>
-      <li><strong>Development:</strong> Enable <code>show-debug-info</code> when troubleshooting</li>
-      <li><strong>Production:</strong> Always remove <code>show-debug-info</code> attribute</li>
+      <li><strong>Development:</strong> Call <code>window.components['web-daterangepicker'].logging.enableLogging()</code> (or <code>el.enableLogging()</code> for one element) when troubleshooting</li>
+      <li><strong>Production:</strong> Leave logging at its default (<code>warn</code>)</li>
       <li><strong>Performance:</strong> Logs are minimal overhead when disabled</li>
       <li><strong>Filtering:</strong> Use console filters to reduce noise</li>
       <li><strong>Categories:</strong> Focus on specific categories for targeted debugging (filter on <code>DRP:</code>)</li>
@@ -281,11 +281,13 @@ Example:
   selection-mode="range"
   visible-months-count="2"
   disabled-weekdays="0,6"
-  disabled-dates-handling="block"
-  show-debug-info&gt;
+  disabled-dates-handling="block"&gt;
 &lt;/web-daterangepicker&gt;
 
 &lt;script&gt;
+  // Debug logging for the DRP:* categories
+  window.components['web-daterangepicker'].logging.enableLogging();
+
   // Listen to events and log details
   const picker = document.querySelector('web-daterangepicker');
 
@@ -306,6 +308,10 @@ Example:
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Turn the DRP:* loggers up to debug for the whole page (index.ts has run by now).
+      customElements.whenDefined('web-daterangepicker').then(() => {
+        window.components?.['web-daterangepicker']?.logging?.enableLogging();
+      });
       // Set the drag-debug picker's pre-fill value relative to today.
       const dragDebug = document.getElementById('drag-debug');
       if (dragDebug) {
@@ -324,7 +330,7 @@ Example:
       console.log('3. Watch the categorized log output');
       console.log('4. Try filtering logs by category: DRP:GENERAL, DRP:SELECTION, DRP:VALIDATION, etc.');
       console.log('');
-      console.log('💡 Each picker on this page has show-debug-info enabled');
+      console.log('💡 Debug logging is enabled for every picker on this page');
       console.log('');
 
       // Add event listeners for demonstrations

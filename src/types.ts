@@ -601,9 +601,6 @@ export interface DatePickerOptions {
    * }
    */
   getMonthDataCallback?: (ctx: MonthChangeContext) => MonthData | null | void | Promise<MonthData | null | void>;
-
-  /** Enable detailed console logging for troubleshooting. Default: false. */
-  showDebugInfo?: boolean;
 }
 
 export interface LocaleStrings {
