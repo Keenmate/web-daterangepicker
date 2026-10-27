@@ -70,6 +70,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 **Keyboard navigation**
 - Arrows: Up/Down (week), Left/Right (day)
 - Ctrl+Left/Right or PageUp/PageDown: previous/next month
+- RTL (`isRtl()` — the element passes core's `isRtl`): Left/Right (and Ctrl+Left/Right) are swapped to follow the visual direction; `:host(:dir(rtl))` swaps the nav chevron rotations; `directionChanged()` re-renders
 - Home / End: first/last day of current month
 - Ctrl+Home / Ctrl+End: jump to start/end of year (repeat to step year-by-year)
 - `t`: jump to today

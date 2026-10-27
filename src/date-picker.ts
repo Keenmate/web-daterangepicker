@@ -238,6 +238,7 @@ class DateRangePickerEngine {
             onMonthChange: options.onMonthChange || undefined,
             hostElement: options.hostElement || undefined,
             controller: options.controller || undefined,
+            isRtl: options.isRtl || undefined,
             container: this.containerElement,
             positioningMode: options.positioningMode || 'floating',
             monthLayout: options.monthLayout || 'horizontal',
@@ -1185,6 +1186,12 @@ class DateRangePickerEngine {
         return Validation.isInRange(date, this._selectedStartDate, this._selectedEndDate);
     }
 
+    /** Whether the picker is laid out right-to-left (the host's `isRtl`, else the calendar's computed direction). */
+    isRtl(): boolean {
+        if (this.options.isRtl) return this.options.isRtl();
+        return !!this.calendar?.isConnected && getComputedStyle(this.calendar).direction === 'rtl';
+    }
+
     /**
      * Whether a pick only STAGES the selection (nothing written, no `select` /
      * `change`) until `apply()` commits it: `commitMode` `apply` (the Apply button
@@ -1846,6 +1853,13 @@ class DateRangePickerEngine {
             // field) — don't hijack them for month/year navigation.
             if (Interaction.inputOwnsCaretKey(e)) return;
 
+            // WAI-ARIA grid: the horizontal arrows follow the VISUAL direction. In RTL
+            // the grid runs right-to-left, so ArrowLeft is "next" (day, or month with Ctrl).
+            let key = e.key;
+            if ((key === 'ArrowLeft' || key === 'ArrowRight') && this.isRtl()) {
+                key = key === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+            }
+
             if (e.key === 'Escape') {
                 this.close();
                 e.preventDefault();
@@ -1858,9 +1872,9 @@ class DateRangePickerEngine {
                 this.moveFocus(7);
                 e.preventDefault();
             }
-            else if (e.key === 'ArrowLeft') {
+            else if (key === 'ArrowLeft') {
                 if (e.ctrlKey || e.metaKey) {
-                    // Ctrl+Left: Previous month (same as PageUp - maintain day position)
+                    // Ctrl+Left (Ctrl+Right in RTL): Previous month (same as PageUp - maintain day position)
                     navigationLogger.debug('Ctrl+Left: Navigate to previous month');
                     const currentDayIndex = this.focusedDayIndex;
                     this.prevMonth(this.activeMonthIndex);
@@ -1880,9 +1894,9 @@ class DateRangePickerEngine {
                 }
                 e.preventDefault();
             }
-            else if (e.key === 'ArrowRight') {
+            else if (key === 'ArrowRight') {
                 if (e.ctrlKey || e.metaKey) {
-                    // Ctrl+Right: Next month (same as PageDown - maintain day position)
+                    // Ctrl+Right (Ctrl+Left in RTL): Next month (same as PageDown - maintain day position)
                     navigationLogger.debug('Ctrl+Right: Navigate to next month');
                     const currentDayIndex = this.focusedDayIndex;
                     this.nextMonth(this.activeMonthIndex);

@@ -585,6 +585,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // Contexts carry THIS element and its (rebuild-proof) controller, not the engine's.
     cfg.hostElement = this;
     cfg.controller = this.controller;
+    cfg.isRtl = () => this.isRtl;
     cfg.container = this.#shadow as unknown as HTMLElement;
     return cfg;
   }
@@ -822,6 +823,17 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
         `--drp-* variable in the component reads — likely a typo.${hint}`,
       );
     }
+  }
+
+  // ── writing direction (core `isRtl` / `directionChanged`) ─────────────────
+
+  /**
+   * A runtime `dir` change on the element (core hook). The chevrons mirror through
+   * `:host(:dir(rtl))` and the arrow keys read the live `isRtl`; re-render so the
+   * open calendar repaints for the new direction.
+   */
+  protected override directionChanged(_isRtl: boolean): void {
+    this.#picker?.renderCalendar();
   }
 
   // ── responsive presentation (SPEC §12.9) ──────────────────────────────────

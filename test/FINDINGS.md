@@ -368,7 +368,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     malformed value invalid (core: warn + keep previous). Description fixed. Unpinned + 4 new
     specs.
 
-28. **DRP-16 — no RTL handling: chevrons and arrow keys don't mirror.**
+28. **~~DRP-16 — no RTL handling: chevrons and arrow keys don't mirror.~~** ✅ FIXED
     In a `dir="rtl"` context the header and grid mirror through flexbox/grid (prev sits on
     the right), but `.drp__nav--prev::before` still rotates 180° (points left, i.e. inward)
     and ArrowLeft still moves to the previous day (visually rightward). Where:
@@ -377,6 +377,11 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     the keydown handler swaps ArrowLeft/Right (and Ctrl+arrows) when
     `getComputedStyle(host).direction === 'rtl'`. **Open question for the user:** is RTL a
     supported target? Pinned by `rtl.spec.ts` (2 tests; the mirrored layout is ✓).
+    **Fixed (2026-10-27, user decision — RTL is supported):** `:host(:dir(rtl))` swaps which
+    rotation variable each chevron reads (consumer overrides still apply); the keydown handler
+    swaps ArrowLeft/Right incl. Ctrl+arrows when the engine's `isRtl()` (the element passes
+    core's `isRtl`) is true; `directionChanged()` re-renders. Unpinned + 2 new specs
+    (Ctrl+arrows in RTL, runtime `dir` flip).
 
 29. **~~DRP-17 — modal mode never blurs the input inside the web component.~~** ✅ FIXED
     Where: `src/date-picker-ui.ts` `enterModal()` checks `document.activeElement ===

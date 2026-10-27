@@ -33,6 +33,10 @@ own keyboard handlers.
 | **Ctrl** + **Home** | January 1st of current year — repeat for previous year |
 | **Ctrl** + **End** | December 31st of current year — repeat for next year |
 
+In a right-to-left (`dir="rtl"`) context ← / → (and **Ctrl** + ← / →) follow the
+visual direction, per WAI-ARIA: the grid runs right-to-left, so ← moves to the
+next day / month. The nav chevrons mirror too.
+
 ### Selection & lifecycle
 
 | Key | Action |

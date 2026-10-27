@@ -6,8 +6,10 @@ import type { Locator, Page } from './fixtures';
  * sits on the right and its chevron points right (outward); the day grid runs
  * right-to-left, so ArrowLeft moves to the NEXT day.
  *
- * The component has no RTL handling yet (FINDINGS.md #28) — the layout mirrors
- * through flexbox/grid, but the chevrons and the arrow keys don't.
+ * The layout mirrors through flexbox/grid; `:host(:dir(rtl))` swaps the chevron
+ * rotations and the keydown handler swaps ArrowLeft/Right (core `isRtl`,
+ * FINDINGS.md #28). A runtime `dir` change on the element goes through core's
+ * `directionChanged()` hook.
  *
  * Fixture: test/rtl.html (#rtl inside dir="rtl", #ltr control).
  */
@@ -54,15 +56,29 @@ test('rtl: the header mirrors — prev sits on the right', async ({ page }) => {
 });
 
 test('rtl: the prev chevron points right (outward), next points left', async ({ page }) => {
-    test.fail(true, 'FINDINGS.md #28');
     const p = await open(page, 'rtl');
     expect(await chevronTransform(p, 'prev')).toMatch(/^matrix\(1,/);
     expect(await chevronTransform(p, 'next')).toMatch(/^matrix\(-1,/);
 });
 
 test('rtl: ArrowLeft moves to the next day (visual direction)', async ({ page }) => {
-    test.fail(true, 'FINDINGS.md #28');
     const p = await focusFirstDay(page, 'rtl');
+    await page.keyboard.press('ArrowLeft');
+    await expect(focused(p)).toHaveAttribute('data-date', '2026-06-09');
+});
+
+test('rtl: Ctrl+ArrowLeft goes to the NEXT month, Ctrl+ArrowRight to the previous', async ({ page }) => {
+    const p = await focusFirstDay(page, 'rtl');
+    await page.keyboard.press('Control+ArrowLeft');
+    await expect(p.locator('.drp__month-year').first()).toContainText(/July\s+2026/);
+    await page.keyboard.press('Control+ArrowRight');
+    await expect(p.locator('.drp__month-year').first()).toContainText(/June\s+2026/);
+});
+
+test('a runtime dir="rtl" on the element flips the chevrons and the arrow keys', async ({ page }) => {
+    const p = await focusFirstDay(page, 'ltr');
+    await p.evaluate((el: any) => el.setAttribute('dir', 'rtl'));
+    await expect.poll(() => chevronTransform(p, 'prev')).toMatch(/^matrix\(1,/);
     await page.keyboard.press('ArrowLeft');
     await expect(focused(p)).toHaveAttribute('data-date', '2026-06-09');
 });

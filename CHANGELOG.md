@@ -181,6 +181,11 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   up over the modal), and hands focus back on close when the input had it before opening.
 - Keyboard navigation (Ctrl+Home / Ctrl+End, Ctrl+arrows, PageUp / PageDown, `t`) no longer
   leaves a second, stale focused day after quick key presses.
+- Right-to-left (FINDINGS #28): in a `dir="rtl"` context the nav chevrons point outward
+  (`:host(:dir(rtl))` swaps the `--drp-nav-icon-rotate-prev` / `-next` rotations) and
+  ArrowLeft / ArrowRight (also with Ctrl / Cmd) follow the visual direction (WAI-ARIA) — read
+  live from core's `isRtl`; a runtime `dir` change on the element re-renders via core's
+  `directionChanged()`.
 - `rolling-year-range` understands the relative form its description promised: `-5:+5` (signed
   sides count from TODAY's year, not the shown one) and mixed `2020:+2`, next to `2022-2026` /
   `2024`. A malformed value (it used to produce an empty year list) warns and keeps the

@@ -114,6 +114,16 @@
   transform: rotate(var(--drp-nav-icon-rotate-next, 0deg));
 }
 
+/* RTL: the header mirrors (prev sits on the right), so the chevrons swap their
+   rotations — each points outward, in its visual direction. */
+:host(:dir(rtl)) .drp__nav--prev::before {
+  transform: rotate(var(--drp-nav-icon-rotate-next, 0deg));
+}
+
+:host(:dir(rtl)) .drp__nav--next::before {
+  transform: rotate(var(--drp-nav-icon-rotate-prev, 180deg));
+}
+
 /* ==============================================================================
    ROLLING SELECTOR VIEW (MONTH/YEAR SELECTION)
    ============================================================================== */

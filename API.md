@@ -1541,6 +1541,11 @@ Complete keyboard support for accessibility:
 | `Ctrl/Cmd + Home` | January 1st of current year. Press again for previous year |
 | `Ctrl/Cmd + End` | December 31st of current year. Press again for next year |
 
+**Right-to-left:** in a `dir="rtl"` context the grid and header mirror, the nav chevrons point
+outward (`:host(:dir(rtl))` swaps `--drp-nav-icon-rotate-prev` / `-next`), and `←` / `→`
+(also with `Ctrl/Cmd`) follow the visual direction — `←` is the next day / month (WAI-ARIA).
+The direction is read live (core `isRtl`); a runtime `dir` change on the element re-renders.
+
 ### Input Masking
 
 | Key | Action |

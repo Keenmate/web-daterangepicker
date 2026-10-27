@@ -295,6 +295,12 @@ export interface DatePickerOptions {
    */
   hostElement?: HTMLElement;
   controller?: DateRangePickerController;
+  /**
+   * Internal: whether the picker is laid out right-to-left (the element passes core's
+   * `isRtl`). ArrowLeft / ArrowRight (and Ctrl+arrows) follow the visual direction.
+   * A standalone engine falls back to the calendar's computed `direction`.
+   */
+  isRtl?: () => boolean;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
   /**
    * How the calendar is presented. Default: `floating`.
