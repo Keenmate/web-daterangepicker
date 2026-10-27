@@ -85,7 +85,7 @@ ACTION BUTTONS
 --------------
 custom buttons, preset buttons → action-buttons.txt
 today button, clear button, apply button → action-buttons.txt
-is-today-button-shown, is-clear-button-shown, commit-mode (apply button) → action-buttons.txt
+show-today-button, show-clear-button, commit-mode (apply button) → action-buttons.txt
 actionButtons property → action-buttons.txt
 button visibility, conditional buttons → action-buttons.txt
 disabled buttons, button state → action-buttons.txt
@@ -95,7 +95,7 @@ button icons, font awesome → action-buttons.txt
 preset ranges, quick select → action-buttons.txt
 last week, this month, quarter → action-buttons.txt
 commit-mode behavior → action-buttons.txt
-should-close-on-select, should-close-on-outside-click (close options) → action-buttons.txt
+close-on-select, close-on-outside-click (close options) → action-buttons.txt
 
 POSITIONING & LAYOUT
 --------------------
@@ -103,7 +103,7 @@ inline mode, always visible → basic-usage.txt
 floating mode, dropdown → basic-usage.txt
 calendar-placement, position → basic-usage.txt
 multiple months, multi-month → basic-usage.txt
-visible-months-count → basic-usage.txt
+visible-month-count → basic-usage.txt
 grid layout → basic-usage.txt
 
 FORMATTING & LOCALIZATION
@@ -192,22 +192,22 @@ actionButtons → action-buttons.txt (set as a property)
 WEB COMPONENT ATTRIBUTES
 -------------------------
 selection-mode → basic-usage.txt
-visible-months-count → basic-usage.txt
+visible-month-count → basic-usage.txt
 min-date, max-date → date-restrictions.txt
 disabled-weekdays → date-restrictions.txt
 disabled-dates-handling → disabled-dates-handling.txt
 date-format-mask → basic-usage.txt
 positioning-mode → basic-usage.txt
 calendar-placement → basic-usage.txt
-is-today-button-shown → action-buttons.txt
-is-clear-button-shown → action-buttons.txt
+show-today-button → action-buttons.txt
+show-clear-button → action-buttons.txt
 commit-mode → action-buttons.txt
 locale → basic-usage.txt
 input-size → basic-usage.txt
 spacing → basic-usage.txt
 font-size → basic-usage.txt
 cell-size → basic-usage.txt
-enable-transitions → basic-usage.txt
+enable-transition → basic-usage.txt
 
 PROPERTIES (Web Component)
 ---------------------------

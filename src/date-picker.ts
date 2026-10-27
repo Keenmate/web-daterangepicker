@@ -229,7 +229,7 @@ class DateRangePickerEngine {
         this.options = {
             selectionMode: options.selectionMode || 'single',
             calendarPlacement: options.calendarPlacement || (options.monthLayout === 'grid' ? 'bottom' : 'bottom-start'),
-            visibleMonthsCount: options.visibleMonthsCount || (options.selectionMode === 'range' ? 2 : 1),
+            visibleMonthCount: options.visibleMonthCount || (options.selectionMode === 'range' ? 2 : 1),
             dateFormatMask: options.dateFormatMask || 'YYYY-MM-DD',
             calendarOpenTrigger: options.calendarOpenTrigger || 'focus',
             overlayGroup: options.overlayGroup || undefined,
@@ -297,8 +297,8 @@ class DateRangePickerEngine {
             isSecondsShown: options.isSecondsShown,
             isNowButtonShown: options.isNowButtonShown ?? true,
             timeDisplay: options.timeDisplay || 'rolls',
-            fullscreenAutofocus: options.fullscreenAutofocus || false,
-            fullscreenInput: options.fullscreenInput || false,
+            shouldFullscreenAutofocus: options.shouldFullscreenAutofocus || false,
+            isFullscreenInputShown: options.isFullscreenInputShown || false,
             fullscreenTitle: options.fullscreenTitle
         };
 
@@ -314,7 +314,7 @@ class DateRangePickerEngine {
             (this.options.selectionMode === 'range' || this.options.selectionMode === 'multiple')) {
             drpLogger.warn(`pickerMode="${this.options.pickerMode}" does not support selectionMode="${this.options.selectionMode}" yet. Falling back to "single".`);
             this.options.selectionMode = 'single';
-            this.options.visibleMonthsCount = 1;
+            this.options.visibleMonthCount = 1;
         }
         // pickerMode 'datetime' + monthLayout 'grid' — the time picker fights the grid for width.
         if (this.options.pickerMode === 'datetime' && this.options.monthLayout === 'grid') {
@@ -351,7 +351,7 @@ class DateRangePickerEngine {
 
         // Validate anchor index is within bounds
         if (this.options.isUnifiedNavigationEnabled && this.options.unifiedNavigationAnchorIndex !== undefined) {
-            const maxIndex = this.options.visibleMonthsCount - 1;
+            const maxIndex = this.options.visibleMonthCount - 1;
             if (this.options.unifiedNavigationAnchorIndex < 0 || this.options.unifiedNavigationAnchorIndex > maxIndex) {
                 drpLogger.warn(`unifiedNavigationAnchorIndex (${this.options.unifiedNavigationAnchorIndex}) out of bounds. Using 0.`);
                 this.options.unifiedNavigationAnchorIndex = 0;
@@ -429,7 +429,7 @@ class DateRangePickerEngine {
         // Initialize the month anchor per visible column (single source of truth
         // for what's displayed; visibleMonths / visibleMonthDates derive from it).
         this._monthDates = [];
-        for (let i = 0; i < this.options.visibleMonthsCount; i++) {
+        for (let i = 0; i < this.options.visibleMonthCount; i++) {
             const date = new Date(initialDisplayDate.getFullYear(), initialDisplayDate.getMonth() + i, 1);
             this._monthDates.push(date);
             drpLogger.debug(`_monthDates[${i}] = ${date.getFullYear()}-${date.getMonth()+1}`);
@@ -468,7 +468,7 @@ class DateRangePickerEngine {
 
         // Initialize rolling selector state for each month
         this.rollingSelectorOpenByColumn = [];
-        for (let i = 0; i < this.options.visibleMonthsCount; i++) {
+        for (let i = 0; i < this.options.visibleMonthCount; i++) {
             this.rollingSelectorOpenByColumn.push(false);
         }
 
@@ -679,7 +679,7 @@ class DateRangePickerEngine {
         const STRUCTURAL_KEYS: (keyof DatePickerOptions)[] = [
             'positioningMode',
             'selectionMode',
-            'visibleMonthsCount',
+            'visibleMonthCount',
             'monthLayout',
             'gridRows',
             'gridColumns',
@@ -1284,7 +1284,7 @@ class DateRangePickerEngine {
         const skipMonths = this.options.pickerMode === 'time';
 
         // Create individual month calendars
-        for (let i = 0; !skipMonths && i < this.options.visibleMonthsCount; i++) {
+        for (let i = 0; !skipMonths && i < this.options.visibleMonthCount; i++) {
             const monthCalendar = document.createElement('div');
             monthCalendar.className = 'drp__month';
             monthCalendar.dataset.monthIndex = String(i);
@@ -1455,7 +1455,7 @@ class DateRangePickerEngine {
         this.attachCalendarListeners();
 
         // Initialize rolling selector states for each month
-        this.rollingSelectorOpenByColumn = new Array(this.options.visibleMonthsCount).fill(false);
+        this.rollingSelectorOpenByColumn = new Array(this.options.visibleMonthCount).fill(false);
 
         // Re-apply any active lock to the freshly built DOM (classes + input.readOnly).
         Lock.syncLockUI(this);
@@ -1849,7 +1849,7 @@ class DateRangePickerEngine {
             }
 
             // Plain Home/End belong to the caret while a typed input holds text and
-            // the caret isn't at the boundary (esp. the fullscreen-input header
+            // the caret isn't at the boundary (esp. the show-fullscreen-input header
             // field) — don't hijack them for month/year navigation.
             if (Interaction.inputOwnsCaretKey(e)) return;
 
@@ -1933,7 +1933,7 @@ class DateRangePickerEngine {
             }
             else if (e.key === 'Tab') {
                 // Switch between columns in multi-month mode
-                if (this.options.visibleMonthsCount > 1) {
+                if (this.options.visibleMonthCount > 1) {
                     const direction = e.shiftKey ? -1 : 1;
                     const newMonthIndex = this.activeMonthIndex + direction;
 

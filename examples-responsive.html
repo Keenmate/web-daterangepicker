@@ -53,7 +53,7 @@
         <web-daterangepicker
           id="adaptive"
           selection-mode="range"
-          visible-months-count="2">
+          visible-month-count="2">
         </web-daterangepicker>
       </div>
 
@@ -65,14 +65,14 @@
         </div>
         <div class="form-group">
           <label>Date range (2 months → stacked on phones)</label>
-          <web-daterangepicker id="intro-range" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+          <web-daterangepicker id="intro-range" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         </div>
       </div>
 
       <div class="code-block"><code><span class="comment">&lt;!-- auto (default): floating on desktop, modal on tablets, fullscreen on phones --&gt;</span>
 <span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">visible-months-count</span>=<span class="string">"2"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <span class="property">visible-month-count</span>=<span class="string">"2"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">&lt;!-- force one presentation everywhere --&gt;</span>
 <span class="keyword">&lt;web-daterangepicker</span> <span class="property">mobile-presentation</span>=<span class="string">"floating"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
@@ -84,7 +84,7 @@
     <!-- ============================================================ -->
     <div class="card">
       <h2>RS02 · The Problem with Floating Mode on Small Screens</h2>
-      <p>Floating mode anchors the calendar popover to its input. For multi-month layouts (<code>visible-months-count="3"</code>, <code>2×3</code> grid, etc.), the calendar can be wider than the viewport itself — users get a horizontal scrollbar, the picker overflows the screen edge, and on mobile it becomes unusable.</p>
+      <p>Floating mode anchors the calendar popover to its input. For multi-month layouts (<code>visible-month-count="3"</code>, <code>2×3</code> grid, etc.), the calendar can be wider than the viewport itself — users get a horizontal scrollbar, the picker overflows the screen edge, and on mobile it becomes unusable.</p>
       <p>Modal mode renders the calendar as a centered overlay with a backdrop scrim instead. It works at any viewport width, scales the configured layout responsively, and locks body scroll while open.</p>
     </div>
 
@@ -107,12 +107,12 @@
         </div>
 
         <div class="form-group">
-          <label>Multi-month modal (visible-months-count=3)</label>
+          <label>Multi-month modal (visible-month-count=3)</label>
           <web-daterangepicker
             id="modal-multi"
             selection-mode="range"
             positioning-mode="modal"
-            visible-months-count="3">
+            visible-month-count="3">
           </web-daterangepicker>
           <button onclick="document.querySelector('#modal-multi').isOpen = true" class="mt-1">Open modal</button>
         </div>
@@ -123,11 +123,11 @@
             id="modal-grid"
             selection-mode="range"
             positioning-mode="modal"
-            visible-months-count="6"
+            visible-month-count="6"
             month-layout="grid"
             grid-rows="2"
             grid-columns="3"
-            is-unified-navigation-enabled="true">
+            enable-unified-navigation="true">
           </web-daterangepicker>
           <button onclick="document.querySelector('#modal-grid').isOpen = true" class="mt-1">Open modal</button>
         </div>
@@ -300,13 +300,13 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- RS08. fullscreen-input — type dates in the header (mobile §3) -->
+    <!-- RS08. show-fullscreen-input — type dates in the header (mobile §3) -->
     <!-- ============================================================ -->
     <div class="card">
-      <h2>RS08 · Full-Screen: type dates in the header (<code>fullscreen-input</code>)</h2>
+      <h2>RS08 · Full-Screen: type dates in the header (<code>show-fullscreen-input</code>)</h2>
       <p>
         In the full-screen sheet the trigger field normally sits <em>behind</em> the overlay, so there's
-        nothing to type into. <code>fullscreen-input</code> moves the real input up into the sheet
+        nothing to type into. <code>show-fullscreen-input</code> moves the real input up into the sheet
         header — visible, above the calendar, and wired to the same mask. It gets
         <code>inputmode="numeric"</code>, so phones show a <strong>digits-only keypad</strong>: you type
         <code>08192026</code> and the mask fills in the separators (<code>08/19/2026</code>). You never
@@ -322,19 +322,19 @@
       <div class="grid">
         <div class="form-group">
           <label>Tap-or-type — header input</label>
-          <web-daterangepicker id="hdrinput" selection-mode="single" fullscreen-input></web-daterangepicker>
+          <web-daterangepicker id="hdrinput" selection-mode="single" show-fullscreen-input></web-daterangepicker>
         </div>
         <div class="form-group">
           <label>Type-first — header input + autofocus keypad</label>
-          <web-daterangepicker id="hdrinput-af" selection-mode="range" fullscreen-input fullscreen-autofocus></web-daterangepicker>
+          <web-daterangepicker id="hdrinput-af" selection-mode="range" show-fullscreen-input fullscreen-autofocus></web-daterangepicker>
         </div>
       </div>
 
       <div class="code-block"><code><span class="comment">&lt;!-- typeable input in the full-screen header, numeric keypad + mask --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-input</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">show-fullscreen-input</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">&lt;!-- type-first: also pop the keypad on open --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-input</span> <span class="property">fullscreen-autofocus</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">show-fullscreen-input</span> <span class="property">fullscreen-autofocus</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
     </div>
 
     <!-- ============================================================ -->
@@ -400,9 +400,9 @@
             id="compact-demo"
             selection-mode="range"
             positioning-mode="inline"
-            visible-months-count="2"
+            visible-month-count="2"
             compact-below="520"
-            is-clear-button-shown="true"
+            show-clear-button="true"
             initial-date="2026-06-15"
             style="display: block; width: 100%;">
           </web-daterangepicker>
@@ -412,7 +412,7 @@
       <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">selection-mode</span>=<span class="string">"range"</span>
   <span class="property">positioning-mode</span>=<span class="string">"inline"</span>
-  <span class="property">visible-months-count</span>=<span class="string">"2"</span>
+  <span class="property">visible-month-count</span>=<span class="string">"2"</span>
   <span class="property">compact-below</span>=<span class="string">"520"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
 
       <div class="note info">

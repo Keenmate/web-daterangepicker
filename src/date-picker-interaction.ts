@@ -665,7 +665,7 @@ export function applyRangeMask(picker: any, value: string): string {
  * caret is not already at the relevant boundary (or a selection spans, which the
  * browser should collapse). Callers must then NOT preventDefault and NOT
  * navigate — the calendar only takes Home/End once the caret sits at the edge.
- * Matters most for the `fullscreen-input` header field, where the user is typing
+ * Matters most for the `show-fullscreen-input` header field, where the user is typing
  * a date. Ctrl/Cmd+Home/End stays calendar year-jump. Mirrors web-multiselect's
  * caret-aware Home/End (core rc08 companion fix).
  */
@@ -901,7 +901,7 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
 
         if (picker.options.selectionMode === 'single') {
             picker._monthDates = [];
-            for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
+            for (let i = 0; i < picker.options.visibleMonthCount; i++) {
                 const date = new Date(newYear, newMonth + i, 1);
                 picker._monthDates.push(date);
             }
@@ -911,7 +911,7 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
             // layouts like a 2×3 grid → 6 columns).
             if (dateType === 'start' || !picker._selectedStartDate) {
                 picker._monthDates = [];
-                for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
+                for (let i = 0; i < picker.options.visibleMonthCount; i++) {
                     picker._monthDates.push(new Date(newYear, newMonth + i, 1));
                 }
             }

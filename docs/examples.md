@@ -92,7 +92,7 @@ The device-adaptive `mobile-presentation` ladder (floating on desktop,
 a centered modal on tablets, an edge-to-edge **full-screen** overlay on
 phones), the explicit `positioning-mode="modal"` layout with its
 viewport-tier widths (xs / sm / md / lg), container-query inner layout,
-the `fullscreen-title` / `fullscreen-autofocus` / `fullscreen-input`
+the `fullscreen-title` / `fullscreen-autofocus` / `show-fullscreen-input`
 options, and container-responsive compaction (`compact-below`).
 
 ## Time / datetime
@@ -105,7 +105,7 @@ time-display UIs: **rolls** (default scrollable columns), **clock**
 ring), **wheel** (iOS UIPickerView snap-scroll columns with center
 selection band), and **compact** (iOS 14+ pill with `contentEditable`
 typing). All four work with `time-format-mask` token permutations,
-`time-step`, seconds, and the `is-seconds-shown` / `is-now-button-shown`
+`time-step`, seconds, and the `show-seconds` / `show-now-button`
 flags.
 
 ## Debugging

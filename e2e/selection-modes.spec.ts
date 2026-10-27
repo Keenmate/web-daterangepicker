@@ -242,7 +242,7 @@ test.describe('commit-mode="manual" (range, app-driven commit)', () => {
         expect(await p.evaluate((el: any) => el.selectedStartDate)).toBeNull();
     });
 
-    test('should-close-on-outside-click="true" overrides the manual default: closes and discards', async ({ page }) => {
+    test('close-on-outside-click="true" overrides the manual default: closes and discards', async ({ page }) => {
         const p = await open(page, 'range-manual-outside');
         await dayByDate(p, '2026-06-10').click();
         await dayByDate(p, '2026-06-12').click();
@@ -267,7 +267,7 @@ test.describe('commit-mode="manual" (range, app-driven commit)', () => {
 // close options (separate from commit-mode)
 // =============================================================================
 
-test.describe('booking.com flow: commit-mode="selection" should-close-on-select="false"', () => {
+test.describe('booking.com flow: commit-mode="selection" close-on-select="false"', () => {
     const log = (page: Page) => page.getByTestId('selection-modes-log');
 
     test('every completed range is written immediately and the calendar stays open to adjust', async ({ page }) => {
@@ -292,7 +292,7 @@ test.describe('booking.com flow: commit-mode="selection" should-close-on-select=
     });
 });
 
-test('should-close-on-outside-click="false": an outside click leaves the calendar open; Escape still closes', async ({ page }) => {
+test('close-on-outside-click="false": an outside click leaves the calendar open; Escape still closes', async ({ page }) => {
     const p = await open(page, 'single-outside-off');
     await page.mouse.click(5, 5);
     await expect(calendarOf(p)).toHaveClass(/drp__picker--visible/);
@@ -300,9 +300,9 @@ test('should-close-on-outside-click="false": an outside click leaves the calenda
     await expect(calendarOf(p)).not.toHaveClass(/drp__picker--visible/);
 });
 
-test('should-close-on-select can be toggled at runtime', async ({ page }) => {
+test('close-on-select can be toggled at runtime', async ({ page }) => {
     const p = pickerById(page, 'single');
-    await p.evaluate((el: any) => { el.setAttribute('should-close-on-select', 'false'); return el.whenSettled(); });
+    await p.evaluate((el: any) => { el.setAttribute('close-on-select', 'false'); return el.whenSettled(); });
     await inputOf(p).click();
     await dayByDate(p, '2026-06-20').click();
     await expect(inputOf(p)).toHaveValue('2026-06-20');

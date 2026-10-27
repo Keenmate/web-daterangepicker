@@ -2,11 +2,11 @@
    STATES — cross-feature state modifiers
    ==============================================================================
    Opt-in transitions (gated by the `drp__picker--transitions-enabled` class
-   on the root, controlled by the `enable-transitions` attribute), and the
+   on the root, controlled by the `enable-transition` attribute), and the
    inline-mode root modifier.
 
    By default, no transitions for maximum performance. The host opts in via
-   `enable-transitions` to get smooth animations on hover/focus changes. */
+   `enable-transition` to get smooth animations on hover/focus changes. */
 
 .drp__picker--transitions-enabled .drp__badge-cell {
   transition: transform var(--drp-transition-fast) var(--drp-easing-snappy);

@@ -4,7 +4,7 @@ import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, open } 
  * Round-out for several smaller features:
  *   - badge tooltip via specialDates.badgeTooltip
  *   - invalid-range error styling (showInvalidRange:true on restore)
- *   - is-unified-header-interactive opens unified rolling selector
+ *   - unified-header-interactive opens unified rolling selector
  *
  * Fixture: test/misc-features.html
  * (Device-adaptive presentation — mobile-presentation / fullscreen — lives in
@@ -51,10 +51,10 @@ test('markRangeInvalid() + false keeps the invalid range visible with --invalid-
 });
 
 // =============================================================================
-// is-unified-header-interactive
+// unified-header-interactive
 // =============================================================================
 
-test('is-unified-header-interactive: clicking the unified range header opens the unified rolling selector', async ({ page }) => {
+test('unified-header-interactive: clicking the unified range header opens the unified rolling selector', async ({ page }) => {
     const p = await open(page, 'unified-click');
 
     await p.locator('.drp__unified-range').click();
@@ -62,10 +62,10 @@ test('is-unified-header-interactive: clicking the unified range header opens the
 });
 
 // =============================================================================
-// enable-transitions
+// enable-transition
 // =============================================================================
 
-test.describe('enable-transitions', () => {
+test.describe('enable-transition', () => {
     test('absent by default: no transitions class on the calendar', async ({ page }) => {
         const p = await open(page, 'no-transitions');
         await expect(calendarOf(p)).not.toHaveClass(/drp__picker--transitions-enabled/);
@@ -78,11 +78,11 @@ test.describe('enable-transitions', () => {
 
     test('toggling the property at runtime adds/removes the class and reflects the attribute', async ({ page }) => {
         const p = pickerById(page, 'no-transitions');
-        await p.evaluate((el: any) => { el.enableTransitions = true; return el.whenSettled(); });
-        await expect(p).toHaveAttribute('enable-transitions', '');
+        await p.evaluate((el: any) => { el.isTransitionEnabled = true; return el.whenSettled(); });
+        await expect(p).toHaveAttribute('enable-transition', '');
         await expect(calendarOf(p)).toHaveClass(/drp__picker--transitions-enabled/);
-        await p.evaluate((el: any) => { el.enableTransitions = false; return el.whenSettled(); });
-        await expect(p).not.toHaveAttribute('enable-transitions');
+        await p.evaluate((el: any) => { el.isTransitionEnabled = false; return el.whenSettled(); });
+        await expect(p).not.toHaveAttribute('enable-transition');
         await expect(calendarOf(p)).not.toHaveClass(/drp__picker--transitions-enabled/);
     });
 });

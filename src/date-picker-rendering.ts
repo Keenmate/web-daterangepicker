@@ -76,7 +76,7 @@ export function renderCalendar(picker: any) {
 
     // Render each month (skipped entirely in time-only mode — no DOM to render)
     if (picker.options.pickerMode !== 'time') {
-        for (let i = 0; i < picker.options.visibleMonthsCount; i++) {
+        for (let i = 0; i < picker.options.visibleMonthCount; i++) {
             if (picker.rollingSelectorOpenByColumn[i]) {
                 renderRollingSelector(picker, i);
             } else {

@@ -138,13 +138,13 @@
     <div class="grid">
       <div class="form-group">
         <label>Range with 3 Months</label>
-        <web-daterangepicker selection-mode="range" visible-months-count="3" placeholder="Select range"></web-daterangepicker>
+        <web-daterangepicker selection-mode="range" visible-month-count="3" placeholder="Select range"></web-daterangepicker>
         <small>Great for selecting dates far apart</small>
       </div>
 
       <div class="form-group">
         <label>Single Date with 2 Months</label>
-        <web-daterangepicker selection-mode="single" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <web-daterangepicker selection-mode="single" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Each month has independent navigation</small>
       </div>
     </div>
@@ -218,11 +218,11 @@
           id="inline-unified-grid"
           selection-mode="range"
           positioning-mode="inline"
-          visible-months-count="6"
+          visible-month-count="6"
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
-          is-unified-navigation-enabled>
+          enable-unified-navigation>
         </web-daterangepicker>
         <small>One navigation header controls all 6 months. Click the date range to open month/year selector.</small>
         <div id="inline-unified-grid-output" class="output"></div>

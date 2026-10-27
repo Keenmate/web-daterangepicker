@@ -83,7 +83,7 @@
   text-overflow: ellipsis;
 }
 
-/* `fullscreen-input`: the relocated trigger input fills the header row (before the
+/* `show-fullscreen-input`: the relocated trigger input fills the header row (before the
    ✕). Override .drp__input's `width:100%` / fixed height so flex governs its size,
    and scale it with the sheet's --drp-rem. No calendar-icon overlay lives here, so
    drop the extra trailing padding .drp__input reserves for it. */

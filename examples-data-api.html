@@ -261,7 +261,7 @@ const inputElement = document.getElementById('input-2');
 
 const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'range',
-  visibleMonthsCount: 2,
+  visibleMonthCount: 2,
   monthLayout: 'horizontal',
   dateFormatMask: 'YYYY-MM-DD',
   onSelect: (detail) => {
@@ -411,7 +411,7 @@ const picker = new DateRangePickerEngine(null, {
 
 const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
   selectionMode: 'single',
-  visibleMonthsCount: 6,
+  visibleMonthCount: 6,
   monthLayout: 'grid',
   gridRows: 2,
   gridColumns: 3,
@@ -536,7 +536,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
           id="q4-demo"
           selection-mode="range"
           rolling-month-range="10-12"
-          visible-months-count="2"
+          visible-month-count="2"
           placeholder="Select dates">
         </web-daterangepicker>
         <small>Only the current year, only Oct/Nov/Dec visible and enabled</small>
@@ -548,7 +548,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
           selection-mode="range"
           rolling-month-range="11-12"
           rolling-year-range="2024-2025"
-          visible-months-count="2"
+          visible-month-count="2"
           placeholder="Select dates">
         </web-daterangepicker>
         <small>Years 2024-2025 available, but only November and December months selectable</small>
@@ -574,7 +574,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="mode-allow"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="allow"
           placeholder="Select range"></web-daterangepicker>
@@ -587,7 +587,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="mode-block"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           disabled-weekdays="0,3,6"
           disabled-dates-handling="block"
           placeholder="Select range"></web-daterangepicker>
@@ -600,10 +600,10 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="mode-split"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="split"
-          should-highlight-disabled-in-range="false"
+          highlight-disabled-in-range="false"
           placeholder="Select range"></web-daterangepicker>
         <small>Returns multiple ranges split by disabled dates. Weekends not highlighted.</small>
         <div id="mode-split-output" class="output"></div>
@@ -614,10 +614,10 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="mode-individual"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="individual"
-          should-highlight-disabled-in-range="false"
+          highlight-disabled-in-range="false"
           placeholder="Select range"></web-daterangepicker>
         <small>Returns flat array of individual enabled dates. Weekends not highlighted.</small>
         <div id="mode-individual-output" class="output"></div>
@@ -641,7 +641,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
       <web-daterangepicker
         id="week-snap"
         selection-mode="range"
-        visible-months-count="2"
+        visible-month-count="2"
         week-start-day="1"
         placeholder="Select range"></web-daterangepicker>
       <small>Select Mon–Tue of a week → snaps to the full week. Select a lone Friday → dropped (0 days).</small>
@@ -658,7 +658,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="summary-pricing"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           placeholder="Select dates"></web-daterangepicker>
         <small>Shows calculated price based on nights</small>
       </div>
@@ -668,7 +668,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="summary-weekdays"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="allow"
           placeholder="Select range"></web-daterangepicker>
@@ -680,7 +680,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="summary-split"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           disabled-weekdays="0,6"
           disabled-dates-handling="split"
           placeholder="Select range"></web-daterangepicker>
@@ -692,7 +692,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="summary-nights"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           placeholder="Select dates"></web-daterangepicker>
         <small>Custom format showing only nights</small>
       </div>
@@ -775,7 +775,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
         <web-daterangepicker
           id="picker-1"
           selection-mode="single"
-          should-close-on-select="false"
+          close-on-select="false"
           calendar-placement="top"
           placeholder="Click buttons to control visibility">
         </web-daterangepicker>
@@ -929,7 +929,7 @@ rangePicker.setInputValue('');</code></pre>
             <web-daterangepicker
               id="picker-3b"
               selection-mode="range"
-              visible-months-count="2"
+              visible-month-count="2"
               placeholder="Select date range">
             </web-daterangepicker>
           </div>
@@ -992,7 +992,7 @@ picker.setInputValue('2025-12-25');</code></pre>
             <web-daterangepicker
               id="picker-4b"
               selection-mode="range"
-              visible-months-count="2"
+              visible-month-count="2"
               placeholder="Range picker">
             </web-daterangepicker>
           </div>
@@ -1126,7 +1126,7 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
         <web-daterangepicker
           id="picker-6"
           selection-mode="range"
-          visible-months-count="2"
+          visible-month-count="2"
           placeholder="Advanced picker">
         </web-daterangepicker>
 
@@ -1159,7 +1159,7 @@ controller.unlock();
 
 // Configuration is read from the element itself
 console.log('Mode:', component.selectionMode);
-console.log('Months to show:', component.visibleMonthsCount);</code></pre>
+console.log('Months to show:', component.visibleMonthCount);</code></pre>
       </div>
 
       <div class="method-signature">
@@ -1236,7 +1236,7 @@ picker.onSelect = (detail) => console.log('Selected:', detail.formattedValue);</
             id="picker-9"
             selection-mode="range"
             positioning-mode="inline"
-            visible-months-count="2">
+            visible-month-count="2">
           </web-daterangepicker>
         </div>
 
@@ -1369,7 +1369,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
             id="picker-confirm"
             selection-mode="range"
             commit-mode="manual"
-            visible-months-count="2"
+            visible-month-count="2"
             placeholder="Select a range (min 3 nights)">
           </web-daterangepicker>
           <div class="note mt-1" id="confirm-output">Status: <span id="confirm-state">nothing confirmed yet</span></div>
@@ -1635,7 +1635,7 @@ const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single' | 'range',               // Default: 'single'
 
   // Display
-  visibleMonthsCount: 2,                           // Default: 1 for single, 2 for range
+  visibleMonthCount: 2,                           // Default: 1 for single, 2 for range
   monthLayout: 'horizontal' | 'grid',              // Default: 'horizontal'
   gridRows: 2,                                     // Required if monthLayout is 'grid'
   gridColumns: 3,                                  // Required if monthLayout is 'grid'
@@ -2120,7 +2120,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
     // Example 2: Date Range Picker
     const picker2 = makeAdaptive(new DateRangePickerEngine(document.getElementById('input-2'), {
       selectionMode: 'range',
-      visibleMonthsCount: 2,
+      visibleMonthCount: 2,
       monthLayout: 'horizontal',
       dateFormatMask: 'YYYY-MM-DD',
       onSelect: (detail) => {
@@ -2190,7 +2190,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
     const input6 = document.getElementById('input-6');
     const picker6 = makeAdaptive(new DateRangePickerEngine(input6, {
       selectionMode: 'single',
-      visibleMonthsCount: 6,
+      visibleMonthCount: 6,
       monthLayout: 'grid',
       gridRows: 2,
       gridColumns: 3,

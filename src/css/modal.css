@@ -163,7 +163,7 @@
    `.drp__picker--modal .drp__months--grid` rule above
    handles N × `minmax(--drp-month-min-width, 1fr)`) */
 
-/* Note: the is-unified-navigation-enabled header stays visible — its prev/next buttons
+/* Note: the enable-unified-navigation header stays visible — its prev/next buttons
    are the only way to navigate when per-month headers are static (unified
    mode). Its range display ("May 2026 - October 2026") will look slightly
    off when only some of the configured months are visible, but navigation

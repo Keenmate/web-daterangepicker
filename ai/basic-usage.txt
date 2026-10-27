@@ -46,7 +46,7 @@ All kebab-case, string values:
 
 <web-daterangepicker
   selection-mode="range"
-  visible-months-count="2"
+  visible-month-count="2"
   min-date="2025-01-01"
   max-date="2025-12-31"
   disabled-weekdays="0,6"
@@ -55,8 +55,8 @@ All kebab-case, string values:
   locale="en"
   positioning-mode="floating"
   calendar-placement="bottom-start"
-  is-today-button-shown="true"
-  is-clear-button-shown="true"
+  show-today-button="true"
+  show-clear-button="true"
   commit-mode="selection">
 </web-daterangepicker>
 
@@ -171,14 +171,14 @@ Select start and end dates:
 <!-- Web Component -->
 <web-daterangepicker
   selection-mode="range"
-  visible-months-count="2"
+  visible-month-count="2"
   placeholder="Select date range">
 </web-daterangepicker>
 
 // JavaScript API
 const picker = new DateRangePickerEngine(input, {
   selectionMode: 'range',
-  visibleMonthsCount: 2,
+  visibleMonthCount: 2,
   onSelect: (detail) => {
     console.log('Start:', detail.dateRange.start);
     console.log('End:', detail.dateRange.end);
@@ -195,7 +195,7 @@ Select multiple individual dates or ranges:
 <web-daterangepicker
   selection-mode="multiple"
   positioning-mode="inline"
-  visible-months-count="2">
+  visible-month-count="2">
 </web-daterangepicker>
 
 Access selections:
@@ -211,7 +211,7 @@ Calendar embedded in page, always open:
 <web-daterangepicker
   positioning-mode="inline"
   selection-mode="range"
-  visible-months-count="2">
+  visible-month-count="2">
 </web-daterangepicker>
 
 Use cases:
@@ -438,7 +438,7 @@ European format:
 Hotel booking (2 months):
 <web-daterangepicker
   selection-mode="range"
-  visible-months-count="2"
+  visible-month-count="2"
   commit-mode="apply">
 </web-daterangepicker>
 

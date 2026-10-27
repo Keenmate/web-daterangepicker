@@ -16,8 +16,8 @@ Control visibility of the defaults:
 <!-- Web Component -->
 <web-daterangepicker
   selection-mode="range"
-  is-today-button-shown="true"
-  is-clear-button-shown="true">
+  show-today-button="true"
+  show-clear-button="true">
 </web-daterangepicker>
 
 The Apply button is not toggled directly. It is rendered when
@@ -45,16 +45,16 @@ Modes:
                 Apply button.
 
 Close options:
-- should-close-on-select        default true; closes when a pick completes
+- close-on-select        default true; closes when a pick completes
                                 (commit-mode="selection" only)
-- should-close-on-outside-click default true; false when commit-mode="manual"
+- close-on-outside-click default true; false when commit-mode="manual"
                                 unless set explicitly
-- should-close-on-scroll        default true (floating)
+- close-on-scroll        default true (floating)
 Escape and close() always close. Closing without apply() discards a staged pick.
 
 booking.com flow (written immediately, calendar stays open to adjust):
 <web-daterangepicker selection-mode="range"
-  commit-mode="selection" should-close-on-select="false"></web-daterangepicker>
+  commit-mode="selection" close-on-select="false"></web-daterangepicker>
 
 CUSTOM ACTION BUTTONS
 ---------------------

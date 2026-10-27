@@ -84,7 +84,7 @@
 
       <div class="form-group">
         <label>Range Mode Event Demo</label>
-        <web-daterangepicker id="event-range" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="event-range" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <div id="event-log-range" class="log-panel log-panel--dark" style="--log-max-height: 300px">
           <div class="muted">Select a range to see events...</div>
         </div>
@@ -283,7 +283,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
           <span class="status-dot status-dot--err"></span>
           Minimum 2 Nights
         </label>
-        <web-daterangepicker id="range-min-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="range-min-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <small>Requires at least 2 nights</small>
         <div id="log-range-min" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Waiting for selection...</div>
@@ -296,7 +296,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
           <span class="status-dot status-dot--err"></span>
           Maximum 7 Nights (markRangeInvalid)
         </label>
-        <web-daterangepicker id="range-max-nights" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="range-max-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <small>Cannot exceed 7 nights. Calls <code>ctx.markRangeInvalid()</code> before returning <code>false</code> to keep the invalid range visible with error styling.</small>
         <div id="log-range-max" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Waiting for selection...</div>
@@ -309,7 +309,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
           <span class="status-dot status-dot--warn"></span>
           Auto-Adjust to Checkout Day
         </label>
-        <web-daterangepicker id="range-adjust-checkout" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="range-adjust-checkout" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <small>End date must be Sunday (checkout day)</small>
         <div id="log-range-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Waiting for selection...</div>
@@ -322,7 +322,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
           <span class="status-dot status-dot--ok"></span>
           Check Availability (Custom Message)
         </label>
-        <web-daterangepicker id="range-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="range-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>ctx.controller.showMessage(html)</code> for full control; its buttons fire the <code>action</code> event.</small>
         <div id="log-range-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Waiting for selection...</div>
@@ -464,7 +464,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
         <label>
           Hotel Pricing (Bulk Load)
         </label>
-        <web-daterangepicker id="month-bulk-pricing" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="month-bulk-pricing" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <small>Navigate months to see bulk metadata loading in action. Check console for logs.</small>
         <div id="log-month-bulk" class="log-panel log-panel--dark" style="--log-max-height: 200px">
           <div class="muted">Navigate to a month to see bulk loading...</div>
@@ -496,13 +496,13 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
           id="unified-grid-example"
           selection-mode="range"
           positioning-mode="inline"
-          visible-months-count="6"
+          visible-month-count="6"
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
-          is-unified-navigation-enabled="true"
+          enable-unified-navigation="true"
           unified-navigation-anchor-index="2"
-          is-unified-header-interactive="true">
+          unified-header-interactive="true">
         </web-daterangepicker>
         <small>Anchor month at index 2 (top-right). Navigation loads all 6 months at once. Try navigating beyond ±3 months to see blocking.</small>
         <div id="log-unified-grid" class="log-panel log-panel--dark" style="--log-max-height: 200px">
@@ -533,7 +533,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
       <!-- Example: getMonthHeaderCallback -->
       <div class="form-group">
         <label>Working Days in Headers</label>
-        <web-daterangepicker id="header-callback" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="header-callback" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <small>Headers show working day counts (excludes weekends &amp; holidays)</small>
         <div id="log-header-callback" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Headers will update as you navigate...</div>
@@ -543,7 +543,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
       <!-- Example: monthHeaders from getMonthDataCallback -->
       <div class="form-group">
         <label>Headers from Async Data</label>
-        <web-daterangepicker id="header-async" selection-mode="range" visible-months-count="2"></web-daterangepicker>
+        <web-daterangepicker id="header-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
         <small>Headers loaded with pricing data</small>
         <div id="log-header-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Navigate to load headers with data...</div>
@@ -557,7 +557,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
           <span class="status-dot status-dot--err"></span>
           Block Navigation (3 months max)
         </label>
-        <web-daterangepicker id="header-block" selection-mode="range" visible-months-count="1"></web-daterangepicker>
+        <web-daterangepicker id="header-block" selection-mode="range" visible-month-count="1"></web-daterangepicker>
         <small>Cannot navigate more than 3 months ahead</small>
         <div id="log-header-block" class="log-panel log-panel--dark" style="--log-max-height: 150px">
           <div class="muted">Try navigating past 3 months...</div>
@@ -569,8 +569,8 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
         <web-daterangepicker
           id="header-grid"
           selection-mode="range"
-          visible-months-count="3"
-          is-unified-navigation-enabled="true"
+          visible-month-count="3"
+          enable-unified-navigation="true"
         ></web-daterangepicker>
         <small>Headers show occupancy rates with icons</small>
         <div id="log-header-grid" class="log-panel log-panel--dark" style="--log-max-height: 150px">

@@ -21,6 +21,23 @@ One vocabulary across the KeenMate components (web-components-core naming pass, 
   `<fieldset disabled>` now disables the picker too (core `isEffectivelyDisabled`).
 - **BREAKING — the `readonly` property is removed** (duplicate of `isReadonly`; attribute stays
   `readonly`). Read the live lock state from `lockedAspects`.
+- **BREAKING — boolean attributes use the short HTML form** (derived from the config key:
+  `is<X>Shown` → `show-<x>`, `is<X>Enabled` → `enable-<x>`, `should<X>` → `<x>`):
+  `is-summary-shown` → `show-summary`, `is-seconds-shown` → `show-seconds`,
+  `is-today-button-shown` / `is-clear-button-shown` / `is-now-button-shown` →
+  `show-today-button` / `show-clear-button` / `show-now-button`,
+  `is-unified-navigation-enabled` → `enable-unified-navigation`,
+  `is-unified-header-interactive` → `unified-header-interactive`,
+  `should-highlight-disabled-in-range` → `highlight-disabled-in-range`,
+  `should-close-on-select` / `should-close-on-outside-click` / `should-close-on-scroll` →
+  `close-on-select` / `close-on-outside-click` / `close-on-scroll`. Config keys / properties are
+  unchanged for these.
+- **BREAKING — config keys with proper prefixes:** `enableTransitions` → `isTransitionEnabled`
+  (attribute `enable-transitions` → `enable-transition`), `fullscreenAutofocus` →
+  `shouldFullscreenAutofocus` (attribute stays `fullscreen-autofocus`), `fullscreenInput` →
+  `isFullscreenInputShown` (attribute `fullscreen-input` → `show-fullscreen-input`).
+- **BREAKING — `visibleMonthsCount` → `visibleMonthCount`** (attribute `visible-month-count`).
+- **BREAKING — `formFieldName` → `name`** (property / config key; the attribute was already `name`).
 
 ### Changed — standalone colors follow the contract
 

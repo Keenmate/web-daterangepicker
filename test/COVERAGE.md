@@ -29,8 +29,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `commit-mode="manual"`: no close, no Apply; custom button → `controller.apply()` commits | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 | `commit-mode="manual"`: picks only stage — nothing written / no events before `apply()` (FINDINGS #22, fixed) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 | `commit-mode="manual"`: outside click doesn't close by default; Escape / `close()` discard the staged pick | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
-| `should-close-on-outside-click` (`false` in selection mode; `true` overriding the manual default) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
-| `should-close-on-select="false"` — booking.com flow: written on every pick, stays open; runtime toggle | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `close-on-outside-click` (`false` in selection mode; `true` overriding the manual default) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `close-on-select="false"` — booking.com flow: written on every pick, stays open; runtime toggle | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 
 ## 2. Positioning modes
 
@@ -42,7 +42,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `floating`: escapes `overflow:auto` ancestor (SPFx fix)       | ✓      | `floating-overflow.spec.ts`  | `floating-overflow.html`  |
 | `floating`: anchor stable when calendar content grows         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
 | `floating`: closes on viewport resize                         | ✓      | `anchor-stability.spec.ts`   | `anchor-stability.html`   |
-| `floating`: `should-close-on-scroll` (default true / false)          | ✓      | `floating-placement.spec.ts` | `floating-placement.html` |
+| `floating`: `close-on-scroll` (default true / false)          | ✓      | `floating-placement.spec.ts` | `floating-placement.html` |
 | `inline` mode: renders in-place, never hidden                 | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: centered overlay + backdrop                     | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 | `modal` mode: backdrop click closes                           | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
@@ -70,16 +70,16 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `visible-months-count="2"` shows two adjacent months          | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
+| `visible-month-count="2"` shows two adjacent months          | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | Horizontal multi-month layout (flex row)                      | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | Grid layout (`grid-rows` × `grid-columns`)                    | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | Collision prevention: adjacent columns can't show same month  | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
 | Per-column independent navigation                             | ✓      | `multi-month.spec.ts`        | `multi-month.html`        |
-| `is-unified-navigation-enabled`: single header drives all columns        | △      | `multi-month.spec.ts`        | `multi-month.html`        |
+| `enable-unified-navigation`: single header drives all columns        | △      | `multi-month.spec.ts`        | `multi-month.html`        |
 | `unified-navigation-anchor-index`: unified month/year pick lands in column N | ✓ | `multi-month.spec.ts` | `multi-month.html` |
 | `month-layout` row → grid at runtime renders the grid | ✓ | `multi-month.spec.ts` | `multi-month.html` |
 | `month-layout` switch keeps the range (FINDINGS #21, fixed) | ✓ | `multi-month.spec.ts` | `multi-month.html` |
-| `is-unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
+| `unified-header-interactive` opens unified rolling selector   | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Always-6-week rendering (42 cells, stable height in modal)    | ✓      | `positioning-modes.spec.ts`  | `positioning-modes.html`  |
 
 ## 5. Navigation
@@ -130,7 +130,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `'block'`: snaps to last enabled before disabled gap          | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `'split'`: yields multiple ranges in event detail             | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 | `'individual'`: yields flat enabled-dates array               | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
-| `should-highlight-disabled-in-range` toggles styling                 | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
+| `highlight-disabled-in-range` toggles styling                 | ✓      | `disabled-handling.spec.ts`  | `disabled-handling.html`  |
 
 ## 9. Action buttons & summary
 
@@ -140,10 +140,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Clear button clears selection + input                         | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Apply commits pending selection, closes picker                | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | Apply fires `select` + `change` and refreshes the form value (FINDINGS #17) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
-| `is-today-button-shown` / `is-clear-button-shown` / `commit-mode="apply"` (Apply button) | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| `show-today-button` / `show-clear-button` / `commit-mode="apply"` (Apply button) | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Custom `actionButtons` array (incl. `action` event)           | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | Action-button tooltip on hover                                | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
-| `is-summary-shown="false"` omits summary block entirely           | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
+| `show-summary="false"` omits summary block entirely           | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Actions `border-top` only when summary is visible             | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
 | Visible summary has `margin-top` (gap from months)            | ✓      | `summary-actions.spec.ts`    | `summary-actions.html`    |
 | Range summary text reflects selected days/nights              | △      | `selection-modes.spec.ts`    | `selection-modes.html`    |
@@ -288,7 +288,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Desktop: `mobile-presentation="auto"` → floating; forced `fullscreen` applies | ✓ | `mobile-presentation-desktop.spec.ts` | `mobile-presentation.html` |
-| Phone: auto → full-screen sheet, ✕ close, header merge, `fullscreen-input`, keyboard-off, `fullscreen-autofocus` | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
+| Phone: auto → full-screen sheet, ✕ close, header merge, `show-fullscreen-input`, keyboard-off, `fullscreen-autofocus` | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
 | Tablet: auto → modal; tap opens and stays open (ghost click)  | ✓      | `mobile-presentation-tablet.spec.ts` | `mobile-presentation.html` |
 | Back gesture closes modal / full-screen without navigating    | ✓      | `back-gesture.spec.ts`       | `mobile-presentation.html` |
 | Adaptive action set: rich on desktop, essentials on phone     | ✓      | `adaptive-actions.spec.ts`, `adaptive-actions-phone.spec.ts` | `adaptive-actions.html` |
@@ -324,8 +324,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `hour-cycle` h12 (1-12 + AM/PM, formats `hh:mm a`); derived from the mask | ✓ | `time-options.spec.ts` | `time-options.html` |
 | Runtime `hour-cycle` switch keeps the time (FINDINGS #21, fixed) | ✓ | `time-options.spec.ts`  | `time-options.html`       |
 | `time-step` (declared + runtime)                              | ✓      | `time-options.spec.ts`       | `time-options.html`       |
-| `is-seconds-shown` (declared + runtime toggle)                | ✓      | `time-options.spec.ts`       | `time-options.html`       |
-| `is-now-button-shown`: Now commits the pinned now; hidden (declared + runtime) | ✓ | `time-options.spec.ts` | `time-options.html` |
+| `show-seconds` (declared + runtime toggle)                | ✓      | `time-options.spec.ts`       | `time-options.html`       |
+| `show-now-button`: Now commits the pinned now; hidden (declared + runtime) | ✓ | `time-options.spec.ts` | `time-options.html` |
 | Runtime `time-format-mask` change incl. derived hour cycle (FINDINGS #20, fixed) | ✓ | `time-options.spec.ts`  | `time-options.html`       |
 | Phone full-screen sheet: time / datetime / wheel commit via Apply; ✕ discards | ✓ | `mobile-time.spec.ts` | `mobile-time-e2e.html` |
 
@@ -342,7 +342,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `enable-transitions`: class on the calendar; runtime toggle reflects | ✓ | `misc-features.spec.ts` | `misc-features.html` |
+| `enable-transition`: class on the calendar; runtime toggle reflects | ✓ | `misc-features.spec.ts` | `misc-features.html` |
 | `/logging` `DRP:*` loggers at `warn` by default (no debug lines; warnings visible) | ✓ | `logging.spec.ts` | `logging.html` |
 | `window.components['web-daterangepicker'].logging` turns debug on / back to `warn` | ✓ | `logging.spec.ts` | `logging.html` |
 | `el.enableLogging()` / `disableLogging()` per instance (core) | ✓ | `logging.spec.ts` | `logging.html` |

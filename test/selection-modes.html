@@ -51,21 +51,21 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">booking.com flow — commit-mode="selection" should-close-on-select="false": written on every pick, stays open</div>
-        <web-daterangepicker id="range-booking" selection-mode="range" visible-months-count="2"
-            initial-date="2026-06-15" commit-mode="selection" should-close-on-select="false" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <div class="fixture-label">booking.com flow — commit-mode="selection" close-on-select="false": written on every pick, stays open</div>
+        <web-daterangepicker id="range-booking" selection-mode="range" visible-month-count="2"
+            initial-date="2026-06-15" commit-mode="selection" close-on-select="false" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">single, should-close-on-outside-click="false"</div>
+        <div class="fixture-label">single, close-on-outside-click="false"</div>
         <web-daterangepicker id="single-outside-off" selection-mode="single"
-            initial-date="2026-06-15" should-close-on-outside-click="false" placeholder="YYYY-MM-DD"></web-daterangepicker>
+            initial-date="2026-06-15" close-on-outside-click="false" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">range, commit-mode="manual" should-close-on-outside-click="true"</div>
+        <div class="fixture-label">range, commit-mode="manual" close-on-outside-click="true"</div>
         <web-daterangepicker id="range-manual-outside" selection-mode="range"
-            initial-date="2026-06-15" commit-mode="manual" should-close-on-outside-click="true" placeholder="YYYY-MM-DD"></web-daterangepicker>
+            initial-date="2026-06-15" commit-mode="manual" close-on-outside-click="true" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
     <pre data-testid="selection-modes-log"></pre>

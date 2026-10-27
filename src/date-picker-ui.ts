@@ -385,8 +385,8 @@ function enterFullscreen(picker: any) {
     // Trap the phone Back gesture/button so it closes the sheet instead of navigating.
     pushOverlayHistory(picker);
     // Keyboard-off by default: drop any focus the opening tap gave the input so the
-    // soft keyboard doesn't linger over the calendar. Opt in via fullscreenAutofocus.
-    if (picker.options.fullscreenAutofocus && picker.input) {
+    // soft keyboard doesn't linger over the calendar. Opt in via shouldFullscreenAutofocus.
+    if (picker.options.shouldFullscreenAutofocus && picker.input) {
         picker.input.focus();
     } else if (picker.input) {
         picker.input.blur();
@@ -418,10 +418,10 @@ function buildFullscreenHeader(picker: any) {
     const header = document.createElement('div');
     header.className = 'drp__fullscreen-header';
 
-    // `fullscreen-input` relocates the real trigger input into the header (it carries
+    // `show-fullscreen-input` relocates the real trigger input into the header (it carries
     // the mask + form value, and otherwise sits offscreen behind the fixed sheet). It
     // takes over the flex-growing header slot, so it wins over a title.
-    const wantsInput = !!(picker.options.fullscreenInput && picker.input);
+    const wantsInput = !!(picker.options.isFullscreenInputShown && picker.input);
     const merged = !picker.options.fullscreenTitle && !wantsInput;
     if (wantsInput) {
         relocateInputIntoHeader(picker, header);

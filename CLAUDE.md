@@ -40,7 +40,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 ### Component Features
 
 - **Selection modes**: single, range, multiple
-- **Multi-month display**: 1-N months side-by-side (`visibleMonthsCount` option)
+- **Multi-month display**: 1-N months side-by-side (`visibleMonthCount` option)
 - **Layouts**: horizontal row or grid (`monthLayout: 'horizontal' | 'grid'` with `gridRows`/`gridColumns`)
 - **Unified navigation** for grid layouts: anchor-month index drives the whole grid
 - **Input masking**: progressive auto-formatting as the user types, configurable date format

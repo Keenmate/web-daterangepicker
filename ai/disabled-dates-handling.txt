@@ -231,7 +231,7 @@ Control disabled date styling in selected range:
 <web-daterangepicker
   selection-mode="range"
   disabled-dates-handling="allow"
-  should-highlight-disabled-in-range="true">
+  highlight-disabled-in-range="true">
 </web-daterangepicker>
 
 When true:

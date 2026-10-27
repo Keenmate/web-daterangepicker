@@ -108,7 +108,7 @@ npm install @keenmate/web-daterangepicker@rc
 <web-daterangepicker
   selection-mode="range"
   date-format-mask="YYYY-MM-DD"
-  visible-months-count="2"
+  visible-month-count="2"
   placeholder="Select date range"
 ></web-daterangepicker>
 ```

@@ -150,7 +150,7 @@ test('updateOptions on a non-structural key preserves the existing selection', a
     await dayByDate(p, '2026-06-15').click();
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
 
-    // Now toggle a non-structural option (should-highlight-disabled-in-range) on the element.
+    // Now toggle a non-structural option (highlight-disabled-in-range) on the element.
     await p.evaluate(async (el: any) => {
         el.shouldHighlightDisabledInRange = false;
         await el.whenSettled();
@@ -160,11 +160,11 @@ test('updateOptions on a non-structural key preserves the existing selection', a
     await expect(inputOf(p)).toHaveValue('2026-06-10 - 2026-06-15');
 });
 
-test('a structural key rebuilds the calendar (3 month columns after visibleMonthsCount = 3)', async ({ page }) => {
+test('a structural key rebuilds the calendar (3 month columns after visibleMonthCount = 3)', async ({ page }) => {
     const p = pickerById(page, 'updateopts');
 
     await p.evaluate(async (el: any) => {
-        el.visibleMonthsCount = 3;
+        el.visibleMonthCount = 3;
         await el.whenSettled();
     });
     await inputOf(p).click();

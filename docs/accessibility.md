@@ -125,7 +125,7 @@ back to announcing the raw DOM. Observed behavior:
 content (the day number). Selected days have no "selected" status
 announcement — visual `.drp__day--selected` styling is the only signal.
 Range mode does not announce "1 of 5 days selected" or similar — the
-summary block (`is-summary-shown="true"`) is announced when the
+summary block (`show-summary="true"`) is announced when the
 selection commits, which carries the days/nights count.
 
 **VoiceOver (macOS / iOS):** behavior matches the above on macOS.

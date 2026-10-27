@@ -64,13 +64,13 @@ test('with no title, the ✕ merges into the month-nav row and stays on top', as
   expect(state.clickable).toBe(true);   // ✕ paints above the month header
 });
 
-test('fullscreen-input: the trigger input relocates into the header (numeric keypad) and restores on close', async ({ page }) => {
+test('show-fullscreen-input: the trigger input relocates into the header (numeric keypad) and restores on close', async ({ page }) => {
   await page.goto('/test/mobile-presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
 
   const opened = await host.evaluate(el => {
-    el.setAttribute('fullscreen-input', '');
+    el.setAttribute('show-fullscreen-input', '');
     (el as any).open();
     const sr = el.shadowRoot!;
     const input = sr.querySelector('input') as HTMLInputElement;

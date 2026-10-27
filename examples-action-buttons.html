@@ -46,41 +46,41 @@
     <div class="grid">
       <div class="form-group">
         <label>No Buttons (stays open after a pick)</label>
-        <small>should-close-on-select="false" is-today-button-shown="false" is-clear-button-shown="false"</small>
+        <small>close-on-select="false" show-today-button="false" show-clear-button="false"</small>
         <web-daterangepicker
           selection-mode="range"
-          should-close-on-select="false"
-          is-today-button-shown="false"
-          is-clear-button-shown="false">
+          close-on-select="false"
+          show-today-button="false"
+          show-clear-button="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Only Clear Button</label>
-        <small>is-today-button-shown="false" (Apply is off by default in selection mode)</small>
+        <small>show-today-button="false" (Apply is off by default in selection mode)</small>
         <web-daterangepicker
           selection-mode="range"
-          is-today-button-shown="false">
+          show-today-button="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>Only Apply Button</label>
-        <small>commit-mode="apply" is-today-button-shown="false" is-clear-button-shown="false"</small>
+        <small>commit-mode="apply" show-today-button="false" show-clear-button="false"</small>
         <web-daterangepicker
           selection-mode="range"
           commit-mode="apply"
-          is-today-button-shown="false"
-          is-clear-button-shown="false">
+          show-today-button="false"
+          show-clear-button="false">
         </web-daterangepicker>
       </div>
 
       <div class="form-group">
         <label>No Summary (Range Mode)</label>
-        <small>is-summary-shown="false" — hides the days/nights count line entirely (no empty-div jump)</small>
+        <small>show-summary="false" — hides the days/nights count line entirely (no empty-div jump)</small>
         <web-daterangepicker
           selection-mode="range"
-          is-summary-shown="false">
+          show-summary="false">
         </web-daterangepicker>
       </div>
     </div>
@@ -88,15 +88,15 @@
     <div class="code-block"><code><span class="comment">// HTML attributes control built-in button visibility.</span>
 <span class="comment">// The Apply button is driven by commit-mode="apply" (not a separate flag).</span>
 <span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">is-today-button-shown</span>=<span class="string">"false"</span>
-  <span class="property">is-clear-button-shown</span>=<span class="string">"false"</span>
+  <span class="property">show-today-button</span>=<span class="string">"false"</span>
+  <span class="property">show-clear-button</span>=<span class="string">"false"</span>
   <span class="property">commit-mode</span>=<span class="string">"manual"</span><span class="keyword">&gt;</span>
 <span class="keyword">&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Range mode: hide the days/nights summary block entirely</span>
 <span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">is-summary-shown</span>=<span class="string">"false"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+  <span class="property">show-summary</span>=<span class="string">"false"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
   </div>
 
   <!-- 1b. Modal Display Mode -->
@@ -118,12 +118,12 @@
 
       <div class="form-group">
         <label>Multi-month modal (3 columns)</label>
-        <small>visible-months-count="3" — would overflow horizontally on mobile in floating mode; in modal it fits and scrolls vertically</small>
+        <small>visible-month-count="3" — would overflow horizontally on mobile in floating mode; in modal it fits and scrolls vertically</small>
         <web-daterangepicker
           id="modal-multi"
           selection-mode="range"
           positioning-mode="modal"
-          visible-months-count="3">
+          visible-month-count="3">
         </web-daterangepicker>
         <button class="mt-1" onclick="document.querySelector('#modal-multi').isOpen = true">Open modal</button>
       </div>
@@ -135,11 +135,11 @@
           id="modal-grid"
           selection-mode="range"
           positioning-mode="modal"
-          visible-months-count="6"
+          visible-month-count="6"
           month-layout="grid"
           grid-rows="2"
           grid-columns="3"
-          is-unified-navigation-enabled="true">
+          enable-unified-navigation="true">
         </web-daterangepicker>
         <button class="mt-1" onclick="document.querySelector('#modal-grid').isOpen = true">Open modal</button>
       </div>
@@ -153,7 +153,7 @@
           positioning-mode="floating"
           mobile-modal-breakpoint="768px"
           mobile-modal-min-height="500px"
-          visible-months-count="2">
+          visible-month-count="2">
         </web-daterangepicker>
       </div>
     </div>
@@ -175,7 +175,7 @@
   <!-- 2. Auto-Close Control -->
   <div class="card">
     <h2>AB03 · Commit Mode (when the pick commits &amp; the calendar closes)</h2>
-    <p>The <code>commit-mode</code> attribute governs how a selection is <strong>committed</strong> (written to the input, <code>select</code> / <code>change</code> fired). Closing is a separate axis: <code>should-close-on-select</code>, <code>should-close-on-outside-click</code> and <code>should-close-on-scroll</code>; Escape and <code>close()</code> always close, and closing discards a staged (not yet applied) pick.</p>
+    <p>The <code>commit-mode</code> attribute governs how a selection is <strong>committed</strong> (written to the input, <code>select</code> / <code>change</code> fired). Closing is a separate axis: <code>close-on-select</code>, <code>close-on-outside-click</code> and <code>close-on-scroll</code>; Escape and <code>close()</code> always close, and closing discards a staged (not yet applied) pick.</p>
 
     <div class="grid">
       <div class="form-group">
@@ -187,8 +187,8 @@
             id="commit-manual"
             selection-mode="range"
             commit-mode="manual"
-            is-today-button-shown="false"
-            is-clear-button-shown="false">
+            show-today-button="false"
+            show-clear-button="false">
           </web-daterangepicker>
           <button class="clear-btn" onclick="clearPicker('commit-manual')" title="Clear selection">&times;</button>
         </div>
@@ -209,16 +209,16 @@
       </div>
 
       <div class="form-group">
-        <label>commit-mode="selection" should-close-on-select="false" (booking.com flow)</label>
+        <label>commit-mode="selection" close-on-select="false" (booking.com flow)</label>
         <small>Every completed pick is written immediately (select / change fire), but the calendar stays open so the guest can adjust the dates. Escape / outside click closes, keeping the value.</small>
         <div class="field-row">
           <web-daterangepicker
             class="field-grow"
             id="commit-booking"
             selection-mode="range"
-            visible-months-count="2"
+            visible-month-count="2"
             commit-mode="selection"
-            should-close-on-select="false">
+            close-on-select="false">
           </web-daterangepicker>
           <button class="clear-btn" onclick="clearPicker('commit-booking')" title="Clear selection">&times;</button>
         </div>
@@ -310,7 +310,7 @@ picker.actionButtons = [
         id="multi-picker"
         selection-mode="multiple"
         positioning-mode="inline"
-        visible-months-count="2">
+        visible-month-count="2">
       </web-daterangepicker>
       <div class="log-panel mt-1" id="multi-output">No selections yet</div>
     </div>
@@ -348,7 +348,7 @@ picker.actionButtons = [
         id="external-picker"
         selection-mode="range"
         positioning-mode="inline"
-        visible-months-count="2">
+        visible-month-count="2">
       </web-daterangepicker>
 
       <div class="log-panel mt-1" id="external-output">No selection</div>
@@ -996,7 +996,7 @@ observeViewport((env) => {
         id="adaptive-toolbar"
         selection-mode="range"
         positioning-mode="inline"
-        visible-months-count="1"></web-daterangepicker>
+        visible-month-count="1"></web-daterangepicker>
       <small id="adaptive-readout" style="font-family: monospace;">detecting…</small>
     </div>
 
@@ -1020,7 +1020,7 @@ observeViewport((env) => {
         id="action-event-picker"
         selection-mode="range"
         positioning-mode="inline"
-        visible-months-count="1"></web-daterangepicker>
+        visible-month-count="1"></web-daterangepicker>
       <div class="log-panel mt-1" id="action-event-log">Click a button…</div>
     </div>
 

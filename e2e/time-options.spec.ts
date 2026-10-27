@@ -2,8 +2,8 @@ import { test, expect, pickerById, calendarOf, inputOf, open } from './fixtures'
 import type { Locator } from './fixtures';
 
 /**
- * Time-picker options: hour-cycle, time-step, is-seconds-shown,
- * is-now-button-shown, time-format-mask — declared and changed at runtime.
+ * Time-picker options: hour-cycle, time-step, show-seconds,
+ * show-now-button, time-format-mask — declared and changed at runtime.
  *
  * Fixture: test/time-options.html (clock pinned to 2026-05-22 10:00:00).
  */
@@ -88,7 +88,7 @@ test.describe('time-step', () => {
     });
 });
 
-test.describe('is-seconds-shown', () => {
+test.describe('show-seconds', () => {
     test('adds a seconds roll; the committed value carries seconds', async ({ page }) => {
         const p = await open(page, 'seconds');
         await expect(list(p, 'seconds')).toBeVisible();
@@ -101,17 +101,17 @@ test.describe('is-seconds-shown', () => {
 
     test('toggling it at runtime adds and removes the seconds roll', async ({ page }) => {
         const p = pickerById(page, 'plain');
-        await setAttr(p, 'is-seconds-shown', '');
+        await setAttr(p, 'show-seconds', '');
         await open(page, 'plain');
         await expect(list(p, 'seconds')).toBeVisible();
         await page.keyboard.press('Escape');
-        await setAttr(p, 'is-seconds-shown', 'false');
+        await setAttr(p, 'show-seconds', 'false');
         await open(page, 'plain');
         await expect(list(p, 'seconds')).toHaveCount(0);
     });
 });
 
-test.describe('is-now-button-shown', () => {
+test.describe('show-now-button', () => {
     test('Now (+ Apply) commits the pinned current time', async ({ page }) => {
         const p = await open(page, 'plain');
         await p.locator('.drp__button--now').click();
@@ -120,7 +120,7 @@ test.describe('is-now-button-shown', () => {
         expect(await p.evaluate((el: any) => el.selectedTime)).toMatchObject({ hour: 10, minute: 0 });
     });
 
-    test('is-now-button-shown="false" omits the Now button', async ({ page }) => {
+    test('show-now-button="false" omits the Now button', async ({ page }) => {
         const p = await open(page, 'no-now');
         await expect(p.locator('.drp__button--apply')).toBeVisible();
         await expect(p.locator('.drp__button--now')).toHaveCount(0);
@@ -128,7 +128,7 @@ test.describe('is-now-button-shown', () => {
 
     test('hiding it at runtime removes the Now button', async ({ page }) => {
         const p = pickerById(page, 'plain');
-        await setAttr(p, 'is-now-button-shown', 'false');
+        await setAttr(p, 'show-now-button', 'false');
         await open(page, 'plain');
         await expect(p.locator('.drp__button--now')).toHaveCount(0);
     });

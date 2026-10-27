@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator, pickerById, calendarOf, open, dayByDate, inputOf } from './fixtures';
 
 /**
- * Multi-month rendering: visible-months-count, horizontal / grid layout,
+ * Multi-month rendering: visible-month-count, horizontal / grid layout,
  * unified navigation, per-column independent navigation, collision-prevention.
  *
  * Fixture: test/multi-month.html
@@ -33,7 +33,7 @@ test.beforeEach(async ({ page }) => {
 // horizontal multi-month
 // =============================================================================
 
-test('visible-months-count="2" renders two month columns', async ({ page }) => {
+test('visible-month-count="2" renders two month columns', async ({ page }) => {
     const p = await open(page, 'two-month');
     await expect(months(p)).toHaveCount(2);
 });

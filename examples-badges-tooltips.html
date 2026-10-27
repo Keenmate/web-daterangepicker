@@ -103,13 +103,13 @@
     <div class="grid">
       <div class="form-group">
         <label>Holiday Calendar</label>
-        <web-daterangepicker id="holidays-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <web-daterangepicker id="holidays-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Holidays marked with emojis and custom styling</small>
       </div>
 
       <div class="form-group">
         <label>Cottage Booking Example</label>
-        <web-daterangepicker id="cottage-demo" selection-mode="range" visible-months-count="2" placeholder="Select dates"></web-daterangepicker>
+        <web-daterangepicker id="cottage-demo" selection-mode="range" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
         <small>Some dates are already booked (disabled)</small>
       </div>
     </div>
@@ -133,7 +133,7 @@ picker.specialDates = [
       <!-- Method 1: Static specialDates Array -->
       <div class="form-group">
         <label>1. Static Data</label>
-        <web-daterangepicker id="method-static" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
+        <web-daterangepicker id="method-static" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Known dates defined at initialization (holidays, events)</small>
         <span class="method-note">Uses: <code>specialDates</code> array property</span>
       </div>
@@ -141,7 +141,7 @@ picker.specialDates = [
       <!-- Method 2: Dynamic Callback -->
       <div class="form-group">
         <label>2. Dynamic Calculation</label>
-        <web-daterangepicker id="method-dynamic" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
+        <web-daterangepicker id="method-dynamic" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Computed values based on date properties (pricing, availability)</small>
         <span class="method-note">Uses: <code>getDateMetadataCallback</code></span>
       </div>
@@ -149,7 +149,7 @@ picker.specialDates = [
       <!-- Method 3: Member Mapping -->
       <div class="form-group">
         <label>3. Custom Data Structure</label>
-        <web-daterangepicker id="method-mapping" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
+        <web-daterangepicker id="method-mapping" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Integrating existing data without reshaping (legacy systems, APIs)</small>
         <span class="method-note">Uses: <code>badgeMemberMapping</code> with custom data</span>
       </div>
@@ -157,7 +157,7 @@ picker.specialDates = [
       <!-- Method 4: HTML Tooltips -->
       <div class="form-group">
         <label>4. Rich Tooltips</label>
-        <web-daterangepicker id="method-tooltips" visible-months-count="1" placeholder="Select date"></web-daterangepicker>
+        <web-daterangepicker id="method-tooltips" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
         <small><strong>Best for:</strong> Complex tooltip content with HTML formatting</small>
         <span class="method-note">Uses: <code>getBadgeTooltipCallback</code></span>
       </div>
@@ -209,7 +209,7 @@ picker.getBadgeTooltipCallback = (data) => {
 
     <div class="form-group">
       <label>Availability &amp; pricing, loaded on demand</label>
-      <web-daterangepicker id="method-async" visible-months-count="2" placeholder="Select a range"></web-daterangepicker>
+      <web-daterangepicker id="method-async" visible-month-count="2" placeholder="Select a range"></web-daterangepicker>
       <small><strong>Best for:</strong> API-driven badges — one request per month instead of a per-day callback.</small>
       <span class="method-note">Uses: <code>getMonthDataCallback</code></span>
     </div>
@@ -251,7 +251,7 @@ picker.getBadgeTooltipCallback = (data) => {
 
     <div class="form-group">
       <label>Custom Data Structure with Member Mapping</label>
-      <web-daterangepicker id="member-mapping-example" visible-months-count="2" placeholder="Select date"></web-daterangepicker>
+      <web-daterangepicker id="member-mapping-example" visible-month-count="2" placeholder="Select date"></web-daterangepicker>
       <small>This example uses a custom data structure with properties like 'displayDate', 'icon', 'description', etc.</small>
     </div>
 
@@ -303,13 +303,13 @@ picker.specialDates = myHolidays;</code></pre>
     <div class="grid">
       <div class="form-group">
         <label>Dynamic Pricing Calendar</label>
-        <web-daterangepicker id="dynamic-pricing" visible-months-count="2" placeholder="Select dates"></web-daterangepicker>
+        <web-daterangepicker id="dynamic-pricing" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
         <small>Prices calculated based on day of week and demand</small>
       </div>
 
       <div class="form-group">
         <label>Availability Indicator</label>
-        <web-daterangepicker id="dynamic-availability" visible-months-count="2" placeholder="Select dates"></web-daterangepicker>
+        <web-daterangepicker id="dynamic-availability" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
         <small>Shows remaining spots with color coding</small>
       </div>
     </div>
@@ -374,13 +374,13 @@ picker.getDateMetadataCallback = ({ date }) => {
     <div class="grid">
       <div class="form-group">
         <label>Rich Booking Info Tooltips</label>
-        <web-daterangepicker id="html-tooltips-booking" visible-months-count="2" placeholder="Select dates"></web-daterangepicker>
+        <web-daterangepicker id="html-tooltips-booking" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
         <small>Hover over dates to see detailed booking information</small>
       </div>
 
       <div class="form-group">
         <label>Event Details Tooltips</label>
-        <web-daterangepicker id="html-tooltips-events" visible-months-count="2" placeholder="Select dates"></web-daterangepicker>
+        <web-daterangepicker id="html-tooltips-events" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
         <small>HTML tooltips with event schedules and details</small>
       </div>
     </div>
@@ -450,7 +450,7 @@ picker.getDayTooltipCallback = (data) => {
 
     <div class="form-group">
       <label>Combined Example: Hotel Booking Calendar</label>
-      <web-daterangepicker id="combined-example" selection-mode="range" visible-months-count="2" placeholder="Select dates"></web-daterangepicker>
+      <web-daterangepicker id="combined-example" selection-mode="range" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
       <small>Static holidays + dynamic pricing + HTML tooltips all working together</small>
     </div>
 
@@ -528,7 +528,7 @@ picker.getDayTooltipCallback = (data) => {
     <div class="grid">
       <div class="form-group">
         <label>Calendar with holidays + events (no custom CSS)</label>
-        <web-daterangepicker id="dayclass-builtin-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <web-daterangepicker id="dayclass-builtin-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Shipped <code>.drp__day.holiday</code> / <code>.drp__day.event</code> rules fire automatically.</small>
       </div>
     </div>
@@ -545,7 +545,7 @@ picker.specialDates = [
     <div class="grid">
       <div class="form-group">
         <label>Numbers, counts, and labels (no custom CSS)</label>
-        <web-daterangepicker id="badgeclass-builtin-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <web-daterangepicker id="badgeclass-builtin-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Three shipped badge styles: <code>badge-number</code>, <code>badge-count</code>, <code>badge-text</code>.</small>
       </div>
     </div>
@@ -570,7 +570,7 @@ picker.specialDates = [
     <div class="grid">
       <div class="form-group">
         <label>Studio schedule</label>
-        <web-daterangepicker id="custom-classifier-demo" visible-months-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+        <web-daterangepicker id="custom-classifier-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
         <small>Three custom <code>dayClass</code> values: <code>salsa</code>, <code>rumba</code>, <code>pilates</code>.</small>
       </div>
     </div>

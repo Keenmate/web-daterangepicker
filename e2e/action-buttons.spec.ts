@@ -50,7 +50,7 @@ test('clicking Clear empties the input', async ({ page }) => {
 // show-* toggles
 // =============================================================================
 
-test('is-today-button-shown="false" omits the Today button', async ({ page }) => {
+test('show-today-button="false" omits the Today button', async ({ page }) => {
     const p = await open(page, 'no-today');
 
     await expect(p.locator('.drp__button--today')).toHaveCount(0);
@@ -68,7 +68,7 @@ test('all buttons disabled: the actions container is omitted entirely', async ({
 // summary visibility
 // =============================================================================
 
-test('is-summary-shown="false" omits the summary block in range mode', async ({ page }) => {
+test('show-summary="false" omits the summary block in range mode', async ({ page }) => {
     const p = await open(page, 'no-summary');
 
     await dayByDate(p, '2026-06-10').click();

@@ -45,7 +45,7 @@ const inputElement = document.getElementById('my-input');
 
 const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'range',
-  visibleMonthsCount: 2,
+  visibleMonthCount: 2,
   dateFormatMask: 'YYYY-MM-DD',
   onSelect: (detail) => {
     // Range mode: detail.dateRange is { start: Date, end: Date }
@@ -96,7 +96,7 @@ use camelCase (`selectionMode`).
 |---|---|---|---|
 | `selection-mode` | `'single' \| 'range'` | `'single'` | Single date or date-range selection |
 | `date-format-mask` | `string` | `'YYYY-MM-DD'` | Date format (`YYYY-MM-DD`, `DD.MM.YYYY`, `MM/DD/YYYY`, …) |
-| `visible-months-count` | `number` | `1` (single), `2` (range) | Number of months to display |
+| `visible-month-count` | `number` | `1` (single), `2` (range) | Number of months to display |
 | `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How the calendar opens (focus = on input focus, typing = when user types, manual = programmatic only) |
 | `value` | `string` | — | Initial / default value (like a native input's `defaultValue`): parsed into the selection on build and restored by `form.reset()`. The `value` **property** sets the current value without writing the attribute. |
 | `placeholder` | `string` | — | Input placeholder |
@@ -110,17 +110,17 @@ use camelCase (`selectionMode`).
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | How to handle range selections over disabled dates (see [Range selection modes](#range-selection-modes)) |
 | `placeholder-format-mask` | `string` | Same as `date-format-mask` | Only the input placeholder hint (when no explicit `placeholder`) — a localized form of the mask (`'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German, …). Doubled around ` - ` in `range` mode. The shown text and parsing follow `date-format-mask`; the submitted value is ISO (`value-format`). |
 | `placeholder-time-format-mask` | `string` | Same as `time-format-mask` | The time part of the placeholder hint: alone in `time` mode, after the date hint (`date + ' ' + time`) in `datetime` mode. |
-| `should-highlight-disabled-in-range` | `boolean` | `true` | Highlight disabled dates within a selected range. `false` = only highlight enabled dates. |
+| `highlight-disabled-in-range` | `boolean` | `true` | Highlight disabled dates within a selected range. `false` = only highlight enabled dates. |
 | `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | When a pick is **committed** (written + `select`/`change`). `selection` = every completed pick is written; `apply` = picks are staged until the built-in Apply button; `manual` = picks are only staged until the app calls `apply()` (no built-in button). Closing is separate (next rows); closing without `apply()` discards a staged pick |
-| `should-close-on-select` | `boolean` | `true` | Close when a pick completes in `commit-mode="selection"`. `false` keeps the calendar open while every pick is still written (booking.com flow) |
-| `should-close-on-outside-click` | `boolean` | `true` (`false` in `commit-mode="manual"`) | Close on a click outside the floating calendar / on the modal backdrop. Escape and `close()` always close |
+| `close-on-select` | `boolean` | `true` | Close when a pick completes in `commit-mode="selection"`. `false` keeps the calendar open while every pick is still written (booking.com flow) |
+| `close-on-outside-click` | `boolean` | `true` (`false` in `commit-mode="manual"`) | Close on a click outside the floating calendar / on the modal backdrop. Escape and `close()` always close |
 | `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
 | `mobile-presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a **floating** picker adapts to the device (SPEC §12.9). `auto`: **phone** (touch, shorter viewport side < 600px) → full-screen overlay; **tablet** (touch, ≥ 600px) → centered modal; **desktop** (mouse) → floating popover. A concrete value forces that presentation on any device (e.g. `fullscreen` to preview the phone sheet on desktop). `inline` / explicit `modal` pickers are left as authored. |
 | `fullscreen-title` | `string` | — | Optional heading in the phone full-screen header, beside the ✕ close button. |
 | `fullscreen-autofocus` | `boolean` | `false` | Phone full-screen only: focus the input on open (pops the soft keyboard). Default off — the sheet opens with the calendar visible, keyboard closed. |
-| `is-summary-shown` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
+| `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
-| `enable-transitions` | `boolean` | `false` | Enable CSS transitions/animations |
+| `enable-transition` | `boolean` | `false` | Enable CSS transitions/animations |
 | `name` | `string` | — | HTML form field name. Set it to submit the selection in a `<form>` (see [Form integration](#form-integration)) |
 | `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | How the submitted value is serialized (see [Form integration](#form-integration)) |
 | `date-member` | `string` | `'date'` | Field name on `specialDates` objects holding the date. Lets you reuse existing data shapes without renaming keys. |
@@ -287,7 +287,7 @@ into your form data. `value-format` picks how the selection is serialized:
 | `array` | one `name[]` field | two `name[]` fields (`start`, `end`) | one `name[]` per item |
 
 - `datetime` mode submits `YYYY-MM-DDTHH:mm[:ss]`; `time` mode submits
-  `HH:mm[:ss]` (seconds when `is-seconds-shown`).
+  `HH:mm[:ss]` (seconds when `show-seconds`).
 - The submitted value tracks the *real* selection, not the drawn envelope: a range
   broken over disabled days with `disabled-dates-handling="split"` submits each
   sub-range (`…/…,…/…`), and `"individual"` / `"block"` submit the enabled days.
@@ -955,7 +955,7 @@ specific dates (e.g., "Schedule training sessions on these dates").
 
 By default, when you select a range that includes disabled dates, all
 dates (both enabled and disabled) within the range are visually
-highlighted. The `should-highlight-disabled-in-range` attribute toggles
+highlighted. The `highlight-disabled-in-range` attribute toggles
 this:
 
 ```html
@@ -971,11 +971,11 @@ this:
   selection-mode="range"
   disabled-weekdays="0,6"
   disabled-dates-handling="split"
-  should-highlight-disabled-in-range="false">
+  highlight-disabled-in-range="false">
 </web-daterangepicker>
 ```
 
-**When to use `should-highlight-disabled-in-range="false"`:**
+**When to use `highlight-disabled-in-range="false"`:**
 
 - Selecting working weeks where you only want Monday–Friday highlighted.
 - Visual clarity when disabled dates aren't relevant to the selection.

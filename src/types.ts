@@ -257,7 +257,7 @@ export interface DatePickerOptions {
   /** Floating-UI placement for the popover (e.g. 'bottom-start', 'top-end'). Default: 'bottom-start', flipping/shifting on viewport overflow. */
   calendarPlacement?: string;
   /** Number of month columns shown side by side. Default: 1. */
-  visibleMonthsCount?: number;
+  visibleMonthCount?: number;
   /**
    * The SHOWN date text (the input) — and what typed / `value` text is parsed with. Tokens:
    * YYYY/YY, MM/M, DD/D with any separators. Default: 'YYYY-MM-DD'. The submitted form value is
@@ -316,7 +316,7 @@ export interface DatePickerOptions {
    * Default `false` — the sheet opens with the calendar visible, keyboard closed.
    * Only affects the `fullscreen` presentation.
    */
-  fullscreenAutofocus?: boolean;
+  shouldFullscreenAutofocus?: boolean;
 
   /**
    * Optional heading shown in the phone full-screen overlay header, beside the
@@ -332,7 +332,7 @@ export interface DatePickerOptions {
    * key is needed. Default `false`. Only affects the `fullscreen` presentation;
    * takes over the header row, so `fullscreenTitle` is not shown alongside it.
    */
-  fullscreenInput?: boolean;
+  isFullscreenInputShown?: boolean;
 
   /**
    * How a selection is COMMITTED (written to the input, `select` / `change` fired).

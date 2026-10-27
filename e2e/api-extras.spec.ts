@@ -329,7 +329,7 @@ test.describe('setRollingItemAlignment', () => {
     test('the alignment survives a structural rebuild', async ({ page }) => {
         const p = pickerById(page, 'api-toggle');
         await p.evaluate((el: any) => el.setRollingItemAlignment('flex-end'));
-        await p.evaluate((el: any) => { el.setAttribute('visible-months-count', '2'); return el.whenSettled(); });
+        await p.evaluate((el: any) => { el.setAttribute('visible-month-count', '2'); return el.whenSettled(); });
         expect(await justify(p)).toBe('flex-end');
     });
 });
