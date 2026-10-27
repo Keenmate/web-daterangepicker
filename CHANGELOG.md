@@ -142,6 +142,10 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
   up over the modal), and hands focus back on close when the input had it before opening.
 - Keyboard navigation (Ctrl+Home / Ctrl+End, Ctrl+arrows, PageUp / PageDown, `t`) no longer
   leaves a second, stale focused day after quick key presses.
+- A `selection-mode` / `picker-mode` flip no longer leaves the old text in the input: what the
+  new mode can represent is carried over and reformatted (single date → multiple, range →
+  multiple, the date part between `date` / `datetime`, the time part between `datetime` /
+  `time`, …); anything else clears the selection **and** the input.
 
 ### Added
 

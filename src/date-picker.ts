@@ -2422,6 +2422,27 @@ class DateRangePickerEngine {
     }
 
     /**
+     * Write the committed selection into the input as the current mode formats it
+     * ('' when nothing is committed) — so the input always shows what the picker
+     * holds. Used after a selection/picker-mode flip, where the old text was
+     * formatted for the old mode.
+     */
+    syncInputFromSelection(): void {
+        if (!this.input) return;
+        const pm = this.options.pickerMode;
+        const sm = this.options.selectionMode;
+        if (pm === 'time') {
+            this.input.value = this._selectedTime ? this.formatTime(this._selectedTime) : '';
+        } else if (sm === 'multiple') {
+            this.writeMultipleInputText();
+        } else if (sm === 'range') {
+            this.input.value = this._selectedStartDate && this._selectedEndDate ? Selection.formatRangeInput(this) : '';
+        } else {
+            this.input.value = this._selectedDate ? this.formatDate(this._selectedDate) : '';
+        }
+    }
+
+    /**
      * Get/set selected individual dates (for multiple mode)
      */
     get selectedDates(): Date[] {

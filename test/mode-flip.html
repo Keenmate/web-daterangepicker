@@ -20,6 +20,17 @@
             initial-date="2026-06-15" placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">selection/picker-mode flip target (the spec sets a selection, then flips a mode)</div>
+        <web-daterangepicker id="flip" selection-mode="range"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">datetime picker flipped to date / time by the spec</div>
+        <web-daterangepicker id="flip-dt" picker-mode="datetime"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

@@ -233,6 +233,9 @@ type SelectionSnapshot = {
   time: SelectedTime | null;
   datetime: Date | null;
   inputText: string;
+  /** The modes the selection was made under (the engine's resolved options). */
+  selectionMode: string;
+  pickerMode: string;
 };
 
 /** Modes that render an input element (inline mode has none). */
@@ -896,6 +899,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       time: p.selectedTime,
       datetime: p.selectedDatetime,
       inputText: this.#inputElement?.value ?? '',
+      selectionMode: p.options.selectionMode ?? 'single',
+      pickerMode: p.options.pickerMode ?? 'date',
     };
   }
 
@@ -903,8 +908,14 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   #restoreSelection(snap: SelectionSnapshot | null): void {
     const p = this.#picker;
     if (!p || !snap) return;
-    const mode = (this.config.selectionMode as string) ?? 'single';
-    const pmode = (this.config.pickerMode as string) ?? 'date';
+    // The engine's resolved modes (time/datetime force `single`).
+    const mode = p.options.selectionMode ?? 'single';
+    const pmode = p.options.pickerMode ?? 'date';
+
+    if (mode !== snap.selectionMode || pmode !== snap.pickerMode) {
+      this.#carrySelectionAcrossModes(snap, mode, pmode);
+      return;
+    }
 
     if (pmode === 'time') {
       if (snap.time) p.selectedTime = snap.time;
@@ -925,6 +936,46 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if (this.#inputElement && !this.#inputElement.value && snap.inputText) {
       this.#inputElement.value = snap.inputText;
     }
+  }
+
+  /**
+   * A `selection-mode` / `picker-mode` flip: carry over whatever the new mode can
+   * represent, then rewrite the input for the new mode — a carried selection is
+   * reformatted, anything else leaves the input empty (it always shows what the
+   * selection holds; the old text was formatted for the old mode).
+   *
+   * Carried: single date → multiple (one date); range → multiple (its ranges);
+   * multiple → single (exactly one date) / range (ranges only); the date part
+   * between `date` and `datetime`; the time part between `time` and `datetime`.
+   */
+  #carrySelectionAcrossModes(snap: SelectionSnapshot, mode: string, pmode: string): void {
+    const p = this.#picker!;
+    if (pmode === 'time') {
+      if (snap.pickerMode === 'datetime' && snap.time) p.selectedTime = snap.time;
+    } else if (snap.pickerMode !== 'time') {
+      // Old date-granular selection, per the old selection mode.
+      const oldDate = snap.selectionMode === 'single' ? snap.date : null;
+      const oldRanges = snap.selectionMode === 'range'
+        ? (snap.ranges.length ? snap.ranges : snap.startDate && snap.endDate ? [{ start: snap.startDate, end: snap.endDate }] : [])
+        : snap.selectionMode === 'multiple' ? snap.ranges : [];
+      const oldDates = snap.selectionMode === 'multiple' ? snap.dates : [];
+
+      if (mode === 'single') {
+        const date = oldDate ?? (oldDates.length === 1 && oldRanges.length === 0 ? oldDates[0] : null);
+        if (date) {
+          p.selectedDate = date;
+          if (pmode === 'datetime' && snap.pickerMode === 'datetime' && snap.time) p.selectedTime = snap.time;
+        }
+      } else if (mode === 'range') {
+        if (oldRanges.length && oldDates.length === 0 && !oldDate) p.selectedRanges = oldRanges;
+      } else if (oldRanges.length) {
+        p.selectedRanges = oldRanges;
+        if (oldDates.length) p.selectedDates = oldDates;
+      } else if (oldDates.length || oldDate) {
+        p.selectedDates = oldDate ? [oldDate] : oldDates;
+      }
+    }
+    p.syncInputFromSelection();
   }
 
   // ── render gate (`defer`) ─────────────────────────────────────────────────

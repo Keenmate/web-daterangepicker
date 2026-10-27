@@ -47,6 +47,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `modal` mode: container-query inner layout tiers              | ✗      |      |         |
 | `mobile-modal-breakpoint` auto-engages modal at small widths  | ✓      | `misc-features.spec.ts`      | `misc-features.html`      |
 | Positioning-mode flip leaves no zombie floating picker / drift warning | ✓ | `mode-flip.spec.ts` | `mode-flip.html` |
+| Selection/picker-mode flip: compatible selection carried + reformatted, otherwise input cleared | ✓ | `mode-flip.spec.ts` | `mode-flip.html` |
 
 ## 3. Trigger / open-close
 
