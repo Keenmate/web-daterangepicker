@@ -24,6 +24,7 @@ page see the README quick start; for theming see
   - [Date selection validation (`beforeSelectCallback`)](#date-selection-validation-beforeselectcallback)
   - [Month navigation & bulk metadata loading (`beforeMonthChangeCallback` / `getMonthDataCallback`)](#month-navigation--bulk-metadata-loading-beforemonthchangecallback--getmonthdatacallback)
   - [Messages & actions](#messages--actions)
+  - [Labels (i18n)](#labels-i18n)
   - [Locking (read-only)](#locking-read-only)
 - [Range selection modes](#range-selection-modes)
 
@@ -47,7 +48,7 @@ const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'range',
   visibleMonthCount: 2,
   dateFormatMask: 'YYYY-MM-DD',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     // Range mode: detail.dateRange is { start: Date, end: Date }
     console.log('Range:', detail.dateRange.start, 'to', detail.dateRange.end);
   }
@@ -100,7 +101,10 @@ use camelCase (`selectionMode`).
 | `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How the calendar opens (focus = on input focus, typing = when user types, manual = programmatic only) |
 | `value` | `string` | — | Initial / default value (like a native input's `defaultValue`): parsed into the selection on build and restored by `form.reset()`. The `value` **property** sets the current value without writing the attribute. |
 | `placeholder` | `string` | — | Input placeholder |
-| `disabled` | `boolean` | `false` | Disable the picker |
+| `disabled` | `boolean` | `false` | Disable the picker (property `isDisabled`); an ancestor `<fieldset disabled>` disables it too |
+| `readonly` | `boolean` | `false` | Full read-only lock (property `isReadonly`); the value is still submitted |
+| `defer` | `boolean` | `false` | Hold the first build until `el.release()` / removing the attribute (core; property `shouldDefer`) |
+| `labels` | JSON | English | UI strings, partial — see [Labels](#labels-i18n) |
 | `week-start-day` | `'auto' \| 0–6` | `'auto'` | First day of week (0 = Sunday, 1 = Monday, …; `'auto'` detects from locale) |
 | `min-date` | `string` | — | Minimum selectable date (`YYYY-MM-DD`) |
 | `rolling-year-range` | `string` | shown year ±1 | Years offered by the rolling year selector: `2024`, `2022-2026`, relative `-5:+5` (signed sides count from today's year) or mixed `2020:+2`. A malformed value warns and keeps the previous one |
@@ -111,13 +115,13 @@ use camelCase (`selectionMode`).
 | `placeholder-format-mask` | `string` | Same as `date-format-mask` | Only the input placeholder hint (when no explicit `placeholder`) — a localized form of the mask (`'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German, …). Doubled around ` - ` in `range` mode. The shown text and parsing follow `date-format-mask`; the submitted value is ISO (`value-format`). |
 | `placeholder-time-format-mask` | `string` | Same as `time-format-mask` | The time part of the placeholder hint: alone in `time` mode, after the date hint (`date + ' ' + time`) in `datetime` mode. |
 | `highlight-disabled-in-range` | `boolean` | `true` | Highlight disabled dates within a selected range. `false` = only highlight enabled dates. |
-| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | When a pick is **committed** (written + `select`/`change`). `selection` = every completed pick is written; `apply` = picks are staged until the built-in Apply button; `manual` = picks are only staged until the app calls `apply()` (no built-in button). Closing is separate (next rows); closing without `apply()` discards a staged pick |
+| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | When a pick is **committed** (written + `change`). `selection` = every completed pick is written; `apply` = picks are staged until the built-in Apply button; `manual` = picks are only staged until the app calls `commit()` (no built-in button). Closing is separate (next rows); closing without `commit()` discards a staged pick |
 | `close-on-select` | `boolean` | `true` | Close when a pick completes in `commit-mode="selection"`. `false` keeps the calendar open while every pick is still written (booking.com flow) |
 | `close-on-outside-click` | `boolean` | `true` (`false` in `commit-mode="manual"`) | Close on a click outside the floating calendar / on the modal backdrop. Escape and `close()` always close |
 | `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
 | `mobile-presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a **floating** picker adapts to the device (SPEC §12.9). `auto`: **phone** (touch, shorter viewport side < 600px) → full-screen overlay; **tablet** (touch, ≥ 600px) → centered modal; **desktop** (mouse) → floating popover. A concrete value forces that presentation on any device (e.g. `fullscreen` to preview the phone sheet on desktop). `inline` / explicit `modal` pickers are left as authored. |
-| `fullscreen-title` | `string` | — | Optional heading in the phone full-screen header, beside the ✕ close button. |
 | `fullscreen-autofocus` | `boolean` | `false` | Phone full-screen only: focus the input on open (pops the soft keyboard). Default off — the sheet opens with the calendar visible, keyboard closed. |
+| `show-fullscreen-input` | `boolean` | `false` | Phone full-screen only: move the input into the sheet header (numeric keypad). The heading (`labels.fullscreenTitle`) is not shown alongside it. |
 | `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
 | `enable-transition` | `boolean` | `false` | Enable CSS transitions/animations |
@@ -138,14 +142,14 @@ use camelCase (`selectionMode`).
 picker.selectionMode = 'range';
 picker.dateFormatMask = 'DD.MM.YYYY';
 picker.value = '2025-11-15';
-picker.disabled = true;
+picker.isDisabled = true;
 
 // Complex data (arrays / objects / callbacks) — set via property, not attribute
 picker.disabledDates = ['2026-06-13', '2026-06-14'];
 picker.specialDates  = [{ date: '2026-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }];
 
-// Localization overrides
-picker.customStrings = { today: 'Jump', clear: 'Wipe' };
+// UI strings (partial over the English defaults) — see "Labels (i18n)"
+picker.labels = { today: 'Jump', clear: 'Wipe', days: '{count} dní' };
 picker.monthNames    = ['01','02','03','04','05','06','07','08','09','10','11','12'];
 ```
 
@@ -195,54 +199,54 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 | `close()` | Close the calendar |
 | `toggle()` | Toggle calendar visibility |
 | `clearSelection()` | Clear the current selection |
-| `getInputValue()` | Get the current value as a string |
-| `setInputValue(value: string)` | Set the current selection from a value string (display or ISO form); does not touch the `value` attribute |
-| `showMessage(html, type?, autoHide?)` | Display a message in the calendar with custom HTML content |
+| `commit()` | Commit the staged selection (what Apply does; the app's call in `commit-mode="manual"`) |
+| `showMessage(html, { type?, autoHideMs? })` | Display a message in the calendar (`type`: `info` \| `warning` \| `error` \| `success`; omit for raw HTML) |
 | `hideMessage()` | Hide the currently displayed message |
-| `toggleMessage(html?, type?, autoHide?)` | Toggle the message block |
 | `showSummary(html: string)` | Write custom HTML into the summary block; pins it (survives hover preview) until the next selection change |
 | `hideSummary()` | Drop the summary override and re-derive from selection |
 | `refreshSummary()` | Re-run summary derivation now (e.g. after async data arrives) |
 | `showLoader(target?)` | Show a spinner — `target`: `'calendar'` (default, overlay) \| `'message'` \| `'summary'` (in-block) |
 | `hideLoader(target?)` | Hide the loader for a target |
-| `toggleLoader(target?)` | Toggle the loader for a target |
 | `lock(aspects?)` | Freeze user interaction. No argument = full lock; pass a `LockAspect` or array to lock a subset. See [Locking](#locking-read-only) |
 | `unlock(aspects?)` | Release the given aspect(s), or the whole lock when called with no argument |
 | `toggleLock(aspects?)` | Toggle the given aspect(s), or the whole lock |
 | `isAspectLocked(aspect)` | `boolean` — whether that aspect is currently locked |
-| `ready()` | Release the `defer` render gate (builds the picker once) |
+| `release()` | Release the `defer` gate (core; builds the picker once) |
+| `whenReady()` | `Promise` resolved once the first build is live (core) |
+| `destroy()` | Tear the picker down for good (core); the element is inert afterwards |
 
 `el.controller` (`DateRangePickerController`) is the same facade every callback
-context and event detail carries as `controller`: `getSelectedDate/Range/Ranges/Dates/Datetime()`,
-`isOpen`, `selectToday()`, `selectNow()`, `clearSelection()`, `apply()`, `open()` / `close()` / `toggle()`,
+context and event detail carries as `controller`: the read-only selection state `selectedDate`,
+`selectedDates`, `selectedRanges`, `selectedStartDate`, `selectedEndDate`, `selectedTime`, `selectedDatetime`,
+`isOpen`, `selectToday()`, `selectNow()`, `clearSelection()`, `commit()`, `open()` / `close()` / `toggle()`,
 `setPresentation()`, `prevMonth()` / `nextMonth()`, `lock()` / `unlock()`,
 `showMessage(content, { type, autoHideMs })`, `hideMessage()`, `showSummary()` / `hideSummary()`,
-`showLoader()` / `hideLoader()`. Note that `controller.showMessage` takes an options object,
-while the element's own `el.showMessage(html, type?, autoHide?)` keeps positional arguments.
+`showLoader()` / `hideLoader()`, `reloadMonthData()`.
 
-Read-only properties/attributes for locking: `lockedAspects` (`LockAspect[]` getter), `readonly` (boolean property + reflected attribute — full-lock convenience).
+Locking state: `lockedAspects` (`LockAspect[]` getter); `isReadonly` / the `readonly` attribute is the declarative full lock.
 
 ## Events
 
 | Event | Detail | Description |
 |---|---|---|
-| `select` | `SelectEventDetail` (`{ date?, dateRange?, dates?, dateRanges?, formattedValue, … }`) | A date / range / time was selected (or applied) |
-| `change` | `SelectEventDetail` | Fires right after `select`, same detail object (form-style wiring) |
+| `change` | `ChangeEventDetail` (`{ date?, dateRange?, dates?, dateRanges?, formattedValue, … }`) | The selection was committed — every completed pick in `commit-mode="selection"`, on Apply / `commit()` otherwise |
+| `open` | `OpenEventDetail` (context only) | The calendar popover opened (not in inline mode) |
+| `close` | `CloseEventDetail` (context only) | The calendar popover closed (any reason; a staged pick is already discarded) |
 | `action` | `DateRangePickerActionEventDetail` (`{ action, id, item, source, sourceEvent, triggerElement, dataset, … }`) | An action button (built-ins included) or an HTML `data-action` trigger was activated. `action` is the built-in name (`today` / `now` / `clear` / `apply`) or `'custom'`; `id` identifies a custom item; `source` is `'action-buttons' \| 'message' \| 'summary' \| 'calendar'`; `dataset` holds the trigger's other `data-*` attributes (camelCase). Fires after the item's `onClick`, before the built-in behaviour. |
 | `month-change` | `MonthChangeEventDetail` (`{ monthIndex, year, month, visibleMonths }`) | The visible month(s) changed (any navigation) |
-| `ready` | `ReadyEventDetail` (`{ controller, element }`) | The picker was built for the first time (see `defer` / `ready()`) |
+| `ready` | `ReadyEventDetail` (`{ controller, element }`) | The picker was built for the first time (core; see `defer` / `release()`); the host gets the `ready` attribute and `:state(ready)` |
 
 Every detail also carries `controller` (the public facade, same as
 `el.controller`) and `element` (the host) — both non-enumerable, so
 `JSON.stringify(detail)` / LiveView `pushEvent` see only the data — plus the
 presentation flags. Events bubble but are not `composed`.
 
-Each event has an `on*` property twin — `onSelect`, `onChange`, `onAction`,
+Each event has an `on*` property twin — `onChange`, `onOpen`, `onClose`, `onAction`,
 `onMonthChange`, `onReady` — called with the **detail** (not the
 CustomEvent), right before the event is dispatched:
 
 ```ts
-picker.onSelect = (detail) => console.log(detail.formattedValue, detail.date);
+picker.onChange = (detail) => console.log(detail.formattedValue, detail.date);
 picker.onAction = (detail) => {
   if (detail.id === 'next-week') detail.controller.showMessage('Next week!', { type: 'info', autoHideMs: 2000 });
 };
@@ -378,7 +382,7 @@ const [y, m, day] = "2026-04-30".split("-").map(Number);
 const localDate = new Date(y, m - 1, day);           // April 30 local — what the user picked
 
 // Or, if you just need to set the picker:
-picker.setInputValue("2026-04-30");                  // picker handles parsing internally
+picker.value = "2026-04-30";                  // picker handles parsing internally
 picker.value = "2026-04-30";                         // attribute setter
 ```
 
@@ -386,7 +390,7 @@ picker.value = "2026-04-30";                         // attribute setter
 
 - [ ] Picker callbacks: format Dates with `toLocalISO()`, not `toISOString()`
 - [ ] Outgoing dates (server, URL, localStorage): send `YYYY-MM-DD` strings
-- [ ] Incoming dates: prefer `picker.setInputValue("YYYY-MM-DD")` over manual `new Date(...)` parsing
+- [ ] Incoming dates: prefer `picker.value = "YYYY-MM-DD")` over manual `new Date(...)` parsing
 - [ ] Map/dictionary keys for date lookups: build keys with `toLocalISO()` and look up the same way
 
 ## Advanced features
@@ -425,7 +429,7 @@ user's locale):
 #### Complex restrictions (JavaScript)
 
 ```js
-const picker = document.querySelector('web-daterangepicker');
+const picker = document.querySelector('web-daterangepicker';
 
 // Disable specific dates (e.g., public holidays)
 picker.disabledDates = [
@@ -625,7 +629,7 @@ picker.beforeSelectCallback = (ctx) => {
 When a `DateRange[]` is returned:
 
 - `picker.selectedRanges` reflects the array; each range's start/end/in-range cells are highlighted in the grid, and the summary lists every piece.
-- The `select` / `change` detail (and `onSelect`) carries the pieces in `detail.dateRanges` (not a single `detail.dateRange`).
+- The `change` detail (and `onChange`) carries the pieces in `detail.dateRanges` (not a single `detail.dateRange`).
 - The read-only envelope accessors `selectedStartDate` / `selectedEndDate` span the first range's start through the last range's end.
 - Assigning `picker.selectedRanges = [...]` directly in range mode renders identically — the callback path and the programmatic setter share the same multi-range machinery.
 - Starting a fresh range selection clears the multi-range result back to a single contiguous range.
@@ -727,11 +731,11 @@ state the built-in left.
 ```js
 const picker = document.querySelector('web-daterangepicker');
 
-// Simple message (the element's own showMessage keeps positional args)
+// Simple message: raw HTML, or a typed message that auto-hides
 picker.showMessage('<p>Please select a check-in date</p>');
-picker.showMessage('Saved', 'success', 2000);   // type + auto-hide ms
+picker.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
 
-// Same via the controller facade (options object) — e.g. from a callback
+// Same via the controller facade — e.g. from a callback
 picker.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
 
 // Message with custom action buttons — data-id identifies the action,
@@ -765,6 +769,36 @@ picker.hideMessage();
 - `data-action="custom" data-id="…"` — fires the `action` event with `action: 'custom'`, `id` from `data-id`, `source: 'message'` (or `'summary'` / `'calendar'`), `triggerElement`, and the remaining `data-*` attributes in `detail.dataset`.
 - `data-action="today" | "now" | "clear" | "apply"` — runs that built-in, then fires the `action` event.
 - The message's own ✕ close button is internal and fires nothing; to dismiss from your own button, handle its `action` event and call `hideMessage()`.
+
+### Labels (i18n)
+
+Every UI string comes from one `labels` object — a **partial** override of the
+English defaults (exported as `DEFAULT_LABELS`). Set it as a property or a JSON
+attribute; changing it at runtime re-renders without losing the selection. Month
+and weekday names are not labels: they come from `Intl` for `locale` (`auto` = the
+browser language), or from `monthNames` / `weekdayNames`. There are no built-in
+translations.
+
+| Key | Default | Used for |
+|---|---|---|
+| `today` / `clear` / `apply` / `now` | `Today` / `Clear` / `Apply` / `Now` | built-in action buttons (`clear` is also the input ✕'s ARIA label) |
+| `close` | `Close` | ARIA label of the full-screen ✕ and the message ✕ |
+| `preview` | `Preview` | prefix of the range summary while hovering / dragging |
+| `day` / `days` | `{count} day` / `{count} days` | range summary |
+| `night` / `nights` | `{count} night` / `{count} nights` | range summary |
+| `selectionCount` | `{count} selection(s)` | the input text in multiple mode |
+| `time` / `hours` / `minutes` / `seconds` / `am` / `pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
+| `fullscreenTitle` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
+
+```html
+<web-daterangepicker selection-mode="range" locale="de"
+  labels='{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'>
+</web-daterangepicker>
+```
+
+```js
+picker.labels = { today: 'Dnes', days: '{count} dní', fullscreenTitle: 'Vyberte termín' };
+```
 
 ### Locking (read-only)
 
@@ -811,7 +845,7 @@ picker.unlock('selection');
 picker.toggleLock('navigation');
 picker.isAspectLocked('open');   // -> boolean
 picker.lockedAspects;            // -> LockAspect[]
-picker.readonly = true;          // full lock; reflects to the `readonly` attribute
+picker.isReadonly = true;        // full lock (same as the `readonly` attribute)
 ```
 
 ```html
@@ -846,7 +880,7 @@ disabled date arrays:
 </web-daterangepicker>
 
 <script>
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   console.log('Enabled dates:',  e.detail.enabledDates);
   console.log('Disabled dates:', e.detail.disabledDates);
   console.log('Total days:',     e.detail.getTotalDays());
@@ -905,7 +939,7 @@ Returns multiple date ranges separated by disabled dates:
 </web-daterangepicker>
 
 <script>
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   console.log('Ranges:', e.detail.dateRanges);
   // e.g., [{start: Mon, end: Fri}, {start: Mon, end: Fri}, {start: Mon, end: Fri}]
   console.log('Formatted:', e.detail.formattedValue);
@@ -929,7 +963,7 @@ Returns a flat array of individual enabled dates:
 </web-daterangepicker>
 
 <script>
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   console.log('Individual dates:', e.detail.dates);
   // [Date(Mon), Date(Tue), Date(Wed), Date(Thu), Date(Fri), Date(Mon), ...]
   console.log('Formatted:', e.detail.formattedValue);

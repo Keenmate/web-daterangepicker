@@ -180,7 +180,7 @@
     <div class="grid">
       <div class="form-group">
         <label>commit-mode="manual" (App-Driven)</label>
-        <small>Picks are only staged — nothing is written until the app calls <code>apply()</code> (here the custom "Done" button). No built-in Apply button; an outside click doesn't close (Escape does, discarding the staged pick)</small>
+        <small>Picks are only staged — nothing is written until the app calls <code>commit()</code> (here the custom "Done" button). No built-in Apply button; an outside click doesn't close (Escape does, discarding the staged pick)</small>
         <div class="field-row">
           <web-daterangepicker
             class="field-grow"
@@ -917,11 +917,11 @@ getTooltipCallback → tooltip → <span class="string">''</span></code></div>
       </thead>
       <tbody>
         <tr>
-          <td><code>ctx.controller.getSelectedRange()</code> / <code>getSelectedDate()</code> / <code>getSelectedRanges()</code> / <code>getSelectedDates()</code></td>
-          <td>Read the current selection (<code>getSelectedRange()</code> is <code>null</code> until both ends are picked).</td>
+          <td><code>ctx.controller.selectedDate</code> / <code>selectedRanges</code> / <code>selectedDates</code> / <code>selectedStartDate</code> / <code>selectedEndDate</code></td>
+          <td>Read the current selection (<code>selectedRanges</code> is empty until both ends are picked; read-only properties).</td>
         </tr>
         <tr>
-          <td><code>ctx.controller.selectToday()</code> / <code>clearSelection()</code> / <code>apply()</code> / <code>close()</code></td>
+          <td><code>ctx.controller.selectToday()</code> / <code>clearSelection()</code> / <code>commit()</code> / <code>close()</code></td>
           <td>Drive the picker.</td>
         </tr>
         <tr>
@@ -952,14 +952,14 @@ picker.actionButtons = [{
 
   <span class="comment">// Callbacks override static properties</span>
   <span class="property">getIsVisibleCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> !!element.selectedStartDate,
-  <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> !controller.getSelectedRange(),
+  <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> !controller.selectedRanges[0],
   <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> {
-    <span class="keyword">const</span> range = controller.getSelectedRange();
+    <span class="keyword">const</span> range = controller.selectedRanges[0];
     <span class="keyword">return</span> range ? `Confirm (${<span class="function">calculateDays</span>(range.start, range.end)} days)` : <span class="string">'Confirm'</span>;
   },
-  <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> [<span class="string">'base-apply'</span>, controller.getSelectedRange() ? <span class="string">'ready'</span> : <span class="string">'waiting'</span>],
+  <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> [<span class="string">'base-apply'</span>, controller.selectedRanges[0] ? <span class="string">'ready'</span> : <span class="string">'waiting'</span>],
   <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span>
-    controller.getSelectedRange() ? <span class="string">'Confirm selection'</span> : <span class="string">'Select dates first'</span>,
+    controller.selectedRanges[0] ? <span class="string">'Confirm selection'</span> : <span class="string">'Select dates first'</span>,
 
   <span class="property">onClick</span>: <span class="keyword">(</span>detail<span class="keyword">)</span> <span class="keyword">=></span> {
     <span class="comment">// detail: { action: 'custom', id: 'confirm', item, source, controller, element, ... }</span>
@@ -1116,7 +1116,7 @@ picker.addEventListener(<span class="string">'action'</span>, (e) <span class="k
 
     // Clear picker function for commit-mode examples
     document.querySelector('#commit-manual').actionButtons = [
-      { id: 'done', text: 'Done', onClick: ({ controller }) => controller.apply() }
+      { id: 'done', text: 'Done', onClick: ({ controller }) => controller.commit() }
     ];
 
     window.clearPicker = (id) => {
@@ -1199,7 +1199,7 @@ picker.addEventListener(<span class="string">'action'</span>, (e) <span class="k
       multiOutput.textContent = output;
     }
 
-    multiPicker.addEventListener('select', updateMultiOutput);
+    multiPicker.addEventListener('change', updateMultiOutput);
     multiPicker.addEventListener('change', updateMultiOutput);
 
     // 5. External Button Control
@@ -1220,7 +1220,7 @@ picker.addEventListener(<span class="string">'action'</span>, (e) <span class="k
       }
     }
 
-    externalPicker.addEventListener('select', updateExternalOutput);
+    externalPicker.addEventListener('change', updateExternalOutput);
     externalPicker.addEventListener('change', updateExternalOutput);
 
     // External button functions (global scope)

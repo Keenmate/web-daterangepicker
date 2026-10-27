@@ -6,8 +6,10 @@ EVENT SYSTEM
 The element fires CustomEvents (bubbling, composed: false — listen on the
 element or any ancestor in the same tree):
 
-  select        - a date/range/time was selected (or applied)
-  change        - fires right after `select`, SAME detail (form-style wiring)
+  change        - the selection was committed (pick in commit-mode="selection",
+                  Apply / commit() otherwise). There is NO separate `select` event.
+  open          - the calendar popover opened (not in inline mode)
+  close         - the calendar popover closed (any reason)
   action        - an action button or a data-action trigger was activated
   month-change  - the visible month(s) changed (any navigation)
   ready         - first build done (once per element lifetime)
@@ -18,28 +20,24 @@ and LiveView pushEvent see only the data — plus the presentation flags.
 
 ON* TWINS (receive the DETAIL, not the event)
 ---------------------------------------------
-el.onSelect      = (detail) => ...
 el.onChange      = (detail) => ...
+el.onOpen        = (detail) => ...
+el.onClose       = (detail) => ...
 el.onAction      = (detail) => ...
 el.onMonthChange = (detail) => ...
 el.onReady       = (detail) => ...
 
-el.onSelect = (d) => console.log(d.date);   // NOT d.detail / e.detail
+el.onChange = (d) => console.log(d.date);   // NOT d.detail / e.detail
 
 LISTENING TO EVENTS
 -------------------
 const el = document.querySelector('web-daterangepicker');
 
-el.addEventListener('select', (event) => {
+el.addEventListener('change', (event) => {
   console.log('Selected:', event.detail);
 });
 
-// Or 'change' (fires right after select)
-el.addEventListener('change', (event) => {
-  console.log('Changed:', event.detail);
-});
-
-SINGLE MODE EVENT DATA (SelectEventDetail)
+SINGLE MODE EVENT DATA (ChangeEventDetail)
 ------------------------------------------
 {
   date: Date object,
@@ -47,7 +45,7 @@ SINGLE MODE EVENT DATA (SelectEventDetail)
   controller, element            // non-enumerable
 }
 
-el.addEventListener('select', (event) => {
+el.addEventListener('change', (event) => {
   const { date, formattedValue } = event.detail;
   console.log('Date object:', date);
   console.log('Formatted:', formattedValue);
@@ -61,7 +59,7 @@ RANGE MODE EVENT DATA
   formattedValue: "2025-11-17 - 2025-11-24"
 }
 
-el.onSelect = ({ dateRange, formattedValue }) => {
+el.onChange = ({ dateRange, formattedValue }) => {
   const nights = Math.floor((dateRange.end - dateRange.start) / 864e5);
   console.log(formattedValue, 'Nights:', nights);
 };
@@ -91,7 +89,7 @@ Mode: 'individual'
   formattedValue: "..."
 }
 
-el.addEventListener('select', (event) => {
+el.addEventListener('change', (event) => {
   const { dateRange, enabledDates, disabledDates } = event.detail;
   console.log('Total:', event.detail.getTotalDays(), 'days');
 });
@@ -344,7 +342,7 @@ EXECUTION ORDER
 1. Local validation (disabled dates, min/max)
 2. beforeSelectCallback (if provided)
 3. Selection finalized
-4. select event (onSelect), then change event (onChange)
+4. change event (onChange twin first, then the event)
 
 If step 1 or 2 rejects, the selection reverts.
 
@@ -388,7 +386,7 @@ beforeSelectCallback is a PROPERTY (not an attribute):
 ✅ el.beforeSelectCallback = (ctx) => { ... };
 ❌ <web-daterangepicker before-select="...">  <!-- Not an attribute -->
 
-Listening to `select` is AFTER the fact; use beforeSelectCallback to validate
+Listening to `change` is AFTER the fact; use beforeSelectCallback to validate
 BEFORE commit.
 
 MONTH NAVIGATION: beforeMonthChangeCallback + getMonthDataCallback

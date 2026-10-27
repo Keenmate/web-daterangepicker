@@ -23,7 +23,7 @@ public facade, same as el.controller), ctx.element (the host) and the
 presentation flags, plus its own fields.
 
 Property-only (no attribute):
-- customStrings - custom UI button labels
+- labels - custom UI button labels
 - actionButtons - custom button configuration
 
 WEB COMPONENT (Simple HTML)
@@ -122,7 +122,7 @@ Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
 
 Callbacks are reactive properties — they can be set before or after the
 element upgrades/connects. To avoid an upgrade-then-restyle flash, add the
-`defer` attribute, wire everything, then call el.ready().
+`defer` attribute, wire everything, then call el.release().
 
 JAVASCRIPT API (Full Control)
 ------------------------------
@@ -136,7 +136,7 @@ const picker = new DateRangePickerEngine(inputElement, {
   minDate: '2025-01-01',
   maxDate: '2025-12-31',
   dateFormatMask: 'YYYY-MM-DD',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     console.log('Selected:', detail.date, detail.formattedValue);
   }
 });
@@ -156,12 +156,12 @@ Select one date:
 // JavaScript API
 const picker = new DateRangePickerEngine(input, {
   selectionMode: 'single',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     console.log('Date:', detail.date); // Date object
   }
 });
 
-Event: select
+Event: change
 Event detail: { date: Date, formattedValue: "2025-01-15" }
 
 RANGE MODE
@@ -179,13 +179,13 @@ Select start and end dates:
 const picker = new DateRangePickerEngine(input, {
   selectionMode: 'range',
   visibleMonthCount: 2,
-  onSelect: (detail) => {
+  onChange: (detail) => {
     console.log('Start:', detail.dateRange.start);
     console.log('End:', detail.dateRange.end);
   }
 });
 
-Event: select
+Event: change
 Event detail: { dateRange: { start: Date, end: Date }, formattedValue: "..." }
 
 MULTIPLE MODE
@@ -243,7 +243,7 @@ Web Component fires custom events:
 const picker = document.querySelector('web-daterangepicker');
 
 // Primary event (use this)
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   console.log('Selected:', event.detail);
 
   if (event.detail.date) {
@@ -255,15 +255,10 @@ picker.addEventListener('select', (event) => {
   }
 });
 
-// Fires right after 'select' (same detail object)
-picker.addEventListener('change', (event) => {
-  console.log('Changed:', event.detail);
-});
-
 // Or the on* twin — receives the DETAIL, not the event
-picker.onSelect = (detail) => console.log(detail.date ?? detail.dateRange);
+picker.onChange = (detail) => console.log(detail.date ?? detail.dateRange);
 
-Other events: 'action' (action buttons / data-action triggers),
+Other events: 'open' / 'close' (the popover), 'action' (action buttons / data-action triggers),
 'month-change' ({ monthIndex, year, month, visibleMonths }),
 'ready' ({ controller, element }). See events-callbacks.txt.
 
@@ -282,7 +277,7 @@ const startDate = el.selectedStartDate;
 const endDate = el.selectedEndDate;
 
 // Controller facade
-const range = el.controller.getSelectedRange();
+const range = el.controller.selectedRanges[0];
 el.controller.clearSelection();
 el.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
 </script>
@@ -457,3 +452,26 @@ const instances = document.querySelectorAll('web-daterangepicker');
 Access global API:
 window.components['web-daterangepicker'].version();
 window.components['web-daterangepicker'].getInstances();
+
+LABELS (i18n)
+-------------
+All UI strings come from ONE `labels` object — partial, English defaults
+(exported as DEFAULT_LABELS). No built-in translations. Month / weekday names
+come from Intl for `locale` (auto = browser language) or monthNames/weekdayNames.
+
+<web-daterangepicker selection-mode="range" locale="de"
+  labels='{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'>
+</web-daterangepicker>
+
+el.labels = { today: 'Dnes', days: '{count} dní', fullscreenTitle: 'Vyberte termín' };
+
+Keys: today, clear, apply, now, close, preview, day, days, night, nights,
+selectionCount ({count}), time, am, pm, hours, minutes, seconds, fullscreenTitle.
+❌ customStrings, fullscreen-title  → ✅ labels / labels.fullscreenTitle
+
+LIFECYCLE
+---------
+<web-daterangepicker defer>  → nothing builds until el.release() (or removing
+`defer`); then the `ready` event, the `ready` attribute, :state(ready),
+el.isReady / await el.whenReady(). el.destroy() tears it down for good.
+❌ el.ready(), is-ready  → ✅ el.release(), ready

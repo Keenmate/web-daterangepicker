@@ -26,7 +26,7 @@ commit-mode="apply" (see below) and omitted for 'selection' and 'manual'.
 COMMIT-MODE CONTROL (commit) + CLOSE OPTIONS (close)
 ----------------------------------------------------
 Two separate axes. commit-mode = when a pick is COMMITTED (written to the
-input, select/change fired):
+input, change fired):
 
 <!-- Web Component -->
 <web-daterangepicker
@@ -41,7 +41,7 @@ Modes:
                 clicked, which commits and closes. Default for time/datetime
                 and for 'multiple' selection mode.
 - 'manual'    - Picks are only STAGED; nothing is written until the app calls
-                apply() (e.g. onClick: (d) => d.controller.apply()). No built-in
+                commit() (e.g. onClick: (d) => d.controller.commit()). No built-in
                 Apply button.
 
 Close options:
@@ -50,7 +50,7 @@ Close options:
 - close-on-outside-click default true; false when commit-mode="manual"
                                 unless set explicitly
 - close-on-scroll        default true (floating)
-Escape and close() always close. Closing without apply() discards a staged pick.
+Escape and close() always close. Closing without commit() discards a staged pick.
 
 booking.com flow (written immediately, calendar stays open to adjust):
 <web-daterangepicker selection-mode="range"
@@ -103,9 +103,10 @@ DateRangePickerActionItem INTERFACE
 THE PICKER CONTEXT (render-time callbacks)
 ------------------------------------------
 ctx.controller   - public facade (same object as el.controller):
-                   getSelectedDate(), getSelectedRange(), getSelectedRanges(),
-                   getSelectedDates(), getSelectedDatetime(), isOpen,
-                   selectToday(), selectNow(), clearSelection(), apply(),
+                   selectedDate, selectedDates, selectedRanges,
+                   selectedStartDate, selectedEndDate, selectedTime,
+                   selectedDatetime, isOpen (all read-only),
+                   selectToday(), selectNow(), clearSelection(), commit(),
                    open(), close(), toggle(), setPresentation(p),
                    prevMonth(i?), nextMonth(i?), lock(a?), unlock(a?),
                    showMessage(content, { type, autoHideMs }), hideMessage(),
@@ -197,7 +198,7 @@ el.actionButtons = [
   {
     action: 'apply',
     // Only show when both dates selected
-    getIsVisibleCallback: (ctx) => !!ctx.controller.getSelectedRange()
+    getIsVisibleCallback: (ctx) => !!ctx.controller.selectedRanges[0]
   }
 ];
 
@@ -214,7 +215,7 @@ el.actionButtons = [
   {
     action: 'apply',
     // Disable until both dates selected
-    getIsDisabledCallback: (ctx) => !ctx.controller.getSelectedRange()
+    getIsDisabledCallback: (ctx) => !ctx.controller.selectedRanges[0]
   }
 ];
 
@@ -224,7 +225,7 @@ el.actionButtons = [
   {
     action: 'apply',
     getTextCallback: (ctx) => {
-      const range = ctx.controller.getSelectedRange();
+      const range = ctx.controller.selectedRanges[0];
       if (!range) return 'Apply';
       const days = Math.floor((range.end - range.start) / 864e5) + 1;
       return `Apply (${days} day${days !== 1 ? 's' : ''})`;
@@ -249,7 +250,7 @@ el.actionButtons = [
     action: 'apply',
     // Return single string
     getClassCallback: (ctx) =>
-      ctx.controller.getSelectedRange() ? 'apply-ready' : 'apply-waiting'
+      ctx.controller.selectedRanges[0] ? 'apply-ready' : 'apply-waiting'
   }
 ];
 
@@ -290,7 +291,7 @@ el.actionButtons = [
   {
     action: 'apply',
     getTooltipCallback: (ctx) => {
-      const range = ctx.controller.getSelectedRange();
+      const range = ctx.controller.selectedRanges[0];
       if (!range) return 'Select both start and end dates';
       const days = Math.floor((range.end - range.start) / 864e5) + 1;
       return `Apply ${days}-day range`;
@@ -392,7 +393,7 @@ el.actionButtons = [
     getTooltipCallback: (ctx) => hasSelection(ctx) ? 'Remove current selection' : 'Nothing to clear',
 
     // Runs for built-ins too, BEFORE the built-in clear
-    onClick: (d) => console.log('clearing', d.controller.getSelectedRange())
+    onClick: (d) => console.log('clearing', d.controller.selectedRanges[0])
   }
 ];
 
@@ -403,13 +404,13 @@ onClick: (d) => {
   d.action;  d.id;  d.source;  d.dataset;
 
   // Read state via the controller facade
-  const range = d.controller.getSelectedRange();
-  const date  = d.controller.getSelectedDate();
+  const range = d.controller.selectedRanges[0];
+  const date  = d.controller.selectedDate;
   const open  = d.controller.isOpen;
 
   // Drive the picker
   d.controller.clearSelection();
-  d.controller.apply();
+  d.controller.commit();
   d.controller.close();
   d.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
 
@@ -453,7 +454,7 @@ el.actionButtons = [
     text: 'Debug',
     onClick: (d) => {
       console.log('Picker state:', {
-        range: d.controller.getSelectedRange(),
+        range: d.controller.selectedRanges[0],
         isOpen: d.controller.isOpen
       });
     }
@@ -495,7 +496,7 @@ ACCESSIBILITY
 el.actionButtons = [{
   action: 'apply',
   text: 'Apply Selection',
-  getTooltipCallback: (ctx) => ctx.controller.getSelectedRange()
+  getTooltipCallback: (ctx) => ctx.controller.selectedRanges[0]
     ? 'Confirm and close calendar'
     : 'Please select both start and end dates'
 }];
@@ -520,9 +521,9 @@ el.actionButtons = [
 Context-aware buttons:
 el.actionButtons = [{
   action: 'apply',
-  getIsVisibleCallback: (ctx) => !!ctx.controller.getSelectedRange(),
+  getIsVisibleCallback: (ctx) => !!ctx.controller.selectedRanges[0],
   getTextCallback: (ctx) => {
-    const r = ctx.controller.getSelectedRange();
+    const r = ctx.controller.selectedRanges[0];
     return r ? `Apply (${Math.floor((r.end - r.start) / 864e5) + 1} days)` : 'Apply';
   }
 }];

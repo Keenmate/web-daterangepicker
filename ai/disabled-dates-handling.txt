@@ -95,7 +95,7 @@ Use cases:
 - Pricing calculations (charge only enabled days)
 
 Example usage:
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   const {
     dateRange,
     enabledDates,
@@ -176,7 +176,7 @@ Use cases:
 - Complex scheduling
 
 Example usage:
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   const { dateRanges, dates } = event.detail;
 
   console.log('Segments:', dateRanges.length);
@@ -215,7 +215,7 @@ Use cases:
 - Per-date operations
 
 Example usage:
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   const { dates } = event.detail;
 
   dates.forEach(date => {
@@ -336,7 +336,7 @@ const picker = new DateRangePickerEngine(input, {
   disabledWeekdays: [0, 6]
 });
 
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   const { enabledDates, getEnabledDateCount } = event.detail;
 
   const billableDays = getEnabledDateCount();
@@ -359,7 +359,7 @@ const picker = new DateRangePickerEngine(input, {
   disabledWeekdays: [0, 6]
 });
 
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   const { dateRanges } = event.detail;
 
   dateRanges.forEach((range, index) => {
@@ -395,7 +395,7 @@ ERROR HANDLING
 --------------
 Handle empty results:
 
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   const { dates, dateRanges } = event.detail;
 
   if (dates && dates.length === 0) {
@@ -479,7 +479,7 @@ Communicate mode to users:
 </web-daterangepicker>
 
 Provide summary:
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   const summary = generateSummary(event.detail);
   announceToScreenReader(summary);
 });

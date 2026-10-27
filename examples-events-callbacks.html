@@ -43,14 +43,14 @@
     <div class="note info">
       <strong>Event Names:</strong>
       <ul>
-        <li><code>select</code> - Primary event for date selection</li>
-        <li><code>change</code> - Fires right after <code>select</code>, with the same detail</li>
+        <li><code>change</code> - The selection was committed (a pick in <code>commit-mode="selection"</code>, Apply / <code>commit()</code> otherwise)</li>
+        <li><code>open</code> / <code>close</code> - The calendar popover opened / closed (any reason)</li>
         <li><code>action</code> - An action button (built-ins too) or a <code>data-action</code> trigger was clicked (<code>detail.action</code>, <code>detail.id</code>, <code>detail.source</code>, <code>detail.dataset</code>)</li>
         <li><code>month-change</code> - The visible month(s) changed (<code>detail.monthIndex</code>, <code>year</code>, <code>month</code>, <code>visibleMonths</code>)</li>
         <li><code>ready</code> - The picker was built for the first time</li>
       </ul>
       <p><strong>Note:</strong> All events bubble from the <code>&lt;web-daterangepicker&gt;</code> element (they are not <code>composed</code>). Every detail also carries <code>controller</code> (the picker facade) and <code>element</code> (the host); both are non-enumerable, so <code>JSON.stringify(detail)</code> shows only the data.</p>
-      <p><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onSelect</code>, <code>onChange</code>, <code>onAction</code>, <code>onMonthChange</code> or <code>onReady</code>. Each receives the event <strong>detail</strong> (not the <code>CustomEvent</code>): <code>el.onSelect = (detail) =&gt; detail.date</code>. Assign <code>null</code> to detach.</p>
+      <p><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onChange</code>, <code>onOpen</code>, <code>onClose</code>, <code>onAction</code>, <code>onMonthChange</code> or <code>onReady</code>. Each receives the event <strong>detail</strong> (not the <code>CustomEvent</code>): <code>el.onChange = (detail) =&gt; detail.date</code>. Assign <code>null</code> to detach.</p>
     </div>
 
     <h3>Event Detail Structure</h3>
@@ -94,7 +94,7 @@
     <pre><code>// Listening to events
 const picker = document.getElementById('my-picker');
 
-picker.addEventListener('select', (event) => {
+picker.addEventListener('change', (event) => {
   console.log('Date selected:', event.detail);
 
   if (event.detail.date) {
@@ -107,7 +107,11 @@ picker.addEventListener('select', (event) => {
 });
 
 // Handler property: receives the detail directly
-picker.onSelect = (detail) => console.log(detail.formattedValue);
+picker.onChange = (detail) => console.log(detail.formattedValue);
+
+// The popover opened / closed
+picker.addEventListener('open', () => console.log('opened'));
+picker.addEventListener('close', () => console.log('closed'));
 
 // Month navigation
 picker.addEventListener('month-change', (event) => {
@@ -646,15 +650,15 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     const eventSingle = document.getElementById('event-single');
     const eventRange = document.getElementById('event-range');
 
-    eventSingle.addEventListener('select', (e) => {
-      logEvent('event-log-single', 'select', {
+    eventSingle.addEventListener('change', (e) => {
+      logEvent('event-log-single', 'change', {
         formattedValue: e.detail.formattedValue,
         date: e.detail.date.toISOString()
       }, 'success');
     });
 
-    eventRange.addEventListener('select', (e) => {
-      logEvent('event-log-range', 'select', {
+    eventRange.addEventListener('change', (e) => {
+      logEvent('event-log-range', 'change', {
         formattedValue: e.detail.formattedValue,
         dateRange: {
           start: e.detail.dateRange.start.toISOString(),
@@ -662,6 +666,12 @@ picker.getMonthDataCallback = async ({ year, month }) => {
         }
       }, 'success');
     });
+
+    // The popover opened / closed (open / close events, any reason)
+    for (const [el, log] of [[eventSingle, 'event-log-single'], [eventRange, 'event-log-range']]) {
+      el.addEventListener('open', () => logEvent(log, 'open', {}, 'info'));
+      el.addEventListener('close', () => logEvent(log, 'close', {}, 'info'));
+    }
 
     // Handler property (on* twin): receives the detail, not the CustomEvent
     eventRange.onMonthChange = (detail) => {

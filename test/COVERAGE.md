@@ -26,8 +26,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `selectedRanges` (range mode) always returns the selection: plain `[{start,end}]`, `split` pieces, independent ranges; getter/setter round-trip | ✓ | `disabled-handling.spec.ts` | `disabled-handling.html` |
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `commitMode`: `'selection'` (default) / `'apply'` / `'manual'`  | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| `commit-mode="manual"`: no close, no Apply; custom button → `controller.apply()` commits | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
-| `commit-mode="manual"`: picks only stage — nothing written / no events before `apply()` (FINDINGS #22, fixed) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `commit-mode="manual"`: no close, no Apply; custom button → `controller.commit()` commits | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| `commit-mode="manual"`: picks only stage — nothing written / no events before `commit()` (FINDINGS #22, fixed) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 | `commit-mode="manual"`: outside click doesn't close by default; Escape / `close()` discard the staged pick | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 | `close-on-outside-click` (`false` in selection mode; `true` overriding the manual default) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 | `close-on-select="false"` — booking.com flow: written on every pick, stays open; runtime toggle | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
@@ -139,7 +139,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Today button jumps + selects today                            | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Clear button clears selection + input                         | ✓      | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Apply commits pending selection, closes picker                | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
-| Apply fires `select` + `change` and refreshes the form value (FINDINGS #17) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
+| Apply fires `change` (once) and refreshes the form value (FINDINGS #17) | ✓ | `selection-modes.spec.ts` | `selection-modes.html` |
 | `show-today-button` / `show-clear-button` / `commit-mode="apply"` (Apply button) | ✓    | `action-buttons.spec.ts`     | `action-buttons.html`     |
 | Custom `actionButtons` array (incl. `action` event)           | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | Action-button tooltip on hover                                | ✓      | `tooltips.spec.ts`           | `tooltips.html`           |
@@ -181,7 +181,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `locale="auto"` detects from browser (de-DE / en-US)          | ✓      | `locale.spec.ts`             | `locale.html`             |
 | Explicit `locale="de"` / `"fr"` / etc.                        | ✓      | `locale.spec.ts`             | `locale.html`             |
-| `customStrings` overrides individual UI strings               | ✓      | `locale.spec.ts`             | `locale.html`             |
+| `labels` overrides individual UI strings (property + JSON attribute, `{count}`, live update); `locale` only changes Intl names | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `monthNames` override (property)                              | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `month-names` override (pipe-delimited attribute)             | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `weekday-names` override (pipe-delimited, Sunday-indexed)     | ✓      | `locale.spec.ts`             | `locale.html`             |
@@ -207,13 +207,13 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `isOpen` setter opens/closes programmatically                 | ✓      | `events-api.spec.ts`, `triggers.spec.ts` | `events-api.html`, `triggers.html` |
 | `updateOptions(partial)` survives without losing selection    | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | `showMessage` / `hideMessage`                                 | ✓      | `api-extras.spec.ts`         | `api-extras.html`         |
-| `toggleMessage`                                               | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| raw-HTML `showMessage` + the built-in ✕ (`hide-message`)      | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `value` setter populates input + selection + form value       | ✓      | `events-api.spec.ts`, `api-extras.spec.ts` | `events-api.html`, `api-extras.html` |
 | `value` getter right after `setAttribute('value')` (FINDINGS #14, fixed) | ✓ | `api-extras.spec.ts` | `api-extras.html`       |
 | `disabled` setter disables input + suppresses open            | ✓      | `events-api.spec.ts`         | `events-api.html`         |
 | HTML `data-action="custom" data-id` in `showMessage` → `action` (`source: 'message'`, `dataset`) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Internal controls (nav arrows) do not fire `action`           | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
-| `onSelect` twin receives the detail (same object as `select`) | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| `onChange` twin receives the detail (same object as `change`) | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `month-change` event after navigation (`visibleMonths`)       | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 
 ## 14. Visual states
@@ -248,8 +248,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `hideSummary()` / `refreshSummary()` re-derive summary        | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `showLoader()` full-calendar overlay + single-instance guard  | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | `showLoader('summary')` / `('message')` in-block spinner      | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
-| `hideLoader(target)` / `toggleLoader(target)`                 | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
-| Summary loader added in `select` handler survives commit re-render | ✓ | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| `showLoader(target)` / `hideLoader(target)`                   | ✓      | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
+| Summary loader added in `change` handler survives commit re-render | ✓ | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | Action-item render callbacks receive the picker context (`controller`, `element`, presentation) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `onClick` receives the action detail (`action`, `id`, `source`) | ✓    | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | Order: `beforeActionCallback` → `onClick` → built-in → `onAction` → `action` event (one detail) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
@@ -268,7 +268,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Programmatic `value` reflected into the submission            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `form.reset()` clears selection + submitted value             | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `form.reset()` restores the selection parsed from the default `value` attribute (FINDINGS #13) | ✓ | `api-extras.spec.ts`, `form-association.spec.ts` | `api-extras.html`, `form-association.html` |
-| `value` attribute = initial selection; `el.value` / `setInputValue()` never write the attribute; submit sends current state | ✓ | `form-association.spec.ts` | `form-association.html` |
+| `value` attribute = initial selection; `el.value` (assigned twice) never writes the attribute; submit sends current state | ✓ | `form-association.spec.ts` | `form-association.html` |
 | Invalid `value` attribute → warning, empty selection, attribute untouched | ✓ | `form-association.spec.ts` | `form-association.html` |
 | Inline picker submits via hidden field                        | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Range → ISO interval; split range → each sub-range            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
@@ -318,7 +318,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `picker-mode="datetime"`: grid + rolls, commits `selectedDatetime`; ISO setter splits | ✓ | `time-picker.spec.ts` | `time-picker.html` |
 | `selectedTime` setter renders rolls + input                   | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
 | `time-display` clock / wheel / compact each commit            | ✓      | `time-picker.spec.ts`        | `time-picker.html`        |
-| Apply fires `select` (FINDINGS #17, fixed)                    | ✓      | `time-picker.spec.ts`   | `time-picker.html`        |
+| Apply fires `change` (FINDINGS #17, fixed)                    | ✓      | `time-picker.spec.ts`   | `time-picker.html`        |
 | Runtime `time-display` switch renders the new UI (FINDINGS #18, fixed) | ✓ | `time-picker.spec.ts` | `time-picker.html`        |
 | `placeholder-time-format-mask` hint in time mode; fallback to `time-format-mask`; datetime = date + ' ' + time hint; follows runtime changes (FINDINGS #19, fixed) | ✓ | `time-picker.spec.ts` | `time-picker.html` |
 | `hour-cycle` h12 (1-12 + AM/PM, formats `hh:mm a`); derived from the mask | ✓ | `time-options.spec.ts` | `time-options.html` |
@@ -333,7 +333,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `defer` holds the build; attribute removal / `ready()` builds once; `ready` never re-fires (reinit, reconnect); `is-ready` / `isReady` | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
+| `open` / `close` events + `onOpen` / `onClose` fire once per transition; no `select` event | ✓ | `events-api.spec.ts` | `events-api.html` |
+| `<fieldset disabled>` disables the input (core `isEffectivelyDisabled`); `isDisabled` keeps the authored value | ✓ | `events-api.spec.ts` | `events-api.html` |
+| `labels.fullscreenTitle` heading + `labels.close` ✕ ARIA label | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
+| `defer` holds the build; attribute removal / core `release()` builds once; `ready` never re-fires (reinit, reconnect); `ready` attribute / `isReady` / `whenReady()` / `:state(ready)`; `destroy()` tears down + inert | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
 | DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
 | DOM move keeps the committed selection state + open state (D1, FINDINGS #16, fixed) | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
 | DOM move / removal pauses document listeners; re-insert re-activates (outside click) | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |

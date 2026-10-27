@@ -359,7 +359,7 @@ picker.renderDayCallback = (data) => {
 };
 
 // Calculate price on selection
-picker.addEventListener('select', (event) =&gt; {
+picker.addEventListener('change', (event) =&gt; {
   if (event.detail.dateRange) {
     const start = event.detail.dateRange.start;
     const end = event.detail.dateRange.end;
@@ -606,7 +606,7 @@ picker.addEventListener('select', (event) =&gt; {
       };
 
       // Show booking details on selection
-      bookingSystem.addEventListener('select', (event) => {
+      bookingSystem.addEventListener('change', (event) => {
         const info = document.getElementById('booking-info');
         const details = document.getElementById('booking-details');
 

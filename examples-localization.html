@@ -11,7 +11,7 @@
     <header>
       <a href="index.html" class="back-link">← Back to Examples</a>
       <h1>🌍 Localization &amp; Custom Names</h1>
-      <p class="subtitle">Built-in locales, week-start-day, and full control over month &amp; weekday labels</p>
+      <p class="subtitle">Intl locales, UI <code>labels</code>, week-start-day, and full control over month &amp; weekday names</p>
     </header>
 
   <div class="note info">
@@ -31,10 +31,12 @@
 
   <!-- Built-in locales -->
   <div class="card">
-    <h2>LO01 · Built-in Locales</h2>
-    <p>The <code>locale</code> attribute selects bundled UI strings and drives <code>Intl</code>-based
-      month/weekday names. Built-ins: <code>en</code>, <code>de</code>, <code>fr</code>, <code>es</code>
-      (<code>auto</code> detects from the browser).</p>
+    <h2>LO01 · Locales + labels</h2>
+    <p>The <code>locale</code> attribute drives the <code>Intl</code>-based month/weekday names for any
+      BCP-47 locale (<code>auto</code> = the browser language). The UI strings (buttons, summary, time
+      picker) are <strong>not</strong> bundled per language: they come from one <code>labels</code> object —
+      a partial override of the English defaults, as a property or a JSON attribute. <code>{count}</code>
+      is interpolated in the summary counts.</p>
 
     <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
       <div class="form-group">
@@ -45,21 +47,29 @@
       <div class="form-group">
         <label>German (locale="de")</label>
         <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          locale="de" positioning-mode="inline"></web-daterangepicker>
+          locale="de" positioning-mode="inline"
+          labels='{"today":"Heute","clear":"Löschen"}'></web-daterangepicker>
       </div>
       <div class="form-group">
         <label>French (locale="fr")</label>
         <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          locale="fr" positioning-mode="inline"></web-daterangepicker>
+          locale="fr" positioning-mode="inline"
+          labels='{"today":"Aujourd&apos;hui","clear":"Effacer"}'></web-daterangepicker>
       </div>
       <div class="form-group">
         <label>Spanish (locale="es")</label>
         <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          locale="es" positioning-mode="inline"></web-daterangepicker>
+          locale="es" positioning-mode="inline"
+          labels='{"today":"Hoy","clear":"Limpiar"}'></web-daterangepicker>
       </div>
     </div>
 
-    <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span> <span class="property">locale</span>=<span class="string">"de"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+    <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span> <span class="property">locale</span>=<span class="string">"de"</span>
+  <span class="property">labels</span>=<span class="string">'{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+
+<span class="comment">// or as a property — keys: today, clear, apply, now, close, preview, day, days,
+// night, nights, selectionCount, time, am, pm, hours, minutes, seconds, fullscreenTitle</span>
+el.<span class="property">labels</span> = { today: <span class="string">'Heute'</span>, days: <span class="string">'{count} Tage'</span> };</code></div>
   </div>
 
   <!-- week-start-day -->
@@ -167,8 +177,8 @@
   <!-- Combined full Czech -->
   <div class="card">
     <h2>LO05 · Full Czech Calendar</h2>
-    <p>Combine <code>locale</code>, <code>week-start-day</code>, <code>month-names</code>, and
-      <code>weekday-names</code> for a fully localized picker. Czech convention starts the week on Monday.</p>
+    <p>Combine <code>labels</code>, <code>week-start-day</code>, <code>month-names</code>, and
+      <code>weekday-names</code> for a fully localized picker (or just <code>locale="cs"</code> for the names). Czech convention starts the week on Monday.</p>
 
     <div class="form-group">
       <label>locale + Monday start + Czech month &amp; weekday names</label>
@@ -180,6 +190,7 @@
         week-start-day="1"
         month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
         weekday-names="Ne|Po|Út|St|Čt|Pá|So"
+        labels='{"today":"Dnes","clear":"Vymazat","day":"{count} den","days":"{count} dní","night":"{count} noc","nights":"{count} nocí"}'
         positioning-mode="inline"></web-daterangepicker>
     </div>
   </div>

@@ -25,10 +25,10 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 - `src/date-picker-rendering.ts` — `renderCalendar`, `renderRollingSelector`, day-cell decoration, summary rendering, custom-render callbacks.
 - `src/date-picker-navigation.ts` — month navigation (`prevMonth`, `nextMonth`), unified navigation, collision detection between adjacent columns in multi-month mode, rolling-selector navigation.
 - `src/date-picker-interaction.ts` — drag-to-adjust handlers (`onDragStart`, `onDragMove`, `onDragEnd`), input-mask parsing (`applyMask`, `applyRangeMask`), keyboard navigation.
-- `src/date-picker-selection.ts` — `selectDay`, `selectToday`, `clearSelection`, `apply`, range validation (`validateRangeAsync`).
+- `src/date-picker-selection.ts` — `selectDay`, `selectToday`, `clearSelection`, `commit`, range validation (`validateRangeAsync`).
 - `src/date-picker-ui.ts` — `show`/`hide`/`position`/`showMessage`/`hideMessage`. Floating UI integration for the calendar popover.
 - `src/date-picker-validation.ts` — pure date helpers (`normalizeDate`, `isDateDisabled`, `formatDateKey`, `detectWeekStartDay`).
-- `src/date-picker-locales.ts` — locale strings, weekday/month names, locale resolution.
+- `src/date-picker-locales.ts` — UI labels (`DEFAULT_LABELS` English, `resolveLabels()` — the single label-resolution seam for a future core `/locale` — and `formatLabel()` for `{count}`), `Intl` weekday/month names, locale resolution. No built-in language tables.
 - `src/modules/click-events/` and `src/modules/scroll-events/` — small managers that own their own event subscriptions and clean up on destroy.
 
 **CSS** (`src/css/`)
@@ -52,7 +52,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 - **Disabled-dates handling**: `allow` / `prevent` / `block` / `split` / `individual` strategies for ranges that span disabled dates
 - **Custom rendering** via callbacks: `renderDayCallback`, `renderDayContentCallback`, `getMonthHeaderCallback`, `getUnifiedHeaderCallback`, `renderSummaryCallback` — see security note in `src/types.ts`
 - **Tooltips** on day cells, badges, and action buttons (via Floating UI)
-- **Locale support**: bundled English plus user-overridable strings; auto-detects from browser
+- **i18n**: one `labels` object (partial over English defaults, JSON attribute too) for every UI string; month/weekday names from `Intl` via `locale` (auto-detects from the browser)
 
 ### Important Implementation Details
 
@@ -87,7 +87,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 - Min/max dates, disabled dates, disabled weekdays, and rolling year/month ranges are implemented; the constraint pipeline lives in `Validation.isDateDisabled` plus `getAvailableYearRange` / `getAvailableMonthRange` on the core class
 - For new options that should be reactive at runtime, add a row to `ATTRIBUTE_TABLE` in `web-component.ts` — it is the single source of truth that drives both `observedAttributes` and the initial parse (`parseAttributesFromTable` in `initializePicker`), so the two can no longer drift. (The only remaining hand-coordinated pair is `DUAL_PATH_KEYS` for the `disabledDates` + `*Member` data-prop family.)
 - Runtime changes: `on:'update'` inputs patch the live engine via `updateOptions(partial)`; an `on:'reinit'` input, or a key in the engine's `STRUCTURAL_KEYS` (which makes `updateOptions` return false), rebuilds via `#rebuildPreservingSelection()` — the committed selection is snapshotted and restored. A new option whose DOM is built once in `createCalendar()` must go into `STRUCTURAL_KEYS`.
-- Lifecycle is build-once (web-components-core): `disconnect()` → `engine.deactivate()` (drops document/window listeners, overlay group, floating autoUpdate, open-sheet chrome — keeps all state), `connect()` → `engine.activate()`. A DOM move keeps selection and open state. New document/window-level listeners must be detached in both `destroy()` and `deactivate()` and re-attached in `activate()`.
+- Lifecycle is build-once (web-components-core): `disconnect()` → `engine.deactivate()` (drops document/window listeners, overlay group, floating autoUpdate, open-sheet chrome — keeps all state), `connect()` → `engine.activate()`. A DOM move keeps selection and open state. New document/window-level listeners must be detached in both `destroy()` and `deactivate()` and re-attached in `activate()`. `defer` / `release()` / `ready` / `destroy()` are core `BlissElement`'s; the element's `destroyCallback()` destroys the engine and removes the hidden form inputs. Disabled state = core `isEffectivelyDisabled` (`isDisabled` input + `<fieldset disabled>`), applied in `disabledChanged()`.
 
 ### Adding New CSS Variables
 

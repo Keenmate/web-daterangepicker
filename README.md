@@ -122,14 +122,14 @@ import '@keenmate/web-daterangepicker';
 const picker = document.querySelector('web-daterangepicker');
 
 // Listen for date selection
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   console.log('Selected:', e.detail.formattedValue);
   console.log('Date object:', e.detail.date);
   console.log('Range:', e.detail.dateRange);
 });
 
 // …or the property twin, which receives the detail directly
-picker.onSelect = (detail) => console.log(detail.formattedValue);
+picker.onChange = (detail) => console.log(detail.formattedValue);
 
 // Action buttons (and `data-action` triggers) fire one `action` event
 picker.addEventListener('action', (e) => console.log(e.detail.action, e.detail.id));
@@ -139,7 +139,15 @@ picker.open();
 picker.close();
 picker.toggle();
 picker.clearSelection();
-picker.setInputValue('2025-11-15');
+picker.value = '2025-11-15';
+picker.showMessage('Pick a weekend', { type: 'info', autoHideMs: 3000 });
+
+// The popover opened / closed
+picker.addEventListener('open', () => console.log('opened'));
+picker.addEventListener('close', () => console.log('closed'));
+
+// UI strings: one partial `labels` object over English defaults (months/weekdays come from Intl via `locale`)
+picker.labels = { today: 'Heute', days: '{count} Tage' };
 ```
 
 Using the engine class (`DateRangePickerEngine`) directly (without the custom
@@ -201,6 +209,7 @@ over rendering but requires sanitizing untrusted data:
 | `renderDayContentCallback` | Day cells (innerHTML) | HTML injection |
 | `getDateMetadataCallback` (`badgeText`, `dayTooltip`) | Badges / tooltips (innerHTML) | HTML injection |
 | `renderSummaryCallback` | Summary display (innerHTML) | HTML injection |
+| `labels` (summary / message texts) | Summary display (innerHTML) | HTML injection — developer-supplied strings |
 | `getMonthHeaderCallback` | Month headers (innerHTML) | HTML injection |
 | `getUnifiedHeaderCallback` | Unified header (innerHTML) | HTML injection |
 | `getCustomStylesCallback` / `custom-styles` | Style tag (textContent) | CSS injection |
@@ -209,7 +218,7 @@ over rendering but requires sanitizing untrusted data:
 
 - `beforeSelectCallback`, `beforeMonthChangeCallback` (return values, not markup)
 - `actionButtons[].text` / `getTextCallback` (set as plain text)
-- `onSelect`, `onChange`, `onAction`, `onMonthChange` (event handlers)
+- `onChange`, `onOpen`, `onClose`, `onAction`, `onMonthChange`, `onReady` (event handlers)
 - `getDateMetadataCallback` (`isDisabled`, `dayClass`, `badgeClass` — CSS class names only)
 
 **If displaying user-generated content**, sanitize it before passing

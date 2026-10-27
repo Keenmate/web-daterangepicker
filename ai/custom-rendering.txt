@@ -300,7 +300,7 @@ Complete interface:
   monthIndex: number;      // Which month column (multi-month)
   cellElement?: HTMLElement; // The default-rendered day cell (augmentation pattern)
 
-  controller;              // Public facade (getSelectedRange(), showMessage(), ...)
+  controller;              // Public facade (selectedRanges[0], showMessage(), ...)
   element: HTMLElement;    // The <web-daterangepicker> HOST (not the cell!)
   // + presentation flags
 }

@@ -24,8 +24,8 @@ display. The single best file to skim when you first see the component.
 Everything programmatic in one place. Using the engine class
 (`DateRangePickerEngine`) directly without the `<web-daterangepicker>` custom element
 (every callback wired up, explicit CSS-loading recipe); the instance
-methods (`open()` / `close()` / `toggle()`, `setInputValue()`,
-`clearSelection()`), reactive property accessors, the lock/unlock API,
+methods (`open()` / `close()` / `toggle()`, `commit()`,
+`clearSelection()`, the `value` property), reactive property accessors, the lock/unlock API,
 and the advanced configuration recipes moved out of Basic — rolling
 selector constraints, the `disabled-dates-handling` range modes,
 week-snapping, custom summary formatting, position control, and the
@@ -35,7 +35,7 @@ keyboard-shortcut reference.
 
 ### Events, handlers & interceptors — [`examples-events-callbacks.html`](../examples-events-callbacks.html)
 
-The event system (`select` / `change` / `action` / `month-change`) plus
+The event system (`change` / `open` / `close` / `action` / `month-change`) plus
 the `beforeSelectCallback` validation recipes from `usage.md`
 (minimum-nights, API availability check, the `ctx.markRangeInvalid()`
 red-error state), `beforeMonthChangeCallback` for blocking navigation and
@@ -92,7 +92,7 @@ The device-adaptive `mobile-presentation` ladder (floating on desktop,
 a centered modal on tablets, an edge-to-edge **full-screen** overlay on
 phones), the explicit `positioning-mode="modal"` layout with its
 viewport-tier widths (xs / sm / md / lg), container-query inner layout,
-the `fullscreen-title` / `fullscreen-autofocus` / `show-fullscreen-input`
+the `labels.fullscreenTitle` heading, the `fullscreen-autofocus` / `show-fullscreen-input`
 options, and container-responsive compaction (`compact-below`).
 
 ## Time / datetime

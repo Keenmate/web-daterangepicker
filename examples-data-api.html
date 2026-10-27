@@ -223,7 +223,7 @@ const inputElement = document.getElementById('input-1');
 const picker = new DateRangePickerEngine(inputElement, {
   selectionMode: 'single',
   dateFormatMask: 'YYYY-MM-DD',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     // Single mode: detail.date is the selected Date
     console.log('Selected date:', detail.date);
     // Get formatted value from the input element
@@ -264,7 +264,7 @@ const picker = new DateRangePickerEngine(inputElement, {
   visibleMonthCount: 2,
   monthLayout: 'horizontal',
   dateFormatMask: 'YYYY-MM-DD',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     // Range mode: detail.dateRange is { start: Date, end: Date }
     const { start, end } = detail.dateRange;
     const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
@@ -303,7 +303,7 @@ const picker = new DateRangePickerEngine(inputElement, {
 const pickerEU = new DateRangePickerEngine(document.getElementById('input-4a'), {
   selectionMode: 'single',
   dateFormatMask: 'DD.MM.YYYY',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     document.getElementById('output-4a').textContent =
       `Selected: ${detail.formattedValue}`;
   }
@@ -313,7 +313,7 @@ const pickerEU = new DateRangePickerEngine(document.getElementById('input-4a'), 
 const pickerUS = new DateRangePickerEngine(document.getElementById('input-4b'), {
   selectionMode: 'single',
   dateFormatMask: 'MM/DD/YYYY',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     document.getElementById('output-4b').textContent =
       `Selected: ${detail.formattedValue}`;
   }
@@ -352,7 +352,7 @@ const picker = new DateRangePickerEngine(inputElement, {
   disabledDates: [
     new Date(today.getFullYear(), today.getMonth(), 25) // Christmas
   ],
-  onSelect: (detail) => {
+  onChange: (detail) => {
     document.getElementById('output-3').textContent =
       `Selected business day: ${detail.formattedValue}`;
   }
@@ -380,7 +380,7 @@ const picker = new DateRangePickerEngine(null, {
   selectionMode: 'single',
   positioningMode: 'inline',
   container: document.getElementById('inline-container'),
-  onSelect: (detail) => {
+  onChange: (detail) => {
     // Single mode: detail.date is the selected Date
     document.getElementById('output-5').textContent =
       `Selected: ${detail.date.toLocaleDateString()}`;
@@ -416,7 +416,7 @@ const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
   gridRows: 2,
   gridColumns: 3,
   dateFormatMask: 'YYYY-MM-DD',
-  onSelect: (detail) => {
+  onChange: (detail) => {
     document.getElementById('output-6').textContent =
       `Selected: ${detail.formattedValue}`;
   }
@@ -475,7 +475,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
   const picker = new DateRangePickerEngine(input, {
     selectionMode: 'single',
     dateFormatMask: 'YYYY-MM-DD',
-    onSelect: (detail) => {
+    onChange: (detail) => {
       output.textContent = `Selected: ${detail.formattedValue}`;
     }
   });
@@ -634,7 +634,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
       that week the <strong>entire week (Mon–Sun) is selected</strong>; if fewer
       than 2, that week contributes <strong>0 days</strong> and is dropped. The
       surviving weeks are returned as a <code>DateRange[]</code> — one range per
-      week — so the grid, summary, and <code>onSelect</code> all reflect the snap.
+      week — so the grid, summary, and <code>onChange</code> all reflect the snap.
     </p>
     <div class="form-group">
       <label>Select a span across a few weeks</label>
@@ -884,24 +884,23 @@ console.log('Calendar open?', picker.isOpen);
 const rangePicker = document.getElementById('picker-2b');
 
 // Get current input value (formatted string)
-const singleValue = singlePicker.getInputValue();
+const singleValue = singlePicker.value;
 // Returns: "2025-03-15" or empty string
 
-const rangeValue = rangePicker.getInputValue();
+const rangeValue = rangePicker.value;
 // Returns: "01/01/2025 - 01/31/2025" or empty string
 
 // Set input value (must match format mask)
-singlePicker.setInputValue('2025-03-15');
-rangePicker.setInputValue('01/01/2025 - 01/31/2025');
+singlePicker.value = '2025-03-15';
+rangePicker.value = '01/01/2025 - 01/31/2025';
 
 // Clear input
-singlePicker.setInputValue('');
-rangePicker.setInputValue('');</code></pre>
+singlePicker.value = '';
+rangePicker.value = '';</code></pre>
       </div>
 
       <div class="method-signature">
-        <div><span class="return-type">string</span> getInputValue()</div>
-        <div><span class="return-type">void</span> setInputValue(<span class="param-name">value</span>: string)</div>
+        <div><span class="return-type">string</span> value <span class="param-name">(get / set)</span></div>
       </div>
     </div>
   </section>
@@ -954,11 +953,11 @@ rangePicker.setInputValue('');</code></pre>
 picker.clearSelection();
 
 // Verify it's cleared
-console.log(picker.getInputValue()); // ""
+console.log(picker.value); // ""
 
 // Clear and reset to specific date
 picker.clearSelection();
-picker.setInputValue('2025-12-25');</code></pre>
+picker.value = '2025-12-25';</code></pre>
       </div>
 
       <div class="method-signature">
@@ -1021,7 +1020,7 @@ const date = singlePicker.selectedDate;
 
 // Set selected date (single mode)
 singlePicker.selectedDate = new Date('2025-12-25');
-// Triggers re-render and select event
+// Triggers a re-render (and syncs the input)
 
 // Get selected ranges (range mode)
 const ranges = rangePicker.selectedRanges;
@@ -1032,7 +1031,7 @@ rangePicker.selectedRanges = [{
     start: new Date('2025-01-01'),
     end: new Date('2025-01-31')
 }];
-// Triggers re-render and select event
+// Triggers a re-render (and syncs the input)
 
 // Clear using properties
 singlePicker.selectedDate = null;
@@ -1146,8 +1145,8 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
 const controller = component.controller;
 
 // Read the selection
-console.log('Range:', controller.getSelectedRange());   // { start, end } | null
-console.log('Ranges:', controller.getSelectedRanges()); // DateRange[]
+console.log('Range:', controller.selectedStartDate, controller.selectedEndDate); // Date | null
+console.log('Ranges:', controller.selectedRanges); // DateRange[]
 console.log('Open:', controller.isOpen);
 
 // Drive the picker
@@ -1178,7 +1177,7 @@ console.log('Months to show:', component.visibleMonthCount);</code></pre>
         <button class="btn-outline" onclick="document.getElementById('api-demo').close()">Hide</button>
         <button class="btn-outline" onclick="document.getElementById('api-demo').toggle()">Toggle</button>
         <button class="btn-outline" onclick="document.getElementById('api-demo').clearSelection()">Clear</button>
-        <button class="btn-outline" onclick="alert(document.getElementById('api-demo').getInputValue())">Get Value</button>
+        <button class="btn-outline" onclick="alert(document.getElementById('api-demo').value)">Get Value</button>
       </div>
     </div>
 
@@ -1189,8 +1188,8 @@ picker.open();        // Show calendar
 picker.close();        // Hide calendar
 picker.toggle();      // Toggle calendar
 picker.clearSelection();       // Clear selection
-picker.getInputValue();    // Get current value
-picker.setInputValue('2025-11-15'); // Set value
+picker.value;    // Get current value
+picker.value = '2025-11-15'; // Set value
 
 // Properties
 picker.selectionMode = 'range';
@@ -1198,11 +1197,11 @@ picker.dateFormatMask = 'DD.MM.YYYY';
 picker.value = '2025-11-15';
 
 // Events
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   console.log('Selected:', e.detail);
 });
 // ...or the on* twin, which receives the detail directly
-picker.onSelect = (detail) => console.log('Selected:', detail.formattedValue);</pre></div>
+picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);</pre></div>
   </div>
 
   <!-- ===== REAL-WORLD PATTERNS ===== -->
@@ -1329,7 +1328,7 @@ picker.unlock('selection');     // just one aspect
 
 // Declarative full lock via attribute / property
 // &lt;web-daterangepicker readonly&gt;&lt;/web-daterangepicker&gt;
-picker.readonly = true;
+picker.isReadonly = true;
 picker.lockedAspects;           // -> ['selection','navigation','actions','open']</code></pre>
       </div>
 
@@ -1353,7 +1352,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
         closes. A <strong>custom</strong> action button never auto-closes the picker, so the callback is
         fully in control: when the selection is invalid it calls
         <code>showMessage(&hellip;)</code> and <strong>returns</strong> — the calendar stays open with the
-        warning — and only when the selection passes does it call <code>apply()</code>, which commits the
+        warning — and only when the selection passes does it call <code>commit()</code>, which commits the
         value <strong>and</strong> closes. Paired with <code>commit-mode="manual"</code> so a bare day click
         can't dismiss the picker before the guest reaches the gate and no built-in Apply button renders —
         Confirm is the only commit path. This example
@@ -1420,7 +1419,7 @@ picker.actionButtons = [
             }
             // 3) valid → commit AND close
             controller.hideMessage();
-            controller.apply();
+            controller.commit();
         }
     }
 ];</code></pre>
@@ -1429,7 +1428,7 @@ picker.actionButtons = [
       <div class="method-signature">
         <div><span class="return-type">void</span> controller.showMessage(html: string, { type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number })</div>
         <div><span class="return-type">void</span> hideMessage()</div>
-        <div><span class="return-type">void</span> apply()</div>
+        <div><span class="return-type">void</span> commit()</div>
         <div><span class="return-type">void</span> close()</div>
       </div>
     </div>
@@ -1473,7 +1472,7 @@ form.addEventListener('submit', (e) => {
 
     // Submit form data
     const formData = new FormData();
-    formData.append('check-in', checkIn.getInputValue());
+    formData.append('check-in', checkIn.value);
 
     fetch('/api/booking', {
         method: 'POST',
@@ -1499,13 +1498,13 @@ function DatePicker({ value, onChange }) {
             onChange(e.detail.formattedValue);
         };
 
-        picker.addEventListener('select', handleSelect);
-        return () => picker.removeEventListener('select', handleSelect);
+        picker.addEventListener('change', handleSelect);
+        return () => picker.removeEventListener('change', handleSelect);
     }, [onChange]);
 
     useEffect(() => {
         if (pickerRef.current && value) {
-            pickerRef.current.setInputValue(value);
+            pickerRef.current.value = value;
         }
     }, [value]);
 
@@ -1532,7 +1531,7 @@ function handleSelect(event) {
 
 watch(selectedValue, (newValue) => {
     if (picker.value) {
-        picker.value.setInputValue(newValue);
+        picker.value.value = newValue;
     }
 });
 &lt;/script&gt;</code></pre>
@@ -1556,7 +1555,7 @@ class DateRangeManager {
 
     init() {
         // Listen for picker changes
-        this.picker.addEventListener('select', (e) => {
+        this.picker.addEventListener('change', (e) => {
             if (e.detail.dateRange) {
                 this.state.start = e.detail.dateRange.start;
                 this.state.end = e.detail.dateRange.end;
@@ -1675,19 +1674,18 @@ const picker = new DateRangePickerEngine(inputElement, {
   rollingMonthRange: '06-08',                      // Limit month range
 
   // Internationalization
-  locale: 'en' | 'de' | 'fr' | 'es' | 'auto',     // Default: 'auto'
+  locale: 'de-DE' | 'auto',                       // Intl month/weekday names; default 'auto' (browser)
   weekStartDay: 0 | 1 | 'auto',                    // Default: 'auto'
-  customStrings: {                                  // Override UI strings
-    today: 'Today',
-    clear: 'Clear',
-    apply: 'Apply',
-    // ... see LocaleStrings type for all options
+  labels: {                                        // UI strings (partial; English defaults)
+    today: 'Heute',
+    days: '{count} Tage',
+    // ... see DateRangePickerLabels / DEFAULT_LABELS for all keys
   },
   monthNames: ['Jan', 'Feb', ...],                 // Custom month names
 
   // Callbacks
-  onSelect: (detail) => {
-    // detail is the standardized SelectEventDetail:
+  onChange: (detail) => {
+    // detail is the standardized ChangeEventDetail:
     //   single mode  → detail.date
     //   range mode   → detail.dateRange ({ start, end })
     //   multiple     → detail.dates / detail.dateRanges
@@ -1804,29 +1802,24 @@ const picker = new DateRangePickerEngine(inputElement, {
             <td>Clear the current selection and reset the input</td>
           </tr>
           <tr>
-            <td><code>getInputValue()</code></td>
+            <td><code>value</code></td>
             <td><code>string</code></td>
             <td>Current input text (floating/modal modes); <code>''</code> when there is no input</td>
           </tr>
           <tr>
-            <td><code>setInputValue(value)</code></td>
+            <td><code>commit()</code></td>
             <td><code>void</code></td>
-            <td>Set the input text and reflect it to the <code>value</code> attribute</td>
+            <td>Commit the staged selection (what Apply does; the app's call in <code>commit-mode="manual"</code>)</td>
           </tr>
           <tr>
-            <td><code>showMessage(content, type?, autoHide?)</code></td>
+            <td><code>showMessage(content, { type?, autoHideMs? })</code></td>
             <td><code>void</code></td>
-            <td>Show an inline message; <code>type</code> ∈ error/warning/info/success, <code>autoHide</code> (ms) auto-dismisses</td>
+            <td>Show an inline message; <code>type</code> ∈ error/warning/info/success, <code>autoHideMs</code> auto-dismisses</td>
           </tr>
           <tr>
             <td><code>hideMessage()</code></td>
             <td><code>void</code></td>
             <td>Hide the current inline message</td>
-          </tr>
-          <tr>
-            <td><code>toggleMessage(content?, type?, autoHide?)</code></td>
-            <td><code>void</code></td>
-            <td>Toggle the inline message on/off</td>
           </tr>
           <tr>
             <td><code>showSummary(content)</code></td>
@@ -1854,11 +1847,6 @@ const picker = new DateRangePickerEngine(inputElement, {
             <td>Hide the loader for the given target</td>
           </tr>
           <tr>
-            <td><code>toggleLoader(target?)</code></td>
-            <td><code>void</code></td>
-            <td>Toggle the loader for the given target</td>
-          </tr>
-          <tr>
             <td><code>lock(aspects?)</code></td>
             <td><code>void</code></td>
             <td>Freeze interaction. No argument = full lock; else <code>'selection' | 'navigation' | 'actions' | 'open'</code>. The programmatic API is unaffected</td>
@@ -1883,11 +1871,6 @@ const picker = new DateRangePickerEngine(inputElement, {
             <td><code>void</code></td>
             <td>Align items within the rolling year/month selector (<code>'flex-start' | 'center' | 'flex-end'</code>)</td>
           </tr>
-          <tr>
-            <td><code>setMonthNames(names)</code></td>
-            <td><code>void</code></td>
-            <td><em>Deprecated</em> — assign the <code>monthNames</code> property instead</td>
-          </tr>
         </tbody>
       </table>
 
@@ -1906,19 +1889,19 @@ const picker = new DateRangePickerEngine(inputElement, {
             <td><code>value</code></td>
             <td><code>string</code></td>
             <td>Read/Write</td>
-            <td>Text value of the input (alias for get/setInputValue)</td>
+            <td>The current value as the input shows it; assigning sets the selection (the <code>value</code> attribute stays the <code>form.reset()</code> default)</td>
           </tr>
           <tr>
-            <td><code>readonly</code></td>
+            <td><code>isReadonly</code></td>
             <td><code>boolean</code></td>
             <td>Read/Write</td>
-            <td>Full read-only lock (reflected to the <code>readonly</code> attribute); reads back <code>true</code> only when every aspect is locked — use <code>lock([…])</code> for partial locks</td>
+            <td>Full read-only lock (attribute <code>readonly</code>) — use <code>lock([…])</code> / <code>lockedAspects</code> for partial locks</td>
           </tr>
           <tr>
-            <td><code>disabled</code></td>
+            <td><code>isDisabled</code></td>
             <td><code>boolean</code></td>
             <td>Read/Write</td>
-            <td>Disable the input</td>
+            <td>Disable the control (attribute <code>disabled</code>; an ancestor <code>&lt;fieldset disabled&gt;</code> disables it too)</td>
           </tr>
           <tr>
             <td><code>selectionMode</code></td>
@@ -2018,12 +2001,12 @@ const picker = new DateRangePickerEngine(inputElement, {
         <tbody>
           <tr>
             <td><code>select</code></td>
-            <td><code>SelectEventDetail</code></td>
-            <td>Fired when date(s) selected (twin: <code>onSelect(detail)</code>)</td>
+            <td><code>ChangeEventDetail</code></td>
+            <td>Fired when date(s) selected (twin: <code>onChange(detail)</code>)</td>
           </tr>
           <tr>
             <td><code>change</code></td>
-            <td><code>SelectEventDetail</code></td>
+            <td><code>ChangeEventDetail</code></td>
             <td>Fires right after <code>select</code> (same detail; twin: <code>onChange(detail)</code>)</td>
           </tr>
           <tr>
@@ -2052,7 +2035,7 @@ const picker = new DateRangePickerEngine(inputElement, {
     end: Date;
 }
 
-interface SelectEventDetail {
+interface ChangeEventDetail {
     formattedValue: string;
     date?: Date;           // Single mode only
     dateRange?: DateRange; // Range mode only
@@ -2062,7 +2045,7 @@ interface SelectEventDetail {
 // Usage with TypeScript
 const picker = document.getElementById('my-picker') as WebDaterangepickerElement;
 
-picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) => {
+picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) => {
     console.log('Formatted:', event.detail.formattedValue);
 
     if (event.detail.date) {
@@ -2110,7 +2093,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
     const picker1 = makeAdaptive(new DateRangePickerEngine(input1, {
       selectionMode: 'single',
       dateFormatMask: 'YYYY-MM-DD',
-      onSelect: (detail) => {
+      onChange: (detail) => {
         // Single mode: detail.date is the selected Date
         document.getElementById('output-1').textContent =
           `Selected: ${input1.value}`;
@@ -2123,7 +2106,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       visibleMonthCount: 2,
       monthLayout: 'horizontal',
       dateFormatMask: 'YYYY-MM-DD',
-      onSelect: (detail) => {
+      onChange: (detail) => {
         // In range mode, detail.dateRange is { start: Date, end: Date }
         const { start, end } = detail.dateRange;
         const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
@@ -2147,7 +2130,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       minDate: firstDay,
       maxDate: lastDay,
       disabledWeekdays: [0, 6],
-      onSelect: (detail) => {
+      onChange: (detail) => {
         document.getElementById('output-3').textContent =
           `Selected business day: ${input3.value}`;
       }
@@ -2158,7 +2141,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
     const picker4a = makeAdaptive(new DateRangePickerEngine(input4a, {
       selectionMode: 'single',
       dateFormatMask: 'DD.MM.YYYY',
-      onSelect: (detail) => {
+      onChange: (detail) => {
         document.getElementById('output-4a').textContent =
           `Selected: ${input4a.value}`;
       }
@@ -2168,7 +2151,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
     const picker4b = makeAdaptive(new DateRangePickerEngine(input4b, {
       selectionMode: 'single',
       dateFormatMask: 'MM/DD/YYYY',
-      onSelect: (detail) => {
+      onChange: (detail) => {
         document.getElementById('output-4b').textContent =
           `Selected: ${input4b.value}`;
       }
@@ -2179,7 +2162,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       selectionMode: 'single',
       positioningMode: 'inline',
       container: document.getElementById('inline-container'),
-      onSelect: (detail) => {
+      onChange: (detail) => {
         // Single mode: detail.date is the selected Date
         document.getElementById('output-5').textContent =
           `Selected: ${detail.date.toLocaleDateString()}`;
@@ -2195,7 +2178,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       gridRows: 2,
       gridColumns: 3,
       dateFormatMask: 'YYYY-MM-DD',
-      onSelect: (detail) => {
+      onChange: (detail) => {
         document.getElementById('output-6').textContent =
           `Selected: ${input6.value}`;
       }
@@ -2233,7 +2216,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       const picker = makeAdaptive(new DateRangePickerEngine(input, {
         selectionMode: 'single',
         dateFormatMask: 'YYYY-MM-DD',
-        onSelect: (detail) => {
+        onChange: (detail) => {
           output.textContent = `Selected: ${input.value}`;
         }
       }));
@@ -2303,18 +2286,18 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
     const output2 = document.getElementById('output-m2');
 
     document.getElementById('btn-get-single').addEventListener('click', () => {
-      const value = picker2a.getInputValue();
+      const value = picker2a.value;
       output2.innerHTML = `Single value: <strong>${value || '(empty)'}</strong>`;
     });
 
     document.getElementById('btn-set-single').addEventListener('click', () => {
       const value = dayOffset(7);
-      picker2a.setInputValue(value);
+      picker2a.value = value;
       output2.innerHTML = `Set single value to: <strong>${value}</strong>`;
     });
 
     document.getElementById('btn-get-range').addEventListener('click', () => {
-      const value = picker2b.getInputValue();
+      const value = picker2b.value;
       output2.innerHTML = `Range value: <strong>${value || '(empty)'}</strong>`;
     });
 
@@ -2322,7 +2305,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       // picker2b uses MM/DD/YYYY format
       const toUS = (iso) => { const [y, m, d] = iso.split('-'); return `${m}/${d}/${y}`; };
       const value = `${toUS(dayOffset(0))} - ${toUS(dayOffset(14))}`;
-      picker2b.setInputValue(value);
+      picker2b.value = value;
       output2.innerHTML = `Set range value to: <strong>${value}</strong>`;
     });
 
@@ -2417,12 +2400,12 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
 
     document.getElementById('btn-get-instance').addEventListener('click', () => {
       const controller = picker6.controller;
-      const range = controller.getSelectedRange();
+      const range = controller.selectedRanges[0];
       output6.innerHTML = `
         <div>Read via <code>el.controller</code>:</div>
         <div>• Mode: <strong>${picker6.selectionMode}</strong></div>
         <div>• Range: <strong>${range ? `${fmt6(range.start)} – ${fmt6(range.end)}` : 'none'}</strong></div>
-        <div>• Ranges: <strong>${controller.getSelectedRanges().length}</strong></div>
+        <div>• Ranges: <strong>${controller.selectedRanges.length}</strong></div>
         <div>• Open: <strong>${controller.isOpen}</strong></div>
       `;
     });
@@ -2431,7 +2414,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       const controller = picker6.controller;
       controller.open();
       controller.showMessage('Opened and messaged via <code>el.controller</code>', { type: 'info', autoHideMs: 2500 });
-      output6.innerHTML = '<div>Called <code>controller.open()</code> + <code>controller.showMessage(…, { type: 'info', autoHideMs: 2500 })</code></div>';
+      output6.innerHTML = '<div>Called <code>controller.open()</code> + <code>controller.showMessage(…, { type: "info", autoHideMs: 2500 })</code></div>';
     });
 
     // Section 9: Booking desk — confirm & lock (scoped read-only)
@@ -2521,7 +2504,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       // selectedRanges only carries multi-range (beforeSelectCallback DateRange[]) results.
       const start = picker9.selectedStartDate, end = picker9.selectedEndDate;
       if (!start || !end) {
-        picker9.showMessage('Pick a range first, then hit Book.', 'warning', 2500);
+        picker9.showMessage('Pick a range first, then hit Book.', { type: 'warning', autoHideMs: 2500 });
         return;
       }
       const range = { start, end };
@@ -2603,7 +2586,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
           // 3) valid → reflect it, then commit AND close
           controller.hideMessage();
           confirmState.textContent = `confirmed ${fmtLocal(start)} → ${fmtLocal(end)} (${nights} nights)`;
-          controller.apply();
+          controller.commit();
         }
       }
     ];
@@ -2632,9 +2615,9 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
         'max-date': `${_today.getFullYear()}-12-31`,
       });
 
-      // Log all select events (for demo observability)
+      // Log all change events (for demo observability)
       document.querySelectorAll('web-daterangepicker').forEach(picker => {
-        picker.addEventListener('select', (e) => {
+        picker.addEventListener('change', (e) => {
           console.log('Date selected:', e.detail);
         });
       });
@@ -2642,7 +2625,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
       // Range Selection Modes (over disabled dates)
       const modeAllow = document.getElementById('mode-allow');
       if (modeAllow) {
-        modeAllow.addEventListener('select', (e) => {
+        modeAllow.addEventListener('change', (e) => {
           const output = document.getElementById('mode-allow-output');
           if (output && e.detail.enabledDates && e.detail.disabledDates) {
             output.innerHTML = `
@@ -2656,7 +2639,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
 
       const modeBlock = document.getElementById('mode-block');
       if (modeBlock) {
-        modeBlock.addEventListener('select', (e) => {
+        modeBlock.addEventListener('change', (e) => {
           const output = document.getElementById('mode-block-output');
           if (output && e.detail.dates) {
             output.innerHTML = `
@@ -2693,7 +2676,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
           return '';
         };
 
-        modeSplit.addEventListener('select', (e) => {
+        modeSplit.addEventListener('change', (e) => {
           const output = document.getElementById('mode-split-output');
           if (output && e.detail.dateRanges && e.detail.dateRanges.length > 0) {
             // Build individual range details
@@ -2750,7 +2733,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
           return '';
         };
 
-        modeIndividual.addEventListener('select', (e) => {
+        modeIndividual.addEventListener('change', (e) => {
           const output = document.getElementById('mode-individual-output');
           if (output && e.detail.dates) {
             output.innerHTML = `
@@ -2809,7 +2792,7 @@ picker.addEventListener('select', (event: CustomEvent&lt;SelectEventDetail&gt;) 
           return weeks.map(w => ({ start: w.start, end: w.end }));
         };
 
-        weekSnap.addEventListener('select', () => {
+        weekSnap.addEventListener('change', () => {
           const output = document.getElementById('week-snap-output');
           if (!output) return;
           const ranges = weekSnap.selectedRanges;

@@ -37,11 +37,12 @@ availability check → date-restrictions.txt
 
 EVENTS & VALIDATION
 -------------------
-select event, onSelect → events-callbacks.txt
+change / open / close events, onChange → events-callbacks.txt
 change event → events-callbacks.txt
 action event, onAction → events-callbacks.txt, action-buttons.txt
 month-change event, onMonthChange → events-callbacks.txt
-ready event, onReady → events-callbacks.txt
+ready event, onReady, defer, release(), destroy() → events-callbacks.txt, basic-usage.txt
+labels, i18n, locale, translations → basic-usage.txt
 on* twins receive the detail (not the event) → events-callbacks.txt
 event data, event detail → events-callbacks.txt
 controller, ctx.controller, el.controller → basic-usage.txt, events-callbacks.txt
@@ -110,7 +111,7 @@ FORMATTING & LOCALIZATION
 --------------------------
 date format, date-format-mask → basic-usage.txt
 locale, language → basic-usage.txt
-customStrings, custom labels → basic-usage.txt (property only)
+labels, custom labels → basic-usage.txt (property only)
 display format → basic-usage.txt
 renderSummaryCallback, custom summary → basic-usage.txt
 summary formatting, pricing display → basic-usage.txt
@@ -186,7 +187,7 @@ beforeActionCallback → action-buttons.txt (property, not attribute)
 
 PROPERTY-ONLY FEATURES (no attribute)
 -------------------------------------
-customStrings → basic-usage.txt (set as a property)
+labels → basic-usage.txt (set as a property)
 actionButtons → action-buttons.txt (set as a property)
 
 WEB COMPONENT ATTRIBUTES
@@ -219,9 +220,9 @@ isOpen → basic-usage.txt
 ERROR PATTERNS TO AVOID
 -----------------------
 ❌ setting callbacks as HTML attributes → basic-usage.txt (use JS properties)
-❌ customStrings / actionButtons as HTML attributes → set them as properties
+❌ labels / actionButtons as HTML attributes → set them as properties
 ❌ el.picker / ctx.picker (removed) → use el.controller / ctx.controller / ctx.element
-❌ e.detail inside on* twins → el.onSelect = (detail) => detail.date
+❌ e.detail inside on* twins → el.onChange = (detail) => detail.date
 ❌ { action: 'custom', ... } buttons → { id: 'my-id', ... }
 ❌ { action: 'accept' } result objects → return nothing / false / a value (events-callbacks.txt)
 
