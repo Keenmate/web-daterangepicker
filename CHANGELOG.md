@@ -7,11 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — form value model, round 3 (2026-10-28)
+
+Rule (all KeenMate form components): `el.value` is exactly what the form submits; the `value`
+attribute is the default (`defaultValue`).
+
+- **BREAKING — the `value` getter returns the submitted value**, not the displayed input text:
+  `2026-06-15/2026-06-20` for a range (was `2026-06-15 - 2026-06-20`), a `string[]` for
+  `value-format="array"`. The setter accepts the same form, plus ISO and the displayed text
+  (lenient, as before).
+- **BREAKING — `value-format="iso"` → `"text"`** (`text | json | array`; `text` = one field, default).
+- **BREAKING — `value-format="json"`**: a range submits `["start","end"]` (was `{"start":…,"end":…}`);
+  multiple-mode range items are `["start","end"]` pairs; an empty selection submits `''` (was `null` / `[]`).
+- **Added `value-format-mask`** — how each date is written in the submitted value (default ISO
+  `YYYY-MM-DD` / `HH:mm[:ss]` / `YYYY-MM-DDTHH:mm[:ss]`); also parses the `value` attribute / property.
+- **Added `value-separator`** — joins the dates in `text` (range default `/`, multiple default `,`).
+  E.g. `value-format-mask="DD.MM.YYYY" value-separator=" - "` → `03.11.2026 - 10.11.2026`.
+- Priority: `getValueFormatCallback` > `value-format-mask` / `value-separator` > `value-format`.
+
 ### Changed — leftover naming decisions, round 2 (2026-10-28)
 
 - **BREAKING — `inputValue` property → `defaultValue`** (attribute stays `value`). Same meaning as a
   native input's `defaultValue`: the declared default, parsed on build and restored by `form.reset()`;
-  the live selection text is the `value` property.
+  the live value is the `value` property.
 
 ### Fixed
 

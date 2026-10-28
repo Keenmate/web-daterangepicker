@@ -419,6 +419,28 @@ CSS classes also available for calendar (applied internally):
 - Spacing: drp-spacing-xs, drp-spacing-sm, drp-spacing-md, drp-spacing-lg, drp-spacing-xl
 - Cell: drp-cell-xs, drp-cell-sm, drp-cell-md, drp-cell-lg, drp-cell-xl
 
+FORM INTEGRATION (value model)
+------------------------------
+Give it a `name` — it submits through a light-DOM hidden <input> (name[] for array).
+el.value === exactly what the form submits (string; string[] for value-format="array").
+The value ATTRIBUTE is the default (el.defaultValue), restored by form.reset().
+Setter accepts the submitted form + ISO + the displayed text (lenient).
+
+  value-format       text (default, one field) | json | array (name[] per date)
+  value-format-mask  per-date format of the submitted value; default ISO
+                     (YYYY-MM-DD, HH:mm[:ss], YYYY-MM-DDTHH:mm[:ss]); also parses `value`
+  value-separator    joins dates in text: range default "/", multiple default ","
+  getValueFormatCallback(ctx) => string   overrides all of the above
+Priority: getValueFormatCallback > value-format-mask / value-separator > value-format.
+The display masks (date-format-mask / time-format-mask) never affect the submitted value.
+
+<web-daterangepicker name="stay" selection-mode="range"
+  value-format-mask="DD.MM.YYYY" value-separator=" - "></web-daterangepicker>
+  → stay=03.11.2026 - 10.11.2026
+value-format="array" + same mask → stay[]=03.11.2026&stay[]=10.11.2026
+value-format="json"  + same mask → stay=["03.11.2026","10.11.2026"]
+Empty selection: '' (text/json), no field (array).
+
 COMMON PATTERNS
 ---------------
 Weekdays only:

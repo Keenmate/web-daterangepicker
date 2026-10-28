@@ -233,7 +233,7 @@ export interface DatePickerOptions {
   /**
    * The SHOWN time text (the input, time / datetime modes) — and what typed / `value` text is
    * parsed with. Tokens: HH/H, hh/h, mm/m, ss/s, a. Default: 'HH:mm'. The submitted form value
-   * is always ISO (`value-format`), independent of this mask.
+   * follows `value-format` / `value-format-mask` (default ISO), independent of this mask.
    */
   timeFormatMask?: string;
   /** Minute (and second) increment for the rolls. Default: 1. */
@@ -265,7 +265,7 @@ export interface DatePickerOptions {
   /**
    * The SHOWN date text (the input) — and what typed / `value` text is parsed with. Tokens:
    * YYYY/YY, MM/M, DD/D with any separators. Default: 'YYYY-MM-DD'. The submitted form value is
-   * always ISO (`value-format`), independent of this mask.
+   * follows `value-format` / `value-format-mask` (default ISO), independent of this mask.
    */
   dateFormatMask?: string;
   /**

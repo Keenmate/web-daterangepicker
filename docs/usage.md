@@ -126,7 +126,9 @@ use camelCase (`selectionMode`).
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
 | `enable-transition` | `boolean` | `false` | Enable CSS transitions/animations |
 | `name` | `string` | — | HTML form field name. Set it to submit the selection in a `<form>` (see [Form integration](#form-integration)) |
-| `value-format` | `'iso' \| 'json' \| 'array'` | `'iso'` | How the submitted value is serialized (see [Form integration](#form-integration)) |
+| `value-format` | `'text' \| 'json' \| 'array'` | `'text'` | How the submitted value (and `el.value`) is serialized (see [Form integration](#form-integration)) |
+| `value-format-mask` | `string` | ISO (`YYYY-MM-DD`, `HH:mm[:ss]`, `YYYY-MM-DDTHH:mm[:ss]`) | How each date is written in the submitted value / `el.value`, and parsed from the `value` attribute / property |
+| `value-separator` | `string` | `/` (range), `,` (multiple) | Joins the dates in the `text` value format |
 | `date-member` | `string` | `'date'` | Field name on `specialDates` objects holding the date. Lets you reuse existing data shapes without renaming keys. |
 | `badge-text-member` | `string` | `'badgeText'` | Field name on `specialDates` objects holding the badge label |
 | `badge-class-member` | `string` | `'badgeClass'` | Field name on `specialDates` objects holding the badge's extra CSS class |
@@ -141,7 +143,7 @@ use camelCase (`selectionMode`).
 // Get/set properties (camelCase in JavaScript)
 picker.selectionMode = 'range';
 picker.dateFormatMask = 'DD.MM.YYYY';
-picker.value = '2025-11-15';
+picker.value = '2025-11-15';   // reads back exactly what the form submits
 picker.isDisabled = true;
 
 // Complex data (arrays / objects / callbacks) — set via property, not attribute
@@ -272,36 +274,62 @@ control — no wrapper or manual hidden input needed. It works the same in
 ```
 
 Under the hood the control renders a light-DOM hidden `<input>` inside the form
-(the same approach as `<web-multiselect>`). `form.reset()` restores the selection
-parsed from the `value` attribute — the default, like a native input's
-`defaultValue` (empty without one; `el.defaultValue` reads it); setting `el.value` from JS
-changes the current selection only, never the attribute. A range `value` (attribute or
-property) is lenient about what separates the two dates — `2026-06-10/2026-06-14`,
-`2026-06-10 - 2026-06-14`, `2026-06-10 to 2026-06-14`, an en dash, … all parse (each date in
-the `date-format-mask` form or ISO); the input still shows `" - "` and the form submits `start/end`. It
-also exposes `el.form` / `event.target.form`, so frameworks that delegate form
-changes by reading `target.form` (e.g. Phoenix LiveView's `phx-change`) resolve
-the parent form correctly.
+(the same approach as `<web-multiselect>`). It also exposes `el.form` /
+`event.target.form`, so frameworks that delegate form changes by reading
+`target.form` (e.g. Phoenix LiveView's `phx-change`) resolve the parent form correctly.
 
-**The submitted value is always stable ISO-8601** — independent of
-`date-format-mask` / `time-format-mask` (the shown text) and the placeholder masks, so a locale mask never leaks
-into your form data. `value-format` picks how the selection is serialized:
+**`el.value` is exactly what the form submits** — a string (`text` / `json` /
+`getValueFormatCallback`) or a `string[]` (`array`, one entry per `name[]` field).
+The setter accepts the same form, plus ISO and the displayed (`date-format-mask`)
+text, and changes the current selection only. The `value` **attribute** is the
+default (`el.defaultValue`, like a native input): parsed the same way on build and
+restored by `form.reset()`. A range value is lenient about what separates the two
+dates — `2026-06-10/2026-06-14`, `2026-06-10 - 2026-06-14`, `2026-06-10 to 2026-06-14`,
+an en dash, … all parse. An unparseable value warns and clears the selection.
+
+The submitted value is independent of `date-format-mask` / `time-format-mask` (the
+shown text) and the placeholder masks. Three inputs shape it (priority:
+`getValueFormatCallback` > `value-format-mask` / `value-separator` > `value-format`):
+
+- **`value-format-mask`** — how each date is written (tokens `YYYY` `YY` `MM` `M` `DD`
+  `D` `HH` `H` `hh` `h` `mm` `ss` `a`; anything else literal). Default ISO-8601:
+  `YYYY-MM-DD`; `time` mode `HH:mm[:ss]`; `datetime` `YYYY-MM-DDTHH:mm[:ss]` (seconds
+  when shown).
+- **`value-separator`** — joins the dates in `text`: a range's start/end (default
+  `/`), multiple dates (default `,`).
+- **`value-format`**:
 
 | `value-format` | Single | Range | Multiple |
 |---|---|---|---|
-| `iso` (default) | `2026-06-15` | `2026-06-15/2026-06-20` | comma-joined |
-| `json` | `"2026-06-15"` | `{"start":"…","end":"…"}` | JSON array |
-| `array` | one `name[]` field | two `name[]` fields (`start`, `end`) | one `name[]` per item |
+| `text` (default) | `2026-06-15` | `2026-06-15/2026-06-20` | `2026-06-15,2026-06-18` |
+| `json` | `"2026-06-15"` | `["2026-06-15","2026-06-20"]` | `["2026-06-15",["2026-06-18","2026-06-20"]]` |
+| `array` | one `name[]` field | two `name[]` fields (`start`, `end`) | one `name[]` per date |
 
-- `datetime` mode submits `YYYY-MM-DDTHH:mm[:ss]`; `time` mode submits
-  `HH:mm[:ss]` (seconds when `show-seconds`).
+An empty selection submits `''` (`text` / `json`) or no field at all (`array`).
+
+```html
+<!-- stay=03.11.2026 - 10.11.2026 -->
+<web-daterangepicker name="stay" selection-mode="range"
+  value-format-mask="DD.MM.YYYY" value-separator=" - "></web-daterangepicker>
+
+<!-- stay[]=03.11.2026&stay[]=10.11.2026 -->
+<web-daterangepicker name="stay" selection-mode="range"
+  value-format="array" value-format-mask="DD.MM.YYYY"></web-daterangepicker>
+
+<!-- stay=["03.11.2026","10.11.2026"] -->
+<web-daterangepicker name="stay" selection-mode="range"
+  value-format="json" value-format-mask="DD.MM.YYYY"></web-daterangepicker>
+```
+
 - The submitted value tracks the *real* selection, not the drawn envelope: a range
   broken over disabled days with `disabled-dates-handling="split"` submits each
-  sub-range (`…/…,…/…`), and `"individual"` / `"block"` submit the enabled days.
+  sub-range (`text`: joined by `,`), and `"individual"` / `"block"` submit the enabled days.
+- In `multiple` mode a committed range item is written `start/end` in `text`
+  (`[start, end]` in `json`); `array` flattens it to two fields.
 - For full control, set the **`getValueFormatCallback`** property — it receives
   the normalized ISO selection snapshot (`{ selectionMode, pickerMode, items }`,
-  where each item is an ISO string or `{ start, end }`) and returns the single
-  field value:
+  where each item is an ISO string or `{ start, end }`) plus the picker context and
+  returns the single field value (also what `el.value` returns):
 
   ```js
   picker.getValueFormatCallback = ({ items }) => items.join('|');

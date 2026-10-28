@@ -96,6 +96,51 @@
         </form>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">range — value-format-mask="DD.MM.YYYY" value-separator=" - " (text)</div>
+        <form id="fm">
+            <web-daterangepicker id="picker-mask" name="stay" selection-mode="range"
+                value-format-mask="DD.MM.YYYY" value-separator=" - "
+                value="03.11.2026 - 10.11.2026"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range — value-format="array" + value-format-mask</div>
+        <form id="fma">
+            <web-daterangepicker id="picker-mask-array" name="stay" selection-mode="range"
+                value-format="array" value-format-mask="DD.MM.YYYY"
+                value="03.11.2026/10.11.2026"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">range — value-format="json" + value-format-mask</div>
+        <form id="fmj">
+            <web-daterangepicker id="picker-mask-json" name="stay" selection-mode="range"
+                value-format="json" value-format-mask="DD.MM.YYYY"
+                value='["03.11.2026","10.11.2026"]'></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">multiple — value-format-mask="D.M.YYYY" value-separator="; "</div>
+        <form id="fmm">
+            <web-daterangepicker id="picker-mask-multiple" name="days" selection-mode="multiple"
+                value-format-mask="D.M.YYYY" value-separator="; "
+                value="3.11.2026; 5.11.2026"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">datetime — value-format-mask="DD.MM.YYYY HH:mm"</div>
+        <form id="fmd">
+            <web-daterangepicker id="picker-mask-datetime" name="at" selection-mode="single" picker-mode="datetime"
+                value-format-mask="DD.MM.YYYY HH:mm"
+                value="03.11.2026 14:30"></web-daterangepicker>
+        </form>
+    </div>
+
     <script type="module">
         import '/src/index.ts';
         customElements.whenDefined('web-daterangepicker').then(() => {

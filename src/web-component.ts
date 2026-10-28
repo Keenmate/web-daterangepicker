@@ -46,8 +46,8 @@ import { DateRangePickerEngine } from './date-picker';
 import { resolveLabels } from './date-picker-locales';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList, toYearRange } from './converters';
 import {
-  serializeFormValue, isoDate, isoDateTime, isoTime,
-  type FormValueFormat, type FormValueSelection, type FormValueItem,
+  serializeFormValue, toEngineValueText, isoDate, isoDateTime, isoTime,
+  type FormValueFormat, type FormValueSelection, type FormValueItem, type FormValueWriteOptions,
 } from './form-value';
 import type {
   DatePickerOptions, DateRange, DecoratedDate, DayContext, DayMetadata, BeforeSelectResult,
@@ -81,7 +81,7 @@ const COMMIT_MODE = ['selection', 'apply', 'manual'] as const;
 const PICKER_MODES = ['date', 'time', 'datetime'] as const;
 const HOUR_CYCLES = ['h12', 'h24'] as const;
 const TIME_DISPLAYS = ['rolls', 'clock', 'wheel', 'compact'] as const;
-const VALUE_FORMATS = ['iso', 'json', 'array'] as const;
+const VALUE_FORMATS = ['text', 'json', 'array'] as const;
 
 /** Any callback input. */
 const cb = (): ReturnType<typeof toFunction> => toFunction();
@@ -107,7 +107,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'isSummaryShown',               attribute: 'show-summary',                  converter: toBool('tristate'), on: 'reinit', description: 'Show the range summary (day/night counts) block.' },
 
   // ── In-place (→ update): the engine patches these without a rebuild ───────
-  { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ default: 'YYYY-MM-DD' }), on: 'update', description: 'The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any separators). Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-format-mask`.' },
+  { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ default: 'YYYY-MM-DD' }), on: 'update', description: 'The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any separators). Not the submitted value — see `value-format` / `value-format-mask`. Not the placeholder hint — see `placeholder-format-mask`.' },
   { configKey: 'placeholderFormatMask',        attribute: 'placeholder-format-mask',       converter: toText({ isNullable: true }), on: 'update', description: 'The date part of the input PLACEHOLDER hint (when no explicit `placeholder`) — a localized form of the mask, e.g. `dd.mm.rrrr`; unset falls back to `date-format-mask`. Only the hint: the shown text follows `date-format-mask`, the submitted value `value-format`. `range` mode doubles it around " - " (`dd.mm.rrrr - dd.mm.rrrr`); `datetime` appends the time hint (`placeholder-time-format-mask`).' },
   { configKey: 'isUnifiedHeaderInteractive',   attribute: 'unified-header-interactive',    converter: toBool('presence'), on: 'update', description: 'Make the unified grid header clickable (opens the rolling selector).' },
   { configKey: 'calendarPlacement',            attribute: 'calendar-placement',            converter: toText({ isNullable: true }), on: 'update', description: 'Floating-UI placement for the popover (default `bottom-start`).' },
@@ -131,7 +131,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'shouldCloseOnScroll',          attribute: 'close-on-scroll',               converter: toBool('tristate'), on: 'update', description: 'Close the floating calendar when the page scrolls.' },
   { configKey: 'isTodayButtonShown',           attribute: 'show-today-button',             converter: toBool('tristate'), on: 'update', description: 'Show the “Today” action button.' },
   { configKey: 'isClearButtonShown',           attribute: 'show-clear-button',             converter: toBool('tristate'), on: 'update', description: 'Show the “Clear” action button.' },
-  { configKey: 'timeFormatMask',               attribute: 'time-format-mask',              converter: toText({ default: 'HH:mm' }), on: 'update', description: 'The SHOWN time text (time / datetime modes): how the selected time is written into the input, and how typed / `value` text is parsed (HH/H, hh/h, mm, ss, a). Also derives the hour cycle / seconds. Not the submitted value — that is ISO, see `value-format`. Not the placeholder hint — see `placeholder-time-format-mask`.' },
+  { configKey: 'timeFormatMask',               attribute: 'time-format-mask',              converter: toText({ default: 'HH:mm' }), on: 'update', description: 'The SHOWN time text (time / datetime modes): how the selected time is written into the input, and how typed / `value` text is parsed (HH/H, hh/h, mm, ss, a). Also derives the hour cycle / seconds. Not the submitted value — see `value-format` / `value-format-mask`. Not the placeholder hint — see `placeholder-time-format-mask`.' },
   { configKey: 'placeholderTimeFormatMask',    attribute: 'placeholder-time-format-mask',  converter: toText({ isNullable: true }), on: 'update', description: 'The time part of the input PLACEHOLDER hint (when no explicit `placeholder`) — e.g. `hh:mm`; unset falls back to `time-format-mask`. `time` mode shows it alone; `datetime` shows the date hint + " " + it. Only the hint: the shown text follows `time-format-mask`, the submitted value `value-format`.' },
   { configKey: 'timeStep',                     attribute: 'time-step',                     converter: toInt({ min: 1 }), on: 'update', description: 'Minute step for the time picker.' },
   { configKey: 'isNowButtonShown',             attribute: 'show-now-button',               converter: toBool('tristate'), on: 'update', description: 'Show the “Now” button in time/datetime mode.' },
@@ -148,14 +148,17 @@ const INPUTS: readonly InputDef[] = [
 
   // ── Form integration (NON-picker; light-DOM hidden input[s], like web-multiselect) ──
   { configKey: 'name',                         attribute: 'name',                          converter: toText({ isNullable: true }), on: 'update', description: 'HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`.' },
-  { configKey: 'valueFormat',                  attribute: 'value-format',                  converter: toEnum(VALUE_FORMATS, { default: 'iso' }), on: 'update', description: `The SUBMITTED form value — always stable ISO-8601, independent of the shown text (\`date-format-mask\` / \`time-format-mask\`) and the placeholder hint (\`placeholder-format-mask\` / \`placeholder-time-format-mask\`). Serialization:
-- \`iso\` (default) — one field; a single date/time as-is, a range as \`start/end\`, multiple joined by \`,\`.
-- \`json\` — one field; \`JSON.stringify\` of the selection (scalar/object for single/range, array for multiple).
-- \`array\` — multiple \`name[]\` fields, one per date; a range contributes \`start\` and \`end\`.` },
-  { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(ctx: FormValueSelection & PickerContext) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value. Overrides `value-format`. Property-only.' },
+  { configKey: 'valueFormat',                  attribute: 'value-format',                  converter: toEnum(VALUE_FORMATS, { default: 'text' }), on: 'update', description: `The SUBMITTED form value (and \`el.value\`) — independent of the shown text (\`date-format-mask\` / \`time-format-mask\`) and the placeholder hint. Each date is written with \`value-format-mask\` (default ISO-8601); serialization:
+- \`text\` (default) — one field; a single date/time as-is, a range as \`start{value-separator}end\` (several ranges joined by \`,\`), multiple dates joined by \`value-separator\`.
+- \`json\` — one field; single \`"date"\`, range \`["start","end"]\`, multiple an array of \`"date"\` / \`["start","end"]\` items.
+- \`array\` — multiple \`name[]\` fields, one per date; a range contributes \`start\` and \`end\`.
+Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValueFormatCallback\` overrides all of it.` },
+  { configKey: 'valueFormatMask',              attribute: 'value-format-mask',             converter: toText({ isNullable: true }), on: 'update', description: 'How each date is written in the SUBMITTED value (and `el.value`) — tokens `YYYY` `YY` `MM` `M` `DD` `D` `HH` `H` `hh` `h` `mm` `ss` `a`, anything else literal (e.g. `DD.MM.YYYY`, `DD.MM.YYYY HH:mm`). Unset = ISO-8601: `YYYY-MM-DD`, time `HH:mm[:ss]`, datetime `YYYY-MM-DDTHH:mm[:ss]` (seconds when shown). Also used to parse the `value` attribute / property (ISO and the displayed form are accepted too).' },
+  { configKey: 'valueSeparator',               attribute: 'value-separator',               converter: toText({ isNullable: true }), on: 'update', description: 'Joins the dates in the `text` value format: between a range’s start and end (default `/`), between multiple dates (default `,`). E.g. `value-separator=" - "` → `03.11.2026 - 10.11.2026`. Also used to split the `value` attribute / property.' },
+  { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(ctx: FormValueSelection & PickerContext) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value (also what `el.value` returns). Overrides `value-format` / `value-format-mask` / `value-separator`. Property-only.' },
 
   // ── Element-level attributes (NON-picker; handled by this element) ────────
-  { configKey: 'defaultValue',                 attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range as two dates with any separator between them (`2026-06-10 - 2026-06-14`, `2026-06-10/2026-06-14`, `2026-06-10 to 2026-06-14`, en dash, …), multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
+  { configKey: 'defaultValue',                 attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the submitted form (`value-format` / `value-format-mask` / `value-separator`), the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range as two dates with any separator between them (`2026-06-10 - 2026-06-14`, `2026-06-10/2026-06-14`, `2026-06-10 to 2026-06-14`, en dash, …), multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
   { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks.' },
@@ -217,7 +220,7 @@ const EVENTS = [
 const NON_PICKER_KEYS = new Set([
   'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize', 'isTransitionEnabled',
   'mobilePresentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow',
-  'name', 'valueFormat', 'getValueFormatCallback',
+  'name', 'valueFormat', 'valueFormatMask', 'valueSeparator', 'getValueFormatCallback',
   'placeholderFormatMask', 'placeholderTimeFormatMask',
 ]);
 
@@ -250,7 +253,7 @@ function hasInput(mode: string): boolean {
 export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRangePickerController> {
   // Participate in forms. Submission goes through light-DOM hidden <input>(s)
   // (see #updateFormValue) — the same model as web-multiselect — carrying a
-  // stable ISO value under `name`, independent of the display masks. Form
+  // value-format value (default ISO) under `name`, independent of the display masks. Form
   // association (this flag) is kept ONLY so `form.reset()` reaches
   // formResetCallback and core's BlissElement can expose `el.form` /
   // `event.target.form` (the hook host frameworks like Phoenix LiveView read for
@@ -285,7 +288,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   // <form> and submit under `name`; the host itself never calls setFormValue.
   #hiddenInputs: HTMLInputElement[] = [];
   // A `value` property assigned before the picker was built — applied on the first build.
-  #pendingValue: string | null = null;
+  #pendingValue: string | readonly string[] | null = null;
+  /** What the form submits now (the hidden input values) — also `el.value`. */
+  #formValues: string[] = [];
 
   // Container-responsive compaction (core `sizeChanged` hook). `#narrowMax` is the
   // px threshold derived from `compact-below` (0 = disabled); `#isNarrow` is the
@@ -326,7 +331,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // current selection, like a native input that hasn't been edited.
     if ('defaultValue' in partial) this.#applyValueText((partial.defaultValue as string | null) ?? '', 'value attribute');
     // Form wiring changes (name / serialization) re-render the hidden input(s).
-    if ('name' in partial || 'valueFormat' in partial || 'getValueFormatCallback' in partial) {
+    if ('name' in partial || 'valueFormat' in partial || 'valueFormatMask' in partial
+      || 'valueSeparator' in partial || 'getValueFormatCallback' in partial) {
       this.#refreshFormValue();
     }
     if ('placeholder' in partial) this.#applyPlaceholder();
@@ -627,7 +633,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * Refresh the hidden form input(s) from the just-committed selection, then fire
    * the outward `change` event. The hidden input(s) are what make
    * the control submit under its `name` (see #updateFormValue) — carrying a stable
-   * ISO value, not the display-formatted string in `detail.formattedValue`.
+   * value-format value (default ISO), not the display-formatted string in `detail.formattedValue`.
    */
   #emitChange(detail: ChangeEventDetail): void {
     this.#updateFormValue(detail);
@@ -690,13 +696,22 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   /** Re-render the hidden form input(s) from the current selection. */
   #updateFormValue(detail?: ChangeEventDetail): void {
-    const format = (this.config.valueFormat as FormValueFormat) ?? 'iso';
+    const format = (this.config.valueFormat as FormValueFormat) ?? 'text';
     const callback = this.config.getValueFormatCallback as ((ctx: FormValueSelection & PickerContext) => string) | undefined;
     const withCtx = callback
       ? (s: FormValueSelection) => callback(this.withContext({ ...s }) as unknown as FormValueSelection & PickerContext)
       : undefined;
-    const values = serializeFormValue(this.#currentSelection(detail), format, withCtx);
+    const values = serializeFormValue(this.#currentSelection(detail), format, withCtx, this.#valueWriteOptions());
+    this.#formValues = values;
     this.#renderHiddenInputs(format, values);
+  }
+
+  /** The submitted value's per-date mask + separator (unset = the defaults). */
+  #valueWriteOptions(): FormValueWriteOptions {
+    return {
+      mask: this.config.valueFormatMask as string | null,
+      separator: this.config.valueSeparator as string | null,
+    };
   }
 
   /** Refresh the hidden form input(s) from the picker's current selection. */
@@ -711,10 +726,19 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * selection empty — the attribute itself is never rewritten (`value` is not a
    * reflected input).
    */
-  #applyValueText(text: string, source: 'value attribute' | 'value property'): void {
+  #applyValueText(value: string | readonly string[], source: 'value attribute' | 'value property'): void {
     const picker = this.#picker;
     if (!picker) return;
-    if (!picker.setSelectionFromText(text)) {
+    // The value-format form (mask + separator, json, array) first; then the raw
+    // text through the engine's lenient parser (ISO / displayed form).
+    const engineText = toEngineValueText(
+      value, picker.options.selectionMode, picker.options.pickerMode, this.#valueWriteOptions(),
+    );
+    const raw = typeof value === 'string' ? value : value.join(',');
+    const isValid = (engineText !== null && picker.setSelectionFromText(engineText))
+      || (engineText !== raw && picker.setSelectionFromText(raw));
+    if (!isValid) {
+      const text = typeof value === 'string' ? value : JSON.stringify(value);
       this.log.SELECTION.warn(
         `${source} "${text}" is not a valid ${picker.options.pickerMode} value for ` +
         `selection-mode="${picker.options.selectionMode}" — the selection is left empty.`,
@@ -1081,17 +1105,28 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   // ── live-state accessors (read the picker/input, not the config) ──────────
 
   /**
-   * The current value — the selection as the input shows it. Assigning sets the
-   * selection (same forms as the `value` attribute) without touching the
-   * attribute, which stays the `form.reset()` default.
+   * The current value — exactly what the form submits under `name`: a string for
+   * `value-format="text"` / `"json"` / `getValueFormatCallback`, a `string[]` (one
+   * per `name[]` field) for `"array"`. Shaped by `value-format`, `value-format-mask`
+   * and `value-separator` — not by the displayed text (`date-format-mask`).
+   * Assigning accepts the same form, plus ISO and the displayed text (lenient), and
+   * sets the selection without touching the `value` attribute (the `form.reset()`
+   * default). An unparseable value warns and clears the selection.
    */
-  get value(): string { this.flush(); return this.#inputElement?.value || ''; }
-  set value(val: string) {
-    // An unparseable value warns and clears the selection; the `value` attribute
-    // (the form.reset() default) is never written.
+  get value(): string | string[] {
     this.flush();
-    if (this.#picker) this.#applyValueText(val ?? '', 'value property');
-    else this.#pendingValue = val ?? '';
+    const isArray = this.config.valueFormat === 'array' && !this.config.getValueFormatCallback;
+    if (!this.#picker) {
+      const pending = this.#pendingValue ?? '';
+      return isArray ? (typeof pending === 'string' ? (pending ? [pending] : []) : [...pending]) : (typeof pending === 'string' ? pending : pending.join(','));
+    }
+    return isArray ? [...this.#formValues] : (this.#formValues[0] ?? '');
+  }
+  set value(val: string | readonly string[]) {
+    this.flush();
+    const v = val ?? '';
+    if (this.#picker) this.#applyValueText(v, 'value property');
+    else this.#pendingValue = v;
   }
 
   /**

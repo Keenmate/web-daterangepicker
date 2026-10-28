@@ -359,7 +359,7 @@ Analytics date picker:
 → basic-usage.txt (range mode)
 
 Simple form field:
-→ basic-usage.txt (single mode, basic usage)
+→ basic-usage.txt (single mode, basic usage; FORM INTEGRATION — value-format / value-format-mask)
 → date-restrictions.txt (min/max if needed)
 
 MIGRATION & COMPATIBILITY

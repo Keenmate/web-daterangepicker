@@ -273,6 +273,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Inline picker submits via hidden field                        | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Range → ISO interval; split range → each sub-range            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `value-format` json / array; `getValueFormatCallback`         | ✓      | `form-association.spec.ts`   | `form-association.html`   |
+| `el.value` = submitted value (string / `string[]` for array); `value-format-mask` + `value-separator` (text / json / array / multiple / datetime), parse back, live change | ✓ | `form-association.spec.ts` | `form-association.html` |
 
 ## 18. Lock / readonly
 

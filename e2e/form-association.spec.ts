@@ -158,7 +158,9 @@ test('setting value from JS (twice) leaves the value attribute unchanged', async
         await el.whenSettled();
         return [a, el.getAttribute('value'), el.value];
     });
-    expect(attrs).toEqual(['2026-06-10 - 2026-06-14', '2026-06-10 - 2026-06-14', '2026-08-01 - 2026-08-05']);
+    // el.value reads back the SUBMITTED form (ISO `start/end`), not the displayed text.
+    expect(attrs).toEqual(['2026-06-10 - 2026-06-14', '2026-06-10 - 2026-06-14', '2026-08-01/2026-08-05']);
+    await expect(visibleInput(p)).toHaveValue('2026-08-01 - 2026-08-05');
     const range = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
     expect(range).toEqual([1, 5]);
 });
@@ -197,17 +199,18 @@ test('an invalid value attribute warns, leaves the selection empty and the attri
 test('a range value is lenient about the separator between the two dates', async ({ page }) => {
     const p = page.locator('#picker-default');
     const results = await p.evaluate(async (el: any) => {
-        const out: Array<[string, string, string]> = [];
+        const out: Array<[string, string, string, string]> = [];
         for (const v of ['2026-07-01 to 2026-07-03', '2026-07-01 – 2026-07-03', '2026-07-01 bis 2026-07-03', '2026-07-01/2026-07-03', '2026-07-01 - 2026-07-03', '  2026-07-03 -2026-07-01 ']) {
             el.value = v;
             await el.whenSettled();
-            out.push([v, el.value, new FormData(document.getElementById('fd') as HTMLFormElement).get('range') as string]);
+            out.push([v, el.shadowRoot.querySelector('.drp__input').value, new FormData(document.getElementById('fd') as HTMLFormElement).get('range') as string, el.value]);
         }
         return out;
     });
-    for (const [v, shown, submitted] of results) {
+    for (const [v, shown, submitted, value] of results) {
         expect(shown, v).toBe('2026-07-01 - 2026-07-03');
         expect(submitted, v).toBe('2026-07-01/2026-07-03');
+        expect(value, v).toBe(submitted);
     }
 });
 
@@ -223,4 +226,94 @@ test('a range value with extra text or a third date is still invalid', async ({ 
         return out;
     });
     expect(shown).toEqual(['', '', '']);
+});
+
+// ── Form value model: el.value === what the form submits ─────────────────────────
+
+test('value-format-mask + value-separator shape the submitted text value and el.value', async ({ page }) => {
+    const p = page.locator('#picker-mask');
+    // The value attribute is parsed with the mask + separator.
+    const range = await p.evaluate((el: any) => [el.selectedStartDate?.getDate(), el.selectedEndDate?.getDate()]);
+    expect(range).toEqual([3, 10]);
+    expect(await formValue(page, 'fm', 'stay')).toBe('03.11.2026 - 10.11.2026');
+    expect(await p.evaluate((el: any) => el.value)).toBe('03.11.2026 - 10.11.2026');
+    // The shown text still follows date-format-mask (default ISO).
+    await expect(visibleInput(p)).toHaveValue('2026-11-03 - 2026-11-10');
+});
+
+test('the value setter accepts the submitted form, ISO and the displayed form', async ({ page }) => {
+    const p = page.locator('#picker-mask');
+    const read = await p.evaluate(async (el: any) => {
+        const out: string[] = [];
+        for (const v of ['05.12.2026 - 07.12.2026', '2026-12-05/2026-12-07', '2026-12-05 - 2026-12-07']) {
+            el.value = v;
+            await el.whenSettled();
+            out.push(el.value);
+        }
+        return out;
+    });
+    expect(read).toEqual(['05.12.2026 - 07.12.2026', '05.12.2026 - 07.12.2026', '05.12.2026 - 07.12.2026']);
+    expect(await formValue(page, 'fm', 'stay')).toBe('05.12.2026 - 07.12.2026');
+});
+
+test('value-format="array" + mask submits stay[] per date; el.value is the string[]', async ({ page }) => {
+    const p = page.locator('#picker-mask-array');
+    expect(await formValues(page, 'fma', 'stay[]')).toEqual(['03.11.2026', '10.11.2026']);
+    expect(await p.evaluate((el: any) => el.value)).toEqual(['03.11.2026', '10.11.2026']);
+    // The setter takes the same array.
+    const after = await p.evaluate(async (el: any) => {
+        el.value = ['05.12.2026', '07.12.2026'];
+        await el.whenSettled();
+        return el.value;
+    });
+    expect(after).toEqual(['05.12.2026', '07.12.2026']);
+    expect(await formValues(page, 'fma', 'stay[]')).toEqual(['05.12.2026', '07.12.2026']);
+});
+
+test('value-format="json" + mask submits a JSON array of the masked dates', async ({ page }) => {
+    const p = page.locator('#picker-mask-json');
+    expect(await formValue(page, 'fmj', 'stay')).toBe('["03.11.2026","10.11.2026"]');
+    expect(await p.evaluate((el: any) => el.value)).toBe('["03.11.2026","10.11.2026"]');
+    const after = await p.evaluate(async (el: any) => {
+        el.value = '["05.12.2026","07.12.2026"]';
+        await el.whenSettled();
+        const set = el.value;
+        el.value = '';
+        await el.whenSettled();
+        return [set, el.value];
+    });
+    expect(after).toEqual(['["05.12.2026","07.12.2026"]', '']);
+    expect(await formValue(page, 'fmj', 'stay')).toBe('');
+});
+
+test('multiple: the dates are joined with value-separator and written with the mask', async ({ page }) => {
+    const p = page.locator('#picker-mask-multiple');
+    expect(await formValue(page, 'fmm', 'days')).toBe('3.11.2026; 5.11.2026');
+    expect(await p.evaluate((el: any) => el.value)).toBe('3.11.2026; 5.11.2026');
+});
+
+test('datetime: value-format-mask writes and parses date + time', async ({ page }) => {
+    const p = page.locator('#picker-mask-datetime');
+    expect(await formValue(page, 'fmd', 'at')).toBe('03.11.2026 14:30');
+    const after = await p.evaluate(async (el: any) => {
+        el.value = '2026-12-24T18:05';
+        await el.whenSettled();
+        return el.value;
+    });
+    expect(after).toBe('24.12.2026 18:05');
+});
+
+test('changing value-format-mask / value-separator live re-serializes the value', async ({ page }) => {
+    const p = page.locator('#picker-mask');
+    const read = await p.evaluate(async (el: any) => {
+        el.setAttribute('value-separator', ' bis ');
+        await el.whenSettled();
+        const a = el.value;
+        el.removeAttribute('value-format-mask');
+        el.removeAttribute('value-separator');
+        await el.whenSettled();
+        return [a, el.value];
+    });
+    expect(read).toEqual(['03.11.2026 bis 10.11.2026', '2026-11-03/2026-11-10']);
+    expect(await formValue(page, 'fm', 'stay')).toBe('2026-11-03/2026-11-10');
 });
