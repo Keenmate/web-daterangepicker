@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — motion and disabled dimming follow the contract (**BREAKING**, 2026-10-29)
+
+- **Removed `enable-transition` / `isTransitionEnabled`.** Animations are now on by default
+  (the `drp__picker--transitions-enabled` class and its gating are gone; nav, action buttons,
+  month / year header, rolling items, badges and the modal calendar fade always transition).
+  Disable with `--drp-transition-fast: 0s; --drp-transition-normal: 0s` on the component, or
+  `--base-duration-*: 0s` page-wide. `prefers-reduced-motion: reduce` is respected:
+  transitions go to `0s`, the rolling selector / wheel scroll instantly
+  (`--drp-scroll-behavior: auto`), the spinner slows to 1.5s.
+- **Durations are the contract's speeds:** `--drp-transition-fast` is now
+  `var(--base-duration-fast, 0.1s)` (was a fixed `150ms`); the old 150ms speed is
+  `--drp-transition-normal` (`var(--base-duration-normal, 0.15s)`). If you set
+  `--drp-transition-fast` for inputs / buttons / nav, set `--drp-transition-normal` instead.
+- **Snapped to the contract speeds:** clock face, compact and wheel picker item colors
+  `120ms ease` → `--drp-transition-fast` (0.1s) with `--drp-easing-snappy`
+  (`--base-ease-standard`); `--drp-modal-transition` `150ms ease-out` →
+  `var(--drp-transition-normal) var(--drp-easing-out)` (new `--drp-easing-out` follows
+  `--base-ease-out`).
+- **Spinner exception:** the loading spinner keeps its 0.8s turn as
+  `--drp-loader-spin-duration` (a state indicator, not a transition).
+- **New:** `--drp-scroll-behavior` (smooth); the wheel's programmatic scroll follows it.
+- **Disabled dimming:** `--drp-opacity-disabled` → `--drp-disabled-opacity`
+  (`var(--base-disabled-opacity, 0.65)`). Disabled rolling-selector years / months use
+  `--drp-rolling-item-disabled-opacity` (defaults to it; was a fixed `0.4` → now 0.65, they
+  keep their muted color and strike-through).
+
 ### Changed — form value model, round 3 (2026-10-28)
 
 Rule (all KeenMate form components): `el.value` is exactly what the form submits; the `value`

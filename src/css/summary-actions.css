@@ -106,7 +106,7 @@
 /* Disabled state */
 .drp__button:disabled,
 .drp__button[disabled] {
-  opacity: var(--drp-opacity-disabled);
+  opacity: var(--drp-disabled-opacity);
   cursor: not-allowed;
   pointer-events: none;  /* Critical - prevents all mouse interactions */
 }

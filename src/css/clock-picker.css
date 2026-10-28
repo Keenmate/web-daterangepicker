@@ -49,7 +49,7 @@
   /* Subtle bottom-border indicator for the active step so the click target
      reads as a tab-style toggle. */
   border-bottom: 2px solid transparent;
-  transition: color 120ms ease, border-color 120ms ease;
+  transition: color var(--drp-transition-normal) var(--drp-easing-snappy), border-color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__clock-header-digit:hover {
@@ -127,7 +127,7 @@
   /* Sit above the hand so the labels are readable when the hand passes under. */
   z-index: 2;
   transform: translate(-50%, -50%);
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy), color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__clock-number--inner {
@@ -208,7 +208,7 @@
   font-weight: var(--drp-font-weight-medium);
   cursor: pointer;
   min-width: calc(5 * var(--drp-rem));
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy), color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__clock-ampm-button:hover {

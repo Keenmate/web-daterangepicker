@@ -143,7 +143,6 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `disabled` | `boolean` | — | Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`. |
 | `readonly` | `boolean` | — | Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks. |
 | `input-size` | `string` | `'md'` | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
-| `enable-transition` | `boolean` | — | Opt into calendar open/close CSS transitions. |
 | `mobile-presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment. |
 | `fullscreen-autofocus` | `boolean` | — | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
 | `show-fullscreen-input` | `boolean` | — | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
@@ -1101,12 +1100,20 @@ Each reads its `--base-*` token first; the defaults below apply without the cont
 | `--drp-border-radius` | `0.375rem` | Border radius |
 | `--drp-shadow-xl` | (complex value) | Extra large shadow for floating calendar |
 
-### Transitions
+### Motion
+
+Always on; CSS only — set the durations to `0s` to turn motion off (`--base-duration-*: 0s`
+page-wide). `prefers-reduced-motion: reduce` does that automatically.
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `--drp-transition-fast` | `150ms` | Fast transition duration |
-| `--drp-easing-snappy` | `cubic-bezier(0.4, 0.0, 0.2, 1)` | Snappy easing curve |
+| `--drp-transition-fast` | `var(--base-duration-fast, 0.1s)` | Clock / compact / wheel item colors |
+| `--drp-transition-normal` | `var(--base-duration-normal, 0.15s)` | Inputs, buttons, nav, popover + modal fade |
+| `--drp-easing-snappy` | `var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1))` | Standard easing |
+| `--drp-easing-out` | `var(--base-ease-out, cubic-bezier(0, 0, 0.2, 1))` | Modal fade easing |
+| `--drp-loader-spin-duration` | `0.8s` | Spinner turn (1.5s under reduced motion) |
+| `--drp-scroll-behavior` | `smooth` | Rolling selector / wheel scrolling (`auto` under reduced motion) |
+| `--drp-disabled-opacity` | `var(--base-disabled-opacity, 0.65)` | Disabled controls, days, locked regions |
 
 ### Input Size Variants
 
@@ -1641,7 +1648,6 @@ The web component provides convenient property accessors for JavaScript:
 | `isDisabled` | `boolean` | Read/Write | Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`. |
 | `isReadonly` | `boolean` | Read/Write | Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks. |
 | `inputSize` | `string` | Read/Write | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
-| `isTransitionEnabled` | `boolean` | Read/Write | Opt into calendar open/close CSS transitions. |
 | `mobilePresentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | Read/Write | How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment. |
 | `shouldFullscreenAutofocus` | `boolean` | Read/Write | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
 | `isFullscreenInputShown` | `boolean` | Read/Write | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |

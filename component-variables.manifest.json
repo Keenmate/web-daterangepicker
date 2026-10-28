@@ -49,6 +49,9 @@
     { "name": "base-dropdown-box-shadow", "required": false, "usage": "Picker popup elevation (light-dark aware — deepens on dark; drives --drp-shadow-xl)" },
     { "name": "base-shadow-color", "required": false, "usage": "Shadow colour (fallback shadow, one tone with pure-admin)" },
     { "name": "base-ease-standard", "required": false, "usage": "Standard easing curve (drives --drp-easing-snappy)" },
+    { "name": "base-ease-out", "required": false, "usage": "Ease-out curve (drives --drp-easing-out, modal fade)" },
+    { "name": "base-duration-fast", "required": false, "usage": "Fast duration 0.1s (drives --drp-transition-fast; 0s under reduced motion)" },
+    { "name": "base-duration-normal", "required": false, "usage": "Normal duration 0.15s (drives --drp-transition-normal; 0s under reduced motion)" },
     { "name": "base-input-size-xs-height", "required": false, "usage": "Extra small input height (multiplier)" },
     { "name": "base-input-size-sm-height", "required": false, "usage": "Small input height (multiplier)" },
     { "name": "base-input-size-md-height", "required": false, "usage": "Medium input height (multiplier)" },
@@ -122,8 +125,12 @@
     { "name": "drp-border-radius", "category": "radius", "usage": "Default border radius" },
     { "name": "drp-shadow-xl", "category": "shadow", "usage": "Extra large shadow" },
 
-    { "name": "drp-transition-fast", "category": "transition", "usage": "Fast transition duration" },
-    { "name": "drp-easing-snappy", "category": "transition", "usage": "Snappy easing function" },
+    { "name": "drp-transition-fast", "category": "transition", "usage": "Fast duration (0.1s) — clock / compact / wheel item colors; 0s = off" },
+    { "name": "drp-transition-normal", "category": "transition", "usage": "Normal duration (0.15s) — inputs, buttons, nav, popover + modal fade; 0s = off" },
+    { "name": "drp-easing-snappy", "category": "transition", "usage": "Standard easing (follows --base-ease-standard)" },
+    { "name": "drp-easing-out", "category": "transition", "usage": "Ease-out easing for the modal fade (follows --base-ease-out)" },
+    { "name": "drp-loader-spin-duration", "category": "transition", "usage": "Spinner turn time (0.8s; 1.5s under reduced motion)" },
+    { "name": "drp-scroll-behavior", "category": "transition", "usage": "Rolling selector / wheel scrolling (smooth; auto under reduced motion)" },
 
     { "name": "drp-z-index-dropdown", "category": "z-index", "usage": "Dropdown z-index" },
     { "name": "drp-z-index-tooltip", "category": "z-index", "usage": "Tooltip z-index" },
@@ -132,7 +139,8 @@
     { "name": "drp-grid-columns", "category": "layout", "usage": "Grid columns" },
     { "name": "drp-grid-rows", "category": "layout", "usage": "Grid rows" },
 
-    { "name": "drp-opacity-disabled", "category": "opacity", "usage": "Disabled element opacity" },
+    { "name": "drp-disabled-opacity", "category": "opacity", "usage": "Disabled element opacity (follows --base-disabled-opacity)" },
+    { "name": "drp-rolling-item-disabled-opacity", "category": "opacity", "usage": "Disabled rolling-selector year / month (defaults to --drp-disabled-opacity)" },
     { "name": "drp-opacity-other-month", "category": "opacity", "usage": "Other month day opacity" },
     { "name": "drp-opacity-hover", "category": "opacity", "usage": "Hover state opacity" },
     { "name": "drp-opacity-dragging", "category": "opacity", "usage": "Dragging state opacity" },
@@ -318,7 +326,7 @@
 
     { "name": "drp-modal-gap", "category": "modal", "usage": "Gap between elements inside modal layout" },
     { "name": "drp-modal-backdrop-bg", "category": "modal", "usage": "Modal backdrop background (scrim)" },
-    { "name": "drp-modal-transition", "category": "modal", "usage": "Modal show/hide transition" },
+    { "name": "drp-modal-transition", "category": "modal", "usage": "Modal show/hide transition (--drp-transition-normal + --drp-easing-out)" },
     { "name": "drp-modal-width-xs", "category": "modal", "usage": "Modal width — extra small variant" },
     { "name": "drp-modal-width-sm", "category": "modal", "usage": "Modal width — small variant" },
     { "name": "drp-modal-width-md", "category": "modal", "usage": "Modal width — medium variant (default)" },

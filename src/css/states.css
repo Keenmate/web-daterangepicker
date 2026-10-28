@@ -1,33 +1,31 @@
 /* ==============================================================================
    STATES — cross-feature state modifiers
    ==============================================================================
-   Opt-in transitions (gated by the `drp__picker--transitions-enabled` class
-   on the root, controlled by the `enable-transition` attribute), and the
-   inline-mode root modifier.
+   Hover / focus transitions, and the inline-mode root modifier.
 
-   By default, no transitions for maximum performance. The host opts in via
-   `enable-transition` to get smooth animations on hover/focus changes. */
+   Transitions are always on, timed by --drp-transition-* (the contract's
+   --base-duration-*); motion off = set them to 0s. */
 
-.drp__picker--transitions-enabled .drp__badge-cell {
-  transition: transform var(--drp-transition-fast) var(--drp-easing-snappy);
+.drp__picker .drp__badge-cell {
+  transition: transform var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
-.drp__picker--transitions-enabled .drp__nav {
-  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy),
-              border-color var(--drp-transition-fast) var(--drp-easing-snappy);
+.drp__picker .drp__nav {
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy),
+              border-color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
-.drp__picker--transitions-enabled .drp__action-btn {
-  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy),
-              border-color var(--drp-transition-fast) var(--drp-easing-snappy);
+.drp__picker .drp__action-btn {
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy),
+              border-color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
-.drp__picker--transitions-enabled .drp__month-year {
-  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+.drp__picker .drp__month-year {
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
-.drp__picker--transitions-enabled .drp__rolling-item {
-  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+.drp__picker .drp__rolling-item {
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 /* ==============================================================================

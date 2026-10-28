@@ -185,13 +185,11 @@
   pointer-events: auto;
 }
 
-/* Optional fade-in for the calendar itself when transitions are enabled.
-   When .drp__picker--transitions-enabled is set on the calendar, modal mode
-   also fades the calendar in/out alongside the backdrop. */
-.drp__picker--modal.drp__picker--transitions-enabled {
+/* The calendar fades in/out alongside the backdrop (0s = no fade). */
+.drp__picker--modal {
   transition: opacity var(--drp-modal-transition);
 }
 
-.drp__picker--modal.drp__picker--transitions-enabled:not(.drp__picker--visible) {
+.drp__picker--modal:not(.drp__picker--visible) {
   opacity: 0;
 }

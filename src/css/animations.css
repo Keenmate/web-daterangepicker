@@ -3,7 +3,7 @@
    ==============================================================================
    Keyframes are global within their stylesheet/layer; rule-level
    `transition:` declarations stay alongside the rules that use them
-   (see `states.css` for the opt-in transition set). */
+   (see `states.css` for the hover / focus transition set). */
 
 @keyframes drp-spin {
   0% {

@@ -110,7 +110,7 @@
    -------------------------------------- */
 .drp__day--disabled {
   color: var(--drp-day-disabled-color);
-  opacity: var(--drp-opacity-disabled);
+  opacity: var(--drp-disabled-opacity);
   cursor: not-allowed;
   position: relative;
   background-color: var(--drp-day-disabled-bg);
@@ -214,7 +214,7 @@
   cursor: grabbing !important;
   opacity: var(--drp-opacity-dragging);
   transform: scale(var(--drp-day-dragging-scale));
-  transition: transform var(--drp-transition-fast) var(--drp-easing-snappy);
+  transition: transform var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__day--drag-preview {
@@ -294,7 +294,7 @@
 
 .drp__rolling-item--disabled {
   color: var(--drp-unified-rolling-disabled-color);
-  opacity: 0.4;
+  opacity: var(--drp-rolling-item-disabled-opacity);
   cursor: not-allowed;
   pointer-events: none; /* Prevent clicking */
   text-decoration: line-through;

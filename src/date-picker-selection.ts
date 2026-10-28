@@ -684,7 +684,9 @@ export function scrollWheelItemToCenter(picker: any, el: HTMLElement) {
     const itemH = item.offsetHeight || 36;
     const target = item.offsetTop - (col.clientHeight - itemH) / 2;
     picker.wheelScrollLock = true;
-    col.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    // No `behavior`: the column's CSS scroll-behavior decides (--drp-scroll-behavior,
+    // smooth by default, instant under reduced motion).
+    col.scrollTo({ top: Math.max(0, target) });
     // After the scroll settles, run a single commit so the click → commit path
     // works even if the smooth-scroll dampens before crossing a snap point.
     window.setTimeout(() => {

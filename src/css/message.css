@@ -43,7 +43,7 @@
   line-height: 1;
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity var(--drp-transition-fast) var(--drp-easing-snappy);
+  transition: opacity var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__message-close:hover {

@@ -350,7 +350,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| `enable-transition`: class on the calendar; runtime toggle reflects | ✓ | `misc-features.spec.ts` | `misc-features.html` |
+| Motion: transitions on by default (contract speeds); `--drp-transition-*: 0s` and reduced motion turn them off | ✓ | `misc-features.spec.ts` | `misc-features.html` |
 | `/logging` `DRP:*` loggers at `warn` by default (no debug lines; warnings visible) | ✓ | `logging.spec.ts` | `logging.html` |
 | `window.components['web-daterangepicker'].logging` turns debug on / back to `warn` | ✓ | `logging.spec.ts` | `logging.html` |
 | `el.enableLogging()` / `disableLogging()` per instance (core) | ✓ | `logging.spec.ts` | `logging.html` |

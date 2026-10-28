@@ -81,7 +81,7 @@
 /* Disabled state */
 .drp__nav--disabled,
 .drp__nav[disabled] {
-  opacity: var(--drp-opacity-disabled);
+  opacity: var(--drp-disabled-opacity);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -171,7 +171,7 @@
   display: flex;
   flex-direction: column;
   /* Smooth scrolling */
-  scroll-behavior: smooth;
+  scroll-behavior: var(--drp-scroll-behavior);
 }
 
 /* Custom scrollbar */
@@ -308,7 +308,7 @@
   border-radius: var(--drp-border-radius-lg);
   display: flex;
   flex-direction: column;
-  scroll-behavior: smooth;
+  scroll-behavior: var(--drp-scroll-behavior);
 }
 
 /* Custom scrollbar for unified selector */
@@ -357,7 +357,7 @@
 
 .drp__unified-rolling-selector .drp__rolling-item--disabled {
   color: var(--drp-unified-rolling-disabled-color);
-  opacity: 0.4;
+  opacity: var(--drp-rolling-item-disabled-opacity);
   cursor: not-allowed;
 }
 

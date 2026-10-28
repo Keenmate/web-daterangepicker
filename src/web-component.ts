@@ -164,7 +164,6 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating/modal only).' },
-  { configKey: 'isTransitionEnabled',          attribute: 'enable-transition',             converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Opt into calendar open/close CSS transitions.' },
   { configKey: 'mobilePresentation',           attribute: 'mobile-presentation',           converter: toEnum(MOBILE_PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment.' },
   { configKey: 'shouldFullscreenAutofocus',    attribute: 'fullscreen-autofocus',          converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
   { configKey: 'isFullscreenInputShown',       attribute: 'show-fullscreen-input',         converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
@@ -221,7 +220,7 @@ const EVENTS = [
  * before the merged config is handed to the picker.
  */
 const NON_PICKER_KEYS = new Set([
-  'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize', 'isTransitionEnabled',
+  'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize',
   'mobilePresentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow',
   'name', 'valueFormat', 'valueFormatMask', 'valueSeparator', 'getValueFormatCallback',
   'placeholderFormatMask', 'placeholderTimeFormatMask',
@@ -347,7 +346,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if ('labels' in partial) this.#inputClearButton?.setAttribute('aria-label', resolveLabels(partial.labels as Partial<DateRangePickerLabels> | null).clear);
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock() : this.#picker.unlock(); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
-    if ('isTransitionEnabled' in partial) this.#applyTransitionStyles();
     // The masks feed the derived placeholder hint (no-op for an explicit placeholder).
     if ('placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
       || 'dateFormatMask' in partial || 'timeFormatMask' in partial) this.#applyPlaceholder();
@@ -500,8 +498,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // seed it here; on a plain connect this is a harmless no-op before the hook's
     // own immediate fire.
     this.#applyPresentation(getEnvironment());
-    // Apply transition styles once the calendar DOM exists.
-    setTimeout(() => this.#applyTransitionStyles(), 0);
     // `ready` (event, attribute, :state(ready), whenReady) is core's — announced
     // once after the first build goes live.
   }
@@ -841,12 +837,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     input.classList.remove('drp__input--xs', 'drp__input--sm', 'drp__input--lg', 'drp__input--xl');
     const size = (this.config.inputSize as string) || 'md';
     if (size && size !== 'md') input.classList.add(`drp__input--${size}`);
-  }
-
-  #applyTransitionStyles(): void {
-    const calendar = this.#shadow.querySelector('.drp__picker') as HTMLElement | null;
-    if (!calendar) return;
-    calendar.classList.toggle('drp__picker--transitions-enabled', !!this.config.isTransitionEnabled);
   }
 
   #applyCustomStyles(): void {

@@ -149,7 +149,7 @@
      varies, so we use a generous calc. The fade gradients above this height
      hide partial items at the edges. */
   padding-block: calc((var(--drp-wheel-min-height) - var(--drp-wheel-item-height)) / 2);
-  scroll-behavior: smooth;
+  scroll-behavior: var(--drp-scroll-behavior);
 }
 
 .drp__wheel-column::-webkit-scrollbar {
@@ -167,7 +167,7 @@
   user-select: none;
   /* Smooth color transition as items roll past the center band — feels closer
      to the iOS curved-barrel effect than hard color jumps. */
-  transition: color 120ms ease;
+  transition: color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__wheel-item:hover {

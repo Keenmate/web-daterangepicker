@@ -149,9 +149,11 @@ import manifest from '@keenmate/web-daterangepicker/component-variables.manifest
   /* Shadows */
   --drp-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
 
-  /* Transitions */
-  --drp-transition-fast: 150ms;
-  --drp-easing-snappy: cubic-bezier(0.4, 0.0, 0.2, 1);
+  /* Motion (contract speeds; 0s = off) */
+  --drp-transition-fast: var(--base-duration-fast, 0.1s);
+  --drp-transition-normal: var(--base-duration-normal, 0.15s);
+  --drp-easing-snappy: var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  --drp-easing-out: var(--base-ease-out, cubic-bezier(0, 0, 0.2, 1));
 }
 ```
 
@@ -304,6 +306,32 @@ web-daterangepicker.custom {
 See [`examples-theming.html`](../examples-theming.html) for interactive
 demos including the classifier-retheming panel and the four
 time-display UIs (Test 8).
+
+## Motion
+
+Transitions are always on and use the contract's speeds: `--drp-transition-fast`
+(`--base-duration-fast`, 0.1s — clock / compact / wheel item colors) and
+`--drp-transition-normal` (`--base-duration-normal`, 0.15s — inputs, buttons, nav,
+popover and modal fade), eased by `--drp-easing-snappy` / `--drp-easing-out`.
+There is no attribute for it — motion is CSS only:
+
+```css
+web-daterangepicker {                 /* this component */
+  --drp-transition-fast: 0s;
+  --drp-transition-normal: 0s;
+  --drp-scroll-behavior: auto;        /* rolling selector / wheel scroll instantly */
+}
+:root {                               /* every component on the page */
+  --base-duration-fast: 0s;
+  --base-duration-normal: 0s;
+  --base-duration-medium: 0s;
+  --base-duration-slow: 0s;
+}
+```
+
+`prefers-reduced-motion: reduce` does this automatically: transitions go to `0s`,
+scrolling is instant, and the loading spinner keeps turning, slower
+(`--drp-loader-spin-duration` 0.8s → 1.5s).
 
 ## See also
 

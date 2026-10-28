@@ -124,7 +124,6 @@ use camelCase (`selectionMode`).
 | `show-fullscreen-input` | `boolean` | `false` | Phone full-screen only: move the input into the sheet header (numeric keypad). The heading (`labels.fullscreenTitle`) is not shown alongside it. |
 | `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
-| `enable-transition` | `boolean` | `false` | Enable CSS transitions/animations |
 | `name` | `string` | — | HTML form field name. Set it to submit the selection in a `<form>` (see [Form integration](#form-integration)) |
 | `value-format` | `'text' \| 'json' \| 'array'` | `'text'` | How the submitted value (and `el.value`) is serialized (see [Form integration](#form-integration)) |
 | `value-format-mask` | `string` | ISO (`YYYY-MM-DD`, `HH:mm[:ss]`, `YYYY-MM-DDTHH:mm[:ss]`) | How each date is written in the submitted value / `el.value`, and parsed from the `value` attribute / property |
@@ -914,7 +913,7 @@ Each locked aspect adds a `.drp__picker--locked-{aspect}` modifier
 region greys out like a disabled control and stops responding to the
 pointer, while any unlocked aspect on the same calendar stays live and
 full-opacity. The greying is driven by `--drp-opacity-locked` (default
-`0.6`, inherited from `--drp-opacity-disabled`) — set it to `1` to keep
+`0.65`, inherited from `--drp-disabled-opacity`) — set it to `1` to keep
 locked regions at full opacity.
 
 ## Range selection modes

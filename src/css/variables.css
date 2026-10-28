@@ -177,12 +177,18 @@
   /* ==========================================================================
      TRANSITIONS & ANIMATIONS
      ========================================================================== */
-  /* Duration stays local: 150ms doesn't map cleanly onto the --base-duration-*
-     scale (fast 100ms / normal 150ms / medium 250ms), so wiring it risks a silent
-     timing change. */
-  --drp-transition-fast: 150ms;
-  /* Easing is an exact match for --base-ease-standard, so it flows from the shared token. */
+  /* Durations are the contract's speeds (--base-duration-*). Motion off: set these
+     to 0s (or --base-duration-*: 0s page-wide); prefers-reduced-motion does it
+     (block at the end of this file). */
+  --drp-transition-fast: var(--base-duration-fast, 0.1s);      /* clock / compact / wheel item colors */
+  --drp-transition-normal: var(--base-duration-normal, 0.15s); /* inputs, buttons, nav, popover + modal fade */
   --drp-easing-snappy: var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  --drp-easing-out: var(--base-ease-out, cubic-bezier(0, 0, 0.2, 1));
+  /* Loading spinner: one turn per 0.8s — a state indicator, not a transition, so
+     it keeps its own duration and only slows down under reduced motion. */
+  --drp-loader-spin-duration: 0.8s;
+  /* Rolling selector + wheel columns scroll smoothly; reduced motion → auto (instant). */
+  --drp-scroll-behavior: smooth;
 
   /* ==========================================================================
      Z-INDEX LAYERS
@@ -200,7 +206,7 @@
   /* Modal mode (positioning-mode="modal") */
   --drp-modal-gap: 16px;                              /* gap between calendar and viewport edges */
   --drp-modal-backdrop-bg: rgba(0, 0, 0, 0.45);       /* scrim color */
-  --drp-modal-transition: 150ms ease-out;             /* fade-in/out timing for backdrop + calendar */
+  --drp-modal-transition: var(--drp-transition-normal) var(--drp-easing-out); /* fade-in/out timing for backdrop + calendar */
 
   /* Modal widths per breakpoint. Aligned with the same 480/768/1200 viewport
      breakpoints already used in `base.css` (grid columns) and in the
@@ -276,14 +282,14 @@
   /* ==========================================================================
      OPACITY VALUES
      ========================================================================== */
-  --drp-opacity-disabled: var(--base-disabled-opacity, 0.65);
+  --drp-disabled-opacity: var(--base-disabled-opacity, 0.65);
   --drp-opacity-other-month: 0.5;
   --drp-opacity-hover: 0.8;
   --drp-opacity-dragging: 0.7;
   /* Applied to a region frozen by the scoped read-only lock (see states.css).
      Defaults to the disabled opacity so a locked region greys out like a
      disabled control; set to 1 to keep locked regions at full opacity. */
-  --drp-opacity-locked: var(--drp-opacity-disabled);
+  --drp-opacity-locked: var(--drp-disabled-opacity);
 
   /* ==========================================================================
      INPUT FIELD SEMANTIC VARIABLES
@@ -682,6 +688,7 @@
   --drp-unified-range-bg-active: var(--drp-primary-bg-hover);
   --drp-unified-month-color: var(--drp-text-secondary);
   --drp-unified-rolling-disabled-color: var(--drp-text-secondary);
+  --drp-rolling-item-disabled-opacity: var(--drp-disabled-opacity);
 
   /* ==========================================================================
      TOOLTIP DIMENSIONS
@@ -724,4 +731,15 @@
   --drp-month-min-width: 280px;
   --drp-month-min-width-inline: 250px;
   --drp-calendar-max-width: calc(100vw - 2rem);
+}
+
+/* Reduced motion: no transitions; the loading spinner keeps turning, slower. */
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  :root {
+    --drp-transition-fast: 0s;
+    --drp-transition-normal: 0s;
+    --drp-loader-spin-duration: 1.5s;
+    --drp-scroll-behavior: auto;
+  }
 }

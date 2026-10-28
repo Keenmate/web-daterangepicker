@@ -62,27 +62,33 @@ test('unified-header-interactive: clicking the unified range header opens the un
 });
 
 // =============================================================================
-// enable-transition
+// motion — CSS only, no attribute
 // =============================================================================
 
-test.describe('enable-transition', () => {
-    test('absent by default: no transitions class on the calendar', async ({ page }) => {
-        const p = await open(page, 'no-transitions');
-        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--transitions-enabled/);
+test.describe('motion', () => {
+    const inputDuration = (p: Locator) =>
+        p.locator('.drp__input').evaluate((el) => getComputedStyle(el).transitionDuration);
+
+    test('on by default, timed by the contract speed (normal = 0.15s)', async ({ page }) => {
+        const p = pickerById(page, 'motion');
+        expect(await inputDuration(p)).toBe('0.15s, 0.15s');
     });
 
-    test('declared: the calendar carries the transitions class', async ({ page }) => {
-        const p = await open(page, 'transitions');
-        await expect(calendarOf(p)).toHaveClass(/drp__picker--transitions-enabled/);
+    test('--drp-transition-normal: 0s turns it off', async ({ page }) => {
+        const p = pickerById(page, 'motion');
+        await p.evaluate((el: HTMLElement) => el.style.setProperty('--drp-transition-normal', '0s'));
+        expect(await inputDuration(p)).toBe('0s, 0s');
     });
 
-    test('toggling the property at runtime adds/removes the class and reflects the attribute', async ({ page }) => {
-        const p = pickerById(page, 'no-transitions');
-        await p.evaluate((el: any) => { el.isTransitionEnabled = true; return el.whenSettled(); });
-        await expect(p).toHaveAttribute('enable-transition', '');
-        await expect(calendarOf(p)).toHaveClass(/drp__picker--transitions-enabled/);
-        await p.evaluate((el: any) => { el.isTransitionEnabled = false; return el.whenSettled(); });
-        await expect(p).not.toHaveAttribute('enable-transition');
-        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--transitions-enabled/);
+    test('prefers-reduced-motion: transitions 0s, scrolling instant', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        const p = pickerById(page, 'motion');
+        expect(await inputDuration(p)).toBe('0s, 0s');
+        expect(await p.evaluate((el) => getComputedStyle(el).getPropertyValue('--drp-scroll-behavior').trim())).toBe('auto');
+    });
+
+    test('the enable-transition attribute is gone', async ({ page }) => {
+        const p = pickerById(page, 'motion');
+        expect(await p.evaluate((el: any) => 'isTransitionEnabled' in el)).toBe(false);
     });
 });

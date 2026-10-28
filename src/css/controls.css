@@ -23,8 +23,8 @@
   padding-right: calc(var(--drp-input-size-md-padding-h) * 2.5); /* Extra space for calendar icon */
   height: var(--drp-input-size-md-height);
   box-sizing: border-box;
-  transition: border-color var(--drp-transition-fast) var(--drp-easing-snappy),
-              box-shadow var(--drp-transition-fast) var(--drp-easing-snappy);
+  transition: border-color var(--drp-transition-normal) var(--drp-easing-snappy),
+              box-shadow var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__input::placeholder {
@@ -43,7 +43,7 @@
 }
 
 .drp__input:disabled {
-  opacity: var(--drp-opacity-disabled);
+  opacity: var(--drp-disabled-opacity);
   cursor: not-allowed;
   background-color: var(--drp-input-bg-disabled);
 }
@@ -161,7 +161,7 @@
   background: transparent;
   color: var(--drp-input-clear-color);
   cursor: pointer;
-  transition: background-color var(--drp-transition-fast) var(--drp-easing-snappy);
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__input-clear.drp__input-clear--visible {

@@ -23,7 +23,7 @@
   border: var(--drp-loader-border-width) solid var(--drp-loader-color);
   border-top-color: var(--drp-loader-accent);
   border-radius: 50%;
-  animation: drp-spin 0.8s linear infinite;
+  animation: drp-spin var(--drp-loader-spin-duration) linear infinite;
 }
 
 /* In-block spinner — used by showLoader('message') / showLoader('summary').
@@ -36,7 +36,7 @@
   border: 2px solid var(--drp-loader-color);
   border-top-color: var(--drp-loader-accent);
   border-radius: 50%;
-  animation: drp-spin 0.8s linear infinite;
+  animation: drp-spin var(--drp-loader-spin-duration) linear infinite;
 }
 
 /* Positioning context + hide the underlying content (keep the block's own border).

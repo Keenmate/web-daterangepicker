@@ -208,7 +208,6 @@ input-size → basic-usage.txt
 spacing → basic-usage.txt
 font-size → basic-usage.txt
 cell-size → basic-usage.txt
-enable-transition → basic-usage.txt
 
 PROPERTIES (Web Component)
 ---------------------------

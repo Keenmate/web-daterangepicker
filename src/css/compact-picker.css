@@ -59,7 +59,7 @@
   font-variant-numeric: tabular-nums;
   text-align: center;
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy), color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 /* Reserve a baseline width for empty contentEditable pills. The non-breaking
@@ -126,7 +126,7 @@
   font-weight: var(--drp-font-weight-medium);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--drp-transition-normal) var(--drp-easing-snappy), color var(--drp-transition-normal) var(--drp-easing-snappy);
 }
 
 .drp__compact-ampm-button:hover {
