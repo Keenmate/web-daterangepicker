@@ -38,7 +38,7 @@ const codeOr = (s, empty = '—') => (s ? '`' + cell(s) + '`' : empty);
 // Event-handler props are documented in the Events section — keep them out of Properties.
 const HANDLER_PROPS = new Set((decl.events ?? []).map((e) => 'on' + e.name.split(/[-_]/).map((p) => p[0].toUpperCase() + p.slice(1)).join('')));
 // Internal configKey aliases whose PUBLIC accessor has a different name.
-const PROP_ALIASES = new Set(['isReadonly']); // public prop is `readonly`
+const PROP_ALIASES = new Set([]); // none — isReadonly IS the public prop (readonly property removed in v2)
 
 function attributesTable() {
   const rows = (decl.attributes ?? []).map((a) =>
