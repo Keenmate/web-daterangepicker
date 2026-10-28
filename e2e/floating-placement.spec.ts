@@ -65,3 +65,23 @@ test('close-on-scroll="false": scrolling the ancestor keeps the picker open', as
     // Picker should NOT have closed.
     await expect(calendarOf(p)).toBeVisible();
 });
+
+test('close-on-scroll ignores the scroll that opening causes (focus scrolls the input into view)', async ({ page }) => {
+    const p = pickerById(page, 'below');
+    // Push the picker below the fold, then focus its input: the browser scrolls it
+    // into view (a window scroll) in the same task that opens the calendar.
+    await page.evaluate(() => {
+        const spacer = document.createElement('div');
+        spacer.style.height = '3000px';
+        document.body.prepend(spacer);
+        window.scrollTo(0, 0);
+    });
+    await p.locator('input').evaluate((input: HTMLInputElement) => input.focus());
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await page.waitForTimeout(300);
+    await expect(calendarOf(p)).toBeVisible();
+
+    // A real scroll afterwards still closes it.
+    await page.evaluate(() => window.scrollBy(0, 50));
+    await expect(calendarOf(p)).toBeHidden();
+});

@@ -193,6 +193,18 @@ export function open(picker: any) {
     }
 
     picker.calendar.classList.add('drp__picker--visible');
+    // close-on-scroll must not react to the scroll that OPENING causes — focus()
+    // scrolling the input into view, the anchor settling in its first frame. Those
+    // scroll events are dispatched at the next frame's scroll steps, so ignore
+    // scrolls until two animation frames after open (a timer covers no-rAF / hidden
+    // tabs). The token keeps a stale release from an earlier open from cutting in.
+    const openScrollToken = {};
+    picker.openScrollGuard = openScrollToken;
+    const releaseScrollGuard = () => { if (picker.openScrollGuard === openScrollToken) picker.openScrollGuard = null; };
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => requestAnimationFrame(releaseScrollGuard));
+    }
+    setTimeout(releaseScrollGuard, 250);
     picker.setCalendarActive(); // Make calendar active and deactivate other pickers (inline keyboard tracking)
     picker.overlayCoord?.activate(); // Dismiss every other participating overlay (pickers, multiselects, …)
     uiLogger.debug('open() - calendar classes:', picker.calendar.className);

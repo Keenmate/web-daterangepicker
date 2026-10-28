@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `"/"`, en dash, `"to"`, `"bis"`, … (no digits, nothing around the pair). Before, only `" - "` and
   `"/"` parsed, so `2026-06-10 to 2026-06-14` (as the basic / logging demos used) warned and left the
   selection empty. Output unchanged: the input shows `" - "`, the form submits `start/end`.
+- **`close-on-scroll` no longer closes the calendar right after it opens.** Focusing an input that
+  sits partly out of view scrolls it into view — that window scroll arrived after the open and shut
+  the popover at once. Scrolls caused by opening (until two animation frames after `open`) are now
+  ignored; a later scroll still closes it.
 
 ### Changed — v2 API naming unification (**BREAKING**, no aliases)
 

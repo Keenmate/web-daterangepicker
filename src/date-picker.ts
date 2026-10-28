@@ -172,6 +172,8 @@ class DateRangePickerEngine {
 
     // Event managers (Pub/Sub pattern)
     scrollEvents: ScrollEventManager;
+    /** Set by open() until the opening's own scrolls have been dispatched (close-on-scroll ignores them). */
+    openScrollGuard: object | null = null;
     clickEvents: ClickEventManager;
     private scrollSubscriptions: ScrollSubscription[] = [];
     private clickSubscriptions: ClickSubscription[] = [];
@@ -556,6 +558,12 @@ class DateRangePickerEngine {
             if (this.presentation === 'floating' && this.isOpen) {
                 // Check if scroll close is disabled globally
                 if (this.options.shouldCloseOnScroll === false) {
+                    return;
+                }
+
+                // Scroll caused by opening (focus scroll-into-view, first frame) — ignore.
+                if (this.openScrollGuard) {
+                    drpLogger.debug('Window scroll detected - NOT closing (caused by opening)');
                     return;
                 }
 
