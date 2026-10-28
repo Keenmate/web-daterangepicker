@@ -191,7 +191,7 @@ export interface FormValueWriteOptions {
  * `json` — `[{"start":…,"end":…}, …]`; `array` — one `start{separator}end` per field.
  * Single: `text` the date, `json` `"date"`. Multiple: `text` the dates joined by
  * the separator (a range item written `start/end`); `json` an array of `"date"` /
- * `["start","end"]` items.
+ * `{"start":…,"end":…}` items (a range is always an object).
  *
  * Empty selection: `['']` for the single-input formats (the field submits empty,
  * like a native control) and `[]` for `array` (no inputs at all).
@@ -230,7 +230,7 @@ export function serializeFormValue(
   if (format === 'json') {
     if (selectionMode === 'single') return [JSON.stringify(flat()[0])];
     return [JSON.stringify(items.map((item) =>
-      typeof item === 'string' ? atom(item) : [atom(item.start), atom(item.end)]))];
+      typeof item === 'string' ? atom(item) : { start: atom(item.start), end: atom(item.end) }))];
   }
 
   // text (default): one field.
@@ -241,7 +241,7 @@ export function serializeFormValue(
   return [flat()[0]];
 }
 
-/** What a value in the value-format form splits into: dates and `[start, end]` pairs. */
+/** What a value in the value-format form splits into: dates and `[start, end]` pairs (internal). */
 type ValueAtom = string | [string, string];
 
 /** Split a value given in the `value-format` form into atoms; `null` = not that form. */
@@ -271,8 +271,12 @@ function splitValue(
     const atoms: ValueAtom[] = [];
     for (const v of list) {
       if (typeof v === 'string') atoms.push(v);
-      else if (Array.isArray(v) && v.length === 2 && v.every((x) => typeof x === 'string')) atoms.push([v[0], v[1]]);
-      else return null;
+      else if (v && typeof v === 'object' && !Array.isArray(v)) {
+        // A range item is a `{ start, end }` object (json).
+        const { start, end } = v as { start?: unknown; end?: unknown };
+        if (typeof start !== 'string' || typeof end !== 'string') return null;
+        atoms.push([start, end]);
+      } else return null;
     }
     return selectionMode === 'single' && atoms.length > 1 ? null : atoms;
   };

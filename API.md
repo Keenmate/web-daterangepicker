@@ -135,7 +135,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `day-tooltip-member` | `string \| null` | — | Property name holding a day tooltip string. |
 | `is-disabled-member` | `string \| null` | — | Property name flagging a decorated date as disabled. |
 | `name` | `string \| null` | — | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
-| `value-format` | `'text' \| 'json' \| 'array'` | `'text'` | The SUBMITTED form value (and `el.value`) — independent of the shown text (`date-format-mask` / `time-format-mask`) and the placeholder hint. Each date is written with `value-format-mask` (default ISO-8601); serialization: Range mode always submits a LIST of ranges (one plain range, split pieces, or several). - `text` (default) — one field; a single date/time as-is, each range as `start{value-separator}end` (ranges joined by `,`), multiple dates joined by `value-separator`. - `json` — one field; single `"date"`, range `[{"start":…,"end":…}, …]`, multiple an array of `"date"` / `["start","end"]` items. - `array` — multiple `name[]` fields: one per date, in range mode one per RANGE (`start{value-separator}end`). Empty selection: `''` (`text` / `json`), no fields (`array`). `getValueFormatCallback` overrides all of it. |
+| `value-format` | `'text' \| 'json' \| 'array'` | `'text'` | The SUBMITTED form value (and `el.value`) — independent of the shown text (`date-format-mask` / `time-format-mask`) and the placeholder hint. Each date is written with `value-format-mask` (default ISO-8601); serialization: Range mode always submits a LIST of ranges (one plain range, split pieces, or several). - `text` (default) — one field; a single date/time as-is, each range as `start{value-separator}end` (ranges joined by `,`), multiple dates joined by `value-separator`. - `json` — one field; single `"date"`, range `[{"start":…,"end":…}, …]`, multiple an array of `"date"` / `{"start":…,"end":…}` items (a range is always an object). - `array` — multiple `name[]` fields: one per date, in range mode one per RANGE (`start{value-separator}end`). Empty selection: `''` (`text` / `json`), no fields (`array`). `getValueFormatCallback` overrides all of it. |
 | `value-format-mask` | `string \| null` | — | How each date is written in the SUBMITTED value (and `el.value`) — tokens `YYYY` `YY` `MM` `M` `DD` `D` `HH` `H` `hh` `h` `mm` `ss` `a`, anything else literal (e.g. `DD.MM.YYYY`, `DD.MM.YYYY HH:mm`). Unset = ISO-8601: `YYYY-MM-DD`, time `HH:mm[:ss]`, datetime `YYYY-MM-DDTHH:mm[:ss]` (seconds when shown). Also used to parse the `value` attribute / property (ISO and the displayed form are accepted too). |
 | `value-separator` | `string \| null` | — | Joins the dates in the `text` value format: between a range’s start and end (default `/`), between multiple dates (default `,`). E.g. `value-separator=" - "` → `03.11.2026 - 10.11.2026`. Also used to split the `value` attribute / property. |
 | `value` | `string \| null` | — | The initial / default value — like a native input's `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the submitted form (`value-format` / `value-format-mask` / `value-separator`), the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range as two dates with any separator between them (`2026-06-10 - 2026-06-14`, `2026-06-10/2026-06-14`, `2026-06-10 to 2026-06-14`, en dash, …), multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute. |
@@ -252,7 +252,7 @@ When instantiating the engine (`DateRangePickerEngine`) directly (not using web 
 | `visibleMonthsCount` | `number` | `1` or `2` | Number of months to display |
 | `dateFormatMask` | `string` | `'YYYY-MM-DD'` | Date format pattern |
 | `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How calendar is triggered: `'focus'` (on input focus), `'typing'` (when typing starts), `'manual'` (button/code only) |
-| `onSelect` | `(detail: SelectEventDetail) => void` | `undefined` | Fires on selection/apply with the standardized detail (same payload as the element's `select` event) |
+| `onChange` | `(detail: ChangeEventDetail) => void` | `undefined` | Fires when a selection is committed, with the standardized detail (same payload as the element's `change` event) |
 | `onAction` | `(detail: DateRangePickerActionEventDetail) => void` | `undefined` | Fires when an action button / `data-action` trigger is activated (the element's `action` event) |
 | `onMonthChange` | `(detail: MonthChangeEventDetail) => void` | `undefined` | Fires after month navigation (the element's `month-change` event) |
 | `container` | `HTMLElement` | `document.body` | Where to append calendar (for web component, uses shadow root) |
@@ -299,7 +299,7 @@ const picker = new DateRangePickerEngine(inputElement, {
   specialDates: [
     { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
   ],
-  onSelect: (detail) => {
+  onChange: (detail) => {
     console.log('Selected:', detail.dateRange);
   }
 });
@@ -314,7 +314,7 @@ const pickerES = new DateRangePickerEngine(inputElement, {
     clear: 'Borrar',
     preview: 'Previsualización'
   },
-  onSelect: (detail) => {
+  onChange: (detail) => {
     console.log('Fecha seleccionada:', detail.date);
   }
 });
@@ -408,7 +408,7 @@ standalone use (an input without the custom element — see
 [`docs/usage.md`](./docs/usage.md#javascript-instantiation-daterangepickerengine-class)).
 Its methods are internal and may change between releases; prefer the element
 and `el.controller`. Engine options follow [DatePicker Options](#datepicker-options);
-`onSelect`, `onAction` and `onMonthChange` receive the same details as the
+`onChange`, `onAction` and `onMonthChange` receive the same details as the
 element's events.
 
 ---
@@ -422,11 +422,12 @@ The web component dispatches the following events. All bubble; none are
 
 | Event Name | Detail | Description |
 |------------|--------|-------------|
-| `select` | `SelectEventDetail` | A date / range / time was selected (or applied) |
-| `change` | `SelectEventDetail` | Fires right after `select` with the same detail object (form-style wiring) |
+| `change` | `ChangeEventDetail` | The selection was committed (the value changed): every completed pick in `commit-mode="selection"`, on Apply / `commit()` in `apply` / `manual` |
 | `action` | `DateRangePickerActionEventDetail` | An action button (built-ins too) or an HTML `data-action` trigger was activated — see [Action Buttons](#action-buttons) |
 | `month-change` | `MonthChangeEventDetail` | The visible month(s) changed (any navigation) |
-| `ready` | `ReadyEventDetail` | The picker was built for the first time (once per element; deferred elements fire on `ready()` / `defer` removal) |
+| `ready` | `ReadyEventDetail` | The picker was built for the first time (once per element; deferred elements fire on `release()` / `defer` removal) |
+| `open` | `OpenEventDetail` | The calendar popover opened (floating / modal / full-screen; inline never opens) |
+| `close` | `CloseEventDetail` | The calendar popover closed — any reason (pick, Apply, Escape, outside click, scroll, `close()`); a staged, uncommitted pick is already discarded |
 | `value-format-error` | `ValueFormatErrorEventDetail` | `getValueFormatCallback` threw: `{ error, value }`; the field submits `''` and the host is invalid (`labels.valueFormatError`) until the next successful format |
 
 Every detail also carries **`controller`** (the [facade](#controller-facade-elcontroller))
@@ -434,11 +435,11 @@ and **`element`** (the host) — both non-enumerable, so `JSON.stringify(detail)
 and LiveView `pushEvent` see only the data — plus the presentation flags
 (`presentation`, `isModal`, `isFullscreen`).
 
-> **Note**: there are no separate `apply` or `cancel` events. Clicking the Apply button commits the pending selection and dispatches `select` + `change` (and `action` with `action: 'apply'` for the click itself). Pressing Escape with an uncommitted selection silently restores the previous input value and fires nothing.
+> **Note**: there are no separate `apply` or `cancel` events. Clicking the Apply button commits the pending selection and dispatches `change` (and `action` with `action: 'apply'` for the click itself). Pressing Escape with an uncommitted selection silently restores the previous input value and fires nothing.
 
 ### Event Detail Properties
 
-`select` / `change` (`SelectEventDetail`) — properties depend on the mode and configuration:
+`change` (`ChangeEventDetail`) — properties depend on the mode and configuration:
 
 | Property | Type | Always Present | Conditions | Description |
 |----------|------|----------------|------------|-------------|
@@ -455,7 +456,9 @@ and LiveView `pushEvent` see only the data — plus the presentation flags
 
 `month-change` (`MonthChangeEventDetail`): `monthIndex` (the column that changed), `year`, `month` (0–11), `visibleMonths` (`{ year, month }[]`, every column).
 
-`ready` (`ReadyEventDetail`): just `controller` / `element` (+ presentation flags).
+`ready` / `open` / `close` (`ReadyEventDetail` / `OpenEventDetail` / `CloseEventDetail`): just `controller` / `element` (+ presentation flags).
+
+`value-format-error` (`ValueFormatErrorEventDetail`): `error` (what `getValueFormatCallback` threw), `value` (the ISO selection snapshot it was asked to format).
 
 `action` (`DateRangePickerActionEventDetail`): see [Action Buttons](#action-buttons).
 
@@ -465,13 +468,13 @@ and LiveView `pushEvent` see only the data — plus the presentation flags
 const picker = document.querySelector('web-daterangepicker');
 
 // Single mode
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   console.log('Selected date:', e.detail.date);
   console.log('Formatted:', e.detail.formattedValue);
 });
 
 // Range mode - 'allow' mode
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   const { dateRange, enabledDates, disabledDates } = e.detail;
   console.log('Range:', dateRange.start, 'to', dateRange.end);
   console.log('Enabled days:', enabledDates.length);
@@ -480,7 +483,7 @@ picker.addEventListener('select', (e) => {
 });
 
 // Range mode - 'split' mode
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   const { dateRanges, dates } = e.detail;
   console.log('Split into', dateRanges.length, 'ranges');
   console.log('Total enabled dates:', dates.length);
@@ -490,7 +493,7 @@ picker.addEventListener('select', (e) => {
 });
 
 // Range mode - 'individual' mode
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   const { dates } = e.detail;
   console.log('Selected', dates.length, 'individual dates');
   dates.forEach(date => console.log(date.toLocaleDateString()));
@@ -510,48 +513,50 @@ right before the event is dispatched; assign `null` to remove it.
 
 | Property | Event | Handler receives |
 |----------|-------|------------------|
-| `onSelect` | `select` | `SelectEventDetail` |
-| `onChange` | `change` | `SelectEventDetail` |
+| `onChange` | `change` | `ChangeEventDetail` |
 | `onAction` | `action` | `DateRangePickerActionEventDetail` |
 | `onMonthChange` | `month-change` | `MonthChangeEventDetail` |
 | `onReady` | `ready` | `ReadyEventDetail` |
+| `onOpen` | `open` | `OpenEventDetail` |
+| `onClose` | `close` | `CloseEventDetail` |
+| `onValueFormatError` | `value-format-error` | `ValueFormatErrorEventDetail` |
 
 ```javascript
 const picker = document.querySelector('web-daterangepicker');
 
-picker.onSelect = (detail) => console.log('Selected:', detail.formattedValue);
+picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);
 picker.onAction = (detail) => console.log('Action:', detail.action, detail.id, detail.dataset);
 
-picker.onSelect = null; // detach
+picker.onChange = null; // detach
 ```
 
 ### Commit vs. close
 
 Two separate axes. `commit-mode` decides when a pick is **committed** (written to the
-input + `select` / `change`):
+input + `change`):
 
 | `commit-mode` | A completed pick… | Commit path |
 |---|---|---|
 | `selection` (date default) | is written immediately | every pick |
 | `apply` (time / datetime / `multiple` default) | is staged | the built-in Apply button |
-| `manual` | is staged | the app calls `apply()` (e.g. a custom action button); no built-in button |
+| `manual` | is staged | the app calls `commit()` (e.g. a custom action button); no built-in button |
 
 Closing is configured on its own:
 
 | Attribute | Default | Closes when… |
 |---|---|---|
-| `should-close-on-select` | `true` | a pick completes (`commit-mode="selection"` only) |
-| `should-close-on-outside-click` | `true` (`false` in `commit-mode="manual"` unless set) | a click lands outside the floating calendar / on the modal backdrop |
-| `should-close-on-scroll` | `true` | the page scrolls (floating; never while a pick is staged) |
+| `close-on-select` | `true` | a pick completes (`commit-mode="selection"` only) |
+| `close-on-outside-click` | `true` (`false` in `commit-mode="manual"` unless set) | a click lands outside the floating calendar / on the modal backdrop |
+| `close-on-scroll` | `true` | the page scrolls (floating; never while a pick is staged) |
 
-Escape and `close()` always close. Closing without `apply()` discards a staged pick.
+Escape and `close()` always close. Closing without `commit()` discards a staged pick.
 
 The booking.com flow — every pick is written right away, but the calendar stays open so the
 dates can be adjusted:
 
 ```html
 <web-daterangepicker selection-mode="range" visible-months-count="2"
-  commit-mode="selection" should-close-on-select="false"></web-daterangepicker>
+  commit-mode="selection" close-on-select="false"></web-daterangepicker>
 ```
 
 ### Action Buttons
@@ -1245,7 +1250,7 @@ interface DatePickerOptions {
   beforeActionCallback?: (detail: DateRangePickerActionEventDetail) => void | false | Promise<void | false>;
 
   // Engine notifications (the element re-emits these as events)
-  onSelect?: (detail: SelectEventDetail) => void;
+  onChange?: (detail: ChangeEventDetail) => void;
   onAction?: (detail: DateRangePickerActionEventDetail) => void;
   onMonthChange?: (detail: MonthChangeEventDetail) => void;
 }
@@ -1274,12 +1279,12 @@ interface PickerContext {
 }
 ```
 
-### SelectEventDetail
+### ChangeEventDetail
 
-Detail of `select` / `change` (alias `ChangeEventDetail`), and the argument of `onSelect` / `onChange`.
+Detail of `change`, and the argument of `onChange`.
 
 ```typescript
-interface SelectEventDetail extends PickerContext {
+interface ChangeEventDetail extends PickerContext {
   date?: Date;                              // Single mode
   dateRange?: DateRange | null;             // Range mode
   formattedValue: string;                   // Always present
@@ -1627,7 +1632,7 @@ The web component provides convenient property accessors for JavaScript:
 | `dayTooltipMember` | `string \| null` | Read/Write | Property name holding a day tooltip string. |
 | `isDisabledMember` | `string \| null` | Read/Write | Property name flagging a decorated date as disabled. |
 | `name` | `string \| null` | Read/Write | HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`. |
-| `valueFormat` | `'text' \| 'json' \| 'array'` | Read/Write | The SUBMITTED form value (and `el.value`) — independent of the shown text (`date-format-mask` / `time-format-mask`) and the placeholder hint. Each date is written with `value-format-mask` (default ISO-8601); serialization: Range mode always submits a LIST of ranges (one plain range, split pieces, or several). - `text` (default) — one field; a single date/time as-is, each range as `start{value-separator}end` (ranges joined by `,`), multiple dates joined by `value-separator`. - `json` — one field; single `"date"`, range `[{"start":…,"end":…}, …]`, multiple an array of `"date"` / `["start","end"]` items. - `array` — multiple `name[]` fields: one per date, in range mode one per RANGE (`start{value-separator}end`). Empty selection: `''` (`text` / `json`), no fields (`array`). `getValueFormatCallback` overrides all of it. |
+| `valueFormat` | `'text' \| 'json' \| 'array'` | Read/Write | The SUBMITTED form value (and `el.value`) — independent of the shown text (`date-format-mask` / `time-format-mask`) and the placeholder hint. Each date is written with `value-format-mask` (default ISO-8601); serialization: Range mode always submits a LIST of ranges (one plain range, split pieces, or several). - `text` (default) — one field; a single date/time as-is, each range as `start{value-separator}end` (ranges joined by `,`), multiple dates joined by `value-separator`. - `json` — one field; single `"date"`, range `[{"start":…,"end":…}, …]`, multiple an array of `"date"` / `{"start":…,"end":…}` items (a range is always an object). - `array` — multiple `name[]` fields: one per date, in range mode one per RANGE (`start{value-separator}end`). Empty selection: `''` (`text` / `json`), no fields (`array`). `getValueFormatCallback` overrides all of it. |
 | `valueFormatMask` | `string \| null` | Read/Write | How each date is written in the SUBMITTED value (and `el.value`) — tokens `YYYY` `YY` `MM` `M` `DD` `D` `HH` `H` `hh` `h` `mm` `ss` `a`, anything else literal (e.g. `DD.MM.YYYY`, `DD.MM.YYYY HH:mm`). Unset = ISO-8601: `YYYY-MM-DD`, time `HH:mm[:ss]`, datetime `YYYY-MM-DDTHH:mm[:ss]` (seconds when shown). Also used to parse the `value` attribute / property (ISO and the displayed form are accepted too). |
 | `valueSeparator` | `string \| null` | Read/Write | Joins the dates in the `text` value format: between a range’s start and end (default `/`), between multiple dates (default `,`). E.g. `value-separator=" - "` → `03.11.2026 - 10.11.2026`. Also used to split the `value` attribute / property. |
 | `getValueFormatCallback` | `(ctx: FormValueSelection & PickerContext) => string` | Read/Write | Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value (also what `el.value` returns). Overrides `value-format` / `value-format-mask` / `value-separator`. If it throws: logged, the field submits an empty string, the host is invalid (`labels.valueFormatError`) and `value-format-error` fires, until the next successful format. Property-only. |
@@ -1741,7 +1746,7 @@ const bookedDates = await fetchBookedDates();
 
 ```javascript
 picker.setAttribute('disabled-dates-handling', 'split');
-picker.addEventListener('select', (e) => {
+picker.addEventListener('change', (e) => {
   const { dateRanges, dates } = e.detail;
 
   console.log(`Selected ${dateRanges.length} separate ranges`);
@@ -1867,7 +1872,7 @@ const engine = new DateRangePickerEngine(input, {
 <script>
   const picker = document.getElementById('spanish-picker');
 
-  picker.addEventListener('select', (e) => {
+  picker.addEventListener('change', (e) => {
     const { dateRange, formattedValue } = e.detail;
     console.log('Rango seleccionado:', formattedValue);
     console.log('Desde:', dateRange.start);
@@ -1889,7 +1894,7 @@ const picker = new DateRangePickerEngine(inputElement, {
     preview: 'Vorschau'
   },
   weekStartDay: 1, // Monday (automatically detected for 'de', but can override)
-  onSelect: (detail) => {
+  onChange: (detail) => {
     console.log('Ausgewähltes Datum:', detail.date);
   }
 });
@@ -2258,7 +2263,7 @@ model. No aliases — rename on upgrade. The full table is in
 
 | Old | New |
 |-----|-----|
-| `date-select` event / `onDateSelect = (e) => e.detail…` | `select` event / `onSelect = (detail) => …` (every `on*` twin gets the detail) |
+| `date-select` event / `onDateSelect = (e) => e.detail…` | `change` event / `onChange = (detail) => …` (every `on*` twin gets the detail) |
 | `custom-action` event, `detail.data` | `action` event (every button + `data-action` trigger), `detail.id` / `detail.dataset` |
 | `ctx.picker`, `el.picker` | `ctx.controller` / `ctx.element`, `el.controller` |
 | `{ action: 'custom', text, onClick }` | `{ id: 'my-id', text, onClick(detail) }` |

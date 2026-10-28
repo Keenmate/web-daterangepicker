@@ -133,6 +133,15 @@
     </div>
 
     <div class="fixture">
+        <div class="fixture-label">inline, multiple — value-format="json" (range items are {start, end} objects)</div>
+        <form id="fmuj">
+            <web-daterangepicker id="picker-multiple-json" name="days" selection-mode="multiple"
+                positioning-mode="inline" value-format="json"
+                initial-date="2026-06-15"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
         <div class="fixture-label">datetime — value-format-mask="DD.MM.YYYY HH:mm"</div>
         <form id="fmd">
             <web-daterangepicker id="picker-mask-datetime" name="at" selection-mode="single" picker-mode="datetime"

@@ -293,6 +293,27 @@ test('multiple: the dates are joined with value-separator and written with the m
     expect(await p.evaluate((el: any) => el.value)).toBe('3.11.2026; 5.11.2026');
 });
 
+test('multiple json: range items are {start, end} objects and parse back', async ({ page }) => {
+    const p = page.locator('#picker-multiple-json');
+    const json = '[{"start":"2026-06-01","end":"2026-06-03"},{"start":"2026-06-08","end":"2026-06-09"}]';
+    const read = await p.evaluate(async (el: any, v: string) => {
+        el.selectedRanges = [
+            { start: new Date(2026, 5, 1), end: new Date(2026, 5, 3) },
+            { start: new Date(2026, 5, 8), end: new Date(2026, 5, 9) },
+        ];
+        await el.whenSettled();
+        const set = el.value;
+        el.value = '';
+        await el.whenSettled();
+        const cleared = el.value;
+        el.value = v;
+        await el.whenSettled();
+        return [set, cleared, el.value];
+    }, json);
+    expect(read).toEqual([json, '', json]);
+    expect(await formValue(page, 'fmuj', 'days')).toBe(json);
+});
+
 test('datetime: value-format-mask writes and parses date + time', async ({ page }) => {
     const p = page.locator('#picker-mask-datetime');
     expect(await formValue(page, 'fmd', 'at')).toBe('03.11.2026 14:30');

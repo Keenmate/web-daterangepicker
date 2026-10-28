@@ -24,8 +24,11 @@ attribute is the default (`defaultValue`).
   - `array`: one `name[]` field per RANGE, `start{value-separator}end` (was two fields per range,
     start and end) — `stay[]=03.11.2026/10.11.2026`, and it round-trips as ranges;
   - `text`: `start{value-separator}end` per range, ranges joined by `,` (unchanged).
-  Single `json` stays `"date"`; multiple `json` is `["d1","d2"]` (range items `["start","end"]`
-  pairs); an empty selection submits `''` in `text` / `json` (was `null` / `[]`), no field in `array`.
+  Single `json` stays `"date"`; multiple `json` is `["d1","d2"]`; an empty selection submits `''` in `text` / `json` (was `null` / `[]`), no field in `array`.
+- **BREAKING — a range is always an object in `json`**: a committed range item in `multiple` mode
+  is `{"start":…,"end":…}` (was a `["start","end"]` pair), e.g.
+  `["2026-06-15",{"start":"2026-06-18","end":"2026-06-20"}]`; the `value` attribute / property
+  parses the same form back (the pair form is no longer read).
 - **Added — a throwing `getValueFormatCallback` makes the control invalid.** The error is logged
   (`DRP:SELECTION`, error level), the field submits `''`, the host gets `validity.customError` with
   the new `labels.valueFormatError` message (default "The value could not be formatted.") via core

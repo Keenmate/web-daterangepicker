@@ -303,7 +303,7 @@ shown text) and the placeholder masks. Three inputs shape it (priority:
 | `value-format` | Single | Range | Multiple |
 |---|---|---|---|
 | `text` (default) | `2026-06-15` | `2026-06-15/2026-06-20` | `2026-06-15,2026-06-18` |
-| `json` | `"2026-06-15"` | `[{"start":"2026-06-15","end":"2026-06-20"}]` | `["2026-06-15",["2026-06-18","2026-06-20"]]` |
+| `json` | `"2026-06-15"` | `[{"start":"2026-06-15","end":"2026-06-20"}]` | `["2026-06-15",{"start":"2026-06-18","end":"2026-06-20"}]` |
 | `array` | one `name[]` field | one `name[]` per range (`2026-06-15/2026-06-20`) | one `name[]` per date |
 
 **Range mode always submits a list of ranges** — one plain range, the pieces of a
@@ -332,7 +332,7 @@ An empty selection submits `''` (`text` / `json`) or no field at all (`array`).
   sub-range, and `"individual"` / `"block"` submit the enabled days (each as a
   one-day range `day/day`).
 - In `multiple` mode a committed range item is written `start/end` in `text`
-  (`[start, end]` in `json`); `array` flattens it to two fields.
+  (`{"start":…,"end":…}` in `json` — a range is always an object); `array` flattens it to two fields.
 - For full control, set the **`getValueFormatCallback`** property — it receives
   the normalized ISO selection snapshot (`{ selectionMode, pickerMode, items }`,
   where each item is an ISO string or `{ start, end }`) plus the picker context and

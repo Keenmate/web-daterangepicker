@@ -441,7 +441,7 @@ value-format="array" + same mask → stay[]=03.11.2026/10.11.2026   (one field p
 value-format="json"  + same mask → stay=[{"start":"03.11.2026","end":"10.11.2026"}]
 Range mode ALWAYS submits a list of ranges (plain, split pieces, or several):
   text s/e,s/e · json [{start,end},…] · array one s/e per field — all parse back.
-Single json "d"; multiple json ["d1","d2"]. Empty selection: '' (text/json), no field (array).
+Single json "d"; multiple json ["d1","d2"] (a range item is {"start","end"}, never a pair). Empty selection: '' (text/json), no field (array).
 
 A THROWING getValueFormatCallback → logged (DRP:SELECTION error), field submits '',
 host invalid (validity.customError, message = labels.valueFormatError) so the form
