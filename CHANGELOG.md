@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — leftover naming decisions, round 2 (2026-10-28)
+
+- **BREAKING — `inputValue` property → `defaultValue`** (attribute stays `value`). Same meaning as a
+  native input's `defaultValue`: the declared default, parsed on build and restored by `form.reset()`;
+  the live selection text is the `value` property.
+
 ### Changed — v2 API naming unification (**BREAKING**, no aliases)
 
 One vocabulary across the KeenMate components (web-components-core naming pass, 2026-10-27).
