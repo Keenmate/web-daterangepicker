@@ -2306,6 +2306,27 @@ class DateRangePickerEngine {
     }
 
     /**
+     * Lenient range text: find exactly two dates (each in the `dateFormatMask` form
+     * or ISO) and ignore whatever separates them — `" - "`, `"/"`, an en dash,
+     * `"to"`, `"bis"`, … The separator may not contain digits, and nothing but
+     * whitespace may surround the pair. Returns the two dates in written order.
+     */
+    findDatePair(text: string): [Date, Date] | null {
+        // A date token: three digit groups joined by one repeated separator, so
+        // `2026-06-10/2026-06-14` splits into two tokens at the `/`.
+        const tokens = [...text.matchAll(/\d+([-./])\d+\1\d+/g)];
+        if (tokens.length !== 2) return null;
+        const [t1, t2] = tokens;
+        const before = text.slice(0, t1.index);
+        const between = text.slice(t1.index! + t1[0].length, t2.index);
+        const after = text.slice(t2.index! + t2[0].length);
+        if (before.trim() || after.trim() || /\d/.test(between) || !between.length) return null;
+        const a = this.parseDateText(t1[0]);
+        const b = this.parseDateText(t2[0]);
+        return a && b ? [a, b] : null;
+    }
+
+    /**
      * Parse a time — `HH:mm`, `HH:mm:ss` (`:` or `.`), optionally with an am/pm
      * marker (`am`/`pm` or the locale's labels).
      */
@@ -2333,7 +2354,8 @@ class DateRangePickerEngine {
      * picker writes into its input (the `dateFormatMask` / `timeFormatMask` form)
      * and the ISO form it submits:
      * - single: `2026-06-10`; datetime: `2026-06-10 14:30` / `2026-06-10T14:30`; time: `14:30`
-     * - range: `start - end` or `start/end`; several ranges joined by `, `
+     * - range: two dates with anything (no digits) between — `start - end`, `start/end`,
+     *   `start – end`, `start to end`; several ranges joined by `, `
      * - multiple: dates and ranges joined by `,`
      *
      * Synchronous; runs no callbacks and fires no events. `''` clears. An
@@ -2344,11 +2366,9 @@ class DateRangePickerEngine {
         const pm = this.options.pickerMode;
         const sm = this.options.selectionMode;
         const parseRange = (s: string): DateRange | null => {
-            const parts = s.includes('/') ? s.split('/') : s.split(' - ');
-            if (parts.length !== 2) return null;
-            const a = this.parseDateText(parts[0]);
-            const b = this.parseDateText(parts[1]);
-            if (!a || !b) return null;
+            const pair = this.findDatePair(s);
+            if (!pair) return null;
+            const [a, b] = pair;
             return a <= b ? { start: a, end: b } : { start: b, end: a };
         };
 
@@ -2372,9 +2392,8 @@ class DateRangePickerEngine {
                 ranges = pieces as DateRange[];
             } else if (sm === 'multiple') {
                 for (const piece of value.split(',').map((s) => s.trim())) {
-                    const isRange = piece.includes('/') || piece.includes(' - ');
-                    const r = isRange ? parseRange(piece) : null;
-                    const d = isRange ? null : this.parseDateText(piece);
+                    const d = this.parseDateText(piece);
+                    const r = d ? null : parseRange(piece);
                     if (r) ranges.push(r);
                     else if (d) dates.push(d);
                     else isValid = false;

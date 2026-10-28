@@ -193,3 +193,34 @@ test('an invalid value attribute warns, leaves the selection empty and the attri
     expect(await formValue(page, 'fx')).toBe('');
     expect(warnings.some((w) => w.includes('hroch'))).toBe(true);
 });
+
+test('a range value is lenient about the separator between the two dates', async ({ page }) => {
+    const p = page.locator('#picker-default');
+    const results = await p.evaluate(async (el: any) => {
+        const out: Array<[string, string, string]> = [];
+        for (const v of ['2026-07-01 to 2026-07-03', '2026-07-01 – 2026-07-03', '2026-07-01 bis 2026-07-03', '2026-07-01/2026-07-03', '2026-07-01 - 2026-07-03', '  2026-07-03 -2026-07-01 ']) {
+            el.value = v;
+            await el.whenSettled();
+            out.push([v, el.value, new FormData(document.getElementById('fd') as HTMLFormElement).get('range') as string]);
+        }
+        return out;
+    });
+    for (const [v, shown, submitted] of results) {
+        expect(shown, v).toBe('2026-07-01 - 2026-07-03');
+        expect(submitted, v).toBe('2026-07-01/2026-07-03');
+    }
+});
+
+test('a range value with extra text or a third date is still invalid', async ({ page }) => {
+    const p = page.locator('#picker-default');
+    const shown = await p.evaluate(async (el: any) => {
+        const out: string[] = [];
+        for (const v of ['from 2026-07-01 to 2026-07-03', '2026-07-01 - 2026-07-03 - 2026-07-05', '2026-07-012026-07-03']) {
+            el.value = v;
+            await el.whenSettled();
+            out.push(el.value);
+        }
+        return out;
+    });
+    expect(shown).toEqual(['', '', '']);
+});

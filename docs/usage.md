@@ -274,8 +274,11 @@ control — no wrapper or manual hidden input needed. It works the same in
 Under the hood the control renders a light-DOM hidden `<input>` inside the form
 (the same approach as `<web-multiselect>`). `form.reset()` restores the selection
 parsed from the `value` attribute — the default, like a native input's
-`defaultValue` (empty without one); setting `el.value` from JS changes the current
-selection only, never the attribute. It
+`defaultValue` (empty without one; `el.defaultValue` reads it); setting `el.value` from JS
+changes the current selection only, never the attribute. A range `value` (attribute or
+property) is lenient about what separates the two dates — `2026-06-10/2026-06-14`,
+`2026-06-10 - 2026-06-14`, `2026-06-10 to 2026-06-14`, an en dash, … all parse (each date in
+the `date-format-mask` form or ISO); the input still shows `" - "` and the form submits `start/end`. It
 also exposes `el.form` / `event.target.form`, so frameworks that delegate form
 changes by reading `target.form` (e.g. Phoenix LiveView's `phx-change`) resolve
 the parent form correctly.

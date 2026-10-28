@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   native input's `defaultValue`: the declared default, parsed on build and restored by `form.reset()`;
   the live selection text is the `value` property.
 
+### Fixed
+
+- **A range `value` (attribute / property) is lenient about the separator**: the two dates (each in
+  the `date-format-mask` form or ISO) are found and whatever sits between them is ignored — `" - "`,
+  `"/"`, en dash, `"to"`, `"bis"`, … (no digits, nothing around the pair). Before, only `" - "` and
+  `"/"` parsed, so `2026-06-10 to 2026-06-14` (as the basic / logging demos used) warned and left the
+  selection empty. Output unchanged: the input shows `" - "`, the form submits `start/end`.
+
 ### Changed — v2 API naming unification (**BREAKING**, no aliases)
 
 One vocabulary across the KeenMate components (web-components-core naming pass, 2026-10-27).

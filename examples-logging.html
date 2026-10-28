@@ -320,7 +320,7 @@ Example:
           const d = new Date(_today); d.setDate(d.getDate() + n);
           return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         };
-        dragDebug.setAttribute('value', `${off(-5)} to ${off(5)}`);
+        dragDebug.setAttribute('value', `${off(-5)}/${off(5)}`);
       }
       console.log('🐛 Debug & Logging Examples Loaded');
       console.log('');
