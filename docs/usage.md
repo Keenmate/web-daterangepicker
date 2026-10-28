@@ -793,6 +793,13 @@ translations.
 | `time` / `hours` / `minutes` / `seconds` / `am` / `pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
 | `fullscreenTitle` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
 
+`''` is a deliberate empty label (renders nothing); a missing / `undefined` key falls back to
+the English default. Content labels (`preview`, `day(s)`, `night(s)`, `time`, `hours`,
+`minutes`, `seconds`, `am` / `pm` in the time pickers) are inserted as HTML — never pass
+untrusted text; the `{count}` value is escaped. The others (button text, ARIA labels,
+`fullscreenTitle`, `selectionCount` in the input) are plain text. See the README's
+HTML Injection (XSS) notice.
+
 ```html
 <web-daterangepicker selection-mode="range" locale="de"
   labels='{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'>

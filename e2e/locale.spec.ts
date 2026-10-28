@@ -42,6 +42,23 @@ test('labels overrides individual button labels (Today → "Jump"); the rest sta
     await expect(p.locator('.drp__button--clear')).toHaveText('Clear');
 });
 
+test('labels: "" renders an empty label, undefined falls back to the English default', async ({ page }) => {
+    const p = pickerById(page, 'custom-strings');
+    await p.evaluate((el: any) => { el.labels = { today: '', clear: undefined }; return el.whenSettled(); });
+    await p.evaluate((el: any) => el.open());
+    await expect(p.locator('.drp__button--today')).toHaveText('');
+    await expect(p.locator('.drp__button--clear')).toHaveText('Clear');
+});
+
+test('labels: a content label may carry HTML; {count} values are interpolated as text', async ({ page }) => {
+    const p = await open(page, 'labels-attr');
+    await p.evaluate((el: any) => { el.labels = { days: '<b class="x-days">{count}</b> days' }; return el.whenSettled(); });
+    await p.evaluate((el: any) => el.open());
+    await p.locator('.drp__day[data-date="2026-06-10"]').click();
+    await p.locator('.drp__day[data-date="2026-06-13"]').click();
+    await expect(p.locator('.drp__summary b.x-days')).toHaveText('4');
+});
+
 test('locale="de" translates only Intl names — UI strings stay English without labels', async ({ page }) => {
     const p = await open(page, 'de');
     await expect(p.locator('.drp__button--today')).toHaveText('Today');

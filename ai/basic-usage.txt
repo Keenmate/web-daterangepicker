@@ -467,6 +467,9 @@ el.labels = { today: 'Dnes', days: '{count} dní', fullscreenTitle: 'Vyberte ter
 
 Keys: today, clear, apply, now, close, preview, day, days, night, nights,
 selectionCount ({count}), time, am, pm, hours, minutes, seconds, fullscreenTitle.
+'' = deliberately empty (renders nothing); undefined / missing = English default.
+Content labels (preview, day(s), night(s), time, hours, minutes, seconds, am/pm in
+the time pickers) are inserted as HTML; {count} is escaped; the rest are plain text.
 ❌ customStrings, fullscreen-title  → ✅ labels / labels.fullscreenTitle
 
 LIFECYCLE

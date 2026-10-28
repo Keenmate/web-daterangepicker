@@ -21,7 +21,7 @@ import * as Selection from './date-picker-selection';
 import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
-import { resolveLocale, resolveLabels, formatLabel, getWeekdayNames, getMonthNames } from './date-picker-locales';
+import { resolveLocale, resolveLabels, formatLabel, escapeHtml, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
 import { createPresentationContext, registerOverlay, withComponentContext, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
@@ -1440,7 +1440,7 @@ class DateRangePickerEngine {
         this.messageElement.className = 'drp__message';
         this.messageElement.innerHTML = `
             <span class="drp__message-text"></span>
-            <button class="drp__message-close" data-drp-action="hide-message" aria-label="${this.labels.close.replace(/"/g, '&quot;')}">&times;</button>
+            <button class="drp__message-close" data-drp-action="hide-message" aria-label="${escapeHtml(this.labels.close)}">&times;</button>
         `;
         this.calendar.appendChild(this.messageElement);
 

@@ -34,7 +34,9 @@ export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
 /**
  * Resolve the effective labels: the instance `labels` (partial) over the English
  * defaults. The single resolution seam — a page-wide source (core `/locale`) slots
- * in between the two later. Non-string overrides are ignored.
+ * in between the two later. `''` is a deliberate empty label (renders nothing);
+ * `undefined` / a missing key falls back to the English default. Non-string
+ * overrides are ignored.
  */
 export function resolveLabels(labels?: Partial<DateRangePickerLabels> | null): DateRangePickerLabels {
   const out: DateRangePickerLabels = { ...DEFAULT_LABELS };
@@ -46,9 +48,18 @@ export function resolveLabels(labels?: Partial<DateRangePickerLabels> | null): D
   return out;
 }
 
-/** Interpolate `{name}` placeholders in a label (`formatLabel('{count} days', { count: 3 })`). */
+/** Escape text for HTML content / a double-quoted attribute value. */
+export function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/**
+ * Interpolate `{name}` placeholders in a label (`formatLabel('{count} days', { count: 3 })`).
+ * The template may carry HTML (content labels are inserted as-is); the placeholder
+ * VALUES are data and are escaped before interpolation.
+ */
 export function formatLabel(template: string, params: Record<string, string | number>): string {
-  return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? String(params[name]) : match));
+  return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? escapeHtml(String(params[name])) : match));
 }
 
 /**

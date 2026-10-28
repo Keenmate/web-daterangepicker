@@ -209,7 +209,7 @@ over rendering but requires sanitizing untrusted data:
 | `renderDayContentCallback` | Day cells (innerHTML) | HTML injection |
 | `getDateMetadataCallback` (`badgeText`, `dayTooltip`) | Badges / tooltips (innerHTML) | HTML injection |
 | `renderSummaryCallback` | Summary display (innerHTML) | HTML injection |
-| `labels` (summary / message texts) | Summary display (innerHTML) | HTML injection — developer-supplied strings |
+| `labels` content keys: `preview`, `day` / `days`, `night` / `nights`, `time`, `hours`, `minutes`, `seconds`, `am` / `pm` | Summary and time-picker headers / buttons (innerHTML) | HTML injection — developer-supplied strings; `{count}` values are escaped |
 | `getMonthHeaderCallback` | Month headers (innerHTML) | HTML injection |
 | `getUnifiedHeaderCallback` | Unified header (innerHTML) | HTML injection |
 | `getCustomStylesCallback` / `custom-styles` | Style tag (textContent) | CSS injection |
@@ -218,6 +218,7 @@ over rendering but requires sanitizing untrusted data:
 
 - `beforeSelectCallback`, `beforeMonthChangeCallback` (return values, not markup)
 - `actionButtons[].text` / `getTextCallback` (set as plain text)
+- `labels` text keys: `today` / `clear` / `apply` / `now` (button text), `close` (aria-label), `fullscreenTitle`, `selectionCount` (input value) — and `am` / `pm` where they appear in the input value
 - `onChange`, `onOpen`, `onClose`, `onAction`, `onMonthChange`, `onReady` (event handlers)
 - `getDateMetadataCallback` (`isDisabled`, `dayClass`, `badgeClass` — CSS class names only)
 

@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sits partly out of view scrolls it into view — that window scroll arrived after the open and shut
   the popover at once. Scrolls caused by opening (until two animation frames after `open`) are now
   ignored; a later scroll still closes it.
+- **`labels`: placeholder values are escaped, attribute labels are text.** `{count}` is escaped
+  before interpolation (content labels themselves may still carry HTML); the message ✕'s
+  `aria-label` now escapes `&` / `<` / `>` too, not just `"`. `''` stays a deliberate empty label,
+  `undefined` falls back to English (documented). README's HTML Injection table now lists exactly
+  which label keys are HTML and which are text.
 
 ### Changed — v2 API naming unification (**BREAKING**, no aliases)
 
