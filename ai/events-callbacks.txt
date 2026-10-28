@@ -13,6 +13,8 @@ element or any ancestor in the same tree):
   action        - an action button or a data-action trigger was activated
   month-change  - the visible month(s) changed (any navigation)
   ready         - first build done (once per element lifetime)
+  value-format-error - getValueFormatCallback threw: { error, value } — field submits '',
+                  host invalid until the next successful format (basic-usage.txt FORM)
 
 Every detail carries `controller` (the public facade, same as el.controller)
 and `element` (the host) as NON-enumerable properties — JSON.stringify(detail)

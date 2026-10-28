@@ -54,7 +54,7 @@ import type {
   DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, DateRangePickerLabels,
   BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthData, MonthChangeEventDetail,
   ReadyEventDetail, OpenEventDetail, CloseEventDetail, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
-  ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext, ShowMessageOptions,
+  ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext, ShowMessageOptions, ValueFormatErrorEventDetail,
 } from './types';
 import styles from './css/main.css?inline';
 
@@ -120,7 +120,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'disabledDatesHandling',        attribute: 'disabled-dates-handling',       converter: toEnum(DISABLED_HANDLING), on: 'update', description: 'Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`.' },
   { configKey: 'shouldHighlightDisabledInRange', attribute: 'highlight-disabled-in-range',   converter: toBool('tristate'), on: 'update', description: 'Visually mark disabled dates that fall inside a selected range.' },
   { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ default: 'auto' }), on: 'update', description: 'BCP-47 locale for the `Intl` month / weekday names, or `auto` (the browser language). UI strings are `labels`.' },
-  { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none). Property, or a JSON attribute: `labels=\'{"today":"Heute","days":"{count} Tage"}\'`. Month / weekday names come from `Intl` via `locale`.' },
+  { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws). Property, or a JSON attribute: `labels=\'{"today":"Heute","days":"{count} Tage"}\'`. Month / weekday names come from `Intl` via `locale`.' },
   { configKey: 'monthNames',                   attribute: 'month-names',                   converter: toPipeList(12), on: 'update', type: 'string[]', description: 'Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`.' },
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
   { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toYearRange(), on: 'update', type: 'string | null', description: 'Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY\'s year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one.' },
@@ -149,13 +149,14 @@ const INPUTS: readonly InputDef[] = [
   // ── Form integration (NON-picker; light-DOM hidden input[s], like web-multiselect) ──
   { configKey: 'name',                         attribute: 'name',                          converter: toText({ isNullable: true }), on: 'update', description: 'HTML form field name. When set, the control submits its selection as a light-DOM hidden `<input>` (`name[]` inputs for `value-format="array"`). Also read by core for `el.form` / `form.reset()`.' },
   { configKey: 'valueFormat',                  attribute: 'value-format',                  converter: toEnum(VALUE_FORMATS, { default: 'text' }), on: 'update', description: `The SUBMITTED form value (and \`el.value\`) — independent of the shown text (\`date-format-mask\` / \`time-format-mask\`) and the placeholder hint. Each date is written with \`value-format-mask\` (default ISO-8601); serialization:
-- \`text\` (default) — one field; a single date/time as-is, a range as \`start{value-separator}end\` (several ranges joined by \`,\`), multiple dates joined by \`value-separator\`.
-- \`json\` — one field; single \`"date"\`, range \`["start","end"]\`, multiple an array of \`"date"\` / \`["start","end"]\` items.
-- \`array\` — multiple \`name[]\` fields, one per date; a range contributes \`start\` and \`end\`.
+Range mode always submits a LIST of ranges (one plain range, split pieces, or several).
+- \`text\` (default) — one field; a single date/time as-is, each range as \`start{value-separator}end\` (ranges joined by \`,\`), multiple dates joined by \`value-separator\`.
+- \`json\` — one field; single \`"date"\`, range \`[{"start":…,"end":…}, …]\`, multiple an array of \`"date"\` / \`["start","end"]\` items.
+- \`array\` — multiple \`name[]\` fields: one per date, in range mode one per RANGE (\`start{value-separator}end\`).
 Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValueFormatCallback\` overrides all of it.` },
   { configKey: 'valueFormatMask',              attribute: 'value-format-mask',             converter: toText({ isNullable: true }), on: 'update', description: 'How each date is written in the SUBMITTED value (and `el.value`) — tokens `YYYY` `YY` `MM` `M` `DD` `D` `HH` `H` `hh` `h` `mm` `ss` `a`, anything else literal (e.g. `DD.MM.YYYY`, `DD.MM.YYYY HH:mm`). Unset = ISO-8601: `YYYY-MM-DD`, time `HH:mm[:ss]`, datetime `YYYY-MM-DDTHH:mm[:ss]` (seconds when shown). Also used to parse the `value` attribute / property (ISO and the displayed form are accepted too).' },
   { configKey: 'valueSeparator',               attribute: 'value-separator',               converter: toText({ isNullable: true }), on: 'update', description: 'Joins the dates in the `text` value format: between a range’s start and end (default `/`), between multiple dates (default `,`). E.g. `value-separator=" - "` → `03.11.2026 - 10.11.2026`. Also used to split the `value` attribute / property.' },
-  { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(ctx: FormValueSelection & PickerContext) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value (also what `el.value` returns). Overrides `value-format` / `value-format-mask` / `value-separator`. Property-only.' },
+  { configKey: 'getValueFormatCallback',       converter: cb(), on: 'update', type: '(ctx: FormValueSelection & PickerContext) => string', description: 'Custom serialization of the submitted value; receives the normalized ISO selection snapshot (`selectionMode`, `pickerMode`, `items`) plus the picker context and returns the single hidden-input value (also what `el.value` returns). Overrides `value-format` / `value-format-mask` / `value-separator`. If it throws: logged, the field submits an empty string, the host is invalid (`labels.valueFormatError`) and `value-format-error` fires, until the next successful format. Property-only.' },
 
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'defaultValue',                 attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the submitted form (`value-format` / `value-format-mask` / `value-separator`), the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range as two dates with any separator between them (`2026-06-10 - 2026-06-14`, `2026-06-10/2026-06-14`, `2026-06-10 to 2026-06-14`, en dash, …), multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
@@ -202,6 +203,7 @@ type DrpEvents = {
   ready: ReadyEventDetail;
   open: OpenEventDetail;
   close: CloseEventDetail;
+  'value-format-error': ValueFormatErrorEventDetail;
 };
 const EVENTS = [
   { name: 'change', description: 'The selection was committed (the value changed): every completed pick in `commit-mode="selection"`, on Apply / `commit()` in `apply` / `manual`. `detail` carries the date(s)/range(s), the formatted value, and — depending on disabled-dates-handling — enabled/disabled/split breakdowns. Twin: `onChange(detail)`.' },
@@ -210,6 +212,7 @@ const EVENTS = [
   { name: 'ready', description: 'The picker was built and is live for the first time (once per element lifetime; core `BlissElement`). Fires right after the first build — synchronously during upgrade for a normal element, or when the `defer` gate is released (`el.release()` / removing `defer`) for a deferred one. The host then has the `ready` attribute and matches `:state(ready)`; `el.whenReady()` resolves. `detail`: `controller` / `element`. Twin: `onReady(detail)`.' },
   { name: 'open', description: 'The calendar popover opened (floating / modal / full-screen; inline never opens). `detail`: `controller` / `element` + the presentation flags. Twin: `onOpen(detail)`.' },
   { name: 'close', description: 'The calendar popover closed — any reason (pick, Apply, Escape, outside click, scroll, `close()`). A staged, uncommitted pick has already been discarded. `detail`: `controller` / `element` + the presentation flags. Twin: `onClose(detail)`.' },
+  { name: 'value-format-error', description: "`getValueFormatCallback` threw. The error is logged (error level), the form field(s) submit `''`, and the host turns invalid (`validity.customError`, message = the `valueFormatError` label) so the form refuses to submit (`invalid` fires instead of `submit`; a `<form novalidate>` submits `''`). The next successful format makes it valid again. `detail`: `error`, `value` (the ISO selection snapshot it was asked to format) + `controller` / `element`. Twin: `onValueFormatError(detail)`." },
 ] as const;
 
 /**
@@ -272,6 +275,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   declare onReady: ((detail: ReadyEventDetail) => void) | null;
   declare onOpen: ((detail: OpenEventDetail) => void) | null;
   declare onClose: ((detail: CloseEventDetail) => void) | null;
+  declare onValueFormatError: ((detail: ValueFormatErrorEventDetail) => void) | null;
 
   #shadow: ShadowRoot;
   #picker?: DateRangePickerEngine;
@@ -291,6 +295,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   #pendingValue: string | readonly string[] | null = null;
   /** What the form submits now (the hidden input values) — also `el.value`. */
   #formValues: string[] = [];
+  /** `getValueFormatCallback` threw on the last format — the host is invalid (core setFormatError). */
+  #hasFormatError = false;
+  #formatError: unknown = null;
 
   // Container-responsive compaction (core `sizeChanged` hook). `#narrowMax` is the
   // px threshold derived from `compact-below` (0 = disabled); `#isNarrow` is the
@@ -335,6 +342,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       || 'valueSeparator' in partial || 'getValueFormatCallback' in partial) {
       this.#refreshFormValue();
     }
+    else if ('labels' in partial && this.#hasFormatError) this.#applyFormatError();
     if ('placeholder' in partial) this.#applyPlaceholder();
     if ('labels' in partial) this.#inputClearButton?.setAttribute('aria-label', resolveLabels(partial.labels as Partial<DateRangePickerLabels> | null).clear);
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock() : this.#picker.unlock(); this.#updateInputClear(); }
@@ -694,16 +702,46 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     return { selectionMode, pickerMode, items };
   }
 
-  /** Re-render the hidden form input(s) from the current selection. */
+  /**
+   * Re-render the hidden form input(s) from the current selection. A throwing
+   * `getValueFormatCallback` is logged, submits `''`, marks the host invalid (core
+   * `setFormatError`, so the form refuses to submit) and emits `value-format-error`;
+   * the next successful format clears the invalid state.
+   */
   #updateFormValue(detail?: ChangeEventDetail): void {
     const format = (this.config.valueFormat as FormValueFormat) ?? 'text';
     const callback = this.config.getValueFormatCallback as ((ctx: FormValueSelection & PickerContext) => string) | undefined;
     const withCtx = callback
       ? (s: FormValueSelection) => callback(this.withContext({ ...s }) as unknown as FormValueSelection & PickerContext)
       : undefined;
-    const values = serializeFormValue(this.#currentSelection(detail), format, withCtx, this.#valueWriteOptions());
+    const selection = this.#currentSelection(detail);
+    let values: string[];
+    try {
+      values = serializeFormValue(selection, format, withCtx, this.#valueWriteOptions());
+    } catch (error) {
+      this.log.SELECTION.error('getValueFormatCallback threw — the form submits an empty value and the control is invalid', error);
+      this.#formValues = [''];
+      this.#renderHiddenInputs('text', this.#formValues);
+      this.#hasFormatError = true;
+      this.#formatError = error;
+      this.#applyFormatError();
+      this.emit('value-format-error', { error, value: selection } as ValueFormatErrorEventDetail);
+      return;
+    }
+    if (this.#hasFormatError) {
+      this.#hasFormatError = false;
+      this.#formatError = null;
+      this.setFormatError(null);
+    }
     this.#formValues = values;
-    this.#renderHiddenInputs(format, values);
+    // A callback always produces the one `name` field, whatever value-format says.
+    this.#renderHiddenInputs(callback ? 'text' : format, values);
+  }
+
+  /** Mark the host invalid for the last format error (message = the `valueFormatError` label). */
+  #applyFormatError(): void {
+    const anchor = this.#inputElement && this.#inputElement.type !== 'hidden' ? this.#inputElement : undefined;
+    this.setFormatError(this.#formatError, resolveLabels(this.config.labels as Partial<DateRangePickerLabels> | null).valueFormatError, anchor);
   }
 
   /** The submitted value's per-date mask + separator (unset = the defaults). */

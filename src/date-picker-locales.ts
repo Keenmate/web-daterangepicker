@@ -29,6 +29,7 @@ export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
   minutes: 'Minutes',
   seconds: 'Seconds',
   fullscreenTitle: '',
+  valueFormatError: 'The value could not be formatted.',
 });
 
 /**

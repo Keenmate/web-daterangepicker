@@ -49,7 +49,7 @@ export type {
     // Action buttons (core ActionItem)
     DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail,
     // Event details
-    ChangeEventDetail, MonthChangeEventDetail, ReadyEventDetail, OpenEventDetail, CloseEventDetail,
+    ChangeEventDetail, MonthChangeEventDetail, ReadyEventDetail, OpenEventDetail, CloseEventDetail, ValueFormatErrorEventDetail,
     LoaderTarget, LockAspect,
     // Supporting types
     DayMetadata, DecoratedDate, DateRangePickerLabels

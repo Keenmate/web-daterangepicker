@@ -237,6 +237,7 @@ Locking state: `lockedAspects` (`LockAspect[]` getter); `isReadonly` / the `read
 | `action` | `DateRangePickerActionEventDetail` (`{ action, id, item, source, sourceEvent, triggerElement, dataset, … }`) | An action button (built-ins included) or an HTML `data-action` trigger was activated. `action` is the built-in name (`today` / `now` / `clear` / `apply`) or `'custom'`; `id` identifies a custom item; `source` is `'action-buttons' \| 'message' \| 'summary' \| 'calendar'`; `dataset` holds the trigger's other `data-*` attributes (camelCase). Fires after the item's `onClick`, before the built-in behaviour. |
 | `month-change` | `MonthChangeEventDetail` (`{ monthIndex, year, month, visibleMonths }`) | The visible month(s) changed (any navigation) |
 | `ready` | `ReadyEventDetail` (`{ controller, element }`) | The picker was built for the first time (core; see `defer` / `release()`); the host gets the `ready` attribute and `:state(ready)` |
+| `value-format-error` | `ValueFormatErrorEventDetail` (`{ error, value }`) | `getValueFormatCallback` threw: the field submits `''` and the host is invalid (`labels.valueFormatError`) until the next successful format. `value` = the ISO selection snapshot. See [Form integration](#form-integration) |
 
 Every detail also carries `controller` (the public facade, same as
 `el.controller`) and `element` (the host) — both non-enumerable, so
@@ -302,8 +303,13 @@ shown text) and the placeholder masks. Three inputs shape it (priority:
 | `value-format` | Single | Range | Multiple |
 |---|---|---|---|
 | `text` (default) | `2026-06-15` | `2026-06-15/2026-06-20` | `2026-06-15,2026-06-18` |
-| `json` | `"2026-06-15"` | `["2026-06-15","2026-06-20"]` | `["2026-06-15",["2026-06-18","2026-06-20"]]` |
-| `array` | one `name[]` field | two `name[]` fields (`start`, `end`) | one `name[]` per date |
+| `json` | `"2026-06-15"` | `[{"start":"2026-06-15","end":"2026-06-20"}]` | `["2026-06-15",["2026-06-18","2026-06-20"]]` |
+| `array` | one `name[]` field | one `name[]` per range (`2026-06-15/2026-06-20`) | one `name[]` per date |
+
+**Range mode always submits a list of ranges** — one plain range, the pieces of a
+range split around disabled days, or several independent ranges (`text`: each
+`start{value-separator}end`, joined by `,`; `json`: an array of `{ start, end }`;
+`array`: one field per range). The same forms parse back as ranges.
 
 An empty selection submits `''` (`text` / `json`) or no field at all (`array`).
 
@@ -312,18 +318,19 @@ An empty selection submits `''` (`text` / `json`) or no field at all (`array`).
 <web-daterangepicker name="stay" selection-mode="range"
   value-format-mask="DD.MM.YYYY" value-separator=" - "></web-daterangepicker>
 
-<!-- stay[]=03.11.2026&stay[]=10.11.2026 -->
+<!-- stay[]=03.11.2026/10.11.2026 -->
 <web-daterangepicker name="stay" selection-mode="range"
   value-format="array" value-format-mask="DD.MM.YYYY"></web-daterangepicker>
 
-<!-- stay=["03.11.2026","10.11.2026"] -->
+<!-- stay=[{"start":"03.11.2026","end":"10.11.2026"}] -->
 <web-daterangepicker name="stay" selection-mode="range"
   value-format="json" value-format-mask="DD.MM.YYYY"></web-daterangepicker>
 ```
 
 - The submitted value tracks the *real* selection, not the drawn envelope: a range
   broken over disabled days with `disabled-dates-handling="split"` submits each
-  sub-range (`text`: joined by `,`), and `"individual"` / `"block"` submit the enabled days.
+  sub-range, and `"individual"` / `"block"` submit the enabled days (each as a
+  one-day range `day/day`).
 - In `multiple` mode a committed range item is written `start/end` in `text`
   (`[start, end]` in `json`); `array` flattens it to two fields.
 - For full control, set the **`getValueFormatCallback`** property — it receives
@@ -334,6 +341,16 @@ An empty selection submits `''` (`text` / `json`) or no field at all (`array`).
   ```js
   picker.getValueFormatCallback = ({ items }) => items.join('|');
   ```
+
+- **A throwing `getValueFormatCallback` makes the control invalid.** The error is
+  logged (`DRP:SELECTION`, error level), the field submits `''`, and the host gets
+  `validity.customError` with the `labels.valueFormatError` message (default "The
+  value could not be formatted.") — the form refuses to submit (`invalid` fires
+  instead of `submit`; a `<form novalidate>` submits `''`). A `value-format-error`
+  event fires with `{ error, value }` (`value` = the ISO selection snapshot; twin
+  `onValueFormatError`). The next successful format makes it valid again. The
+  standard `validity` / `validationMessage` / `willValidate` / `checkValidity()` /
+  `reportValidity()` are available on the element.
 
 ## Working with dates across timezones
 
@@ -820,6 +837,7 @@ translations.
 | `selectionCount` | `{count} selection(s)` | the input text in multiple mode |
 | `time` / `hours` / `minutes` / `seconds` / `am` / `pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
 | `fullscreenTitle` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
+| `valueFormatError` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
 
 `''` is a deliberate empty label (renders nothing); a missing / `undefined` key falls back to
 the English default. Content labels (`preview`, `day(s)`, `night(s)`, `time`, `hours`,

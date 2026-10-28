@@ -121,13 +121,13 @@ test('value-format="json" submits a JSON-serialized value', async ({ page }) => 
     expect(await formValue(page, 'fj')).toBe(JSON.stringify('2026-06-15'));
 });
 
-test('value-format="array" emits multiple name[] inputs (a range flattens to start, end)', async ({ page }) => {
+test('value-format="array" emits one name[] input per RANGE ("start/end")', async ({ page }) => {
     const p = page.locator('#picker-array');
     await dayByDate(p, '2026-06-15').click();
     await dayByDate(p, '2026-06-20').click();
 
     const values = await formValues(page, 'fa', 'range[]');
-    expect(values).toEqual(['2026-06-15', '2026-06-20']);
+    expect(values).toEqual(['2026-06-15/2026-06-20']);
     // ...and nothing under the bare name.
     expect(await formValue(page, 'fa', 'range')).toBeNull();
 });
@@ -256,33 +256,34 @@ test('the value setter accepts the submitted form, ISO and the displayed form', 
     expect(await formValue(page, 'fm', 'stay')).toBe('05.12.2026 - 07.12.2026');
 });
 
-test('value-format="array" + mask submits stay[] per date; el.value is the string[]', async ({ page }) => {
+test('value-format="array" + mask submits stay[] per range; el.value is the string[] and round-trips', async ({ page }) => {
     const p = page.locator('#picker-mask-array');
-    expect(await formValues(page, 'fma', 'stay[]')).toEqual(['03.11.2026', '10.11.2026']);
-    expect(await p.evaluate((el: any) => el.value)).toEqual(['03.11.2026', '10.11.2026']);
-    // The setter takes the same array.
+    expect(await formValues(page, 'fma', 'stay[]')).toEqual(['03.11.2026/10.11.2026']);
+    expect(await p.evaluate((el: any) => el.value)).toEqual(['03.11.2026/10.11.2026']);
+    // The setter takes the same array — several ranges come back as several ranges.
     const after = await p.evaluate(async (el: any) => {
-        el.value = ['05.12.2026', '07.12.2026'];
+        el.value = ['05.12.2026/07.12.2026', '10.12.2026/12.12.2026'];
         await el.whenSettled();
-        return el.value;
+        return [el.value, el.selectedRanges.length];
     });
-    expect(after).toEqual(['05.12.2026', '07.12.2026']);
-    expect(await formValues(page, 'fma', 'stay[]')).toEqual(['05.12.2026', '07.12.2026']);
+    expect(after).toEqual([['05.12.2026/07.12.2026', '10.12.2026/12.12.2026'], 2]);
+    expect(await formValues(page, 'fma', 'stay[]')).toEqual(['05.12.2026/07.12.2026', '10.12.2026/12.12.2026']);
 });
 
-test('value-format="json" + mask submits a JSON array of the masked dates', async ({ page }) => {
+test('value-format="json" + mask submits a JSON list of {start, end} ranges', async ({ page }) => {
     const p = page.locator('#picker-mask-json');
-    expect(await formValue(page, 'fmj', 'stay')).toBe('["03.11.2026","10.11.2026"]');
-    expect(await p.evaluate((el: any) => el.value)).toBe('["03.11.2026","10.11.2026"]');
-    const after = await p.evaluate(async (el: any) => {
-        el.value = '["05.12.2026","07.12.2026"]';
+    expect(await formValue(page, 'fmj', 'stay')).toBe('[{"start":"03.11.2026","end":"10.11.2026"}]');
+    expect(await p.evaluate((el: any) => el.value)).toBe('[{"start":"03.11.2026","end":"10.11.2026"}]');
+    const twoRanges = '[{"start":"05.12.2026","end":"07.12.2026"},{"start":"10.12.2026","end":"12.12.2026"}]';
+    const after = await p.evaluate(async (el: any, v: string) => {
+        el.value = v;
         await el.whenSettled();
         const set = el.value;
         el.value = '';
         await el.whenSettled();
         return [set, el.value];
-    });
-    expect(after).toEqual(['["05.12.2026","07.12.2026"]', '']);
+    }, twoRanges);
+    expect(after).toEqual([twoRanges, '']);
     expect(await formValue(page, 'fmj', 'stay')).toBe('');
 });
 
@@ -316,4 +317,111 @@ test('changing value-format-mask / value-separator live re-serializes the value'
     });
     expect(read).toEqual(['03.11.2026 bis 10.11.2026', '2026-11-03/2026-11-10']);
     expect(await formValue(page, 'fm', 'stay')).toBe('2026-11-03/2026-11-10');
+});
+
+// ── Range mode always submits a list of ranges ───────────────────────────────────
+
+test('range json: a clicked range is a one-item list; several ranges list each', async ({ page }) => {
+    const p = page.locator('#picker-range-json');
+    await dayByDate(p, '2026-06-15').click();
+    await dayByDate(p, '2026-06-20').click();
+    expect(await formValue(page, 'frj', 'stay')).toBe('[{"start":"2026-06-15","end":"2026-06-20"}]');
+    const several = await p.evaluate(async (el: any) => {
+        el.selectedRanges = [
+            { start: new Date(2026, 5, 1), end: new Date(2026, 5, 3) },
+            { start: new Date(2026, 5, 8), end: new Date(2026, 5, 9) },
+        ];
+        await el.whenSettled();
+        return el.value;
+    });
+    expect(several).toBe('[{"start":"2026-06-01","end":"2026-06-03"},{"start":"2026-06-08","end":"2026-06-09"}]');
+});
+
+// ── A throwing getValueFormatCallback marks the host invalid (core setFormatError) ──
+
+async function armThrowingCallback(p: Locator) {
+    return p.evaluate(async (el: any) => {
+        const w = window as any;
+        w.__fmtErrors = [];
+        w.__twin = 0;
+        el.addEventListener('value-format-error', (e: any) => w.__fmtErrors.push({
+            message: e.detail.error?.message, items: e.detail.value.items,
+        }));
+        el.onValueFormatError = () => { w.__twin++; };
+        el.getValueFormatCallback = () => { throw new Error('boom'); };
+        await el.whenSettled();
+        return {
+            value: el.value,
+            customError: el.validity.customError,
+            message: el.validationMessage,
+            errors: w.__fmtErrors,
+            twin: w.__twin,
+        };
+    });
+}
+
+test("a throwing getValueFormatCallback submits '', turns the host invalid and emits value-format-error", async ({ page }) => {
+    const p = page.locator('#picker-err');
+    const state = await armThrowingCallback(p);
+    expect(state.value).toBe('');
+    expect(state.customError).toBe(true);
+    expect(state.message).toBe('The value could not be formatted.');
+    expect(state.errors).toEqual([{ message: 'boom', items: ['2026-06-15'] }]);
+    expect(state.twin).toBe(1);
+    expect(await formValue(page, 'fe', 'when')).toBe('');
+
+    // Submitting is blocked: `invalid` fires on the host, `submit` never does.
+    const outcome = await page.evaluate(async () => {
+        const form = document.getElementById('fe') as HTMLFormElement;
+        const host = document.getElementById('picker-err')!;
+        let submitted = false;
+        let invalid = false;
+        form.addEventListener('submit', (e) => { submitted = true; e.preventDefault(); });
+        host.addEventListener('invalid', () => { invalid = true; });
+        form.requestSubmit();
+        await new Promise((r) => setTimeout(r, 50));
+        return { submitted, invalid };
+    });
+    expect(outcome).toEqual({ submitted: false, invalid: true });
+
+    // Recovery: a working callback formats again and clears the invalid state.
+    const recovered = await p.evaluate(async (el: any) => {
+        el.getValueFormatCallback = (s: any) => 'OK:' + s.items.join('|');
+        await el.whenSettled();
+        return { value: el.value, valid: el.validity.valid, checked: el.checkValidity() };
+    });
+    expect(recovered).toEqual({ value: 'OK:2026-06-15', valid: true, checked: true });
+    expect(await formValue(page, 'fe', 'when')).toBe('OK:2026-06-15');
+});
+
+test('a labels.valueFormatError override is the validation message', async ({ page }) => {
+    const p = page.locator('#picker-err');
+    const message = await p.evaluate(async (el: any) => {
+        el.labels = { valueFormatError: 'Datum nelze odeslat.' };
+        el.getValueFormatCallback = () => { throw new Error('boom'); };
+        await el.whenSettled();
+        const first = el.validationMessage;
+        // A label change while invalid updates the message.
+        el.labels = { valueFormatError: 'Neplatné datum.' };
+        await el.whenSettled();
+        return [first, el.validationMessage];
+    });
+    expect(message).toEqual(['Datum nelze odeslat.', 'Neplatné datum.']);
+});
+
+test("<form novalidate> submits '' while the callback throws", async ({ page }) => {
+    const p = page.locator('#picker-err-nv');
+    await armThrowingCallback(p);
+    const outcome = await page.evaluate(async () => {
+        const form = document.getElementById('fen') as HTMLFormElement;
+        let data: string | null = null;
+        form.addEventListener('submit', (e) => {
+            data = new FormData(form).get('when') as string;
+            e.preventDefault();
+        });
+        form.requestSubmit();
+        await new Promise((r) => setTimeout(r, 50));
+        return data;
+    });
+    expect(outcome).toBe('');
 });

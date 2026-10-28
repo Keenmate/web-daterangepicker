@@ -181,14 +181,17 @@ export interface FormValueWriteOptions {
  * Serialize a selection to the value(s) submitted under the control's `name`
  * (and returned by `el.value`). Returns a flat list of strings:
  *   - `text` / `json` / a `callback` → exactly one entry (one hidden input `name`).
- *   - `array` → one entry per date (multiple `name[]` inputs); a range
- *     contributes its start and end as two consecutive entries.
+ *   - `array` → one entry per date (multiple `name[]` inputs); in range mode one
+ *     entry per RANGE (`start{separator}end`).
  *
- * `text`: single — the date; range — `start{separator}end` (several ranges, e.g.
- * split around disabled days, joined by `,`); multiple — the dates joined by the
- * separator (a range item written `start/end`).
- * `json`: single — `"date"`; range — `["start","end", …]` (the same entries as
- * `array`); multiple — an array of `"date"` / `["start","end"]` items.
+ * Range mode always submits a LIST of ranges (one plain range, the pieces of a
+ * range split around disabled days, or several independent ranges; a lone day
+ * of the breakdown is the range `day..day`):
+ * `text` — `start{separator}end` per range, ranges joined by `,`;
+ * `json` — `[{"start":…,"end":…}, …]`; `array` — one `start{separator}end` per field.
+ * Single: `text` the date, `json` `"date"`. Multiple: `text` the dates joined by
+ * the separator (a range item written `start/end`); `json` an array of `"date"` /
+ * `["start","end"]` items.
  *
  * Empty selection: `['']` for the single-input formats (the field submits empty,
  * like a native control) and `[]` for `array` (no inputs at all).
@@ -209,12 +212,23 @@ export function serializeFormValue(
     typeof item === 'string' ? [atom(item)] : [atom(item.start), atom(item.end)],
   );
 
+  if (selectionMode === 'range') {
+    // Always a list of ranges; a lone day (disabled-days breakdown) is day..day.
+    const ranges = items.map((item) => (typeof item === 'string'
+      ? { start: atom(item), end: atom(item) }
+      : { start: atom(item.start), end: atom(item.end) }));
+    const pieces = ranges.map((r) => `${r.start}${separator}${r.end}`);
+    if (format === 'array') return pieces;
+    if (ranges.length === 0) return [''];
+    if (format === 'json') return [JSON.stringify(ranges)];
+    return [pieces.join(',')];
+  }
+
   if (format === 'array') return flat();
   if (items.length === 0) return [''];
 
   if (format === 'json') {
     if (selectionMode === 'single') return [JSON.stringify(flat()[0])];
-    if (selectionMode === 'range') return [JSON.stringify(flat())];
     return [JSON.stringify(items.map((item) =>
       typeof item === 'string' ? atom(item) : [atom(item.start), atom(item.end)]))];
   }
@@ -223,10 +237,6 @@ export function serializeFormValue(
   if (selectionMode === 'multiple') {
     return [items.map((item) =>
       typeof item === 'string' ? atom(item) : `${atom(item.start)}/${atom(item.end)}`).join(separator)];
-  }
-  if (selectionMode === 'range') {
-    return [items.map((item) =>
-      typeof item === 'string' ? atom(item) : `${atom(item.start)}${separator}${atom(item.end)}`).join(',')];
   }
   return [flat()[0]];
 }
@@ -242,10 +252,20 @@ function splitValue(
 ): ValueAtom[] | null {
   const fromList = (list: unknown[]): ValueAtom[] | null => {
     if (selectionMode === 'range') {
-      // Flat [start, end, start, end, …] (the array / json form).
-      if (list.length % 2 || !list.every((v) => typeof v === 'string')) return null;
+      // A list of ranges: `{ start, end }` objects (json) or `start{separator}end`
+      // strings (array fields).
       const pairs: ValueAtom[] = [];
-      for (let i = 0; i < list.length; i += 2) pairs.push([list[i] as string, list[i + 1] as string]);
+      for (const v of list) {
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+          const { start, end } = v as { start?: unknown; end?: unknown };
+          if (typeof start !== 'string' || typeof end !== 'string') return null;
+          pairs.push([start, end]);
+        } else if (typeof v === 'string') {
+          const parts = v.split(separator);
+          if (parts.length !== 2) return null;
+          pairs.push([parts[0].trim(), parts[1].trim()]);
+        } else return null;
+      }
       return pairs;
     }
     const atoms: ValueAtom[] = [];
@@ -260,11 +280,12 @@ function splitValue(
   if (typeof input !== 'string') return fromList([...input]);
   const text = input.trim();
   if (!text) return [];
-  if (text[0] === '[' || text[0] === '"') {
+  if (text[0] === '[' || text[0] === '"' || text[0] === '{') {
     try {
       const parsed: unknown = JSON.parse(text);
-      if (typeof parsed === 'string') return [parsed];
+      if (typeof parsed === 'string') return selectionMode === 'range' ? fromList([parsed]) : [parsed];
       if (Array.isArray(parsed)) return fromList(parsed);
+      if (parsed && typeof parsed === 'object') return fromList([parsed]);
     } catch { /* not JSON — read it as text */ }
   }
   if (selectionMode === 'single') return [text];

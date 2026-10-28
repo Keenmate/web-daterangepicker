@@ -426,7 +426,7 @@ el.value === exactly what the form submits (string; string[] for value-format="a
 The value ATTRIBUTE is the default (el.defaultValue), restored by form.reset().
 Setter accepts the submitted form + ISO + the displayed text (lenient).
 
-  value-format       text (default, one field) | json | array (name[] per date)
+  value-format       text (default, one field) | json | array (name[] per date / per RANGE)
   value-format-mask  per-date format of the submitted value; default ISO
                      (YYYY-MM-DD, HH:mm[:ss], YYYY-MM-DDTHH:mm[:ss]); also parses `value`
   value-separator    joins dates in text: range default "/", multiple default ","
@@ -437,9 +437,17 @@ The display masks (date-format-mask / time-format-mask) never affect the submitt
 <web-daterangepicker name="stay" selection-mode="range"
   value-format-mask="DD.MM.YYYY" value-separator=" - "></web-daterangepicker>
   → stay=03.11.2026 - 10.11.2026
-value-format="array" + same mask → stay[]=03.11.2026&stay[]=10.11.2026
-value-format="json"  + same mask → stay=["03.11.2026","10.11.2026"]
-Empty selection: '' (text/json), no field (array).
+value-format="array" + same mask → stay[]=03.11.2026/10.11.2026   (one field per range)
+value-format="json"  + same mask → stay=[{"start":"03.11.2026","end":"10.11.2026"}]
+Range mode ALWAYS submits a list of ranges (plain, split pieces, or several):
+  text s/e,s/e · json [{start,end},…] · array one s/e per field — all parse back.
+Single json "d"; multiple json ["d1","d2"]. Empty selection: '' (text/json), no field (array).
+
+A THROWING getValueFormatCallback → logged (DRP:SELECTION error), field submits '',
+host invalid (validity.customError, message = labels.valueFormatError) so the form
+won't submit (`invalid` fires; <form novalidate> submits ''); event
+`value-format-error` { error, value } (twin onValueFormatError). The next successful
+format clears it. el.validity / validationMessage / checkValidity() / reportValidity().
 
 COMMON PATTERNS
 ---------------
@@ -488,7 +496,8 @@ come from Intl for `locale` (auto = browser language) or monthNames/weekdayNames
 el.labels = { today: 'Dnes', days: '{count} dní', fullscreenTitle: 'Vyberte termín' };
 
 Keys: today, clear, apply, now, close, preview, day, days, night, nights,
-selectionCount ({count}), time, am, pm, hours, minutes, seconds, fullscreenTitle.
+selectionCount ({count}), time, am, pm, hours, minutes, seconds, fullscreenTitle,
+valueFormatError (validation message when getValueFormatCallback throws).
 '' = deliberately empty (renders nothing); undefined / missing = English default.
 Content labels (preview, day(s), night(s), time, hours, minutes, seconds, am/pm in
 the time pickers) are inserted as HTML; {count} is escaped; the rest are plain text.

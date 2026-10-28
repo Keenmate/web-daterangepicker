@@ -17,8 +17,25 @@ attribute is the default (`defaultValue`).
   `value-format="array"`. The setter accepts the same form, plus ISO and the displayed text
   (lenient, as before).
 - **BREAKING — `value-format="iso"` → `"text"`** (`text | json | array`; `text` = one field, default).
-- **BREAKING — `value-format="json"`**: a range submits `["start","end"]` (was `{"start":…,"end":…}`);
-  multiple-mode range items are `["start","end"]` pairs; an empty selection submits `''` (was `null` / `[]`).
+- **BREAKING — range mode always submits a LIST of ranges** (one plain range, the pieces of a range
+  split around disabled days, or several independent ranges; a lone enabled day of an
+  `individual` / `block` breakdown is the range `day..day`):
+  - `json`: `[{"start":…,"end":…}, …]` (was a single `{"start":…,"end":…}` object);
+  - `array`: one `name[]` field per RANGE, `start{value-separator}end` (was two fields per range,
+    start and end) — `stay[]=03.11.2026/10.11.2026`, and it round-trips as ranges;
+  - `text`: `start{value-separator}end` per range, ranges joined by `,` (unchanged).
+  Single `json` stays `"date"`; multiple `json` is `["d1","d2"]` (range items `["start","end"]`
+  pairs); an empty selection submits `''` in `text` / `json` (was `null` / `[]`), no field in `array`.
+- **Added — a throwing `getValueFormatCallback` makes the control invalid.** The error is logged
+  (`DRP:SELECTION`, error level), the field submits `''`, the host gets `validity.customError` with
+  the new `labels.valueFormatError` message (default "The value could not be formatted.") via core
+  `setFormatError`, so the form refuses to submit (`invalid` fires instead of `submit`;
+  `<form novalidate>` submits `''`). New event **`value-format-error`** `{ error, value }` (`value` =
+  the ISO selection snapshot; twin `onValueFormatError`). The next successful format clears it.
+  Core's validity API is available on the element: `validity`, `validationMessage`, `willValidate`,
+  `checkValidity()`, `reportValidity()`.
+- Fixed: with `getValueFormatCallback` set and `value-format="array"`, the callback's single value
+  is submitted under `name` (was `name[]`), matching `el.value` (a string).
 - **Added `value-format-mask`** — how each date is written in the submitted value (default ISO
   `YYYY-MM-DD` / `HH:mm[:ss]` / `YYYY-MM-DDTHH:mm[:ss]`); also parses the `value` attribute / property.
 - **Added `value-separator`** — joins the dates in `text` (range default `/`, multiple default `,`).

@@ -1,5 +1,6 @@
 import type { ComponentContext, PresentationContext } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
+import type { FormValueSelection } from './form-value';
 
 export type { PresentationContext };
 
@@ -667,6 +668,9 @@ export interface DateRangePickerLabels {
 
   /** Heading in the phone full-screen sheet beside the ✕; empty = no heading. */
   fullscreenTitle: string;
+
+  /** Validation message when `getValueFormatCallback` throws (the host turns invalid). */
+  valueFormatError: string;
 }
 
 export interface DateRange {
@@ -769,6 +773,18 @@ export interface MonthChangeEventDetail extends PickerContext {
   month: number;
   /** Every visible column, in order. */
   visibleMonths: { year: number; month: number }[];
+}
+
+/**
+ * Detail of the `value-format-error` event / `onValueFormatError` — `getValueFormatCallback`
+ * threw: the form field(s) now submit `''` and the host is invalid until the next
+ * successful format.
+ */
+export interface ValueFormatErrorEventDetail extends PickerContext {
+  /** What the callback threw. */
+  error: unknown;
+  /** The selection it was asked to format (the callback's ISO snapshot). */
+  value: FormValueSelection;
 }
 
 /** Detail of the `ready` event / `onReady` — just the context. */
