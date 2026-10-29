@@ -56,6 +56,7 @@
     { "name": "base-ease-out", "required": false, "usage": "Ease-out curve (drives --drp-easing-out, modal fade)" },
     { "name": "base-duration-fast", "required": false, "usage": "Fast duration 0.1s (drives --drp-transition-fast; 0s under reduced motion)" },
     { "name": "base-duration-normal", "required": false, "usage": "Normal duration 0.15s (drives --drp-transition-normal; 0s under reduced motion)" },
+    { "name": "base-scroll-behavior", "required": false, "usage": "Programmatic scrolling: smooth; auto under reduced motion (drives --drp-scroll-behavior)" },
     { "name": "base-input-size-xs-height", "required": false, "usage": "Extra small input height (multiplier)" },
     { "name": "base-input-size-sm-height", "required": false, "usage": "Small input height (multiplier)" },
     { "name": "base-input-size-md-height", "required": false, "usage": "Medium input height (multiplier)" },
@@ -134,7 +135,7 @@
     { "name": "drp-transition-normal", "category": "transition", "usage": "Normal duration (0.15s) — inputs, buttons, nav, popover + modal fade; 0s = off" },
     { "name": "drp-easing-snappy", "category": "transition", "usage": "Standard easing (follows --base-ease-standard)" },
     { "name": "drp-easing-out", "category": "transition", "usage": "Ease-out easing for the modal fade (follows --base-ease-out)" },
-    { "name": "drp-scroll-behavior", "category": "transition", "usage": "Rolling selector / wheel scrolling (smooth; auto under reduced motion)" },
+    { "name": "drp-scroll-behavior", "category": "transition", "usage": "Rolling selector / wheel scrolling — chains --base-scroll-behavior (smooth; auto under reduced motion)" },
 
     { "name": "drp-z-index-dropdown", "category": "z-index", "usage": "Dropdown z-index" },
     { "name": "drp-z-index-tooltip", "category": "z-index", "usage": "Tooltip z-index" },

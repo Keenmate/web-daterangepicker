@@ -186,8 +186,9 @@
   --drp-transition-normal: var(--base-duration-normal, 0.15s); /* inputs, buttons, nav, popover + modal fade */
   --drp-easing-snappy: var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
   --drp-easing-out: var(--base-ease-out, cubic-bezier(0, 0, 0.2, 1));
-  /* Rolling selector + wheel columns scroll smoothly; reduced motion → auto (instant). */
-  --drp-scroll-behavior: smooth;
+  /* Rolling selector + wheel columns scroll smoothly; reduced motion → auto (instant).
+     Chains the contract's --base-scroll-behavior (smooth; auto under reduced motion). */
+  --drp-scroll-behavior: var(--base-scroll-behavior, smooth);
 
   /* ==========================================================================
      Z-INDEX LAYERS
@@ -739,6 +740,6 @@
   :root {
     --drp-transition-fast: 0s;
     --drp-transition-normal: 0s;
-    --drp-scroll-behavior: auto;
+    --drp-scroll-behavior: var(--base-scroll-behavior, auto);
   }
 }

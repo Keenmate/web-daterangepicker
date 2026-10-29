@@ -326,6 +326,7 @@ web-daterangepicker {                 /* this component */
   --base-duration-normal: 0s;
   --base-duration-medium: 0s;
   --base-duration-slow: 0s;
+  --base-scroll-behavior: auto;       /* programmatic scrolling, every component */
 }
 ```
 

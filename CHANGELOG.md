@@ -57,7 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Spinner exception:** the loading spinner keeps its 0.8s turn as
   `--drp-loader-spin-duration` (a state indicator, not a transition) — since replaced by
   `--drp-loader-duration` (shared loader contract, above).
-- **New:** `--drp-scroll-behavior` (smooth); the wheel's programmatic scroll follows it.
+- **New:** `--drp-scroll-behavior` (smooth); the wheel's programmatic scroll follows it. It chains
+  the contract's `--base-scroll-behavior` (`var(--base-scroll-behavior, smooth)`; `auto` under
+  reduced motion), so one page-wide setting governs every component's programmatic scrolling.
 - **Disabled dimming:** `--drp-opacity-disabled` → `--drp-disabled-opacity`
   (`var(--base-disabled-opacity, 0.65)`). Disabled rolling-selector years / months use
   `--drp-rolling-item-disabled-opacity` (defaults to it; was a fixed `0.4` → now 0.65, they

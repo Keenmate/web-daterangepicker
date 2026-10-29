@@ -1112,7 +1112,7 @@ page-wide). `prefers-reduced-motion: reduce` does that automatically.
 | `--drp-easing-snappy` | `var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1))` | Standard easing |
 | `--drp-easing-out` | `var(--base-ease-out, cubic-bezier(0, 0, 0.2, 1))` | Modal fade easing |
 | `--drp-loader-duration` | `var(--base-loader-duration, 0.8s)` | Loader cycle (the contract goes to 1.5s under reduced motion — slows, never stops) |
-| `--drp-scroll-behavior` | `smooth` | Rolling selector / wheel scrolling (`auto` under reduced motion) |
+| `--drp-scroll-behavior` | `var(--base-scroll-behavior, smooth)` | Rolling selector / wheel scrolling (`auto` under reduced motion) |
 | `--drp-disabled-opacity` | `var(--base-disabled-opacity, 0.65)` | Disabled controls, days, locked regions |
 
 ### Loader
