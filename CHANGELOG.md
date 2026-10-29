@@ -27,8 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (→ `.drp-loader`) and the `drp-spin` keyframe (→ `drp-loader-spin`). Under reduced motion
   the contract slows the loader to 1.5s.
 - `LoaderRenderContext` / `RenderLoaderCallback` types re-exported from core.
-- **Dev:** `@keenmate/base-css-variables` points to `file:../base-css-variables` (rc06 with the
-  loader tokens is unpublished) — **switch back to `^2.0.0-rc06` before publishing**.
+- **Dev dependency:** requires `@keenmate/base-css-variables` `^2.0.0-rc06` (the `--base-loader-*` tokens).
 
 ### Changed — form reset and `value` assignment are silent (**BREAKING**, 2026-10-29)
 
