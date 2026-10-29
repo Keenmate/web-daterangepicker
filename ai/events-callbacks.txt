@@ -11,7 +11,7 @@ element or any ancestor in the same tree):
   open          - the calendar popover opened (not in inline mode)
   close         - the calendar popover closed (any reason)
   action        - an action button or a data-action trigger was activated
-  month-change  - the visible month(s) changed (any navigation)
+  month-change  - the visible month(s) changed (any navigation; a value assignment / form reset is silent)
   ready         - first build done (once per element lifetime)
   value-format-error - getValueFormatCallback threw: { error, value } — field submits '',
                   host invalid until the next successful format (basic-usage.txt FORM)

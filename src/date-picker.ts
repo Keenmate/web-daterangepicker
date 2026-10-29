@@ -2431,7 +2431,14 @@ class DateRangePickerEngine {
         Selection.storeCommittedSnapshot(this);
         this.syncInputFromSelection();
         this.summaryOverride = null;
-        this.renderCalendar();
+        // Silent, month-change included: callers are the app's own `value` assignment and
+        // a form reset (a native form.reset() fires nothing). The render re-baselines.
+        this.isMonthChangeSilent = true;
+        try {
+            this.renderCalendar();
+        } finally {
+            this.isMonthChangeSilent = false;
+        }
         this.updateSummary();
         return isValid;
     }
@@ -3037,6 +3044,8 @@ class DateRangePickerEngine {
 
     /** Visible months at the last `month-change` check (`null` until the first render). */
     private lastVisibleMonthsKey: string | null = null;
+    /** While set, a render records the new visible months as the baseline without firing `onMonthChange`. */
+    private isMonthChangeSilent = false;
 
     /**
      * Fire `onMonthChange` when the visible months differ from the last render.
@@ -3049,7 +3058,7 @@ class DateRangePickerEngine {
         const key = months.map((m) => `${m.getFullYear()}-${m.getMonth()}`).join('|');
         const previous = this.lastVisibleMonthsKey;
         this.lastVisibleMonthsKey = key;
-        if (previous === null || previous === key || !this.options.onMonthChange) return;
+        if (previous === null || previous === key || this.isMonthChangeSilent || !this.options.onMonthChange) return;
         const before = previous.split('|');
         const changed = Math.max(0, months.findIndex((m, i) => before[i] !== `${m.getFullYear()}-${m.getMonth()}`));
         const monthIndex = this.options.isUnifiedNavigationEnabled ? (this.options.unifiedNavigationAnchorIndex ?? 0) : changed;

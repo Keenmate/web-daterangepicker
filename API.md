@@ -423,7 +423,7 @@ The web component dispatches the following events. All bubble; none are
 |------------|--------|-------------|
 | `change` | `ChangeEventDetail` | The selection was committed (the value changed): every completed pick in `commit-mode="selection"`, on Apply / `commit()` in `apply` / `manual` |
 | `action` | `DateRangePickerActionEventDetail` | An action button (built-ins too) or an HTML `data-action` trigger was activated — see [Action Buttons](#action-buttons) |
-| `month-change` | `MonthChangeEventDetail` | The visible month(s) changed (any navigation) |
+| `month-change` | `MonthChangeEventDetail` | The visible month(s) changed (any navigation; not when a `value` assignment or a form reset moves them — those are silent) |
 | `ready` | `ReadyEventDetail` | The picker was built for the first time (once per element; deferred elements fire on `release()` / `defer` removal) |
 | `open` | `OpenEventDetail` | The calendar popover opened (floating / modal / full-screen; inline never opens) |
 | `close` | `CloseEventDetail` | The calendar popover closed — any reason (pick, Apply, Escape, outside click, scroll, `close()`); a staged, uncommitted pick is already discarded |

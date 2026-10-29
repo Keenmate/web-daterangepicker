@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — form reset and `value` assignment are silent (**BREAKING**, 2026-10-29)
+
+- **`form.reset()` and assigning `value` (property or attribute) no longer fire `month-change`**
+  when they move the visible month to the restored / assigned selection — like a native
+  `form.reset()` / `input.value`, neither fires anything (`change` was already silent). User navigation and the navigation methods still fire it. Pinned by an e2e test.
+
 ### Changed — motion and disabled dimming follow the contract (**BREAKING**, 2026-10-29)
 
 - **Removed `enable-transition` / `isTransitionEnabled`.** Animations are now on by default

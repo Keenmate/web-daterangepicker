@@ -184,6 +184,24 @@ test('submit sends the current state, form.reset() goes back to the value attrib
     expect(await p.evaluate((el: any) => el.getAttribute('value'))).toBe('2026-06-10 - 2026-06-14');
 });
 
+test('form.reset() and a `value` assignment are silent — no change / month-change / action / open / close', async ({ page }) => {
+    // Like a native form.reset() / input.value: the visible month moves (June -> September -> June)
+    // but neither path fires month-change.
+    const p = page.locator('#picker-default');
+    await p.evaluate((el: any) => {
+        (window as any).__resetEvents = [];
+        for (const n of ['change', 'month-change', 'action', 'open', 'close']) {
+            el.addEventListener(n, () => (window as any).__resetEvents.push(n));
+        }
+    });
+    await p.evaluate((el: any) => { el.value = '2026-09-01 - 2026-09-03'; });
+    await expect(visibleInput(p)).toHaveValue('2026-09-01 - 2026-09-03');
+    await page.locator('#reset-default').click();
+    await expect(visibleInput(p)).toHaveValue('2026-06-10 - 2026-06-14');
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 50))));
+    expect(await page.evaluate(() => (window as any).__resetEvents)).toEqual([]);
+});
+
 test('an invalid value attribute warns, leaves the selection empty and the attribute untouched', async ({ page }) => {
     const warnings: string[] = [];
     page.on('console', (m) => { if (m.type() === 'warning') warnings.push(m.text()); });
