@@ -1,4 +1,4 @@
-import type { ComponentContext, PresentationContext } from '@keenmate/web-components-core';
+import type { ComponentContext, PresentationContext, RenderLoaderCallback } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 import type { FormValueSelection } from './form-value';
 
@@ -552,6 +552,15 @@ export interface DatePickerOptions {
   renderSummaryCallback?: (ctx: SummaryContext) => string;
 
   /**
+   * Draw every loader of this picker (`showLoader()` targets and the automatic one
+   * around async callbacks) — beats the page-wide
+   * `window.components.renderLoaderCallback`. Fill `ctx.containerElement`
+   * (`ctx.context` = `'calendar' | 'message' | 'summary'`); optionally return a
+   * cleanup. Unset = the page hook, else the default `.drp-loader` (SPEC §12.14 of core).
+   */
+  renderLoadingCallback?: RenderLoaderCallback | null;
+
+  /**
    * Callback to customize unified header range display text
    *
    * @param data - Contains first month, last month, anchor month, and month names
@@ -671,6 +680,9 @@ export interface DateRangePickerLabels {
 
   /** Validation message when `getValueFormatCallback` throws (the host turns invalid). */
   valueFormatError: string;
+
+  /** Accessible label of every loader (`showLoader()`, async callbacks) — its `aria-label`. */
+  loading: string;
 }
 
 export interface DateRange {

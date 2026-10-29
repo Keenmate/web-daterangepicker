@@ -330,8 +330,26 @@ web-daterangepicker {                 /* this component */
 ```
 
 `prefers-reduced-motion: reduce` does this automatically: transitions go to `0s`,
-scrolling is instant, and the loading spinner keeps turning, slower
-(`--drp-loader-spin-duration` 0.8s → 1.5s).
+scrolling is instant, and the loader keeps turning, slower (the contract's
+`--base-loader-duration` 0.8s → 1.5s, which `--drp-loader-duration` follows).
+
+## Loader
+
+The loaders (`showLoader()`, async callbacks) follow the shared loader contract: a
+single-colour mask shape in `--drp-loader-color` (the accent).
+
+| Token | Default |
+|---|---|
+| `--drp-loader-icon` | `var(--base-loader-icon, <arc SVG>)` |
+| `--drp-loader-rotate` | `var(--base-loader-rotate, 1turn)` (`0` = the SVG animates itself) |
+| `--drp-loader-duration` | `var(--base-loader-duration, 0.8s)` |
+| `--drp-loader-size` | `var(--base-loader-size, 1.25em)` — in-block (summary / message) |
+| `--drp-loader-overlay-size` | `calc(var(--drp-loader-size) * 2)` — full-calendar overlay |
+| `--drp-loader-color` | `var(--drp-accent-color)` |
+| `--drp-loader-overlay-bg` | translucent scrim |
+
+Set `--base-loader-*` on `:root` to change every KeenMate component at once; anything
+richer than one colour → `window.components.renderLoaderCallback` / `renderLoadingCallback`.
 
 ## See also
 

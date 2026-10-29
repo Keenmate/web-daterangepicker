@@ -138,6 +138,8 @@ class DateRangePickerEngine {
     private isValidating: boolean = false;
     // Active loaders keyed by target ('calendar' | 'message' | 'summary'); single instance per target.
     loaders: Partial<Record<LoaderTarget, HTMLElement | undefined>> = {};
+    // Each loader's renderLoader() remove() (runs the render hook's cleanup).
+    loaderRemovers: Partial<Record<LoaderTarget, (() => void) | undefined>> = {};
 
     // Month change callback state
     private isMonthChanging: boolean = false;
@@ -269,6 +271,7 @@ class DateRangePickerEngine {
             monthNames: options.monthNames,
             weekdayNames: options.weekdayNames,
             renderSummaryCallback: options.renderSummaryCallback,
+            renderLoadingCallback: options.renderLoadingCallback ?? null,
             beforeSelectCallback: options.beforeSelectCallback,
             beforeMonthChangeCallback: options.beforeMonthChangeCallback,
             getMonthDataCallback: options.getMonthDataCallback,
@@ -2906,6 +2909,9 @@ class DateRangePickerEngine {
         this.scrollSubscriptions = [];
         this.clickSubscriptions.forEach(sub => sub.unsubscribe());
         this.clickSubscriptions = [];
+
+        // Remove active loaders (runs a render hook's cleanup)
+        for (const target of Object.keys(this.loaders) as LoaderTarget[]) UI.hideLoader(this, target);
 
         // Destroy event managers
         this.scrollEvents.destroy();

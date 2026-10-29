@@ -206,7 +206,7 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 | `showSummary(html: string)` | Write custom HTML into the summary block; pins it (survives hover preview) until the next selection change |
 | `hideSummary()` | Drop the summary override and re-derive from selection |
 | `refreshSummary()` | Re-run summary derivation now (e.g. after async data arrives) |
-| `showLoader(target?)` | Show a spinner — `target`: `'calendar'` (default, overlay) \| `'message'` \| `'summary'` (in-block) |
+| `showLoader(target?)` | Show a loader — `target`: `'calendar'` (default, overlay) \| `'message'` \| `'summary'` (in-block). Drawn by the shared loader: `renderLoadingCallback`, else `window.components.renderLoaderCallback`, else the default `.drp-loader`; see [Loaders](#loaders) |
 | `hideLoader(target?)` | Hide the loader for a target |
 | `lock(aspects?)` | Freeze user interaction. No argument = full lock; pass a `LockAspect` or array to lock a subset. See [Locking](#locking-read-only) |
 | `unlock(aspects?)` | Release the given aspect(s), or the whole lock when called with no argument |
@@ -225,6 +225,32 @@ context and event detail carries as `controller`: the read-only selection state 
 `showLoader()` / `hideLoader()`, `reloadMonthData()`.
 
 Locking state: `lockedAspects` (`LockAspect[]` getter); `isReadonly` / the `readonly` attribute is the declarative full lock.
+
+## Loaders
+
+Every loading state — `showLoader('calendar' | 'message' | 'summary')` and the overlay shown
+automatically while an async callback (`beforeSelectCallback`, `beforeMonthChangeCallback`,
+`getMonthDataCallback`) is pending — draws through the shared KeenMate loader
+(`@keenmate/web-components-core` `renderLoader`). The container gets `role="status"` and
+`aria-label` = `labels.loading`. Precedence:
+
+1. the instance **`renderLoadingCallback`** property;
+2. the page-wide **`window.components.renderLoaderCallback`** (one place for every KeenMate component);
+3. the default `<span class="drp-loader">` — a single-colour mask shape from the
+   `--drp-loader-icon` / `-rotate` / `-duration` / `-size` tokens (chained to `--base-loader-*`),
+   coloured by `--drp-loader-color`.
+
+```js
+// Page-wide: every component's loaders
+window.components.renderLoaderCallback = ({ component, context, containerElement }) => {
+  containerElement.innerHTML = '<span class="my-dots"><i></i><i></i><i></i></span>';
+};
+// This picker only; ctx.context = 'calendar' | 'message' | 'summary'
+picker.renderLoadingCallback = ({ context, containerElement }) => {
+  containerElement.textContent = context === 'summary' ? 'Saving…' : 'Loading…';
+  return () => { /* optional cleanup when the loader is hidden */ };
+};
+```
 
 ## Events
 
@@ -837,6 +863,7 @@ translations.
 | `time` / `hours` / `minutes` / `seconds` / `am` / `pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
 | `fullscreenTitle` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
 | `valueFormatError` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
+| `loading` | `Loading…` | accessible label (`aria-label`, `role="status"`) of every loader |
 
 `''` is a deliberate empty label (renders nothing); a missing / `undefined` key falls back to
 the English default. Content labels (`preview`, `day(s)`, `night(s)`, `time`, `hours`,

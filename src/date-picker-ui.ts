@@ -12,7 +12,7 @@
 // daterangepicker-branded warning copy (see warnDrift). daterangepicker no longer
 // depends on `@floating-ui/dom` directly.
 import { anchor, type DriftReport } from '@keenmate/web-components-core/positioning';
-import { observeKeyboardInset } from '@keenmate/web-components-core';
+import { observeKeyboardInset, renderLoader } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -751,9 +751,14 @@ function summaryBlock(picker: any): HTMLElement | null {
 }
 
 /**
- * Show a loader (spinner). Scoped by `target`:
+ * Show a loader. Scoped by `target`:
  * - 'calendar' (default): full-calendar overlay (also used automatically around async gates)
- * - 'message' / 'summary': an in-block spinner inside that feedback block
+ * - 'message' / 'summary': an in-block loader inside that feedback block
+ *
+ * The container (overlay / `.drp__inline-loader`, `role="status"` + `labels.loading`)
+ * is filled by core renderLoader(): the instance `renderLoadingCallback`, else the
+ * page-wide `window.components.renderLoaderCallback`, else the default `.drp-loader`.
+ * `target` is the hook's `context`.
  *
  * Single-instance per target: a second call for the same target is a no-op, so a manual
  * showLoader('calendar') and an in-flight async validation cannot stack two overlays.
@@ -768,26 +773,30 @@ export function showLoader(picker: any, target: LoaderTarget = 'calendar'): void
         return;
     }
 
+    const container = document.createElement(target === 'calendar' ? 'div' : 'span');
     if (target === 'calendar') {
-        const overlay = document.createElement('div');
-        overlay.className = 'drp__loader-overlay';
-        overlay.innerHTML = `<div class="drp__loader"></div>`;
-        mount.appendChild(overlay);
-        picker.loaders[target] = overlay;
-        return;
+        container.className = 'drp__loader-overlay';
+    } else {
+        // In-block loader (message / summary)
+        container.className = 'drp__inline-loader';
+        if (target === 'message' && picker.messageElement) {
+            picker.messageElement.classList.add('drp__message--loading', 'drp__message--visible');
+        } else if (target === 'summary') {
+            // Force the summary visible so an empty (no-range) block is tall enough for the loader
+            summaryBlock(picker)?.classList.add('drp__summary--loading', 'drp__summary--visible');
+        }
     }
-
-    // In-block spinner (message / summary)
-    const spinner = document.createElement('span');
-    spinner.className = 'drp__inline-loader';
-    if (target === 'message' && picker.messageElement) {
-        picker.messageElement.classList.add('drp__message--loading', 'drp__message--visible');
-    } else if (target === 'summary') {
-        // Force the summary visible so an empty (no-range) block is tall enough for the spinner
-        summaryBlock(picker)?.classList.add('drp__summary--loading', 'drp__summary--visible');
-    }
-    mount.appendChild(spinner);
-    picker.loaders[target] = spinner;
+    mount.appendChild(container);
+    const host: HTMLElement = picker.options.hostElement ?? mount;
+    const remove = renderLoader(host, container, target, {
+        prefix: 'drp',
+        label: picker.labels?.loading ?? '',
+        renderLoadingCallback: picker.options.renderLoadingCallback ?? null,
+    });
+    // The container moves with re-renders (reapplySummaryLoader); its remove() runs the hook's cleanup.
+    picker.loaders[target] = container;
+    if (!picker.loaderRemovers) picker.loaderRemovers = {};
+    picker.loaderRemovers[target] = remove;
 }
 
 /**
@@ -795,6 +804,8 @@ export function showLoader(picker: any, target: LoaderTarget = 'calendar'): void
  */
 export function hideLoader(picker: any, target: LoaderTarget = 'calendar'): void {
     if (!picker.loaders || !picker.loaders[target]) return;
+    picker.loaderRemovers?.[target]?.();
+    if (picker.loaderRemovers) picker.loaderRemovers[target] = undefined;
     picker.loaders[target].remove();
     picker.loaders[target] = undefined;
 

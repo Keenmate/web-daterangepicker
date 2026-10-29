@@ -497,11 +497,26 @@ el.labels = { today: 'Dnes', days: '{count} dní', fullscreenTitle: 'Vyberte ter
 
 Keys: today, clear, apply, now, close, preview, day, days, night, nights,
 selectionCount ({count}), time, am, pm, hours, minutes, seconds, fullscreenTitle,
-valueFormatError (validation message when getValueFormatCallback throws).
+valueFormatError (validation message when getValueFormatCallback throws),
+loading (aria-label of every loader, default 'Loading…').
 '' = deliberately empty (renders nothing); undefined / missing = English default.
 Content labels (preview, day(s), night(s), time, hours, minutes, seconds, am/pm in
 the time pickers) are inserted as HTML; {count} is escaped; the rest are plain text.
 ❌ customStrings, fullscreen-title  → ✅ labels / labels.fullscreenTitle
+
+LOADERS
+-------
+el.showLoader('calendar' | 'message' | 'summary') / el.hideLoader(t) — also shown
+automatically while an async callback is pending. Drawn by the shared core loader:
+el.renderLoadingCallback (instance) > window.components.renderLoaderCallback (page)
+> default <span class="drp-loader"> (--drp-loader-icon/-rotate/-duration/-size →
+--base-loader-*). Container: role="status", aria-label = labels.loading.
+el.renderLoadingCallback = ({ context, containerElement }) => {
+  containerElement.innerHTML = '<span class="my-dots"></span>';
+  return () => {}; // optional cleanup on hide
+};
+❌ --drp-loader-spin-duration / -inline-size / -border-width / -accent, .drp__loader
+→ ✅ --drp-loader-duration / -size / -overlay-size, .drp-loader
 
 LIFECYCLE
 ---------

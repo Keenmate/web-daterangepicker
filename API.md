@@ -111,7 +111,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | — | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
 | `highlight-disabled-in-range` | `boolean \| null` | — | Visually mark disabled dates that fall inside a selected range. |
 | `locale` | `string` | `'auto'` | BCP-47 locale for the `Intl` month / weekday names, or `auto` (the browser language). UI strings are `labels`. |
-| `labels` | `Partial<DateRangePickerLabels>` | — | UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws). Property, or a JSON attribute: `labels='{"today":"Heute","days":"{count} Tage"}'`. Month / weekday names come from `Intl` via `locale`. |
+| `labels` | `Partial<DateRangePickerLabels>` | — | UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws), `loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"today":"Heute","days":"{count} Tage"}'`. Month / weekday names come from `Intl` via `locale`. |
 | `month-names` | `string[]` | — | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
 | `weekday-names` | `string[]` | — | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rolling-year-range` | `string \| null` | — | Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY's year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one. |
@@ -1111,9 +1111,24 @@ page-wide). `prefers-reduced-motion: reduce` does that automatically.
 | `--drp-transition-normal` | `var(--base-duration-normal, 0.15s)` | Inputs, buttons, nav, popover + modal fade |
 | `--drp-easing-snappy` | `var(--base-ease-standard, cubic-bezier(0.4, 0, 0.2, 1))` | Standard easing |
 | `--drp-easing-out` | `var(--base-ease-out, cubic-bezier(0, 0, 0.2, 1))` | Modal fade easing |
-| `--drp-loader-spin-duration` | `0.8s` | Spinner turn (1.5s under reduced motion) |
+| `--drp-loader-duration` | `var(--base-loader-duration, 0.8s)` | Loader cycle (the contract goes to 1.5s under reduced motion — slows, never stops) |
 | `--drp-scroll-behavior` | `smooth` | Rolling selector / wheel scrolling (`auto` under reduced motion) |
 | `--drp-disabled-opacity` | `var(--base-disabled-opacity, 0.65)` | Disabled controls, days, locked regions |
+
+### Loader
+
+The shared loader contract (`--base-loader-*`); the default loader is `<span class="drp-loader">`
+inside a `role="status"` container (`.drp__loader-overlay` / `.drp__inline-loader`). Replace the
+drawing with `renderLoadingCallback` or `window.components.renderLoaderCallback`.
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `--drp-loader-icon` | `var(--base-loader-icon, <arc SVG>)` | Loader shape (mask image) |
+| `--drp-loader-rotate` | `var(--base-loader-rotate, 1turn)` | Rotation per cycle (`0` = the SVG animates itself) |
+| `--drp-loader-size` | `var(--base-loader-size, 1.25em)` | In-block loader (summary / message) |
+| `--drp-loader-overlay-size` | `calc(var(--drp-loader-size) * 2)` | Full-calendar overlay loader |
+| `--drp-loader-color` | `var(--drp-accent-color)` | Loader color |
+| `--drp-loader-overlay-bg` | translucent scrim | Overlay background |
 
 ### Input Size Variants
 
@@ -1615,7 +1630,7 @@ The web component provides convenient property accessors for JavaScript:
 | `disabledDatesHandling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | Read/Write | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
 | `shouldHighlightDisabledInRange` | `boolean \| null` | Read/Write | Visually mark disabled dates that fall inside a selected range. |
 | `locale` | `string` | Read/Write | BCP-47 locale for the `Intl` month / weekday names, or `auto` (the browser language). UI strings are `labels`. |
-| `labels` | `Partial<DateRangePickerLabels>` | Read/Write | UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws). Property, or a JSON attribute: `labels='{"today":"Heute","days":"{count} Tage"}'`. Month / weekday names come from `Intl` via `locale`. |
+| `labels` | `Partial<DateRangePickerLabels>` | Read/Write | UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws), `loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"today":"Heute","days":"{count} Tage"}'`. Month / weekday names come from `Intl` via `locale`. |
 | `monthNames` | `string[]` | Read/Write | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
 | `weekdayNames` | `string[]` | Read/Write | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rollingYearRange` | `string \| null` | Read/Write | Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY's year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one. |
@@ -1660,6 +1675,7 @@ The web component provides convenient property accessors for JavaScript:
 | `renderDayCallback` | `(ctx: DayContext) => HTMLElement \| string \| null` | Read/Write | Fully custom-render a day cell. |
 | `renderDayContentCallback` | `(ctx: DayContext) => HTMLElement \| string \| null` | Read/Write | Custom-render the content inside a day cell. |
 | `renderSummaryCallback` | `(ctx: SummaryContext) => string` | Read/Write | Render the range summary (HTML). |
+| `renderLoadingCallback` | `(ctx: LoaderRenderContext) => void \| (() => void)` | Read/Write | Draw every loader (`showLoader()` targets, the one around async callbacks): fill `ctx.containerElement` (`ctx.context` = `calendar` \| `message` \| `summary`), optionally return a cleanup. Beats the page-wide `window.components.renderLoaderCallback`; unset = that, else the default `.drp-loader` (the shared `--base-loader-*` contract). Property-only. |
 | `getUnifiedHeaderCallback` | `(ctx: UnifiedHeaderContext) => string` | Read/Write | Render the unified grid header label. |
 | `getMonthHeaderCallback` | `(ctx: MonthHeaderContext) => string` | Read/Write | Render a per-column month header label. |
 | `getCustomStylesCallback` | `(ctx: PickerContext) => string \| null` | Read/Write | Return a CSS string injected into the component via a replaceable style slot (§12.8). Takes precedence over the `custom-styles` attribute when both are set. |

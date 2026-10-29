@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — loaders draw through the shared core loader (**BREAKING**, 2026-10-29)
+
+- **Every loader** (`showLoader('calendar' | 'message' | 'summary')` and the overlay around
+  async callbacks) is drawn by core `renderLoader()`: the new instance
+  **`renderLoadingCallback`** property, else the page-wide
+  `window.components.renderLoaderCallback`, else the default `<span class="drp-loader">`
+  (the `--base-loader-*` contract: a single-colour mask shape). The hook's `ctx.context` is the
+  target. `showLoader()` / `hideLoader()` behave as before (single instance per target, the
+  summary loader survives re-renders); `hideLoader()` runs a hook's cleanup.
+- **Accessibility:** the loader container is `role="status"` with `aria-label` = the new
+  **`labels.loading`** (`Loading…`).
+- **CSS (BREAKING):** the border-ring spinner is gone. New tokens `--drp-loader-icon` /
+  `-rotate` / `-duration` / `-size` chain to `--base-loader-*`; `--drp-loader-size` is now the
+  in-block loader (`1.25em`) and the overlay uses the new `--drp-loader-overlay-size` (2×);
+  `--drp-loader-color` is the loader's single colour (the accent). **Removed:**
+  `--drp-loader-inline-size`, `--drp-loader-border-width`, `--drp-loader-accent`,
+  `--drp-loader-spin-duration` (→ `--drp-loader-duration`), the `.drp__loader` inner element
+  (→ `.drp-loader`) and the `drp-spin` keyframe (→ `drp-loader-spin`). Under reduced motion
+  the contract slows the loader to 1.5s.
+- `LoaderRenderContext` / `RenderLoaderCallback` types re-exported from core.
+- **Dev:** `@keenmate/base-css-variables` points to `file:../base-css-variables` (rc06 with the
+  loader tokens is unpublished) — **switch back to `^2.0.0-rc06` before publishing**.
+
 ### Changed — form reset and `value` assignment are silent (**BREAKING**, 2026-10-29)
 
 - **`form.reset()` and assigning `value` (property or attribute) no longer fire `month-change`**
@@ -32,7 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `var(--drp-transition-normal) var(--drp-easing-out)` (new `--drp-easing-out` follows
   `--base-ease-out`).
 - **Spinner exception:** the loading spinner keeps its 0.8s turn as
-  `--drp-loader-spin-duration` (a state indicator, not a transition).
+  `--drp-loader-spin-duration` (a state indicator, not a transition) — since replaced by
+  `--drp-loader-duration` (shared loader contract, above).
 - **New:** `--drp-scroll-behavior` (smooth); the wheel's programmatic scroll follows it.
 - **Disabled dimming:** `--drp-opacity-disabled` → `--drp-disabled-opacity`
   (`var(--base-disabled-opacity, 0.65)`). Disabled rolling-selector years / months use

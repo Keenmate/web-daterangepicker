@@ -38,6 +38,8 @@ export type {
     OS,
     BreakpointMap,
 } from '@keenmate/web-components-core';
+// Shared loader (renderLoadingCallback / window.components.renderLoaderCallback)
+export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
 
 // Export types
 export type {

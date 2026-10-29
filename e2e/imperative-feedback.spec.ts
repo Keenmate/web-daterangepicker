@@ -77,7 +77,7 @@ test("showLoader() mounts the full-calendar overlay; hideLoader() removes it", a
 
     await p.evaluate((el: any) => el.showLoader());
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveCount(1);
-    await expect(calendarOf(p).locator('.drp__loader-overlay .drp__loader')).toHaveCount(1);
+    await expect(calendarOf(p).locator('.drp__loader-overlay .drp-loader')).toHaveCount(1);
 
     await p.evaluate((el: any) => el.hideLoader());
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveCount(0);
@@ -152,6 +152,83 @@ test('showLoader() is single-instance per target — a second call does not stac
     // A single hideLoader removes the one overlay.
     await p.evaluate((el: any) => el.hideLoader());
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveCount(0);
+});
+
+// =============================================================================
+// Shared loader (core renderLoader): default look, a11y, page + instance hooks
+// =============================================================================
+
+test('the default loader is the contract .drp-loader; the container is role=status + labels.loading', async ({ page }) => {
+    const p = pickerById(page, 'feedback');
+
+    await p.evaluate((el: any) => el.showLoader('summary'));
+    const container = summaryOf(p).locator('.drp__inline-loader');
+    await expect(container).toHaveAttribute('role', 'status');
+    await expect(container).toHaveAttribute('aria-label', 'Loading…');
+    const spin = container.locator('.drp-loader');
+    await expect(spin).toHaveCount(1);
+    await expect(spin).toHaveAttribute('aria-hidden', 'true');
+    const style = await spin.evaluate((s) => {
+        const cs = getComputedStyle(s);
+        return { name: cs.animationName, mask: cs.maskImage || (cs as any).webkitMaskImage, w: cs.width };
+    });
+    expect(style.name).toBe('drp-loader-spin');
+    expect(style.mask).toContain('data:image/svg+xml');
+    expect(parseFloat(style.w)).toBeGreaterThan(0);
+
+    // labels.loading localizes the accessible label
+    await p.evaluate((el: any) => { el.hideLoader('summary'); el.labels = { loading: 'Lädt…' }; });
+    await p.evaluate(async (el: any) => { await el.whenSettled(); el.showLoader(); });
+    await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveAttribute('aria-label', 'Lädt…');
+});
+
+test('window.components.renderLoaderCallback replaces the default loader', async ({ page }) => {
+    const p = pickerById(page, 'feedback');
+
+    await page.evaluate(() => {
+        (window as any).components.renderLoaderCallback = ({ component, context, containerElement, label }: any) => {
+            containerElement.innerHTML = `<i class="page-dots" data-component="${component}" data-context="${context}" data-label="${label}"></i>`;
+        };
+    });
+    await p.evaluate((el: any) => el.showLoader('summary'));
+    const dots = summaryOf(p).locator('.drp__inline-loader .page-dots');
+    await expect(dots).toHaveCount(1);
+    await expect(dots).toHaveAttribute('data-component', 'web-daterangepicker');
+    await expect(dots).toHaveAttribute('data-context', 'summary');
+    await expect(dots).toHaveAttribute('data-label', 'Loading…');
+    await expect(summaryOf(p).locator('.drp-loader')).toHaveCount(0);
+    await expect(summaryOf(p).locator('.drp__inline-loader')).toHaveAttribute('role', 'status');
+});
+
+test('the instance renderLoadingCallback beats the page hook; hideLoader runs its cleanup and removes it', async ({ page }) => {
+    const p = pickerById(page, 'feedback');
+
+    await page.evaluate(() => {
+        (window as any).components.renderLoaderCallback = ({ containerElement }: any) => {
+            containerElement.innerHTML = '<i class="page-dots"></i>';
+        };
+    });
+    await p.evaluate(async (el: any) => {
+        (window as any).__cleanups = 0;
+        el.renderLoadingCallback = ({ context, containerElement }: any) => {
+            const b = document.createElement('b');
+            b.className = 'own-loader';
+            b.dataset.context = context;
+            containerElement.appendChild(b);
+            return () => { (window as any).__cleanups++; };
+        };
+        await el.whenSettled();
+        el.showLoader();
+    });
+    const overlay = calendarOf(p).locator('.drp__loader-overlay');
+    await expect(overlay.locator('.own-loader')).toHaveAttribute('data-context', 'calendar');
+    await expect(overlay.locator('.page-dots')).toHaveCount(0);
+    await expect(overlay.locator('.drp-loader')).toHaveCount(0);
+
+    await p.evaluate((el: any) => el.hideLoader());
+    await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveCount(0);
+    await expect(calendarOf(p).locator('.own-loader')).toHaveCount(0);
+    expect(await page.evaluate(() => (window as any).__cleanups)).toBe(1);
 });
 
 // =============================================================================

@@ -1,7 +1,21 @@
 /* ==============================================================================
-   LOADING — overlay + spinner for async validation
+   LOADING — showLoader('calendar' | 'message' | 'summary')
    ==============================================================================
-   Spinner uses the `drp-spin` keyframe declared in `animations.css`. */
+   Each loader is drawn by core renderLoader() into a container (the overlay or the
+   in-block `.drp__inline-loader`, both role="status"): the instance
+   renderLoadingCallback, else window.components.renderLoaderCallback, else the
+   default `.drp-loader` below — the shared loader contract (--base-loader-*).
+   Keyframe `drp-loader-spin` lives in `animations.css`. */
+
+/* The default loader: the contract's drawing rule, verbatim. */
+.drp-loader {
+  display: inline-block;
+  inline-size: var(--drp-loader-size);
+  block-size: var(--drp-loader-size);
+  mask: var(--drp-loader-icon) center / contain no-repeat;
+  background: currentColor;
+  animation: drp-loader-spin var(--drp-loader-duration) linear infinite;
+}
 
 .drp__loader-overlay {
   position: absolute;
@@ -15,15 +29,13 @@
   justify-content: center;
   z-index: var(--drp-z-index-dropdown);
   border-radius: var(--drp-border-radius-lg);
+  color: var(--drp-loader-color);
 }
 
-.drp__loader {
-  width: var(--drp-loader-size);
-  height: var(--drp-loader-size);
-  border: var(--drp-loader-border-width) solid var(--drp-loader-color);
-  border-top-color: var(--drp-loader-accent);
-  border-radius: 50%;
-  animation: drp-spin var(--drp-loader-spin-duration) linear infinite;
+/* The overlay loader is the bigger one. */
+.drp__loader-overlay .drp-loader {
+  inline-size: var(--drp-loader-overlay-size);
+  block-size: var(--drp-loader-overlay-size);
 }
 
 /* In-block spinner — used by showLoader('message') / showLoader('summary').
@@ -31,12 +43,10 @@
    over it (rather than dimming the content and sitting beside it). The block keeps
    its height and its own border/background, so nothing jumps. */
 .drp__inline-loader {
-  width: var(--drp-loader-inline-size);
-  height: var(--drp-loader-inline-size);
-  border: 2px solid var(--drp-loader-color);
-  border-top-color: var(--drp-loader-accent);
-  border-radius: 50%;
-  animation: drp-spin var(--drp-loader-spin-duration) linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--drp-loader-color);
 }
 
 /* Positioning context + hide the underlying content (keep the block's own border).
@@ -46,15 +56,13 @@
 .drp__summary--loading > :not(.drp__inline-loader) { visibility: hidden; }
 .drp__message--loading .drp__message-text { visibility: hidden; }
 
-/* Loader stays visible and is dead-centered over the block. `inset: 0; margin: auto`
-   centers a fixed-size absolute element on both axes without touching `transform`
-   (which is owned by the drp-spin rotation animation). */
+/* The loader container stays visible and covers the block; its flex centering puts
+   the loader dead-center (no `transform` — that's owned by the rotation). */
 .drp__summary--loading .drp__inline-loader,
 .drp__message--loading .drp__inline-loader {
   visibility: visible;
   position: absolute;
   inset: 0;
-  margin: auto;
 }
 
 /* The summary is padded only at the top (its bottom spacing is a margin, not padding),

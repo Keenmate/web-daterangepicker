@@ -5,11 +5,9 @@
    `transition:` declarations stay alongside the rules that use them
    (see `states.css` for the hover / focus transition set). */
 
-@keyframes drp-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
+/* The loader's rotation (shared loader contract, see loading.css). */
+@keyframes drp-loader-spin {
+  to {
+    transform: rotate(var(--drp-loader-rotate));
   }
 }
