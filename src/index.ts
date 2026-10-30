@@ -18,10 +18,9 @@ export { DEFAULT_LABELS } from './date-picker-locales';
 // Device / viewport detection — re-exported from the core so consumers get the
 // same "what device am I on" signal the component itself reacts to
 // (environmentChanged / the presentation ladder), from ONE import surface and
-// ONE dependency. Use it to drive per-device configuration (e.g. a rich
-// actionButtons set on desktop, a subset on phones):
-//   import { observeViewport, classifyDevice } from '@keenmate/web-daterangepicker';
-//   observeViewport(env => { el.actionButtons = classifyDevice(env) === 'mobile' ? mobile : desktop; });
+// ONE dependency. For per-device configuration prefer the core responsive rules
+// (`el.responsive = { mobile: { actionButtons: [...] } }`, page-wide or per tag via
+// `window.components`, typed by DateRangePickerResponsiveMap / ...Callback).
 export {
     getEnvironment,
     observeEnvironment,
@@ -40,10 +39,14 @@ export type {
 } from '@keenmate/web-components-core';
 // Shared loader (renderLoadingCallback / window.components.renderLoaderCallback)
 export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
+// Responsive rules context (the map / callback aliases are typed below)
+export type { ResponsiveContext } from '@keenmate/web-components-core';
 
 // Export types
 export type {
     DatePickerOptions, DateRange, FormatOptions, MonthDisplay,
+    // Element config + responsive rules (core SPEC §6.7)
+    DateRangePickerConfig, DateRangePickerResponsiveMap, DateRangePickerResponsiveCallback, Presentation,
     // Shared callback/event context vocabulary
     PickerContext, DateRangePickerController, ShowMessageOptions, MessageType, PresentationContext,
     DayContext, MonthHeaderContext, UnifiedHeaderContext, SummaryContext,

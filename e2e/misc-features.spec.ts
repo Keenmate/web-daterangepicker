@@ -7,8 +7,8 @@ import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, open } 
  *   - unified-header-interactive opens unified rolling selector
  *
  * Fixture: test/misc-features.html
- * (Device-adaptive presentation — mobile-presentation / fullscreen — lives in
- *  e2e/mobile-presentation.spec.ts, which needs per-project device emulation.)
+ * (Device-adaptive `presentation` — modal / fullscreen — lives in
+ *  e2e/presentation-*.spec.ts, which needs per-project device emulation.)
  */
 
 const PAGE = '/test/misc-features.html';

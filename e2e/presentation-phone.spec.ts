@@ -2,16 +2,16 @@ import { test, expect, devices } from './fixtures';
 
 /**
  * Device-adaptive presentation (SPEC §12.9) on a PHONE. A `floating` picker with
- * `mobile-presentation="auto"` (default) resolves — via core's classifyDevice —
+ * `presentation="auto"` (default) resolves — via core's classifyDevice —
  * to `fullscreen` on a touch-primary device whose shorter viewport side < 600px.
  *
  * Device emulation must be top-level (Playwright forbids test.use in describe).
- * Fixture: test/mobile-presentation.html — a plain floating #picker, no overrides.
+ * Fixture: test/presentation.html — a plain floating #picker, no overrides.
  */
 test.use({ ...devices['iPhone 13'] });
 
 test('auto → fullscreen: opening shows the edge-to-edge sheet with a close header', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
 
@@ -35,7 +35,7 @@ test('auto → fullscreen: opening shows the edge-to-edge sheet with a close hea
 });
 
 test('the ✕ close button dismisses the full-screen sheet', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
   await host.evaluate(el => (el as any).open());
@@ -46,7 +46,7 @@ test('the ✕ close button dismisses the full-screen sheet', async ({ page }) =>
 });
 
 test('labels.fullscreenTitle shows a heading; labels.close is the ✕ ARIA label', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
   await host.evaluate(async (el: any) => { el.labels = { fullscreenTitle: 'Choose dates', close: 'Zavřít' }; await el.whenSettled(); el.open(); });
@@ -56,7 +56,7 @@ test('labels.fullscreenTitle shows a heading; labels.close is the ✕ ARIA label
 });
 
 test('with no title, the ✕ merges into the month-nav row and stays on top', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker'); // no fullscreen-title
   await host.waitFor();
   await host.evaluate(el => (el as any).open());
@@ -75,7 +75,7 @@ test('with no title, the ✕ merges into the month-nav row and stays on top', as
 });
 
 test('show-fullscreen-input: the trigger input relocates into the header (numeric keypad) and restores on close', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
 
@@ -117,7 +117,7 @@ test('show-fullscreen-input: the trigger input relocates into the header (numeri
 });
 
 test('keyboard-off default: the input is not focused when the sheet opens', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
   await host.evaluate(el => (el as any).open());
@@ -127,7 +127,7 @@ test('keyboard-off default: the input is not focused when the sheet opens', asyn
 });
 
 test('fullscreen-autofocus: the input is focused when the sheet opens', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
   await host.evaluate(async (el: any) => { el.setAttribute('fullscreen-autofocus', ''); await el.whenSettled(); el.open(); });

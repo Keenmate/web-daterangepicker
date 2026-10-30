@@ -40,7 +40,7 @@ import {
   type StyleSlot,
   type EnvironmentSnapshot,
   type ElementSize,
-  type MobilePresentation,
+  type Presentation,
 } from '@keenmate/web-components-core';
 import { DateRangePickerEngine } from './date-picker';
 import { resolveLabels } from './date-picker-locales';
@@ -74,8 +74,8 @@ declare const __VERSION__: string;
 const SELECTION_MODES = ['single', 'range', 'multiple'] as const;
 const TRIGGERS = ['focus', 'typing', 'manual'] as const;
 const MONTH_LAYOUTS = ['horizontal', 'grid'] as const;
-const POSITIONING_MODES = ['inline', 'floating', 'modal'] as const;
-const MOBILE_PRESENTATIONS = ['auto', 'floating', 'modal', 'fullscreen'] as const;
+const POSITIONING_MODES = ['inline', 'floating'] as const;
+const PRESENTATIONS = ['auto', 'floating', 'modal', 'fullscreen'] as const;
 const DISABLED_HANDLING = ['allow', 'prevent', 'block', 'split', 'individual'] as const;
 const COMMIT_MODE = ['selection', 'apply', 'manual'] as const;
 const PICKER_MODES = ['date', 'time', 'datetime'] as const;
@@ -92,7 +92,7 @@ const cb = (): ReturnType<typeof toFunction> => toFunction();
 const INPUTS: readonly InputDef[] = [
   // ── Structural (→ reinit): a change here rebuilds the picker ──────────────
   { configKey: 'selectionMode',                attribute: 'selection-mode',                converter: toEnum(SELECTION_MODES, { default: 'single' }), on: 'reinit', description: 'Selection behavior: `single` day, `range`, or `multiple` days/ranges.' },
-  { configKey: 'positioningMode',              attribute: 'positioning-mode',              converter: toEnum(POSITIONING_MODES, { default: 'floating' }), on: 'reinit', description: 'How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`.' },
+  { configKey: 'positioningMode',              attribute: 'positioning-mode',              converter: toEnum(POSITIONING_MODES, { default: 'floating' }), on: 'reinit', description: 'Where the calendar lives: `inline` (always visible, no input) or `floating` (opens from an input). How a floating picker opens — popover, centered modal or phone full-screen sheet — is `presentation`.' },
   { configKey: 'calendarOpenTrigger',          attribute: 'calendar-open-trigger',         converter: toEnum(TRIGGERS, { default: 'focus' }), on: 'reinit', description: 'What opens the floating calendar: `focus`, `typing`, or `manual` (only `open()`).' },
   { configKey: 'overlayGroup',                 attribute: 'overlay-group',                 converter: toText({ isNullable: true }), on: 'reinit', description: 'Scope the "one overlay open at a time" coordination to a named group. Overlays (datepickers, multiselects, external popovers) sharing a group dismiss each other when one opens; different groups are independent. Unset = the default (ungrouped) group.' },
   { configKey: 'visibleMonthCount',            attribute: 'visible-month-count',           converter: toInt({ min: 1 }), on: 'reinit', description: 'Number of month columns shown side-by-side.' },
@@ -163,8 +163,8 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
   { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks.' },
-  { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating/modal only).' },
-  { configKey: 'mobilePresentation',           attribute: 'mobile-presentation',           converter: toEnum(MOBILE_PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment.' },
+  { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating only).' },
+  { configKey: 'presentation',                 attribute: 'presentation',                  converter: toEnum(PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker opens (SPEC §12.9, via web-components-core). `auto` (default) follows the device: the floating popover on desktop, a centered `modal` on tablets, a full-screen sheet on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating` / `modal` / `fullscreen` force that presentation on any device. Ignored when `positioning-mode` is `inline`. Resolved reactively from the device/viewport environment; tune it per device class with the core `responsive` rules.' },
   { configKey: 'shouldFullscreenAutofocus',    attribute: 'fullscreen-autofocus',          converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
   { configKey: 'isFullscreenInputShown',       attribute: 'show-fullscreen-input',         converter: toBool('presence'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
   { configKey: 'compactBelow',                 attribute: 'compact-below',                 converter: toInt({ min: 0 }), on: 'update', description: 'Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change.' },
@@ -222,7 +222,7 @@ const EVENTS = [
  */
 const NON_PICKER_KEYS = new Set([
   'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize',
-  'mobilePresentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow',
+  'presentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow',
   'name', 'valueFormat', 'valueFormatMask', 'valueSeparator', 'getValueFormatCallback',
   'placeholderFormatMask', 'placeholderTimeFormatMask',
 ]);
@@ -249,7 +249,7 @@ type SelectionSnapshot = {
 
 /** Modes that render an input element (inline mode has none). */
 function hasInput(mode: string): boolean {
-  return mode === 'floating' || mode === 'modal';
+  return mode === 'floating';
 }
 
 // ============================================================================
@@ -351,7 +351,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if ('placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
       || 'dateFormatMask' in partial || 'timeFormatMask' in partial) this.#applyPlaceholder();
     if ('getCustomStylesCallback' in partial || 'customStyles' in partial) this.#applyCustomStyles();
-    if ('mobilePresentation' in partial && this.#picker) {
+    if ('presentation' in partial && this.#picker) {
       // Presentation policy changed at runtime — the environment observable won't
       // re-fire on its own, so re-resolve against the current environment now.
       this.#applyPresentation(getEnvironment());
@@ -448,7 +448,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   #buildPicker(isRebuild = false): void {
     const mode = (this.config.positioningMode as string) ?? 'floating';
 
-    // Reconcile the input shell with the current positioning mode. floating/modal
+    // Reconcile the input shell with the current positioning mode. floating
     // get a visible text input to anchor to; inline gets a hidden input so it still
     // submits a real value under its `name`. If a mode change flipped the input
     // kind, drop the stale one so #ensureInput rebuilds the right one.
@@ -909,21 +909,21 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   /**
    * Resolve the concrete presentation for the current device and push it to the
-   * live picker (in place — no rebuild). Only a `floating`-configured picker
-   * adapts; `inline` and an explicit `modal` base are left exactly as authored.
+   * live picker (in place — no rebuild). Only a `floating` picker has a
+   * presentation; `inline` ignores it.
    *
    * The class→presentation policy is core's `resolvePresentation` with our one
    * override, `{ tablet: 'modal' }`, giving the three-tier ladder:
    *   - phone   (touch, shorter side < 600px) → `fullscreen`
    *   - tablet  (touch, shorter side ≥ 600px) → `modal`
    *   - desktop (fine pointer, any width)      → `floating`
-   * A forced `mobile-presentation` (`floating`/`modal`/`fullscreen`) wins on any
-   * device — handy for previewing the phone overlay on a desktop.
+   * A forced `presentation` (`floating`/`modal`/`fullscreen`) wins on any
+   * device — e.g. `modal` everywhere, or previewing the phone sheet on a desktop.
    */
   #applyPresentation(env: EnvironmentSnapshot): void {
     if (!this.#picker) return;
     if ((this.config.positioningMode as string) !== 'floating') return;
-    const mode = (this.config.mobilePresentation as MobilePresentation | null) ?? 'auto';
+    const mode = (this.config.presentation as Presentation | null) ?? 'auto';
     this.#picker.setPresentation(resolvePresentation(mode, env, { tablet: 'modal' }));
   }
 
@@ -935,7 +935,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * `compact-below` threshold we swap between the authored month layout and a
    * compact one (single month, no wide Today/Clear buttons) so a picker in a
    * narrow column stays usable — the container-query companion to the
-   * environment-driven `mobilePresentation`.
+   * environment-driven `presentation`.
    *
    * Month-column count is a STRUCTURAL engine option (no in-place patch), so a
    * threshold cross rebuilds the picker; the committed selection is snapshotted
@@ -1066,9 +1066,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   // ── imperative API (flush pending writes, then delegate to the picker) ─────
 
-  /** Open the calendar (floating/modal modes). */
+  /** Open the calendar (floating mode). */
   open(): void { this.flush(); this.#picker?.open(); }
-  /** Close the calendar (floating/modal modes). */
+  /** Close the calendar (floating mode). */
   close(): void { this.flush(); this.#picker?.close(); }
   /** Toggle the calendar open/closed. */
   toggle(): void { this.flush(); this.#picker?.toggle(); }

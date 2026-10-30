@@ -291,10 +291,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
-| Desktop: `mobile-presentation="auto"` → floating; forced `fullscreen` applies | ✓ | `mobile-presentation-desktop.spec.ts` | `mobile-presentation.html` |
-| Phone: auto → full-screen sheet, ✕ close, header merge, `show-fullscreen-input`, keyboard-off, `fullscreen-autofocus` | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
-| Tablet: auto → modal; tap opens and stays open (ghost click)  | ✓      | `mobile-presentation-tablet.spec.ts` | `mobile-presentation.html` |
-| Back gesture closes modal / full-screen without navigating    | ✓      | `back-gesture.spec.ts`       | `mobile-presentation.html` |
+| Desktop: `presentation="auto"` → floating; forced `fullscreen` applies | ✓ | `presentation-desktop.spec.ts` | `presentation.html` |
+| Phone: auto → full-screen sheet, ✕ close, header merge, `show-fullscreen-input`, keyboard-off, `fullscreen-autofocus` | ✓ | `presentation-phone.spec.ts` | `presentation.html` |
+| Tablet: auto → modal; tap opens and stays open (ghost click)  | ✓      | `presentation-tablet.spec.ts` | `presentation.html` |
+| Back gesture closes modal / full-screen without navigating    | ✓      | `back-gesture.spec.ts`       | `presentation.html` |
 | Adaptive action set: rich on desktop, essentials on phone     | ✓      | `adaptive-actions.spec.ts`, `adaptive-actions-phone.spec.ts` | `adaptive-actions.html` |
 | Container-width compaction (2 → 1 month, hides Today/Clear) keeps the range | ✓ | `responsive-compact.spec.ts` | `responsive-compact.html` |
 
@@ -340,7 +340,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `open` / `close` events + `onOpen` / `onClose` fire once per transition; no `select` event | ✓ | `events-api.spec.ts` | `events-api.html` |
 | `<fieldset disabled>` disables the input (core `isEffectivelyDisabled`); the fieldset never writes `isDisabled` | ✓ | `events-api.spec.ts` | `events-api.html` |
 | `disabled` attribute → `isDisabled = false` re-enables (reflects); fieldset toggle while own attribute set | ✓ | `events-api.spec.ts` | `events-api.html` |
-| `labels.fullscreenTitle` heading + `labels.close` ✕ ARIA label | ✓ | `mobile-presentation-phone.spec.ts` | `mobile-presentation.html` |
+| `labels.fullscreenTitle` heading + `labels.close` ✕ ARIA label | ✓ | `presentation-phone.spec.ts` | `presentation.html` |
 | `defer` holds the build; attribute removal / core `release()` builds once; `ready` never re-fires (reinit, reconnect); `ready` attribute / `isReady` / `whenReady()` / `:state(ready)`; `destroy()` tears down + inert | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
 | DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
 | DOM move keeps the committed selection state + open state (D1, FINDINGS #16, fixed) | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test — inline &amp; modal positioning</title>
+    <title>Test — inline positioning &amp; modal presentation</title>
     <link rel="stylesheet" href="test-fixtures.css">
     <style>
         web-daterangepicker { display: block; max-width: 320px; }
@@ -10,7 +10,7 @@
     </style>
 </head>
 <body>
-    <h1>inline &amp; modal positioning</h1>
+    <h1>inline positioning &amp; modal presentation</h1>
     <p>Targeted by <code>e2e/positioning-modes.spec.ts</code>.</p>
 
     <div class="fixture">
@@ -20,9 +20,15 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">modal mode — opens centered with backdrop</div>
+        <div class="fixture-label">modal presentation (floating + presentation="modal") — opens centered with backdrop</div>
         <web-daterangepicker id="modal" selection-mode="single"
-            initial-date="2026-06-15" positioning-mode="modal"></web-daterangepicker>
+            initial-date="2026-06-15" presentation="modal"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline + presentation="fullscreen" — presentation is ignored by inline</div>
+        <web-daterangepicker id="inline-presentation" selection-mode="single"
+            initial-date="2026-06-15" positioning-mode="inline" presentation="fullscreen"></web-daterangepicker>
     </div>
 
     <script type="module" src="/src/index.ts"></script>

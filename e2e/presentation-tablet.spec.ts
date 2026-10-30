@@ -7,12 +7,12 @@ import { test, expect, devices } from './fixtures';
  * to the centered `modal` dialog (not full-screen, not floating).
  *
  * Device emulation must be top-level (Playwright forbids test.use in describe).
- * Fixture: test/mobile-presentation.html — a plain floating #picker, no overrides.
+ * Fixture: test/presentation.html — a plain floating #picker, no overrides.
  */
 test.use({ ...devices['iPad (gen 7)'] });
 
 test('auto → modal on a tablet (touch, shorter side ≥ 600px)', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
   await host.evaluate(el => (el as any).open());
@@ -35,7 +35,7 @@ test('auto → modal on a tablet (touch, shorter side ≥ 600px)', async ({ page
 // cell). The open-gesture guard must swallow that ghost click so the modal stays
 // open instead of selecting a day and single-mode auto-closing.
 test('tapping the input opens the modal and it STAYS open (ghost click swallowed)', async ({ page }) => {
-  await page.goto('/test/mobile-presentation.html');
+  await page.goto('/test/presentation.html');
   const host = page.locator('#low'); // single mode → would auto-close on a stray day select
   await host.waitFor();
   await host.locator('input').tap();

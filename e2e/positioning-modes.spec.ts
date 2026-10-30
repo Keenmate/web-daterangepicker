@@ -1,8 +1,9 @@
 import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate } from './fixtures';
 
 /**
- * inline and modal positioning modes (floating mode lives in the other
- * positioning specs).
+ * inline positioning mode and the `modal` presentation (floating + presentation="modal";
+ * the floating popover lives in the other positioning specs, the device-adaptive
+ * `auto` ladder in presentation-*.spec.ts).
  *
  * Fixture: test/positioning-modes.html
  */
@@ -44,11 +45,35 @@ test.describe('inline mode', () => {
     });
 });
 
+test.describe('inline ignores presentation', () => {
+    test('inline + presentation="fullscreen" stays an inline block (no sheet, no input)', async ({ page }) => {
+        const p = pickerById(page, 'inline-presentation');
+        await expect(calendarOf(p)).toBeVisible();
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--inline/);
+        await expect(calendarOf(p)).not.toHaveClass(/drp__picker--fullscreen|drp__picker--modal/);
+        await expect(p.locator('input:not([type="hidden"])')).toHaveCount(0);
+    });
+});
+
+test.describe('positioning-mode is inline | floating only', () => {
+    test('the removed positioning-mode="modal" is rejected (warns, keeps floating)', async ({ page }) => {
+        const warnings: string[] = [];
+        page.on('console', m => { if (m.type() === 'warning') warnings.push(m.text()); });
+        const p = pickerById(page, 'modal');
+        await p.evaluate((el: any) => { el.setAttribute('positioning-mode', 'modal'); return el.whenSettled(); });
+        expect(await p.evaluate((el: any) => el.positioningMode)).toBe('floating');
+        expect(warnings.some(w => w.includes('positioning-mode') || w.includes('positioningMode'))).toBe(true);
+        // presentation="modal" still drives the chrome.
+        await p.locator('input').click();
+        await expect(calendarOf(p)).toHaveClass(/drp__picker--modal/);
+    });
+});
+
 // =============================================================================
-// modal mode
+// modal presentation
 // =============================================================================
 
-test.describe('modal mode', () => {
+test.describe('modal presentation', () => {
     test('clicking the input opens a modal calendar with --modal class', async ({ page }) => {
         const p = pickerById(page, 'modal');
 
@@ -102,7 +127,7 @@ test.describe('modal mode', () => {
     });
 });
 
-test.describe('modal mode extras', () => {
+test.describe('modal presentation extras', () => {
     test('opening from the input blurs it (suppresses the mobile keyboard)', async ({ page }) => {
         const p = pickerById(page, 'modal');
         await p.locator('input').click();

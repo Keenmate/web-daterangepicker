@@ -3,7 +3,7 @@ import type { Locator, Page } from './fixtures';
 
 /**
  * Time selection inside the phone full-screen sheet. On a phone,
- * `mobile-presentation="auto"` resolves to `fullscreen`; the time UIs must still
+ * `presentation="auto"` resolves to `fullscreen`; the time UIs must still
  * commit through Apply and close the sheet.
  *
  * Device emulation must be top-level (Playwright forbids test.use in describe).
@@ -13,7 +13,7 @@ test.use({ ...devices['iPhone 13'] });
 
 const PAGE = '/test/mobile-time-e2e.html';
 
-/** Open via the API (tap emulation is unreliable — see mobile-presentation-phone.spec.ts). */
+/** Open via the API (tap emulation is unreliable — see presentation-phone.spec.ts). */
 async function openSheet(page: Page, id: string): Promise<Locator> {
     const p = pickerById(page, id);
     await p.evaluate((el: any) => el.open());

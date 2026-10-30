@@ -16,7 +16,7 @@ test('touch pointer events on a range endpoint adjust the range', async ({ page 
   await page.goto('/test/drag-adjust.html');
   const host = page.locator('#range');
   await host.waitFor();
-  await host.evaluate(el => el.setAttribute('mobile-presentation', 'floating'));
+  await host.evaluate(el => el.setAttribute('presentation', 'floating'));
   await host.evaluate(el => (el as any).open());
   await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--visible/);
 

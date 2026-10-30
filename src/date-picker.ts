@@ -181,8 +181,8 @@ class DateRangePickerEngine {
     private clickSubscriptions: ClickSubscription[] = [];
     /**
      * The concrete presentation of the OPEN calendar chrome (non-inline pickers):
-     * `floating` popover, centered `modal`, or phone `fullscreen` overlay. Set from
-     * the configured positioning mode and swapped in place by {@link setPresentation}
+     * `floating` popover, centered `modal`, or phone `fullscreen` overlay. Starts as
+     * `floating`; swapped in place by {@link setPresentation} (the element's `presentation`)
      * as the device environment changes. `inline` pickers ignore this field.
      */
     presentation: 'floating' | 'modal' | 'fullscreen' = 'floating';
@@ -309,11 +309,11 @@ class DateRangePickerEngine {
             isFullscreenInputShown: options.isFullscreenInputShown || false
         };
 
-        // Runtime presentation of the OPEN calendar chrome, for non-inline pickers.
-        // Defaults from the configured positioning mode; the web component may swap
-        // it in place via setPresentation() as the device environment changes
+        // Runtime presentation of the OPEN calendar chrome, for floating pickers.
+        // Starts as the anchored popover; the web component swaps it in place via
+        // setPresentation() from its `presentation` input and the device environment
         // (floating popover ⇄ centered modal ⇄ phone full-screen overlay).
-        this.presentation = this.options.positioningMode === 'modal' ? 'modal' : 'floating';
+        this.presentation = 'floating';
 
         // Mode fallback enforcement — keep downstream code free of defensive checks.
         // pickerMode 'time'/'datetime' only support selectionMode 'single' in v1.

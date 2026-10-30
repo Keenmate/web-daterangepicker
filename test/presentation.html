@@ -8,20 +8,20 @@
          non-zero — the full-screen sheet insets its content out from under the
          landscape side nav bar / camera cutout (see fullscreen.css). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Test — mobile presentation (device-adaptive)</title>
+    <title>Test — presentation (device-adaptive)</title>
     <script type="module" src="/src/index.ts"></script>
     <style>
         body { font-family: system-ui, sans-serif; margin: 2rem; }
     </style>
 </head>
 <body>
-    <h1>mobile presentation</h1>
+    <h1>presentation</h1>
     <!-- Tall spacer so #low sits below the fold: clicking/tapping it makes the
          browser scroll it into view, exercising the open-gesture guard (the
          focus-scroll must NOT close a floating picker; the ghost click must NOT
          select a day in a modal/full-screen sheet). -->
     <div style="height: 1400px;"></div>
-    <!-- Plain floating pickers with the default mobile-presentation="auto" -->
+    <!-- Plain floating pickers with the default presentation="auto" -->
     <web-daterangepicker id="picker" selection-mode="range" placeholder="YYYY-MM-DD"></web-daterangepicker>
     <web-daterangepicker id="low" selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
 </body>

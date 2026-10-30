@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — `presentation` replaces `mobile-presentation` and `positioning-mode="modal"` (**BREAKING**, 2026-10-30)
+
+- **`mobile-presentation` / `mobilePresentation` → `presentation`** (attribute and property; same values:
+  `auto` | `floating` | `modal` | `fullscreen`; still reflects). No alias.
+- **`positioning-mode` is now `inline` | `floating` only.** `modal` moved to `presentation`, so
+  "where the calendar lives" (`positioning-mode`) and "how a floating picker opens"
+  (`presentation`) are separate axes. `presentation` applies only to a floating picker;
+  `inline` ignores it. `positioning-mode="modal"` is now an invalid value (warns, keeps
+  the previous / default `floating`).
+
+  | Before | After |
+  |---|---|
+  | `positioning-mode="modal"` | `presentation="modal"` (modal on every device) |
+  | `mobile-presentation="fullscreen"` | `presentation="fullscreen"` |
+  | `el.mobilePresentation = 'auto'` | `el.presentation = 'auto'` |
+
+  `auto` (default) keeps the built-in ladder: phone → `fullscreen`, tablet → `modal`,
+  desktop → `floating`.
+- **Engine (standalone `DateRangePickerEngine`):** `DatePickerOptions.positioningMode` is
+  `'inline' | 'floating'`; the engine starts with the `floating` presentation — call
+  `engine.setPresentation('modal')` for the old modal mode.
+- Core `MobilePresentation` → `Presentation` (re-exported as a type).
+
+### Added — responsive rules (core SPEC §6.7, 2026-10-30)
+
+- Every `<web-daterangepicker>` takes core's responsive rules: a device-class map or a callback
+  returning a partial config, page-wide (`window.components.responsive*`), per tag
+  (`window.components['web-daterangepicker'].responsive*`) or per instance (`el.responsive` /
+  `responsive` JSON attribute, `el.responsiveCallback`). An attribute / property set on the
+  instance beats page rules; the instance's own rules beat both. Overrides never reflect.
+- New types: `DateRangePickerConfig` (the element config), `DateRangePickerResponsiveMap`,
+  `DateRangePickerResponsiveCallback` (core `ResponsiveMap` / `ResponsiveCallback` over it),
+  `ResponsiveContext` and `Presentation` re-exported.
+- The map keys (`mobile` / `tablet` / `desktop`) are core `classifyDevice` classes — the same ones the
+  `auto` ladder uses. (Core's width breakpoints moved to 768 / 1024, from the `--base-breakpoint-*`
+  tokens; they surface as `ctx.breakpoint`.)
+
 ### Changed — loaders draw through the shared core loader (**BREAKING**, 2026-10-29)
 
 - **Every loader** (`showLoader('calendar' | 'message' | 'summary')` and the overlay around

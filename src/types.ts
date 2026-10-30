@@ -1,8 +1,10 @@
-import type { ComponentContext, PresentationContext, RenderLoaderCallback } from '@keenmate/web-components-core';
+import type {
+  ComponentContext, PresentationContext, RenderLoaderCallback, Presentation, ResponsiveMap, ResponsiveCallback,
+} from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 import type { FormValueSelection } from './form-value';
 
-export type { PresentationContext };
+export type { PresentationContext, Presentation };
 
 /**
  * Base context shared by every callback and every event detail in the public API
@@ -208,6 +210,44 @@ export type DateRangePickerActionItem = ActionItem<PickerContext, DateRangePicke
  */
 export type DateRangePickerActionEventDetail = ActionEventDetail<PickerContext, DateRangePickerAction>;
 
+/**
+ * The `<web-daterangepicker>` element's configuration (`el.config`): the engine
+ * options plus the element-level inputs (form value, input shell, presentation,
+ * custom styles). Keys are the inputs' configKeys.
+ */
+export interface DateRangePickerConfig extends DatePickerOptions {
+  /** How a `floating` picker opens: `auto` (device ladder) | `floating` | `modal` | `fullscreen`. */
+  presentation?: Presentation;
+  /** The initial / default value (the `value` attribute). */
+  defaultValue?: string | null;
+  placeholder?: string | null;
+  isDisabled?: boolean;
+  isReadonly?: boolean;
+  /** `xs` | `sm` | `md` | `lg` | `xl`. */
+  inputSize?: string;
+  compactBelow?: number | null;
+  name?: string | null;
+  valueFormat?: 'text' | 'json' | 'array';
+  valueFormatMask?: string | null;
+  valueSeparator?: string | null;
+  getValueFormatCallback?: ((ctx: FormValueSelection & PickerContext) => string) | null;
+  placeholderFormatMask?: string | null;
+  placeholderTimeFormatMask?: string | null;
+  customStyles?: string | null;
+  getCustomStylesCallback?: ((ctx: PickerContext) => string | null) | null;
+}
+
+/**
+ * Responsive rules map for `<web-daterangepicker>` (core SPEC §6.7): device class →
+ * partial config. Set it page-wide (`window.components.responsive`), per tag
+ * (`window.components['web-daterangepicker'].responsive`) or per instance
+ * (`el.responsive` / the `responsive` JSON attribute).
+ */
+export type DateRangePickerResponsiveMap = ResponsiveMap<DateRangePickerConfig>;
+
+/** Responsive rules callback for `<web-daterangepicker>` (core SPEC §6.7): context → partial config. */
+export type DateRangePickerResponsiveCallback = ResponsiveCallback<DateRangePickerConfig>;
+
 export type PickerMode = 'date' | 'time' | 'datetime';
 export type TimeDisplay = 'rolls' | 'clock' | 'wheel' | 'compact';
 
@@ -312,13 +352,15 @@ export interface DatePickerOptions {
   isRtl?: () => boolean;
   container?: HTMLElement; // Where to append the calendar (default: document.body)
   /**
-   * How the calendar is presented. Default: `floating`.
+   * Where the calendar lives. Default: `floating`.
    *
    * - `inline` — rendered as a static block (no input, always open)
-   * - `floating` — popover anchored to the input
-   * - `modal` — centered overlay with a backdrop
+   * - `floating` — opens from the input; HOW it opens (anchored popover, centered
+   *   modal, phone full-screen sheet) is the runtime presentation — the element's
+   *   `presentation` input, or `engine.setPresentation()` on a
+   *   standalone engine (starts as `floating`).
    */
-  positioningMode?: 'inline' | 'floating' | 'modal';
+  positioningMode?: 'inline' | 'floating';
 
   /**
    * Phone full-screen overlay: focus the input on open (pops the soft keyboard).
