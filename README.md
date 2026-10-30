@@ -67,7 +67,7 @@ What makes it different from the rest of the date-picker ecosystem:
   switch by changing one attribute, not by installing a different
   package.
 - **First-class keyboard.** Arrow keys, Home / End, Ctrl+Home / End,
-  Tab between month columns, `T` to jump to today. Modal mode blurs
+  Tab between month columns, `T` to jump to today. The modal presentation blurs
   the input so the mobile soft-keyboard collapses.
 
 For a more honest accessibility audit including current ARIA gaps,
@@ -155,6 +155,44 @@ picker.labels = { today: 'Heute', days: '{count} Tage' };
 Using the engine class (`DateRangePickerEngine`) directly (without the custom
 element) is supported for advanced use — see [`docs/usage.md`](./docs/usage.md#javascript-instantiation-daterangepickerengine-class)
 for the CSS-loading caveats.
+
+### Presentation
+
+`positioning-mode` says **where** the calendar lives (`inline` block, or `floating` — opens
+from the input). `presentation` says **how a floating picker opens**: `auto` (default — the
+device ladder: phone → full-screen sheet, tablet → centered `modal`, desktop → anchored
+popover), or `floating` / `modal` / `fullscreen` on every device. `inline` ignores it.
+
+```html
+<web-daterangepicker presentation="modal"></web-daterangepicker>
+```
+
+### Responsive rules
+
+Tune any input per device class (`mobile` / `tablet` / `desktop`, core `classifyDevice`)
+without app-side viewport code — a **map** of partial configs, or a **callback** returning
+one. Rules can be set page-wide, per tag, or per instance:
+
+```js
+// Page-wide (every KeenMate component) and per tag
+window.components.responsive = { mobile: { visibleMonthCount: 1 } };
+window.components['web-daterangepicker'].responsive = { tablet: { presentation: 'fullscreen' } };
+
+// Per instance — map (also the JSON attribute responsive='{"desktop":{…}}') or callback
+picker.responsive = { desktop: { visibleMonthCount: 2 } };
+picker.responsiveCallback = (ctx) =>
+  ctx.env.orientation === 'landscape' ? { visibleMonthCount: 2 } : undefined;
+```
+
+**Precedence** (later wins, key by key): global map → global callback → per-tag map →
+per-tag callback → **attributes / properties set on the instance** → instance map →
+instance callback. A page rule never overrides something written on the element; an
+instance rule returning `null` ignores all page rules. Overrides never reflect to
+attributes, and a key a rule stops returning goes back to its base value. Rules are
+applied before the first build (no flash of the desktop layout). Typed with
+`DateRangePickerResponsiveMap` / `DateRangePickerResponsiveCallback`. Full contract:
+web-components-core `docs/SPEC.md` §6.7. Live demo:
+[`examples-responsive.html`](./examples-responsive.html).
 
 ## Editor IntelliSense
 

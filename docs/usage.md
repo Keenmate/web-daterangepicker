@@ -26,6 +26,7 @@ page see the README quick start; for theming see
   - [Messages & actions](#messages--actions)
   - [Labels (i18n)](#labels-i18n)
   - [Locking (read-only)](#locking-read-only)
+  - [Responsive rules](#responsive-rules)
 - [Range selection modes](#range-selection-modes)
 
 ## JavaScript instantiation (`DateRangePickerEngine` class)
@@ -118,12 +119,12 @@ use camelCase (`selectionMode`).
 | `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | When a pick is **committed** (written + `change`). `selection` = every completed pick is written; `apply` = picks are staged until the built-in Apply button; `manual` = picks are only staged until the app calls `commit()` (no built-in button). Closing is separate (next rows); closing without `commit()` discards a staged pick |
 | `close-on-select` | `boolean` | `true` | Close when a pick completes in `commit-mode="selection"`. `false` keeps the calendar open while every pick is still written (booking.com flow) |
 | `close-on-outside-click` | `boolean` | `true` (`false` in `commit-mode="manual"`) | Close on a click outside the floating calendar / on the modal backdrop. Escape and `close()` always close |
-| `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | Calendar positioning (inline = embedded, floating = popup anchored to input, modal = centered overlay with backdrop) |
-| `mobile-presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a **floating** picker adapts to the device (SPEC §12.9). `auto`: **phone** (touch, shorter viewport side < 600px) → full-screen overlay; **tablet** (touch, ≥ 600px) → centered modal; **desktop** (mouse) → floating popover. A concrete value forces that presentation on any device (e.g. `fullscreen` to preview the phone sheet on desktop). `inline` / explicit `modal` pickers are left as authored. |
+| `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Where the calendar lives: `inline` = embedded block (no input), `floating` = opens from the input. How a floating picker opens is `presentation`. (The former `'modal'` value is `presentation="modal"`.) |
+| `presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a **floating** picker opens (SPEC §12.9). `auto`: **phone** (touch, shorter viewport side < 600px) → full-screen overlay; **tablet** (touch, ≥ 600px) → centered modal; **desktop** (mouse) → anchored popover. A concrete value forces that presentation on every device (`modal` = centered overlay with backdrop; `fullscreen` previews the phone sheet on desktop). Ignored by `inline`. Tune per device class with [responsive rules](#responsive-rules). |
 | `fullscreen-autofocus` | `boolean` | `false` | Phone full-screen only: focus the input on open (pops the soft keyboard). Default off — the sheet opens with the calendar visible, keyboard closed. |
 | `show-fullscreen-input` | `boolean` | `false` | Phone full-screen only: move the input into the sheet header (numeric keypad). The heading (`labels.fullscreenTitle`) is not shown alongside it. |
 | `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
-| `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating/modal modes only) |
+| `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating mode only) |
 | `name` | `string` | — | HTML form field name. Set it to submit the selection in a `<form>` (see [Form integration](#form-integration)) |
 | `value-format` | `'text' \| 'json' \| 'array'` | `'text'` | How the submitted value (and `el.value`) is serialized (see [Form integration](#form-integration)) |
 | `value-format-mask` | `string` | ISO (`YYYY-MM-DD`, `HH:mm[:ss]`, `YYYY-MM-DDTHH:mm[:ss]`) | How each date is written in the submitted value / `el.value`, and parsed from the `value` attribute / property |
@@ -290,7 +291,7 @@ picker.addEventListener('month-change', (e) => console.log(e.detail.year, e.deta
 
 Give the element a `name` and it participates in a `<form>` like a native
 control — no wrapper or manual hidden input needed. It works the same in
-`inline`, `floating`, and `modal` modes:
+`inline` and `floating` modes (every presentation):
 
 ```html
 <form>
@@ -894,7 +895,7 @@ independent aspects.
 | `selection` | day clicks, drag-to-adjust endpoints, typed input (`<input>` becomes read-only), Today / Now / Clear, and all time-picker interactions |
 | `navigation` | month nav (`<` / `>`), PageUp/Down, Ctrl+arrows, `t`, and the rolling year/month selector |
 | `actions` | the Apply button and custom / preset action buttons |
-| `open` | (re)opening the popover (floating & modal). Closing (hide / Escape / backdrop) stays allowed, so a locked picker is never a keyboard trap |
+| `open` | (re)opening the popover (floating — every presentation). Closing (hide / Escape / backdrop) stays allowed, so a locked picker is never a keyboard trap |
 
 The lock gates the **end user only** — the programmatic API
 (`selectedRanges = …`, `clearSelection()`, `open()`, the nav methods,
@@ -942,6 +943,42 @@ pointer, while any unlocked aspect on the same calendar stays live and
 full-opacity. The greying is driven by `--drp-opacity-locked` (default
 `0.65`, inherited from `--drp-disabled-opacity`) — set it to `1` to keep
 locked regions at full opacity.
+
+### Responsive rules
+
+Core's responsive rules (web-components-core `docs/SPEC.md` §6.7) override any input per
+device class — `mobile` / `tablet` / `desktop` from core `classifyDevice` (touch +
+600px short side; the same classes the `presentation="auto"` ladder uses).
+
+```ts
+import type { DateRangePickerResponsiveMap, DateRangePickerResponsiveCallback } from '@keenmate/web-daterangepicker';
+
+// page-wide (all KeenMate components) — unknown keys are skipped silently here
+window.components.responsive = { mobile: { visibleMonthCount: 1 } };
+// per tag
+window.components['web-daterangepicker'].responsive = { tablet: { presentation: 'fullscreen' } };
+window.components['web-daterangepicker'].responsiveCallback = (ctx) =>
+  ctx.deviceClass === 'desktop' && ctx.env.viewportWidth > 1600 ? { visibleMonthCount: 3 } : undefined;
+
+// per instance — property, or the JSON attribute responsive='{"mobile":{"presentation":"modal"}}'
+const map: DateRangePickerResponsiveMap = { mobile: { presentation: 'modal' } };
+picker.responsive = map;
+const rule: DateRangePickerResponsiveCallback = (ctx) =>
+  ctx.config.selectionMode === 'range' && ctx.deviceClass !== 'mobile' ? { visibleMonthCount: 2 } : undefined;
+picker.responsiveCallback = rule;
+```
+
+- **Precedence** (later wins, key by key): global map → global callback → per-tag map →
+  per-tag callback → **attributes / properties on the instance** → instance map → instance
+  callback. A page rule never overrides an attribute written on the element.
+- `undefined` = nothing to add; `null` from an **instance** rule = ignore every page rule.
+- `el.config` / the property getters report the **effective** value; `ctx.config` is the
+  base (no responsive overrides). Overrides never reflect to attributes; a key a rule stops
+  returning returns to its base value. Invalid values / unknown keys warn and are skipped.
+- Rules re-run on a device-class / breakpoint / orientation change and whenever a layer
+  changes; only changed keys are applied (one batch — `presentation` swaps in place, a
+  structural key such as `visibleMonthCount` rebuilds with the selection kept). They apply
+  before the first build.
 
 ## Range selection modes
 

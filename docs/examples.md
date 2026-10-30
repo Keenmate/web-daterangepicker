@@ -88,9 +88,10 @@ reference list. Cross-references the input-size table in
 
 ### Responsive & mobile — [`examples-responsive.html`](../examples-responsive.html)
 
-The device-adaptive `mobile-presentation` ladder (floating on desktop,
+The device-adaptive `presentation` ladder (floating on desktop,
 a centered modal on tablets, an edge-to-edge **full-screen** overlay on
-phones), the explicit `positioning-mode="modal"` layout with its
+phones), **responsive rules** (a device-class map, a callback, and an
+instance override beating a per-tag rule), the forced `presentation="modal"` layout with its
 viewport-tier widths (xs / sm / md / lg), container-query inner layout,
 the `labels.fullscreenTitle` heading, the `fullscreen-autofocus` / `show-fullscreen-input`
 options, and container-responsive compaction (`compact-below`).

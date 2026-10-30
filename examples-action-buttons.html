@@ -101,17 +101,17 @@
 
   <!-- 1b. Modal Display Mode -->
   <div class="card">
-    <h2>AB02 · Modal Display Mode (centered overlay)</h2>
-    <p>Set <code>positioning-mode="modal"</code> to render the calendar as a centered overlay with a backdrop scrim instead of anchoring to the input. Helpful on small screens where multi-month layouts horizontally overflow.</p>
+    <h2>AB02 · Modal Presentation (centered overlay)</h2>
+    <p>Set <code>presentation="modal"</code> on a floating picker to render the calendar as a centered overlay with a backdrop scrim instead of anchoring to the input. Helpful on small screens where multi-month layouts horizontally overflow.</p>
 
     <div class="grid">
       <div class="form-group">
         <label>Single-month modal</label>
-        <small>positioning-mode="modal" — click input or button to open</small>
+        <small>presentation="modal" — click input or button to open</small>
         <web-daterangepicker
           id="modal-single"
           selection-mode="range"
-          positioning-mode="modal">
+          presentation="modal">
         </web-daterangepicker>
         <button class="mt-1" onclick="document.querySelector('#modal-single').isOpen = true">Open modal</button>
       </div>
@@ -122,7 +122,7 @@
         <web-daterangepicker
           id="modal-multi"
           selection-mode="range"
-          positioning-mode="modal"
+          presentation="modal"
           visible-month-count="3">
         </web-daterangepicker>
         <button class="mt-1" onclick="document.querySelector('#modal-multi').isOpen = true">Open modal</button>
@@ -134,7 +134,7 @@
         <web-daterangepicker
           id="modal-grid"
           selection-mode="range"
-          positioning-mode="modal"
+          presentation="modal"
           visible-month-count="6"
           month-layout="grid"
           grid-rows="2"
@@ -145,14 +145,12 @@
       </div>
 
       <div class="form-group">
-        <label>Auto-engage modal at small viewports</label>
-        <small>positioning-mode="floating" mobile-modal-breakpoint="768px" mobile-modal-min-height="500px" — floating when there's enough room, modal when viewport is too narrow OR too short for a 2-month picker (resize the window to test)</small>
+        <label>Modal on phones too (responsive rule)</label>
+        <small>responsive=&#39;{"mobile":{"presentation":"modal"}}&#39; — the default <code>auto</code> ladder (desktop popover, tablet modal), but a modal instead of the full-screen sheet on phones</small>
         <web-daterangepicker
           id="modal-auto"
           selection-mode="range"
-          positioning-mode="floating"
-          mobile-modal-breakpoint="768px"
-          mobile-modal-min-height="500px"
+          responsive='{"mobile":{"presentation":"modal"}}'
           visible-month-count="2">
         </web-daterangepicker>
       </div>
@@ -161,7 +159,7 @@
     <div class="code-block"><code><span class="comment">// Centered overlay with backdrop — close via Apply, Escape, or backdrop click</span>
 <span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">positioning-mode</span>=<span class="string">"modal"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <span class="property">presentation</span>=<span class="string">"modal"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Open programmatically</span>
 <span class="keyword">document.querySelector</span>(<span class="string">'#picker'</span>).<span class="property">isOpen</span> = <span class="property">true</span>;

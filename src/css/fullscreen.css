@@ -2,7 +2,7 @@
    DATE RANGE PICKER - PHONE FULL-SCREEN OVERLAY (SPEC §12.9)
    ==============================================================================
    Activated at runtime when the resolved presentation is `fullscreen` — a phone
-   (touch-primary + shorter viewport side < 600px) with `mobile-presentation`
+   (touch-primary + shorter viewport side < 600px) with `presentation`
    `auto`, or any device when it is forced. The calendar becomes an edge-to-edge
    sheet with a close header; the flex-column layout (header pinned → months
    scroll → actions pinned) is shared with the other non-inline presentations and

@@ -236,6 +236,33 @@ Placement options:
 
 Auto-adjusts with Floating UI if viewport constrained.
 
+PRESENTATION (how a floating picker opens)
+-------------------------------------------
+positioning-mode is inline | floating ONLY. How a floating picker opens is `presentation`:
+  auto (default: phone → fullscreen sheet, tablet → centered modal, desktop → popover)
+  | floating | modal | fullscreen (forced on every device). inline ignores it.
+
+<web-daterangepicker presentation="modal"></web-daterangepicker>
+
+❌ positioning-mode="modal"      → ✅ presentation="modal"
+❌ mobile-presentation="…"       → ✅ presentation="…"
+❌ el.mobilePresentation = '…'   → ✅ el.presentation = '…'
+
+RESPONSIVE RULES (core SPEC §6.7) — per device class, no app viewport code
+---------------------------------------------------------------------------
+Keys: mobile | tablet | desktop (core classifyDevice). Value: partial config.
+
+window.components.responsive = { mobile: { visibleMonthCount: 1 } };            // page-wide
+window.components['web-daterangepicker'].responsive = { tablet: { presentation: 'fullscreen' } };  // per tag
+el.responsive = { desktop: { visibleMonthCount: 2 } };                            // instance (or JSON attr responsive='{…}')
+el.responsiveCallback = (ctx) => ctx.deviceClass === 'mobile' ? { presentation: 'modal' } : undefined;
+
+Precedence (later wins): global map → global callback → per-tag map → per-tag callback
+→ attributes/properties on the instance → instance map → instance callback.
+Instance rule returning null = ignore page rules. Overrides never reflect.
+Types: DateRangePickerResponsiveMap / DateRangePickerResponsiveCallback.
+❌ observeViewport(env => el.x = …) for per-device config → ✅ responsive rules
+
 LISTENING TO EVENTS
 --------------------
 Web Component fires custom events:

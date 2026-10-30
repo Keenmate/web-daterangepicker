@@ -203,7 +203,7 @@
      full-screen overlay, or a tap-opened day/badge tooltip renders BEHIND the sheet. */
   --drp-z-index-tooltip: 10002;
 
-  /* Modal mode (positioning-mode="modal") */
+  /* Modal mode (presentation="modal" / auto on tablets) */
   --drp-modal-gap: 16px;                              /* gap between calendar and viewport edges */
   --drp-modal-backdrop-bg: rgba(0, 0, 0, 0.45);       /* scrim color */
   --drp-modal-transition: var(--drp-transition-normal) var(--drp-easing-out); /* fade-in/out timing for backdrop + calendar */
@@ -225,7 +225,7 @@
   --drp-modal-width-lg: 1100px;                                   /* wide desktop: 3 month columns, 2×3 grid renders as configured */
   --drp-modal-width-single: 360px;                                /* a lone single-month modal — natural width, normal-sized day cells */
 
-  /* Phone full-screen overlay (mobile-presentation="fullscreen" / auto on phones).
+  /* Phone full-screen overlay (presentation="fullscreen" / auto on phones).
      The sheet re-scales the whole calendar by overriding --drp-rem to
      --drp-fullscreen-rem (≈1.2× the 10px base) so touch targets, text, and
      spacing all grow together — see fullscreen.css. */

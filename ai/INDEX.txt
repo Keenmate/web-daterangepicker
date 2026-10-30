@@ -200,6 +200,8 @@ disabled-weekdays → date-restrictions.txt
 disabled-dates-handling → disabled-dates-handling.txt
 date-format-mask → basic-usage.txt
 positioning-mode → basic-usage.txt
+presentation → basic-usage.txt
+responsive, responsiveCallback → basic-usage.txt
 calendar-placement → basic-usage.txt
 show-today-button → action-buttons.txt
 show-clear-button → action-buttons.txt

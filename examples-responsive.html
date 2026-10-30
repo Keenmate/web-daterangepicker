@@ -24,7 +24,7 @@
     <!-- ============================================================ -->
     <div class="card">
       <h2>RS01 · Device-Adaptive Presentation — the device ladder</h2>
-      <p>You usually don't need to pick <code>modal</code> by hand. A <code>floating</code> picker adapts to the device automatically via <code>mobile-presentation="auto"</code> (the default): floating on desktop, a centered <strong>modal</strong> on tablets, and an edge-to-edge <strong>full-screen</strong> overlay on phones. The classification comes from <code>@keenmate/web-components-core</code> and is capability-based and orientation-robust — it uses the <em>shorter</em> viewport side, so a landscape phone still reads as a phone.</p>
+      <p>You usually don't need to pick a presentation by hand. A <code>floating</code> picker adapts to the device automatically via <code>presentation="auto"</code> (the default): floating on desktop, a centered <strong>modal</strong> on tablets, and an edge-to-edge <strong>full-screen</strong> overlay on phones. The classification comes from <code>@keenmate/web-components-core</code> and is capability-based and orientation-robust — it uses the <em>shorter</em> viewport side, so a landscape phone still reads as a phone.</p>
 
       <table class="reference-table">
         <thead><tr><th>Device</th><th>Detected when</th><th>Presentation</th></tr></thead>
@@ -46,7 +46,7 @@
       </p>
 
       <div class="form-group">
-        <label>Live demo (default <code>mobile-presentation="auto"</code>)</label>
+        <label>Live demo (default <code>presentation="auto"</code>)</label>
         <p class="form-text">
           Open devtools, toggle the device toolbar, and pick a phone preset — this floating picker opens full-screen.
         </p>
@@ -75,25 +75,25 @@
   <span class="property">visible-month-count</span>=<span class="string">"2"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">&lt;!-- force one presentation everywhere --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">mobile-presentation</span>=<span class="string">"floating"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">mobile-presentation</span>=<span class="string">"fullscreen"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">presentation</span>=<span class="string">"floating"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">presentation</span>=<span class="string">"fullscreen"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- RS02. Why modal mode (responsive §1)                         -->
+    <!-- RS02. Why the modal presentation (responsive §1)                         -->
     <!-- ============================================================ -->
     <div class="card">
       <h2>RS02 · The Problem with Floating Mode on Small Screens</h2>
       <p>Floating mode anchors the calendar popover to its input. For multi-month layouts (<code>visible-month-count="3"</code>, <code>2×3</code> grid, etc.), the calendar can be wider than the viewport itself — users get a horizontal scrollbar, the picker overflows the screen edge, and on mobile it becomes unusable.</p>
-      <p>Modal mode renders the calendar as a centered overlay with a backdrop scrim instead. It works at any viewport width, scales the configured layout responsively, and locks body scroll while open.</p>
+      <p>The modal presentation renders the calendar as a centered overlay with a backdrop scrim instead. It works at any viewport width, scales the configured layout responsively, and locks body scroll while open.</p>
     </div>
 
     <!-- ============================================================ -->
     <!-- RS03. Opt-in modal (responsive §2)                           -->
     <!-- ============================================================ -->
     <div class="card">
-      <h2>RS03 · Opting In: <code>positioning-mode="modal"</code></h2>
-      <p>Set the attribute and the picker opens as a centered overlay. Closes via Escape, backdrop click, Apply (range mode), or after a complete selection.</p>
+      <h2>RS03 · Opting In: <code>presentation="modal"</code></h2>
+      <p>Set <code>presentation="modal"</code> on a floating picker and it opens as a centered overlay on every device (the old <code>positioning-mode="modal"</code>). Closes via Escape, backdrop click, Apply (range mode), or after a complete selection.</p>
 
       <div class="grid">
         <div class="form-group">
@@ -101,7 +101,7 @@
           <web-daterangepicker
             id="modal-single"
             selection-mode="range"
-            positioning-mode="modal">
+            presentation="modal">
           </web-daterangepicker>
           <button onclick="document.querySelector('#modal-single').isOpen = true" class="mt-1">Open modal</button>
         </div>
@@ -111,7 +111,7 @@
           <web-daterangepicker
             id="modal-multi"
             selection-mode="range"
-            positioning-mode="modal"
+            presentation="modal"
             visible-month-count="3">
           </web-daterangepicker>
           <button onclick="document.querySelector('#modal-multi').isOpen = true" class="mt-1">Open modal</button>
@@ -122,7 +122,7 @@
           <web-daterangepicker
             id="modal-grid"
             selection-mode="range"
-            positioning-mode="modal"
+            presentation="modal"
             visible-month-count="6"
             month-layout="grid"
             grid-rows="2"
@@ -135,7 +135,7 @@
 
       <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
   <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">positioning-mode</span>=<span class="string">"modal"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <span class="property">presentation</span>=<span class="string">"modal"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Open programmatically</span>
 <span class="function">document.querySelector</span>(<span class="string">'#picker'</span>).<span class="property">isOpen</span> = <span class="property">true</span>;</code></div>
@@ -259,7 +259,7 @@
         <li><strong>Body scroll is locked</strong> while the modal is open. Reference-counted so multiple modal pickers don't fight over <code>document.body.style.overflow</code>.</li>
         <li><strong>Input is <code>blur()</code>-ed</strong> when the modal opens. This suppresses the mobile soft keyboard, which would otherwise overlap the modal. Focus is restored to the input on close.</li>
         <li><strong>Sticky regions inside the modal:</strong> per-month headers stay pinned to the top of the scrolling months area, the action bar (Today/Clear/Apply) stays pinned to the bottom. Days scroll between them; the action bar is always reachable.</li>
-        <li><strong><code>shouldCloseOnScroll</code> is a no-op</strong> in modal mode — you're meant to scroll <em>inside</em> the modal, not have it close on you.</li>
+        <li><strong><code>shouldCloseOnScroll</code> is a no-op</strong> in the modal presentation — you're meant to scroll <em>inside</em> the modal, not have it close on you.</li>
       </ul>
     </div>
 
@@ -275,7 +275,7 @@
         type-to-fill, like a native picker).
       </p>
       <p>
-        Both pickers use <code>mobile-presentation="auto"</code>: a floating popover here on desktop, a
+        Both pickers use <code>presentation="auto"</code>: a floating popover here on desktop, a
         full-screen sheet on a phone — where the keyboard difference actually shows. Tick
         <em>Preview as full-screen</em> to see the overlay on desktop.
       </p>
@@ -363,17 +363,17 @@
     <div class="card">
       <h2>RS10 · Forcing a Presentation</h2>
       <p>
-        Set <code>mobile-presentation</code> to a concrete value to override the device ladder on any
+        Set <code>presentation</code> to a concrete value to override the device ladder on any
         device — for a deliberate design choice or to inspect the phone/tablet UI on a desktop.
       </p>
       <div class="grid">
         <div class="form-group">
-          <label><code>mobile-presentation="fullscreen"</code></label>
-          <web-daterangepicker id="forced-fs" selection-mode="range" mobile-presentation="fullscreen" placeholder="Always full-screen"></web-daterangepicker>
+          <label><code>presentation="fullscreen"</code></label>
+          <web-daterangepicker id="forced-fs" selection-mode="range" presentation="fullscreen" placeholder="Always full-screen"></web-daterangepicker>
         </div>
         <div class="form-group">
-          <label><code>mobile-presentation="modal"</code></label>
-          <web-daterangepicker id="forced-modal" selection-mode="range" mobile-presentation="modal" placeholder="Always modal"></web-daterangepicker>
+          <label><code>presentation="modal"</code></label>
+          <web-daterangepicker id="forced-modal" selection-mode="range" presentation="modal" placeholder="Always modal"></web-daterangepicker>
         </div>
       </div>
       <div class="note">
@@ -419,11 +419,120 @@
         <strong>CSS container queries first.</strong> <code>compact-below</code> exists for the <em>structural</em> change — swapping the month-column count is a JS decision the engine can't do with CSS alone. For purely presentational tweaks under a narrow box (padding, a label→icon swap, stacking the summary), reach for <code>container-type: inline-size</code> + <code>@container</code> in your own CSS instead; it's cheaper and paints without a rebuild. Leave <code>compact-below</code> unset (or <code>0</code>) to disable the behavior entirely — it's opt-in and never changes an existing picker's layout on its own.
       </div>
     </div>
+
+    <!-- ============================================================ -->
+    <!-- RS12. Responsive rules — map, callback, instance override    -->
+    <!-- (web-components-core SPEC §6.7)                              -->
+    <!-- ============================================================ -->
+    <div class="card" id="rs-rules">
+      <h2>RS12 · Responsive Rules: map, callback, instance override</h2>
+      <p>
+        Tune <em>any</em> input per device class without writing viewport code: a <strong>map</strong>
+        (<code>{ mobile: {…}, tablet: {…}, desktop: {…} }</code> — keys are core <code>classifyDevice</code>
+        classes) or a <strong>callback</strong> returning a partial config. Rules live page-wide
+        (<code>window.components.responsive</code>), per tag
+        (<code>window.components['web-daterangepicker'].responsive</code>) or on the instance
+        (<code>el.responsive</code> / the <code>responsive</code> JSON attribute, <code>el.responsiveCallback</code>).
+        Resize the window across 768px / 1024px or switch devtools to a phone / tablet preset — the
+        readouts below update.
+      </p>
+
+      <table class="reference-table">
+        <thead><tr><th>#</th><th>Layer (later wins, key by key)</th></tr></thead>
+        <tbody>
+          <tr><td>1–2</td><td>page-wide map → page-wide callback</td></tr>
+          <tr><td>3–4</td><td>per-tag map → per-tag callback</td></tr>
+          <tr><td>5</td><td><strong>attributes / properties set on the instance</strong></td></tr>
+          <tr><td>6–7</td><td>instance map → instance callback (an instance rule returning <code>null</code> ignores every page rule)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="grid">
+        <div class="form-group">
+          <label>Instance map (JSON attribute)</label>
+          <small>1 month + modal on phones, 2 months on tablets, 3 on desktop</small>
+          <web-daterangepicker
+            id="rules-map"
+            selection-mode="range"
+            responsive='{"mobile":{"visibleMonthCount":1,"presentation":"modal"},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}}'>
+          </web-daterangepicker>
+          <p class="form-text" data-readout="rules-map"></p>
+        </div>
+
+        <div class="form-group">
+          <label>Instance callback (JS)</label>
+          <small>keyed on the width breakpoint, not the device class</small>
+          <web-daterangepicker id="rules-callback" selection-mode="range"></web-daterangepicker>
+          <p class="form-text" data-readout="rules-callback"></p>
+        </div>
+      </div>
+
+      <div class="grid" id="rs-page-rule">
+        <div class="form-group">
+          <label>Per-tag page rule applies</label>
+          <small>no attribute — the page rule (<code>presentation: 'modal'</code>) wins over the default</small>
+          <web-daterangepicker id="rules-page" selection-mode="single"></web-daterangepicker>
+          <p class="form-text" data-readout="rules-page"></p>
+        </div>
+        <div class="form-group">
+          <label>Instance override beats the page rule</label>
+          <small><code>presentation="floating"</code> written on the element — page rules never override it</small>
+          <web-daterangepicker id="rules-explicit" selection-mode="single" presentation="floating"></web-daterangepicker>
+          <p class="form-text" data-readout="rules-explicit"></p>
+        </div>
+      </div>
+
+      <div class="code-block"><code><span class="comment">&lt;!-- instance map, as a JSON attribute (or el.responsive = {…}) --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">selection-mode</span>=<span class="string">"range"</span>
+  <span class="property">responsive</span>=<span class="string">'{"mobile":{"visibleMonthCount":1,"presentation":"modal"},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+
+<span class="comment">// instance callback — ctx: { env, deviceClass, breakpoint, element, component, config (base) }</span>
+<span class="keyword">const</span> rule <span class="comment">/* : DateRangePickerResponsiveCallback */</span> = (ctx) =&gt;
+  ({ <span class="property">visibleMonthCount</span>: ctx.breakpoint === <span class="string">'desktop'</span> ? 2 : 1 });
+document.getElementById(<span class="string">'rules-callback'</span>).<span class="property">responsiveCallback</span> = rule;
+
+<span class="comment">// per-tag page rule (callbacks can scope by ctx.element)</span>
+window.components[<span class="string">'web-daterangepicker'</span>].<span class="property">responsiveCallback</span> = (ctx) =&gt;
+  ctx.element.closest(<span class="string">'#rs-page-rule'</span>) ? { <span class="property">presentation</span>: <span class="string">'modal'</span> } : <span class="keyword">undefined</span>;
+
+<span class="comment">&lt;!-- an attribute on the instance beats every page rule --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span> <span class="property">presentation</span>=<span class="string">"floating"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+
+      <div class="note info">
+        Overrides never reflect to attributes (<code>getAttribute('presentation')</code> stays as authored)
+        and never count as "explicit"; <code>el.presentation</code> / <code>el.config</code> report the
+        effective value. A key a rule stops returning goes back to its base value. Typed with
+        <code>DateRangePickerResponsiveMap</code> / <code>DateRangePickerResponsiveCallback</code>; full
+        contract in web-components-core <code>docs/SPEC.md</code> §6.7.
+      </div>
+    </div>
   </div>
 
   <script type="module" src="/src/index.ts"></script>
+  <script type="module">
+    // RS12 — responsive rules. Modules run in order, so the element is registered here.
+    const callbackEl = document.getElementById('rules-callback');
+    callbackEl.responsiveCallback = (ctx) => ({ visibleMonthCount: ctx.breakpoint === 'desktop' ? 2 : 1 });
+
+    // A per-tag page rule, scoped to one section through ctx.element.
+    window.components['web-daterangepicker'].responsiveCallback = (ctx) =>
+      ctx.element.closest('#rs-page-rule') ? { presentation: 'modal' } : undefined;
+
+    const ids = ['rules-map', 'rules-callback', 'rules-page', 'rules-explicit'];
+    const readout = async () => {
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        await el.whenSettled();
+        const out = document.querySelector(`[data-readout="${id}"]`);
+        out.textContent = `effective: presentation=${el.presentation}, visibleMonthCount=${el.visibleMonthCount ?? '(default)'}`
+          + ` · attribute presentation=${el.getAttribute('presentation') ?? '(none)'}`;
+      }
+    };
+    readout();
+    window.addEventListener('resize', () => requestAnimationFrame(readout));
+  </script>
   <script>
-    // A "Preview as full-screen" checkbox flips mobile-presentation between
+    // A "Preview as full-screen" checkbox flips presentation between
     // 'fullscreen' (forced overlay on desktop) and 'auto' (device ladder) on the
     // given pickers — so the phone UI is inspectable without a phone.
     const wirePreview = (checkboxId, ...ids) => {
@@ -431,7 +540,7 @@
       if (!cb) return;
       cb.addEventListener('change', (e) => {
         const mode = e.target.checked ? 'fullscreen' : 'auto';
-        ids.forEach((id) => document.getElementById(id)?.setAttribute('mobile-presentation', mode));
+        ids.forEach((id) => document.getElementById(id)?.setAttribute('presentation', mode));
       });
     };
     wirePreview('intro-fs-preview', 'intro-single', 'intro-range');

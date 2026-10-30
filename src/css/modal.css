@@ -1,7 +1,7 @@
 /* ==============================================================================
    DATE RANGE PICKER - MODAL MODE
    ==============================================================================
-   Activated when the host element has `positioning-mode="modal"`.
+   Activated when the resolved presentation is `modal` (`presentation="modal"`, or `auto` on a tablet).
    Calendar centers in the viewport with a backdrop scrim — useful on small
    screens where multi-month horizontal layouts overflow. */
 

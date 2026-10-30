@@ -85,7 +85,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `selection-mode` | `'single' \| 'range' \| 'multiple'` | `'single'` | Selection behavior: `single` day, `range`, or `multiple` days/ranges. |
-| `positioning-mode` | `'inline' \| 'floating' \| 'modal'` | `'floating'` | How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`. |
+| `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Where the calendar lives: `inline` (always visible, no input) or `floating` (opens from an input). How a floating picker opens — popover, centered modal or phone full-screen sheet — is `presentation`. |
 | `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | What opens the floating calendar: `focus`, `typing`, or `manual` (only `open()`). |
 | `overlay-group` | `string \| null` | — | Scope the "one overlay open at a time" coordination to a named group. Overlays (datepickers, multiselects, external popovers) sharing a group dismiss each other when one opens; different groups are independent. Unset = the default (ungrouped) group. |
 | `visible-month-count` | `number` | — | Number of month columns shown side-by-side. |
@@ -142,13 +142,19 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `placeholder` | `string \| null` | — | Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint. |
 | `disabled` | `boolean` | — | Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`. |
 | `readonly` | `boolean` | — | Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks. |
-| `input-size` | `string` | `'md'` | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
-| `mobile-presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment. |
+| `input-size` | `string` | `'md'` | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating only). |
+| `presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a `floating` picker opens (SPEC §12.9, via web-components-core). `auto` (default) follows the device: the floating popover on desktop, a centered `modal` on tablets, a full-screen sheet on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating` / `modal` / `fullscreen` force that presentation on any device. Ignored when `positioning-mode` is `inline`. Resolved reactively from the device/viewport environment; tune it per device class with the core `responsive` rules. |
 | `fullscreen-autofocus` | `boolean` | — | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
 | `show-fullscreen-input` | `boolean` | — | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
 | `compact-below` | `number` | — | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
 | `custom-styles` | `string \| null` | — | Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `getCustomStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `getCustomStylesCallback` wins when both are set. |
 <!-- GEN:attributes:end -->
+
+**Core-declared inputs** (every KeenMate component; not in the generated tables): `defer`
+attribute / `shouldDefer` property (hold the first build until `release()`), and the
+responsive rules — `responsive` (JSON attribute / property: device class → partial config)
+and the property-only `responsiveCallback` (core SPEC §6.7; see
+[usage.md — Responsive rules](./docs/usage.md#responsive-rules)).
 
 **Smart default positioning:**
 - Grid layouts: `'bottom'` (centered)
@@ -332,8 +338,8 @@ Available on `<web-daterangepicker>` element:
 | Method | Signature | Description |
 |--------|-----------|-------------|
 | `formResetCallback()` | `() => void` | Form reset: the selection goes back to the one parsed from the `value` attribute (the default, like a native input's `defaultValue`), else empty. `flush()` first so a reset right after a `setAttribute('value', …)` sees it. |
-| `open()` | `() => void` | Open the calendar (floating/modal modes). |
-| `close()` | `() => void` | Close the calendar (floating/modal modes). |
+| `open()` | `() => void` | Open the calendar (floating mode). |
+| `close()` | `() => void` | Close the calendar (floating mode). |
 | `toggle()` | `() => void` | Toggle the calendar open/closed. |
 | `clearSelection()` | `() => void` | Clear the current selection and reset the input. |
 | `commit()` | `() => void` | Commit the staged selection — what the Apply button does, and the app's call in `commit-mode="manual"`. Writes the value, fires `change`, closes the popover. |
@@ -1604,7 +1610,7 @@ The web component provides convenient property accessors for JavaScript:
 | `today` | `Date` | Read-only | The picker's notion of "today", normalized to 00:00 local. |
 | `isOpen` | `boolean` | Read/Write | Whether the calendar is currently open. Assigning opens/closes it. |
 | `selectionMode` | `'single' \| 'range' \| 'multiple'` | Read/Write | Selection behavior: `single` day, `range`, or `multiple` days/ranges. |
-| `positioningMode` | `'inline' \| 'floating' \| 'modal'` | Read/Write | How the calendar is presented: `inline` (always visible, no input), `floating` (popover anchored to an input), or `modal`. |
+| `positioningMode` | `'inline' \| 'floating'` | Read/Write | Where the calendar lives: `inline` (always visible, no input) or `floating` (opens from an input). How a floating picker opens — popover, centered modal or phone full-screen sheet — is `presentation`. |
 | `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | Read/Write | What opens the floating calendar: `focus`, `typing`, or `manual` (only `open()`). |
 | `overlayGroup` | `string \| null` | Read/Write | Scope the "one overlay open at a time" coordination to a named group. Overlays (datepickers, multiselects, external popovers) sharing a group dismiss each other when one opens; different groups are independent. Unset = the default (ungrouped) group. |
 | `visibleMonthCount` | `number` | Read/Write | Number of month columns shown side-by-side. |
@@ -1662,8 +1668,8 @@ The web component provides convenient property accessors for JavaScript:
 | `placeholder` | `string \| null` | Read/Write | Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint. |
 | `isDisabled` | `boolean` | Read/Write | Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`. |
 | `isReadonly` | `boolean` | Read/Write | Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks. |
-| `inputSize` | `string` | Read/Write | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating/modal only). |
-| `mobilePresentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | Read/Write | How a `floating` picker adapts to the device (SPEC §12.9, via web-components-core). `auto` (default) keeps the floating popover on desktop, uses a centered `modal` on tablets, and a full-screen overlay on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating`/`modal`/`fullscreen` force that presentation on any device (handy for previews/testing). Only adapts a floating picker — an explicit `positioning-mode` of `inline` or `modal` is left as authored. Resolved reactively from the device/viewport environment. |
+| `inputSize` | `string` | Read/Write | Input size scale: `xs` \| `sm` \| `md` \| `lg` \| `xl` (floating only). |
+| `presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | Read/Write | How a `floating` picker opens (SPEC §12.9, via web-components-core). `auto` (default) follows the device: the floating popover on desktop, a centered `modal` on tablets, a full-screen sheet on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating` / `modal` / `fullscreen` force that presentation on any device. Ignored when `positioning-mode` is `inline`. Resolved reactively from the device/viewport environment; tune it per device class with the core `responsive` rules. |
 | `shouldFullscreenAutofocus` | `boolean` | Read/Write | In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations. |
 | `isFullscreenInputShown` | `boolean` | Read/Write | In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations. |
 | `compactBelow` | `number` | Read/Write | Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change. |
