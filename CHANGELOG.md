@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added — responsive rules (core SPEC §6.7, 2026-10-30)
 
-- Every `<web-daterangepicker>` takes core's responsive rules: a device-class map or a callback
+- Every `<web-daterangepicker>` takes core's responsive rules: a `{ device, breakpoint }` map or a callback
   returning a partial config, page-wide (`window.components.responsive*`), per tag
   (`window.components['web-daterangepicker'].responsive*`) or per instance (`el.responsive` /
   `responsive` JSON attribute, `el.responsiveCallback`). An attribute / property set on the
@@ -40,9 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New types: `DateRangePickerConfig` (the element config), `DateRangePickerResponsiveMap`,
   `DateRangePickerResponsiveCallback` (core `ResponsiveMap` / `ResponsiveCallback` over it),
   `ResponsiveContext` and `Presentation` re-exported.
-- The map keys (`mobile` / `tablet` / `desktop`) are core `classifyDevice` classes — the same ones the
-  `auto` ladder uses. (Core's width breakpoints moved to 768 / 1024, from the `--base-breakpoint-*`
-  tokens; they surface as `ctx.breakpoint`.)
+- The map has two axes (core rc15), both keyed `mobile` / `tablet` / `desktop`: `device` — core
+  `classifyDevice` classes, the same ones the `auto` ladder uses — and `breakpoint` — the window
+  width (768 / 1024, from the `--base-breakpoint-*` tokens; also `ctx.breakpoint`). Device wins on
+  the same key; own widths / combinations go in `responsiveCallback`.
 
 ### Changed — loaders draw through the shared core loader (**BREAKING**, 2026-10-29)
 

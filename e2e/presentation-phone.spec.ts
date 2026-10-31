@@ -135,3 +135,18 @@ test('fullscreen-autofocus: the input is focused when the sheet opens', async ({
   await expect.poll(() => host.evaluate(el =>
     el.shadowRoot?.activeElement === el.shadowRoot?.querySelector('input'))).toBe(true);
 });
+
+test('responsive map: the device axis beats the breakpoint axis on a phone', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  const r = await host.evaluate(async (el: any) => {
+    el.responsive = { breakpoint: { mobile: { presentation: 'fullscreen' } }, device: { mobile: { presentation: 'modal' } } };
+    await el.whenSettled();
+    el.open();
+    return { presentation: el.presentation, cls: el.shadowRoot?.querySelector('.drp__picker')?.className ?? '' };
+  });
+  expect(r.presentation).toBe('modal');
+  expect(r.cls).toContain('drp__picker--modal');
+  expect(r.cls).not.toContain('drp__picker--fullscreen');
+});

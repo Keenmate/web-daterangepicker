@@ -293,6 +293,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Desktop: `presentation="auto"` → floating; forced `fullscreen` applies | ✓ | `presentation-desktop.spec.ts` | `presentation.html` |
 | Phone: auto → full-screen sheet, ✕ close, header merge, `show-fullscreen-input`, keyboard-off, `fullscreen-autofocus` | ✓ | `presentation-phone.spec.ts` | `presentation.html` |
+| Responsive rules (core §6.7): `device` map / callback / per-tag rule vs explicit attr (desktop); `breakpoint` axis on a narrowed desktop + old shape ignored; device beats breakpoint on a phone | ✓ | `presentation-desktop.spec.ts`, `presentation-phone.spec.ts` | `presentation.html` |
 | Tablet: auto → modal; tap opens and stays open (ghost click)  | ✓      | `presentation-tablet.spec.ts` | `presentation.html` |
 | Back gesture closes modal / full-screen without navigating    | ✓      | `back-gesture.spec.ts`       | `presentation.html` |
 | Adaptive action set: rich on desktop, essentials on phone     | ✓      | `adaptive-actions.spec.ts`, `adaptive-actions-phone.spec.ts` | `adaptive-actions.html` |

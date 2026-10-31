@@ -250,11 +250,15 @@ positioning-mode is inline | floating ONLY. How a floating picker opens is `pres
 
 RESPONSIVE RULES (core SPEC §6.7) — per device class, no app viewport code
 ---------------------------------------------------------------------------
-Keys: mobile | tablet | desktop (core classifyDevice). Value: partial config.
+Map = two axes, each keyed mobile | tablet | desktop. Value: partial config.
+  device:     core classifyDevice (touch capability, then short side; mouse = desktop at any width)
+  breakpoint: window width (768 / 1024 lines; a narrowed desktop window = mobile)
+  breakpoint applies first, device over it (device wins). Old { mobile: … } shape warns + is ignored.
+  Own widths / combinations → responsiveCallback.
 
-window.components.responsive = { mobile: { visibleMonthCount: 1 } };            // page-wide
-window.components['web-daterangepicker'].responsive = { tablet: { presentation: 'fullscreen' } };  // per tag
-el.responsive = { desktop: { visibleMonthCount: 2 } };                            // instance (or JSON attr responsive='{…}')
+window.components.responsive = { device: { mobile: { visibleMonthCount: 1 } } };            // page-wide
+window.components['web-daterangepicker'].responsive = { device: { tablet: { presentation: 'fullscreen' } } };  // per tag
+el.responsive = { breakpoint: { mobile: { visibleMonthCount: 1 } } };  // instance (or JSON attr responsive='{"breakpoint":{…}}')
 el.responsiveCallback = (ctx) => ctx.deviceClass === 'mobile' ? { presentation: 'modal' } : undefined;
 
 Precedence (later wins): global map → global callback → per-tag map → per-tag callback

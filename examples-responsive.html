@@ -427,9 +427,12 @@
     <div class="card" id="rs-rules">
       <h2>RS12 · Responsive Rules: map, callback, instance override</h2>
       <p>
-        Tune <em>any</em> input per device class without writing viewport code: a <strong>map</strong>
-        (<code>{ mobile: {…}, tablet: {…}, desktop: {…} }</code> — keys are core <code>classifyDevice</code>
-        classes) or a <strong>callback</strong> returning a partial config. Rules live page-wide
+        Tune <em>any</em> input per device or window width without writing viewport code: a <strong>map</strong>
+        with two axes, each keyed <code>mobile</code> / <code>tablet</code> / <code>desktop</code> —
+        <code>device</code> (core <code>classifyDevice</code>: touch capability first, then the short side; a
+        mouse device is <code>desktop</code> at any width) and <code>breakpoint</code> (the window width, 768px /
+        1024px lines); device wins on the same key — or a <strong>callback</strong> returning a partial config
+        (own widths / combinations go there). Rules live page-wide
         (<code>window.components.responsive</code>), per tag
         (<code>window.components['web-daterangepicker'].responsive</code>) or on the instance
         (<code>el.responsive</code> / the <code>responsive</code> JSON attribute, <code>el.responsiveCallback</code>).
@@ -450,11 +453,11 @@
       <div class="grid">
         <div class="form-group">
           <label>Instance map (JSON attribute)</label>
-          <small>1 month + modal on phones, 2 months on tablets, 3 on desktop</small>
+          <small><code>breakpoint</code>: 1 / 2 / 3 months by window width; <code>device</code>: modal on phones</small>
           <web-daterangepicker
             id="rules-map"
             selection-mode="range"
-            responsive='{"mobile":{"visibleMonthCount":1,"presentation":"modal"},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}}'>
+            responsive='{"breakpoint":{"mobile":{"visibleMonthCount":1},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}},"device":{"mobile":{"presentation":"modal"}}}'>
           </web-daterangepicker>
           <p class="form-text" data-readout="rules-map"></p>
         </div>
@@ -484,7 +487,7 @@
 
       <div class="code-block"><code><span class="comment">&lt;!-- instance map, as a JSON attribute (or el.responsive = {…}) --&gt;</span>
 <span class="keyword">&lt;web-daterangepicker</span> <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">responsive</span>=<span class="string">'{"mobile":{"visibleMonthCount":1,"presentation":"modal"},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <span class="property">responsive</span>=<span class="string">'{"breakpoint":{"mobile":{"visibleMonthCount":1},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}},"device":{"mobile":{"presentation":"modal"}}}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// instance callback — ctx: { env, deviceClass, breakpoint, element, component, config (base) }</span>
 <span class="keyword">const</span> rule <span class="comment">/* : DateRangePickerResponsiveCallback */</span> = (ctx) =&gt;

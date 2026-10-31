@@ -947,21 +947,28 @@ locked regions at full opacity.
 ### Responsive rules
 
 Core's responsive rules (web-components-core `docs/SPEC.md` §6.7) override any input per
-device class — `mobile` / `tablet` / `desktop` from core `classifyDevice` (touch +
-600px short side; the same classes the `presentation="auto"` ladder uses).
+device or window width. A map has two axes, both keyed `mobile` / `tablet` / `desktop`:
+`device` — core `classifyDevice` (touch capability first, then the 600px short side; the
+same classes the `presentation="auto"` ladder uses; a mouse device is `desktop` at any
+width) — and `breakpoint` — the window width (768 / 1024 px lines). Breakpoint applies
+first, device over it (device wins on the same key). Own widths / combinations go in a
+callback.
 
 ```ts
 import type { DateRangePickerResponsiveMap, DateRangePickerResponsiveCallback } from '@keenmate/web-daterangepicker';
 
 // page-wide (all KeenMate components) — unknown keys are skipped silently here
-window.components.responsive = { mobile: { visibleMonthCount: 1 } };
+window.components.responsive = { device: { mobile: { visibleMonthCount: 1 } } };
 // per tag
-window.components['web-daterangepicker'].responsive = { tablet: { presentation: 'fullscreen' } };
+window.components['web-daterangepicker'].responsive = { device: { tablet: { presentation: 'fullscreen' } } };
 window.components['web-daterangepicker'].responsiveCallback = (ctx) =>
   ctx.deviceClass === 'desktop' && ctx.env.viewportWidth > 1600 ? { visibleMonthCount: 3 } : undefined;
 
-// per instance — property, or the JSON attribute responsive='{"mobile":{"presentation":"modal"}}'
-const map: DateRangePickerResponsiveMap = { mobile: { presentation: 'modal' } };
+// per instance — property, or the JSON attribute responsive='{"device":{"mobile":{"presentation":"modal"}}}'
+const map: DateRangePickerResponsiveMap = {
+  device: { mobile: { presentation: 'modal' } },          // phones (touch)
+  breakpoint: { mobile: { visibleMonthCount: 1 } },       // any window < 768px, incl. a narrowed desktop
+};
 picker.responsive = map;
 const rule: DateRangePickerResponsiveCallback = (ctx) =>
   ctx.config.selectionMode === 'range' && ctx.deviceClass !== 'mobile' ? { visibleMonthCount: 2 } : undefined;

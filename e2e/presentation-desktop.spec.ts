@@ -36,14 +36,34 @@ const openClass = (host: import('@playwright/test').Locator) =>
     return el.shadowRoot?.querySelector('.drp__picker')?.className ?? '';
   });
 
-test('instance responsive map: { desktop: { presentation: "modal" } } opens the modal, never reflects', async ({ page }) => {
+test('instance responsive map: { device: { desktop: { presentation: "modal" } } } opens the modal, never reflects', async ({ page }) => {
   await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
-  await host.evaluate((el: any) => { el.responsive = { desktop: { presentation: 'modal' } }; });
+  await host.evaluate((el: any) => { el.responsive = { device: { desktop: { presentation: 'modal' } } }; });
   expect(await openClass(host)).toContain('drp__picker--modal');
   expect(await host.evaluate((el: any) => el.presentation)).toBe('modal');
   expect(await host.evaluate(el => el.getAttribute('presentation'))).toBeNull();
+});
+
+test('breakpoint axis follows the window width on a mouse device; the old device-keyed shape is ignored', async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 900 });  // narrowed desktop: device desktop, breakpoint mobile
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  // pre-rc15 shape: warns once and is ignored
+  await host.evaluate(async (el: any) => { el.responsive = { mobile: { presentation: 'modal' } }; await el.whenSettled(); });
+  expect(await host.evaluate((el: any) => el.presentation)).toBe('auto');
+  await host.evaluate(async (el: any) => {
+    el.responsive = { breakpoint: { mobile: { presentation: 'modal' } }, device: { mobile: { presentation: 'fullscreen' } } };
+    await el.whenSettled();
+  });
+  expect(await host.evaluate((el: any) => el.presentation)).toBe('modal');
+  expect(await openClass(host)).toContain('drp__picker--modal');
+  // widen across the 1024px line → breakpoint desktop → the key goes back to its base value
+  await host.evaluate((el: any) => el.close());
+  await page.setViewportSize({ width: 1300, height: 900 });
+  await expect.poll(() => host.evaluate((el: any) => el.presentation)).toBe('auto');
 });
 
 test('instance responsiveCallback receives the device class and its result applies', async ({ page }) => {
@@ -64,7 +84,7 @@ test('per-tag page rule applies, but an explicit presentation attribute on an in
   await page.goto('/test/presentation.html');
   await page.locator('#picker').waitFor();
   await page.evaluate(() => {
-    (window as any).components['web-daterangepicker'].responsive = { desktop: { presentation: 'modal' } };
+    (window as any).components['web-daterangepicker'].responsive = { device: { desktop: { presentation: 'modal' } } };
     const explicit = document.createElement('web-daterangepicker');
     explicit.id = 'explicit';
     explicit.setAttribute('presentation', 'floating');

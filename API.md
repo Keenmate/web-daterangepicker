@@ -152,7 +152,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 
 **Core-declared inputs** (every KeenMate component; not in the generated tables): `defer`
 attribute / `shouldDefer` property (hold the first build until `release()`), and the
-responsive rules — `responsive` (JSON attribute / property: device class → partial config)
+responsive rules — `responsive` (JSON attribute / property: `{ device?, breakpoint? }`, each keyed `mobile` / `tablet` / `desktop` → partial config)
 and the property-only `responsiveCallback` (core SPEC §6.7; see
 [usage.md — Responsive rules](./docs/usage.md#responsive-rules)).
 

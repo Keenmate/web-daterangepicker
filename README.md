@@ -169,17 +169,26 @@ popover), or `floating` / `modal` / `fullscreen` on every device. `inline` ignor
 
 ### Responsive rules
 
-Tune any input per device class (`mobile` / `tablet` / `desktop`, core `classifyDevice`)
-without app-side viewport code — a **map** of partial configs, or a **callback** returning
-one. Rules can be set page-wide, per tag, or per instance:
+Tune any input per device or window width without app-side viewport code — a **map** of
+partial configs, or a **callback** returning one. A map has two axes, both keyed
+`mobile` / `tablet` / `desktop`:
+
+- `device` — what the device **is** (core `classifyDevice`: touch capability first, then the
+  short side; a mouse/trackpad device is `desktop` at any width). The same classes the
+  `presentation="auto"` ladder uses.
+- `breakpoint` — the **window width** (768 / 1024 px lines), so a narrowed desktop window is `mobile`.
+
+Breakpoint applies first, then device over it (device wins on the same key). Own widths or
+combinations (device class AND width, orientation, …) go in `responsiveCallback`. Rules can
+be set page-wide, per tag, or per instance:
 
 ```js
 // Page-wide (every KeenMate component) and per tag
-window.components.responsive = { mobile: { visibleMonthCount: 1 } };
-window.components['web-daterangepicker'].responsive = { tablet: { presentation: 'fullscreen' } };
+window.components.responsive = { device: { mobile: { visibleMonthCount: 1 } } };
+window.components['web-daterangepicker'].responsive = { device: { tablet: { presentation: 'fullscreen' } } };
 
-// Per instance — map (also the JSON attribute responsive='{"desktop":{…}}') or callback
-picker.responsive = { desktop: { visibleMonthCount: 2 } };
+// Per instance — map (also the JSON attribute responsive='{"breakpoint":{"mobile":{…}}}') or callback
+picker.responsive = { breakpoint: { mobile: { visibleMonthCount: 1 } }, device: { desktop: { visibleMonthCount: 2 } } };
 picker.responsiveCallback = (ctx) =>
   ctx.env.orientation === 'landscape' ? { visibleMonthCount: 2 } : undefined;
 ```

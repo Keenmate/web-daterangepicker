@@ -90,7 +90,7 @@ reference list. Cross-references the input-size table in
 
 The device-adaptive `presentation` ladder (floating on desktop,
 a centered modal on tablets, an edge-to-edge **full-screen** overlay on
-phones), **responsive rules** (a device-class map, a callback, and an
+phones), **responsive rules** (a `device` / `breakpoint` map, a callback, and an
 instance override beating a per-tag rule), the forced `presentation="modal"` layout with its
 viewport-tier widths (xs / sm / md / lg), container-query inner layout,
 the `labels.fullscreenTitle` heading, the `fullscreen-autofocus` / `show-fullscreen-input`

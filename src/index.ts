@@ -19,7 +19,7 @@ export { DEFAULT_LABELS } from './date-picker-locales';
 // same "what device am I on" signal the component itself reacts to
 // (environmentChanged / the presentation ladder), from ONE import surface and
 // ONE dependency. For per-device configuration prefer the core responsive rules
-// (`el.responsive = { mobile: { actionButtons: [...] } }`, page-wide or per tag via
+// (`el.responsive = { device: { mobile: { actionButtons: [...] } } }`, page-wide or per tag via
 // `window.components`, typed by DateRangePickerResponsiveMap / ...Callback).
 export {
     getEnvironment,

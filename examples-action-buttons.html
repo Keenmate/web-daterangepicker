@@ -146,11 +146,11 @@
 
       <div class="form-group">
         <label>Modal on phones too (responsive rule)</label>
-        <small>responsive=&#39;{"mobile":{"presentation":"modal"}}&#39; — the default <code>auto</code> ladder (desktop popover, tablet modal), but a modal instead of the full-screen sheet on phones</small>
+        <small>responsive=&#39;{"device":{"mobile":{"presentation":"modal"}}}&#39; — the default <code>auto</code> ladder (desktop popover, tablet modal), but a modal instead of the full-screen sheet on phones</small>
         <web-daterangepicker
           id="modal-auto"
           selection-mode="range"
-          responsive='{"mobile":{"presentation":"modal"}}'
+          responsive='{"device":{"mobile":{"presentation":"modal"}}}'
           visible-month-count="2">
         </web-daterangepicker>
       </div>

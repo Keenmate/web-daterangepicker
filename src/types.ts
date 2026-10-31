@@ -238,8 +238,9 @@ export interface DateRangePickerConfig extends DatePickerOptions {
 }
 
 /**
- * Responsive rules map for `<web-daterangepicker>` (core SPEC §6.7): device class →
- * partial config. Set it page-wide (`window.components.responsive`), per tag
+ * Responsive rules map for `<web-daterangepicker>` (core SPEC §6.7):
+ * `{ device?, breakpoint? }`, each axis keyed `mobile` / `tablet` / `desktop` → partial
+ * config (`device` = core `classifyDevice`, `breakpoint` = window width; device wins). Set it page-wide (`window.components.responsive`), per tag
  * (`window.components['web-daterangepicker'].responsive`) or per instance
  * (`el.responsive` / the `responsive` JSON attribute).
  */
