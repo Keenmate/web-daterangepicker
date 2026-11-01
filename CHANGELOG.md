@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — dependencies (2026-11-01)
+
+- Depends on the published `@keenmate/web-components-core@^1.0.0-rc15` (was the local `file:` link).
+
 ### Changed — `presentation` replaces `mobile-presentation` and `positioning-mode="modal"` (**BREAKING**, 2026-10-30)
 
 - **`mobile-presentation` / `mobilePresentation` → `presentation`** (attribute and property; same values:
