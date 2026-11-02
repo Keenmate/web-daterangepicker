@@ -5,6 +5,7 @@ import { test, expect, Page, Locator, pickerById, calendarOf, dayByDate, open } 
  *   - badge tooltip via specialDates.badgeTooltip
  *   - invalid-range error styling (showInvalidRange:true on restore)
  *   - unified-header-interactive opens unified rolling selector
+ *   - flag attributes read their value: x="false" is false (toBool('default-false'))
  *
  * Fixture: test/misc-features.html
  * (Device-adaptive `presentation` — modal / fullscreen — lives in
@@ -91,4 +92,34 @@ test.describe('motion', () => {
         const p = pickerById(page, 'motion');
         expect(await p.evaluate((el: any) => 'isTransitionEnabled' in el)).toBe(false);
     });
+});
+
+// =============================================================================
+// boolean flag attributes read their value (toBool('default-false'))
+// =============================================================================
+
+test.describe('flag attributes: x="false" is false, bare / "true" is true, absent is false', () => {
+    const FLAGS = [
+        ['enable-unified-navigation', 'isUnifiedNavigationEnabled'],
+        ['unified-header-interactive', 'isUnifiedHeaderInteractive'],
+        ['fullscreen-autofocus', 'shouldFullscreenAutofocus'],
+        ['show-fullscreen-input', 'isFullscreenInputShown'],
+    ] as const;
+
+    for (const [attribute, property] of FLAGS) {
+        test(attribute, async ({ page }) => {
+            const values = await page.evaluate(([attr, prop]) => {
+                const read = (value: string | null) => {
+                    const el = document.createElement('web-daterangepicker') as any;
+                    if (value !== null) el.setAttribute(attr, value);
+                    document.body.appendChild(el);
+                    const result = el[prop];
+                    el.remove();
+                    return result;
+                };
+                return { absent: read(null), bare: read(''), isTrue: read('true'), isFalse: read('false'), isZero: read('0') };
+            }, [attribute, property]);
+            expect(values).toEqual({ absent: false, bare: true, isTrue: true, isFalse: false, isZero: false });
+        });
+    }
 });

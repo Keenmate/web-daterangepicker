@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — four flag attributes read their value (**BREAKING**, 2026-11-02)
+
+- **`enable-unified-navigation`, `unified-header-interactive`, `fullscreen-autofocus`,
+  `show-fullscreen-input`** now read the attribute's value: `x="false"` / `"0"` / `"no"` / `"off"` is
+  `false` (it used to be `true` — any value counted, the native-HTML presence rule). Absent stays
+  `false`, a bare attribute or `"true"` stays `true`, an unrecognised value warns and keeps the
+  previous one. Matters for frameworks that render `x={flag}` as `x="false"`. `disabled` /
+  `readonly` keep the presence rule (the browser reads them that way).
+
 ### Changed — dependencies (2026-11-01)
 
 - Depends on the published `@keenmate/web-components-core@^1.0.0-rc15` (was the local `file:` link).
