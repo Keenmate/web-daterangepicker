@@ -437,6 +437,7 @@
     { "name": "drp-fullscreen-content-padding-top", "category": "fullscreen", "usage": "Full-screen content area top padding (added to the safe-area inset)" },
     { "name": "drp-fullscreen-header-min-height", "category": "fullscreen", "usage": "Full-screen header minimum height" },
     { "name": "drp-fullscreen-title-font-size", "category": "fullscreen", "usage": "Full-screen header title font size" },
+    { "name": "drp-fullscreen-input-font-size", "category": "fullscreen", "usage": "Full-screen typed-date input font size (unset: the header title size)" },
     { "name": "drp-fullscreen-title-color", "category": "fullscreen", "usage": "Full-screen header title color" },
     { "name": "drp-fullscreen-close-size", "category": "fullscreen", "usage": "Full-screen close button hit-target size" },
     { "name": "drp-fullscreen-close-icon-size", "category": "fullscreen", "usage": "Full-screen close button glyph mask size" },
