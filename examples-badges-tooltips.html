@@ -1,169 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Badges & Tooltips Examples - Date Range Picker</title>
-  <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* Page-unique only — base styles come from examples-shared.css.
-       .method-note is a compact inline "Uses: <api>" annotation chip that sits
-       under each demo's label. It's intentionally small and inline-block, unlike
-       the shared block-level `.note.info` callout, so it has no shared equivalent. */
-    .method-note {
-      display: block;
-      margin-top: 0.5rem;
-      padding: 0.375rem 0.5rem;
-      background: #f0f9ff;
-      border-left: 3px solid #0ea5e9;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
-      color: #0369a1;
-    }
+<meta name="kmwc:title" content="🏷️ Badges &amp; Tooltips">
+<meta name="kmwc:subtitle" content="Display badges and tooltips using static arrays, dynamic callbacks, or HTML tooltips">
 
-    .method-note code {
-      background: #e0f2fe;
-      padding: 0.125rem 0.25rem;
-      border-radius: 0.125rem;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>🏷️ Badges & Tooltips</h1>
-      <p class="subtitle">Display badges and tooltips using static arrays, dynamic callbacks, or HTML tooltips</p>
-    </header>
+<link rel="stylesheet" href="examples-local.css">
 
-    <p class="description">
-      Comprehensive guide to displaying badges, tooltips, and special date indicators using the date range picker component.
-  </p>
+<style>
+  /* Page-unique only — base styles come from the devkit kit.
+     .method-note is a compact inline "Uses: <api>" annotation chip that sits
+     under each demo's label. It's intentionally small and inline-block, unlike
+     the shared block-level `.note.info` callout, so it has no shared equivalent. */
+  .method-note {
+    display: block;
+    margin-top: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    background: #f0f9ff;
+    border-left: 3px solid #0ea5e9;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    color: #0369a1;
+  }
 
-  <!-- Overview Section -->
-  <div class="card">
-    <h2>BT01 · Overview: Three Ways to Add Badges & Tooltips</h2>
-    <p>
-      The component provides multiple approaches to display badges and tooltips, each with different use cases and capabilities.
-    </p>
+  .method-note code {
+    background: #e0f2fe;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.125rem;
+    font-weight: 600;
+  }
+</style>
 
-    <table class="reference-table">
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>Use Case</th>
-          <th>Supports HTML</th>
-          <th>Complexity</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>specialDates</code> array</td>
-          <td>Static dates known at initialization (holidays, events)</td>
-          <td>No (text only)</td>
-          <td>Simple</td>
-        </tr>
-        <tr>
-          <td><code>getDateMetadataCallback</code></td>
-          <td>Dynamic data based on date calculations (pricing, availability)</td>
-          <td>No (text only)</td>
-          <td>Medium</td>
-        </tr>
-        <tr>
-          <td><code>getBadgeTooltipCallback</code> / <code>getDayTooltipCallback</code></td>
-          <td>Advanced HTML tooltips with rich formatting</td>
-          <td>Yes (HTML)</td>
-          <td>Advanced</td>
-        </tr>
-      </tbody>
-    </table>
+<p class="description">
+  Comprehensive guide to displaying badges, tooltips, and special date indicators using the date range picker component.
+</p>
 
-    <div class="note info">
-      <strong>New in latest version:</strong>
-      The <code>DateInfo</code> interface has been refactored for clarity:
-      <ul>
-        <li><code>disabled</code> → <code>isDisabled</code></li>
-        <li><code>label</code> → <code>badgeText</code></li>
-        <li><code>tooltip</code> → <code>badgeTooltip</code> + <code>dayTooltip</code></li>
-        <li><code>class</code> → <code>badgeClass</code> + <code>dayClass</code></li>
-      </ul>
-    </div>
+<!-- Overview Section -->
+<div class="card">
+<h2>BT01 · Overview: Three Ways to Add Badges & Tooltips</h2>
+<p>
+  The component provides multiple approaches to display badges and tooltips, each with different use cases and capabilities.
+</p>
+
+<table class="reference-table">
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Use Case</th>
+      <th>Supports HTML</th>
+      <th>Complexity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>specialDates</code> array</td>
+      <td>Static dates known at initialization (holidays, events)</td>
+      <td>No (text only)</td>
+      <td>Simple</td>
+    </tr>
+    <tr>
+      <td><code>getDateMetadataCallback</code></td>
+      <td>Dynamic data based on date calculations (pricing, availability)</td>
+      <td>No (text only)</td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><code>getBadgeTooltipCallback</code> / <code>getDayTooltipCallback</code></td>
+      <td>Advanced HTML tooltips with rich formatting</td>
+      <td>Yes (HTML)</td>
+      <td>Advanced</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note info">
+  <strong>New in latest version:</strong>
+  The <code>DateInfo</code> interface has been refactored for clarity:
+  <ul>
+    <li><code>disabled</code> → <code>isDisabled</code></li>
+    <li><code>label</code> → <code>badgeText</code></li>
+    <li><code>tooltip</code> → <code>badgeTooltip</code> + <code>dayTooltip</code></li>
+    <li><code>class</code> → <code>badgeClass</code> + <code>dayClass</code></li>
+  </ul>
+</div>
+</div>
+
+<!-- Method 1: specialDates Array -->
+<div class="card">
+<h2>BT02 · Static Special Dates Array</h2>
+<p>
+  The simplest approach: define an array of special dates with labels, tooltips, and CSS classes.
+  Perfect for holidays, events, and other dates known at initialization time.
+</p>
+
+<h3>Basic Usage</h3>
+<div class="grid">
+  <div class="form-group">
+    <label>Holiday Calendar</label>
+    <web-daterangepicker id="holidays-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Holidays marked with emojis and custom styling</small>
   </div>
 
-  <!-- Method 1: specialDates Array -->
-  <div class="card">
-    <h2>BT02 · Static Special Dates Array</h2>
-    <p>
-      The simplest approach: define an array of special dates with labels, tooltips, and CSS classes.
-      Perfect for holidays, events, and other dates known at initialization time.
-    </p>
+  <div class="form-group">
+    <label>Cottage Booking Example</label>
+    <web-daterangepicker id="cottage-demo" selection-mode="range" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
+    <small>Some dates are already booked (disabled)</small>
+  </div>
+</div>
 
-    <h3>Basic Usage</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Holiday Calendar</label>
-        <web-daterangepicker id="holidays-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Holidays marked with emojis and custom styling</small>
-      </div>
-
-      <div class="form-group">
-        <label>Cottage Booking Example</label>
-        <web-daterangepicker id="cottage-demo" selection-mode="range" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-        <small>Some dates are already booked (disabled)</small>
-      </div>
-    </div>
-
-    <pre><code>const picker = document.getElementById('holidays-demo');
+<pre><code>const picker = document.getElementById('holidays-demo');
 picker.specialDates = [
   { date: '2025-12-25', badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Christmas Day' },
   { date: '2025-01-01', badgeClass: 'holiday', badgeText: '🎉', badgeTooltip: 'New Year\'s Day' },
   { date: '2025-07-04', badgeClass: 'holiday', badgeText: '🎆', badgeTooltip: 'Independence Day' }
 ];</code></pre>
+</div>
+
+<!-- Badge Implementation Methods -->
+<div class="card">
+<h2>BT03 · Badge Implementation Methods</h2>
+<p>
+  Four different technical approaches for displaying badges above dates. Choose the method that fits your use case.
+</p>
+
+<div class="grid">
+  <!-- Method 1: Static specialDates Array -->
+  <div class="form-group">
+    <label>1. Static Data</label>
+    <web-daterangepicker id="method-static" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
+    <small><strong>Best for:</strong> Known dates defined at initialization (holidays, events)</small>
+    <span class="method-note">Uses: <code>specialDates</code> array property</span>
   </div>
 
-  <!-- Badge Implementation Methods -->
-  <div class="card">
-    <h2>BT03 · Badge Implementation Methods</h2>
-    <p>
-      Four different technical approaches for displaying badges above dates. Choose the method that fits your use case.
-    </p>
+  <!-- Method 2: Dynamic Callback -->
+  <div class="form-group">
+    <label>2. Dynamic Calculation</label>
+    <web-daterangepicker id="method-dynamic" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
+    <small><strong>Best for:</strong> Computed values based on date properties (pricing, availability)</small>
+    <span class="method-note">Uses: <code>getDateMetadataCallback</code></span>
+  </div>
 
-    <div class="grid">
-      <!-- Method 1: Static specialDates Array -->
-      <div class="form-group">
-        <label>1. Static Data</label>
-        <web-daterangepicker id="method-static" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
-        <small><strong>Best for:</strong> Known dates defined at initialization (holidays, events)</small>
-        <span class="method-note">Uses: <code>specialDates</code> array property</span>
-      </div>
+  <!-- Method 3: Member Mapping -->
+  <div class="form-group">
+    <label>3. Custom Data Structure</label>
+    <web-daterangepicker id="method-mapping" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
+    <small><strong>Best for:</strong> Integrating existing data without reshaping (legacy systems, APIs)</small>
+    <span class="method-note">Uses: <code>badgeMemberMapping</code> with custom data</span>
+  </div>
 
-      <!-- Method 2: Dynamic Callback -->
-      <div class="form-group">
-        <label>2. Dynamic Calculation</label>
-        <web-daterangepicker id="method-dynamic" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
-        <small><strong>Best for:</strong> Computed values based on date properties (pricing, availability)</small>
-        <span class="method-note">Uses: <code>getDateMetadataCallback</code></span>
-      </div>
+  <!-- Method 4: HTML Tooltips -->
+  <div class="form-group">
+    <label>4. Rich Tooltips</label>
+    <web-daterangepicker id="method-tooltips" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
+    <small><strong>Best for:</strong> Complex tooltip content with HTML formatting</small>
+    <span class="method-note">Uses: <code>getBadgeTooltipCallback</code></span>
+  </div>
+</div>
 
-      <!-- Method 3: Member Mapping -->
-      <div class="form-group">
-        <label>3. Custom Data Structure</label>
-        <web-daterangepicker id="method-mapping" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
-        <small><strong>Best for:</strong> Integrating existing data without reshaping (legacy systems, APIs)</small>
-        <span class="method-note">Uses: <code>badgeMemberMapping</code> with custom data</span>
-      </div>
-
-      <!-- Method 4: HTML Tooltips -->
-      <div class="form-group">
-        <label>4. Rich Tooltips</label>
-        <web-daterangepicker id="method-tooltips" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
-        <small><strong>Best for:</strong> Complex tooltip content with HTML formatting</small>
-        <span class="method-note">Uses: <code>getBadgeTooltipCallback</code></span>
-      </div>
-    </div>
-
-    <pre><code>// Method 1: Static Array
+<pre><code>// Method 1: Static Array
 picker.specialDates = [
   { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
 ];
@@ -193,28 +183,28 @@ picker.specialDates = [
 picker.getBadgeTooltipCallback = (data) => {
   return '&lt;strong&gt;Christmas Day&lt;/strong&gt;&lt;br&gt;🎁 Gift exchange&lt;br&gt;🍽️ Family dinner';
 };</code></pre>
-  </div>
+</div>
 
-  <!-- Method 5: Async data on month change -->
-  <div class="card">
-    <h2>BT04 · Async Badges — Load per Month (<code>getMonthDataCallback</code>)</h2>
-    <p>
-      The badge callbacks (Methods 1–4) are <strong>synchronous</strong> — they render from data you already have.
-      When your badge data lives behind an API, load it <strong>per visible month</strong> with
-      <code>getMonthDataCallback</code>. It fires on the initial open and after every navigation, hands you the visible
-      date range, and — because the callback returns a <code>Promise</code> — the picker automatically shows its
-      loading overlay while the fetch is in flight. Navigate the months below: each new month "fetches"
-      availability (mocked with a 600&nbsp;ms delay) and fills in price badges.
-    </p>
+<!-- Method 5: Async data on month change -->
+<div class="card">
+<h2>BT04 · Async Badges — Load per Month (<code>getMonthDataCallback</code>)</h2>
+<p>
+  The badge callbacks (Methods 1–4) are <strong>synchronous</strong> — they render from data you already have.
+  When your badge data lives behind an API, load it <strong>per visible month</strong> with
+  <code>getMonthDataCallback</code>. It fires on the initial open and after every navigation, hands you the visible
+  date range, and — because the callback returns a <code>Promise</code> — the picker automatically shows its
+  loading overlay while the fetch is in flight. Navigate the months below: each new month "fetches"
+  availability (mocked with a 600&nbsp;ms delay) and fills in price badges.
+</p>
 
-    <div class="form-group">
-      <label>Availability &amp; pricing, loaded on demand</label>
-      <web-daterangepicker id="method-async" visible-month-count="2" placeholder="Select a range"></web-daterangepicker>
-      <small><strong>Best for:</strong> API-driven badges — one request per month instead of a per-day callback.</small>
-      <span class="method-note">Uses: <code>getMonthDataCallback</code></span>
-    </div>
+<div class="form-group">
+  <label>Availability &amp; pricing, loaded on demand</label>
+  <web-daterangepicker id="method-async" visible-month-count="2" placeholder="Select a range"></web-daterangepicker>
+  <small><strong>Best for:</strong> API-driven badges — one request per month instead of a per-day callback.</small>
+  <span class="method-note">Uses: <code>getMonthDataCallback</code></span>
+</div>
 
-    <pre><code>picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+<pre><code>picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   // One request for the whole visible grid (may include adjacent-month days).
   const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
 
@@ -233,29 +223,29 @@ picker.getBadgeTooltipCallback = (data) => {
   return { metadata };
 };</code></pre>
 
-    <div class="note info">
-      <strong>Why this and not <code>getDateMetadataCallback</code>?</strong>
-      The per-day metadata callback is synchronous and runs ~42 times per month — you can't <code>await</code> inside it.
-      <code>getMonthDataCallback</code> is the async, once-per-month hook: its <code>metadata</code> takes priority over
-      the per-day callback during rendering, and it <em>merges</em> across visits so paging back to a loaded month is instant.
-    </div>
-  </div>
+<div class="note info">
+  <strong>Why this and not <code>getDateMetadataCallback</code>?</strong>
+  The per-day metadata callback is synchronous and runs ~42 times per month — you can't <code>await</code> inside it.
+  <code>getMonthDataCallback</code> is the async, once-per-month hook: its <code>metadata</code> takes priority over
+  the per-day callback during rendering, and it <em>merges</em> across visits so paging back to a loaded month is instant.
+</div>
+</div>
 
-  <!-- Member Mapping Example -->
-  <div class="card">
-    <h2>BT05 · Using Custom Property Names (Member Mapping)</h2>
-    <p>
-      Already have your own data structure? No need to reshape your data! Use member mapping properties
-      to tell the picker which properties contain the date, badge text, tooltips, etc.
-    </p>
+<!-- Member Mapping Example -->
+<div class="card">
+<h2>BT05 · Using Custom Property Names (Member Mapping)</h2>
+<p>
+  Already have your own data structure? No need to reshape your data! Use member mapping properties
+  to tell the picker which properties contain the date, badge text, tooltips, etc.
+</p>
 
-    <div class="form-group">
-      <label>Custom Data Structure with Member Mapping</label>
-      <web-daterangepicker id="member-mapping-example" visible-month-count="2" placeholder="Select date"></web-daterangepicker>
-      <small>This example uses a custom data structure with properties like 'displayDate', 'icon', 'description', etc.</small>
-    </div>
+<div class="form-group">
+  <label>Custom Data Structure with Member Mapping</label>
+  <web-daterangepicker id="member-mapping-example" visible-month-count="2" placeholder="Select date"></web-daterangepicker>
+  <small>This example uses a custom data structure with properties like 'displayDate', 'icon', 'description', etc.</small>
+</div>
 
-    <pre><code>// Your existing data structure (no need to reshape!)
+<pre><code>// Your existing data structure (no need to reshape!)
 const myHolidays = [
   { id: 1, displayDate: '2025-12-25', icon: '🎄', description: 'Christmas - Office Closed', style: 'holiday', disabled: true },
   { id: 2, displayDate: '2025-12-31', icon: '🥳', description: 'New Year Eve - Office Closed', style: 'holiday', disabled: true },
@@ -278,43 +268,43 @@ picker.isDisabledMember = 'disabled';       // Which property contains the disab
 // Assign your data as-is!
 picker.specialDates = myHolidays;</code></pre>
 
-    <div class="note info">
-      <strong>Available Member Properties:</strong>
-      <ul>
-        <li><code>dateMember</code> - Property containing the date (default: 'date')</li>
-        <li><code>badgeTextMember</code> - Property containing badge text (default: 'badgeText')</li>
-        <li><code>badgeClassMember</code> - Property containing badge CSS class (default: 'badgeClass')</li>
-        <li><code>dayClassMember</code> - Property containing day CSS class (default: 'dayClass')</li>
-        <li><code>badgeTooltipMember</code> - Property containing badge tooltip (default: 'badgeTooltip')</li>
-        <li><code>dayTooltipMember</code> - Property containing day tooltip (default: 'dayTooltip')</li>
-        <li><code>isDisabledMember</code> - Property containing disabled flag (default: 'isDisabled')</li>
-      </ul>
-    </div>
+<div class="note info">
+  <strong>Available Member Properties:</strong>
+  <ul>
+    <li><code>dateMember</code> - Property containing the date (default: 'date')</li>
+    <li><code>badgeTextMember</code> - Property containing badge text (default: 'badgeText')</li>
+    <li><code>badgeClassMember</code> - Property containing badge CSS class (default: 'badgeClass')</li>
+    <li><code>dayClassMember</code> - Property containing day CSS class (default: 'dayClass')</li>
+    <li><code>badgeTooltipMember</code> - Property containing badge tooltip (default: 'badgeTooltip')</li>
+    <li><code>dayTooltipMember</code> - Property containing day tooltip (default: 'dayTooltip')</li>
+    <li><code>isDisabledMember</code> - Property containing disabled flag (default: 'isDisabled')</li>
+  </ul>
+</div>
+</div>
+
+<!-- Method 2: getDateMetadataCallback -->
+<div class="card">
+<h2>BT06 · Dynamic Metadata Callback</h2>
+<p>
+  Use <code>getDateMetadataCallback</code> to generate badge and tooltip content dynamically based on date calculations,
+  external data, or business logic. This is perfect for pricing calendars, availability systems, or computed values.
+</p>
+
+<div class="grid">
+  <div class="form-group">
+    <label>Dynamic Pricing Calendar</label>
+    <web-daterangepicker id="dynamic-pricing" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
+    <small>Prices calculated based on day of week and demand</small>
   </div>
 
-  <!-- Method 2: getDateMetadataCallback -->
-  <div class="card">
-    <h2>BT06 · Dynamic Metadata Callback</h2>
-    <p>
-      Use <code>getDateMetadataCallback</code> to generate badge and tooltip content dynamically based on date calculations,
-      external data, or business logic. This is perfect for pricing calendars, availability systems, or computed values.
-    </p>
+  <div class="form-group">
+    <label>Availability Indicator</label>
+    <web-daterangepicker id="dynamic-availability" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
+    <small>Shows remaining spots with color coding</small>
+  </div>
+</div>
 
-    <div class="grid">
-      <div class="form-group">
-        <label>Dynamic Pricing Calendar</label>
-        <web-daterangepicker id="dynamic-pricing" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-        <small>Prices calculated based on day of week and demand</small>
-      </div>
-
-      <div class="form-group">
-        <label>Availability Indicator</label>
-        <web-daterangepicker id="dynamic-availability" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-        <small>Shows remaining spots with color coding</small>
-      </div>
-    </div>
-
-    <pre><code>const picker = document.getElementById('dynamic-pricing');
+<pre><code>const picker = document.getElementById('dynamic-pricing');
 
 // Pricing data from API or database
 const priceData = {
@@ -350,42 +340,42 @@ picker.getDateMetadataCallback = ({ date }) => {
   return null;
 };</code></pre>
 
-    <div class="note info">
-      <strong>Return Value:</strong> The callback returns a <code>DateInfo</code> object with these properties:
-      <ul>
-        <li><code>badgeText</code> - Text shown in badge row</li>
-        <li><code>badgeClass</code> - CSS class for badge cell</li>
-        <li><code>badgeTooltip</code> - Plain text tooltip for badge</li>
-        <li><code>dayClass</code> - CSS class for entire day cell</li>
-        <li><code>dayTooltip</code> - Plain text tooltip for day cell</li>
-        <li><code>isDisabled</code> - Whether the date is disabled</li>
-      </ul>
-    </div>
+<div class="note info">
+  <strong>Return Value:</strong> The callback returns a <code>DateInfo</code> object with these properties:
+  <ul>
+    <li><code>badgeText</code> - Text shown in badge row</li>
+    <li><code>badgeClass</code> - CSS class for badge cell</li>
+    <li><code>badgeTooltip</code> - Plain text tooltip for badge</li>
+    <li><code>dayClass</code> - CSS class for entire day cell</li>
+    <li><code>dayTooltip</code> - Plain text tooltip for day cell</li>
+    <li><code>isDisabled</code> - Whether the date is disabled</li>
+  </ul>
+</div>
+</div>
+
+<!-- Method 3: HTML Tooltip Callbacks -->
+<div class="card">
+<h2>BT07 · Advanced HTML Tooltips</h2>
+<p>
+  For rich, formatted tooltips with HTML content, use <code>getBadgeTooltipCallback</code> or <code>getDayTooltipCallback</code>.
+  These callbacks return HTML strings that are rendered with full formatting support.
+</p>
+
+<div class="grid">
+  <div class="form-group">
+    <label>Rich Booking Info Tooltips</label>
+    <web-daterangepicker id="html-tooltips-booking" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
+    <small>Hover over dates to see detailed booking information</small>
   </div>
 
-  <!-- Method 3: HTML Tooltip Callbacks -->
-  <div class="card">
-    <h2>BT07 · Advanced HTML Tooltips</h2>
-    <p>
-      For rich, formatted tooltips with HTML content, use <code>getBadgeTooltipCallback</code> or <code>getDayTooltipCallback</code>.
-      These callbacks return HTML strings that are rendered with full formatting support.
-    </p>
+  <div class="form-group">
+    <label>Event Details Tooltips</label>
+    <web-daterangepicker id="html-tooltips-events" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
+    <small>HTML tooltips with event schedules and details</small>
+  </div>
+</div>
 
-    <div class="grid">
-      <div class="form-group">
-        <label>Rich Booking Info Tooltips</label>
-        <web-daterangepicker id="html-tooltips-booking" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-        <small>Hover over dates to see detailed booking information</small>
-      </div>
-
-      <div class="form-group">
-        <label>Event Details Tooltips</label>
-        <web-daterangepicker id="html-tooltips-events" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-        <small>HTML tooltips with event schedules and details</small>
-      </div>
-    </div>
-
-    <pre><code>const picker = document.getElementById('html-tooltips-booking');
+<pre><code>const picker = document.getElementById('html-tooltips-booking');
 
 const bookingInfo = {
   '2025-11-15': { price: 180, available: 5, rating: 4.5 },
@@ -434,27 +424,27 @@ picker.getDayTooltipCallback = (data) => {
   return null;
 };</code></pre>
 
-    <div class="note warning">
-      <strong>Security Note:</strong> Tooltip callbacks return HTML that is rendered with <code>innerHTML</code>.
-      Always sanitize user-generated content to prevent XSS attacks. Only use trusted data in tooltips.
-    </div>
-  </div>
+<div class="note warning">
+  <strong>Security Note:</strong> Tooltip callbacks return HTML that is rendered with <code>innerHTML</code>.
+  Always sanitize user-generated content to prevent XSS attacks. Only use trusted data in tooltips.
+</div>
+</div>
 
-  <!-- Combining Methods -->
-  <div class="card">
-    <h2>BT08 · Combining Multiple Methods</h2>
-    <p>
-      You can combine different methods for maximum flexibility. For example, use <code>specialDates</code> for static holidays
-      and <code>getDateMetadataCallback</code> for dynamic pricing, with <code>getDayTooltipCallback</code> for rich tooltips.
-    </p>
+<!-- Combining Methods -->
+<div class="card">
+<h2>BT08 · Combining Multiple Methods</h2>
+<p>
+  You can combine different methods for maximum flexibility. For example, use <code>specialDates</code> for static holidays
+  and <code>getDateMetadataCallback</code> for dynamic pricing, with <code>getDayTooltipCallback</code> for rich tooltips.
+</p>
 
-    <div class="form-group">
-      <label>Combined Example: Hotel Booking Calendar</label>
-      <web-daterangepicker id="combined-example" selection-mode="range" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-      <small>Static holidays + dynamic pricing + HTML tooltips all working together</small>
-    </div>
+<div class="form-group">
+  <label>Combined Example: Hotel Booking Calendar</label>
+  <web-daterangepicker id="combined-example" selection-mode="range" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
+  <small>Static holidays + dynamic pricing + HTML tooltips all working together</small>
+</div>
 
-    <pre><code>const picker = document.getElementById('combined-example');
+<pre><code>const picker = document.getElementById('combined-example');
 
 // 1. Static holidays via specialDates
 picker.specialDates = [
@@ -491,49 +481,49 @@ picker.getDayTooltipCallback = (data) => {
   return null;
 };</code></pre>
 
-    <div class="note info">
-      <strong>Priority:</strong> When multiple methods provide data for the same date:
-      <ul>
-        <li><code>specialDates</code> is checked first</li>
-        <li><code>getDateMetadataCallback</code> is checked if no special date found</li>
-        <li><code>*TooltipCallback</code> functions override text tooltips from above methods</li>
-      </ul>
-    </div>
+<div class="note info">
+  <strong>Priority:</strong> When multiple methods provide data for the same date:
+  <ul>
+    <li><code>specialDates</code> is checked first</li>
+    <li><code>getDateMetadataCallback</code> is checked if no special date found</li>
+    <li><code>*TooltipCallback</code> functions override text tooltips from above methods</li>
+  </ul>
+</div>
+</div>
+
+<!-- Consumer-data classifier convention -->
+<div class="card">
+<h2>BT09 · Consumer-Data Classifier Classes (built-in and custom)</h2>
+<p>
+  The picker reads <code>dayClass</code> / <code>badgeClass</code> from your <code>specialDates</code>
+  data and applies whatever string you hand it as a literal class on the day cell or badge cell.
+  You drive the styling from data — the component itself never decides what a date "means".
+</p>
+
+<div class="note info">
+  <strong>Built-in conventions:</strong> the shipped CSS includes default styling for five
+  common consumer-data class names so you get something polished without writing CSS:
+  <ul>
+    <li><code>dayClass: 'holiday'</code> — tints the whole day cell red (consumes <code>--drp-holiday-color</code>)</li>
+    <li><code>dayClass: 'event'</code> — tints the whole day cell green (consumes <code>--drp-event-color</code>)</li>
+    <li><code>badgeClass: 'badge-number'</code> — accent-colored numeric badge (consumes <code>--drp-badge-number-bg</code> / <code>--drp-badge-number-color</code>)</li>
+    <li><code>badgeClass: 'badge-count'</code> — red count badge (consumes <code>--drp-badge-count-bg</code> / <code>--drp-badge-count-color</code>)</li>
+    <li><code>badgeClass: 'badge-text'</code> — gray uppercase text badge (consumes <code>--drp-badge-text-bg</code> / <code>--drp-badge-text-color</code>)</li>
+  </ul>
+  Any other string (e.g., <code>'salsa'</code>, <code>'rumba'</code>) is rendered as-is — you
+  ship the matching CSS via <code>getCustomStylesCallback</code>.
+</div>
+
+<h3>Demo 1 — Built-in <code>dayClass</code> tints</h3>
+<div class="grid">
+  <div class="form-group">
+    <label>Calendar with holidays + events (no custom CSS)</label>
+    <web-daterangepicker id="dayclass-builtin-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Shipped <code>.drp__day.holiday</code> / <code>.drp__day.event</code> rules fire automatically.</small>
   </div>
+</div>
 
-  <!-- Consumer-data classifier convention -->
-  <div class="card">
-    <h2>BT09 · Consumer-Data Classifier Classes (built-in and custom)</h2>
-    <p>
-      The picker reads <code>dayClass</code> / <code>badgeClass</code> from your <code>specialDates</code>
-      data and applies whatever string you hand it as a literal class on the day cell or badge cell.
-      You drive the styling from data — the component itself never decides what a date "means".
-    </p>
-
-    <div class="note info">
-      <strong>Built-in conventions:</strong> the shipped CSS includes default styling for five
-      common consumer-data class names so you get something polished without writing CSS:
-      <ul>
-        <li><code>dayClass: 'holiday'</code> — tints the whole day cell red (consumes <code>--drp-holiday-color</code>)</li>
-        <li><code>dayClass: 'event'</code> — tints the whole day cell green (consumes <code>--drp-event-color</code>)</li>
-        <li><code>badgeClass: 'badge-number'</code> — accent-colored numeric badge (consumes <code>--drp-badge-number-bg</code> / <code>--drp-badge-number-color</code>)</li>
-        <li><code>badgeClass: 'badge-count'</code> — red count badge (consumes <code>--drp-badge-count-bg</code> / <code>--drp-badge-count-color</code>)</li>
-        <li><code>badgeClass: 'badge-text'</code> — gray uppercase text badge (consumes <code>--drp-badge-text-bg</code> / <code>--drp-badge-text-color</code>)</li>
-      </ul>
-      Any other string (e.g., <code>'salsa'</code>, <code>'rumba'</code>) is rendered as-is — you
-      ship the matching CSS via <code>getCustomStylesCallback</code>.
-    </div>
-
-    <h3>Demo 1 — Built-in <code>dayClass</code> tints</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Calendar with holidays + events (no custom CSS)</label>
-        <web-daterangepicker id="dayclass-builtin-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Shipped <code>.drp__day.holiday</code> / <code>.drp__day.event</code> rules fire automatically.</small>
-      </div>
-    </div>
-
-    <pre><code>const picker = document.getElementById('dayclass-builtin-demo');
+<pre><code>const picker = document.getElementById('dayclass-builtin-demo');
 picker.specialDates = [
   { date: dayOffset(-7), dayClass: 'holiday', dayTooltip: 'Office closed' },
   { date: dayOffset(-3), dayClass: 'event',   dayTooltip: 'Team offsite' },
@@ -541,16 +531,16 @@ picker.specialDates = [
   { date: dayOffset(7),  dayClass: 'holiday', dayTooltip: 'Public holiday' },
 ];</code></pre>
 
-    <h3>Demo 2 — Built-in <code>badgeClass</code> badge types</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Numbers, counts, and labels (no custom CSS)</label>
-        <web-daterangepicker id="badgeclass-builtin-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Three shipped badge styles: <code>badge-number</code>, <code>badge-count</code>, <code>badge-text</code>.</small>
-      </div>
-    </div>
+<h3>Demo 2 — Built-in <code>badgeClass</code> badge types</h3>
+<div class="grid">
+  <div class="form-group">
+    <label>Numbers, counts, and labels (no custom CSS)</label>
+    <web-daterangepicker id="badgeclass-builtin-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Three shipped badge styles: <code>badge-number</code>, <code>badge-count</code>, <code>badge-text</code>.</small>
+  </div>
+</div>
 
-    <pre><code>const picker = document.getElementById('badgeclass-builtin-demo');
+<pre><code>const picker = document.getElementById('badgeclass-builtin-demo');
 picker.specialDates = [
   { date: dayOffset(-5), badgeClass: 'badge-number', badgeText: '12',  badgeTooltip: 'Slot number' },
   { date: dayOffset(-2), badgeClass: 'badge-count',  badgeText: '3',   badgeTooltip: '3 alerts' },
@@ -559,23 +549,23 @@ picker.specialDates = [
   { date: dayOffset(8),  badgeClass: 'badge-count',  badgeText: '15',  badgeTooltip: '15 bookings' },
 ];</code></pre>
 
-    <h3>Demo 3 — Custom classifiers (your own vocabulary)</h3>
-    <p>
-      When you need domain-specific classes (a fitness studio's schedule, a venue's class types, etc.),
-      use whatever strings make sense and ship the matching CSS via <code>getCustomStylesCallback</code>.
-      The callback returns a CSS string that's injected into the picker's shadow DOM, so it can target
-      <code>.drp__day.&lt;your-class&gt;</code> directly.
-    </p>
+<h3>Demo 3 — Custom classifiers (your own vocabulary)</h3>
+<p>
+  When you need domain-specific classes (a fitness studio's schedule, a venue's class types, etc.),
+  use whatever strings make sense and ship the matching CSS via <code>getCustomStylesCallback</code>.
+  The callback returns a CSS string that's injected into the picker's shadow DOM, so it can target
+  <code>.drp__day.&lt;your-class&gt;</code> directly.
+</p>
 
-    <div class="grid">
-      <div class="form-group">
-        <label>Studio schedule</label>
-        <web-daterangepicker id="custom-classifier-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Three custom <code>dayClass</code> values: <code>salsa</code>, <code>rumba</code>, <code>pilates</code>.</small>
-      </div>
-    </div>
+<div class="grid">
+  <div class="form-group">
+    <label>Studio schedule</label>
+    <web-daterangepicker id="custom-classifier-demo" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Three custom <code>dayClass</code> values: <code>salsa</code>, <code>rumba</code>, <code>pilates</code>.</small>
+  </div>
+</div>
 
-    <pre><code>const picker = document.getElementById('custom-classifier-demo');
+<pre><code>const picker = document.getElementById('custom-classifier-demo');
 
 // 1. Ship the CSS for your class names — injected into the picker's shadow DOM.
 picker.getCustomStylesCallback = () => `
@@ -603,805 +593,801 @@ picker.specialDates = [
   { date: dayOffset(10), dayClass: 'rumba',   dayTooltip: 'Rumba show night' },
 ];</code></pre>
 
-    <div class="note info">
-      <strong>Why <code>getCustomStylesCallback</code> instead of a regular stylesheet?</strong>
-      The picker lives inside a shadow DOM, so document-level CSS can't reach
-      <code>.drp__day</code>. Either inject your styles via this callback (recommended for component-scoped
-      rules), or theme via <code>--drp-*</code> CSS variables on the host element (which DO cross the
-      shadow boundary). See the <a href="examples-theming.html">Theming examples</a> for the variable approach.
-    </div>
-  </div>
+<div class="note info">
+  <strong>Why <code>getCustomStylesCallback</code> instead of a regular stylesheet?</strong>
+  The picker lives inside a shadow DOM, so document-level CSS can't reach
+  <code>.drp__day</code>. Either inject your styles via this callback (recommended for component-scoped
+  rules), or theme via <code>--drp-*</code> CSS variables on the host element (which DO cross the
+  shadow boundary). See the <a href="examples-theming.html">Theming examples</a> for the variable approach.
+</div>
+</div>
 
-  <!-- Tooltip Best Practices -->
-  <div class="card">
-    <h2>BT10 · Tooltip Best Practices</h2>
+<!-- Tooltip Best Practices -->
+<div class="card">
+<h2>BT10 · Tooltip Best Practices</h2>
 
-    <h3>When to Use Each Tooltip Type</h3>
-    <table class="reference-table">
-      <thead>
-        <tr>
-          <th>Tooltip Type</th>
-          <th>Best For</th>
-          <th>Example Content</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>badgeTooltip</code></td>
-          <td>Explaining what the badge means</td>
-          <td>"Price: $150", "5 spots remaining", "Holiday"</td>
-        </tr>
-        <tr>
-          <td><code>dayTooltip</code></td>
-          <td>Additional date information</td>
-          <td>"Available", "Fully booked", "Weekend rate applies"</td>
-        </tr>
-        <tr>
-          <td><code>getBadgeTooltipCallback</code></td>
-          <td>Rich badge explanations with HTML</td>
-          <td>Formatted price breakdowns, availability charts</td>
-        </tr>
-        <tr>
-          <td><code>getDayTooltipCallback</code></td>
-          <td>Detailed date information with HTML</td>
-          <td>Event schedules, booking details, weather forecasts</td>
-        </tr>
-      </tbody>
-    </table>
+<h3>When to Use Each Tooltip Type</h3>
+<table class="reference-table">
+  <thead>
+    <tr>
+      <th>Tooltip Type</th>
+      <th>Best For</th>
+      <th>Example Content</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>badgeTooltip</code></td>
+      <td>Explaining what the badge means</td>
+      <td>"Price: $150", "5 spots remaining", "Holiday"</td>
+    </tr>
+    <tr>
+      <td><code>dayTooltip</code></td>
+      <td>Additional date information</td>
+      <td>"Available", "Fully booked", "Weekend rate applies"</td>
+    </tr>
+    <tr>
+      <td><code>getBadgeTooltipCallback</code></td>
+      <td>Rich badge explanations with HTML</td>
+      <td>Formatted price breakdowns, availability charts</td>
+    </tr>
+    <tr>
+      <td><code>getDayTooltipCallback</code></td>
+      <td>Detailed date information with HTML</td>
+      <td>Event schedules, booking details, weather forecasts</td>
+    </tr>
+  </tbody>
+</table>
 
-    <h3>Accessibility Tips</h3>
-    <ul>
-      <li>Keep tooltip text concise and informative</li>
-      <li>Ensure sufficient color contrast in custom badge styles</li>
-      <li>Don't rely solely on color to convey meaning (use icons/text too)</li>
-      <li>Test tooltip readability on mobile devices</li>
-    </ul>
+<h3>Accessibility Tips</h3>
+<ul>
+  <li>Keep tooltip text concise and informative</li>
+  <li>Ensure sufficient color contrast in custom badge styles</li>
+  <li>Don't rely solely on color to convey meaning (use icons/text too)</li>
+  <li>Test tooltip readability on mobile devices</li>
+</ul>
 
-    <h3>Performance Considerations</h3>
-    <ul>
-      <li>Callbacks are called for every visible day - keep logic fast</li>
-      <li>Cache expensive calculations outside the callback</li>
-      <li>Use <code>specialDates</code> array for static data (better performance)</li>
-      <li>Avoid complex DOM manipulation in tooltip HTML</li>
-    </ul>
-  </div>
+<h3>Performance Considerations</h3>
+<ul>
+  <li>Callbacks are called for every visible day - keep logic fast</li>
+  <li>Cache expensive calculations outside the callback</li>
+  <li>Use <code>specialDates</code> array for static data (better performance)</li>
+  <li>Avoid complex DOM manipulation in tooltip HTML</li>
+</ul>
+</div>
 
-  <script type="module" src="/src/index.ts"></script>
-  <script type="module">
-    // Wait for web component to be defined
-    await customElements.whenDefined('web-daterangepicker');
+<script type="module">
+// Wait for web component to be defined
+await customElements.whenDefined('web-daterangepicker');
 
-    // ========================================
-    // Date helpers — keep example data anchored to today so the demos never go stale.
-    // ========================================
-    const _today = new Date(); _today.setHours(0, 0, 0, 0);
-    const toLocalISO = (d) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const dayOffset = (days) => {
-      const d = new Date(_today); d.setDate(d.getDate() + days);
-      return toLocalISO(d);
+// ========================================
+// Date helpers — keep example data anchored to today so the demos never go stale.
+// ========================================
+const _today = new Date(); _today.setHours(0, 0, 0, 0);
+const toLocalISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const dayOffset = (days) => {
+  const d = new Date(_today); d.setDate(d.getDate() + days);
+  return toLocalISO(d);
+};
+const dateAt = (days) => { const d = new Date(_today); d.setDate(d.getDate() + days); return d; };
+
+// ========================================
+// Method 1: Static Special Dates Examples
+// ========================================
+
+// Holidays demo
+const holidaysDemo = document.getElementById('holidays-demo');
+if (holidaysDemo) {
+  // Inject CSS for badge styling into Shadow DOM
+  holidaysDemo.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.holiday {
+        background-color: rgba(239, 68, 68, 0.3) !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.event {
+        background-color: rgba(59, 130, 246, 0.3) !important;
+        color: #1e40af !important;
+        border: 1px solid #60a5fa !important;
+        font-weight: 600;
+      }
+    `;
+  };
+
+  holidaysDemo.specialDates = [
+    { date: dayOffset(-14), badgeClass: 'event',   badgeText: '🎂', badgeTooltip: 'Birthday' },
+    { date: dayOffset(-10), badgeClass: 'holiday', badgeText: '🎵', badgeTooltip: 'Concert' },
+    { date: dayOffset(-5),  badgeClass: 'event',   badgeText: '🥳', badgeTooltip: 'Party' },
+    { date: dayOffset(-2),  badgeClass: 'holiday', badgeText: '🎉', badgeTooltip: 'Celebration' },
+    { date: dayOffset(0),   badgeClass: 'holiday', badgeText: '⭐', badgeTooltip: 'Today' },
+    { date: dayOffset(3),   badgeClass: 'event',   badgeText: '☕', badgeTooltip: 'Coffee Meeting' },
+    { date: dayOffset(7),   badgeClass: 'event',   badgeText: '🎤', badgeTooltip: 'Karaoke Night' },
+    { date: dayOffset(12),  badgeClass: 'holiday', badgeText: '🍕', badgeTooltip: 'Pizza Night' },
+    { date: dayOffset(18),  badgeClass: 'event',   badgeText: '🎬', badgeTooltip: 'Movie Night' }
+  ];
+}
+
+// Cottage booking demo (simulated bookings)
+const cottageDemo = document.getElementById('cottage-demo');
+if (cottageDemo) {
+  // Inject CSS for booked badge styling into Shadow DOM
+  cottageDemo.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.booked {
+        background-color: rgba(107, 114, 128, 0.3) !important;
+        color: #374151 !important;
+        border: 1px solid #9ca3af !important;
+        font-weight: 600;
+      }
+    `;
+  };
+
+  // Simulate already booked date ranges (anchored to today so demo stays evergreen)
+  const bookedRanges = [
+    { start: dateAt(-18), end: dateAt(-12) },
+    { start: dateAt(-4),  end: dateAt(2)   },
+    { start: dateAt(15),  end: dateAt(22)  }
+  ];
+
+  cottageDemo.getDateMetadataCallback = ({ date }) => {
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+
+    // Check if date is in a booked range
+    for (const range of bookedRanges) {
+      const start = new Date(range.start);
+      const end = new Date(range.end);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      if (checkDate >= start && checkDate <= end) {
+        return {
+          isDisabled: true,
+          badgeClass: 'booked',
+          badgeText: '🔒',
+          badgeTooltip: 'Already booked',
+          dayTooltip: 'This date is not available'
+        };
+      }
+    }
+
+    return null;
+  };
+}
+
+// ========================================
+// Badge Implementation Methods
+// ========================================
+
+// Method 1: Static Data (specialDates Array)
+const methodStatic = document.getElementById('method-static');
+if (methodStatic) {
+  methodStatic.specialDates = [
+    { date: dayOffset(-3), badgeText: '🎂', badgeTooltip: 'Birthday' },
+    { date: dayOffset(2),  badgeText: '🥳', badgeTooltip: 'Party' },
+    { date: dayOffset(9),  badgeText: '🎤', badgeTooltip: 'Karaoke' },
+    { date: dayOffset(15), badgeText: '🎬', badgeTooltip: 'Movie Night' }
+  ];
+}
+
+// Method 2: Dynamic Calculation (getDateMetadataCallback)
+const methodDynamic = document.getElementById('method-dynamic');
+if (methodDynamic) {
+  // Inject CSS into Shadow DOM for price tier styling
+  methodDynamic.getCustomStylesCallback = () => {
+    return `
+      .price-high {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .price-medium {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+        border: 1px solid #fbbf24 !important;
+        font-weight: 600;
+      }
+
+      .price-low {
+        background-color: #d1fae5 !important;
+        color: #065f46 !important;
+        border: 1px solid #34d399 !important;
+        font-weight: 600;
+      }
+    `;
+  };
+
+  methodDynamic.getDateMetadataCallback = ({ date }) => {
+    const dayOfWeek = date.getDay();
+    const dateNum = date.getDate();
+
+    // Weekend pricing is higher, some dates have special demand
+    let price = (dayOfWeek === 0 || dayOfWeek === 6) ? 220 : 150;
+    if (dateNum % 7 === 0) price += 30; // High demand days
+
+    let badgeClass = 'badge-number';
+    if (price >= 220) badgeClass += ' price-high';
+    else if (price >= 180) badgeClass += ' price-medium';
+    else badgeClass += ' price-low';
+
+    return {
+      badgeText: `$${price}`,
+      badgeClass: badgeClass,
+      badgeTooltip: `Nightly rate: $${price}`
     };
-    const dateAt = (days) => { const d = new Date(_today); d.setDate(d.getDate() + days); return d; };
+  };
+}
 
-    // ========================================
-    // Method 1: Static Special Dates Examples
-    // ========================================
+// Method 3: Custom Data Structure (Member Mapping)
+const methodMapping = document.getElementById('method-mapping');
+if (methodMapping) {
+  // Inject CSS for badge styling into Shadow DOM
+  methodMapping.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.holiday {
+        background-color: rgba(239, 68, 68, 0.3) !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
 
-    // Holidays demo
-    const holidaysDemo = document.getElementById('holidays-demo');
-    if (holidaysDemo) {
-      // Inject CSS for badge styling into Shadow DOM
-      holidaysDemo.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.holiday {
-            background-color: rgba(239, 68, 68, 0.3) !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
+      .drp__badge-cell.event {
+        background-color: rgba(59, 130, 246, 0.3) !important;
+        color: #1e40af !important;
+        border: 1px solid #60a5fa !important;
+        font-weight: 600;
+      }
+    `;
+  };
 
-          .drp__badge-cell.event {
-            background-color: rgba(59, 130, 246, 0.3) !important;
-            color: #1e40af !important;
-            border: 1px solid #60a5fa !important;
-            font-weight: 600;
-          }
-        `;
-      };
+  // Data from external system with different property names
+  const eventsData = [
+    { id: 1, eventDate: dayOffset(-3),  icon: '🎄', label: 'Office Party',    category: 'holiday', unavailable: true },
+    { id: 2, eventDate: dayOffset(0),   icon: '🥳', label: 'Today',           category: 'holiday', unavailable: true },
+    { id: 3, eventDate: dayOffset(4),   icon: '📅', label: 'Team Meeting',    category: 'event' },
+    { id: 4, eventDate: dayOffset(9),   icon: '🏖️', label: 'Company Retreat', category: 'event',   unavailable: true },
+    { id: 5, eventDate: dayOffset(14),  icon: '🎂', label: 'Birthday Party',  category: 'event' }
+  ];
 
-      holidaysDemo.specialDates = [
-        { date: dayOffset(-14), badgeClass: 'event',   badgeText: '🎂', badgeTooltip: 'Birthday' },
-        { date: dayOffset(-10), badgeClass: 'holiday', badgeText: '🎵', badgeTooltip: 'Concert' },
-        { date: dayOffset(-5),  badgeClass: 'event',   badgeText: '🥳', badgeTooltip: 'Party' },
-        { date: dayOffset(-2),  badgeClass: 'holiday', badgeText: '🎉', badgeTooltip: 'Celebration' },
-        { date: dayOffset(0),   badgeClass: 'holiday', badgeText: '⭐', badgeTooltip: 'Today' },
-        { date: dayOffset(3),   badgeClass: 'event',   badgeText: '☕', badgeTooltip: 'Coffee Meeting' },
-        { date: dayOffset(7),   badgeClass: 'event',   badgeText: '🎤', badgeTooltip: 'Karaoke Night' },
-        { date: dayOffset(12),  badgeClass: 'holiday', badgeText: '🍕', badgeTooltip: 'Pizza Night' },
-        { date: dayOffset(18),  badgeClass: 'event',   badgeText: '🎬', badgeTooltip: 'Movie Night' }
-      ];
+  // Map custom property names to picker properties
+  methodMapping.dateMember = 'eventDate';
+  methodMapping.badgeTextMember = 'icon';
+  methodMapping.badgeTooltipMember = 'label';
+  methodMapping.badgeClassMember = 'category';
+  methodMapping.isDisabledMember = 'unavailable';
+  methodMapping.specialDates = eventsData;
+}
+
+// Method 4: Rich Tooltips (getBadgeTooltipCallback)
+const methodTooltips = document.getElementById('method-tooltips');
+console.log('[Method 4] Element found:', !!methodTooltips);
+if (methodTooltips) {
+  // Inject CSS for badge styling into Shadow DOM
+  methodTooltips.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.holiday {
+        background-color: rgba(239, 68, 68, 0.3) !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.event {
+        background-color: rgba(59, 130, 246, 0.3) !important;
+        color: #1e40af !important;
+        border: 1px solid #60a5fa !important;
+        font-weight: 600;
+      }
+    `;
+  };
+
+  console.log('[Method 4] Setting specialDates...');
+  // Set badges around today so the demo is always visible.
+  const meetingDate = dayOffset(2);
+  const partyDate = dayOffset(7);
+  const reviewDate = dayOffset(12);
+  const holidayA = dayOffset(18);
+  const holidayB = dayOffset(24);
+  methodTooltips.specialDates = [
+    { date: meetingDate, badgeText: '📅', badgeClass: 'event',   badgeTooltip: 'Team Meeting' },
+    { date: partyDate,   badgeText: '🎉', badgeClass: 'event',   badgeTooltip: 'Company Party' },
+    { date: reviewDate,  badgeText: '💼', badgeClass: 'event',   badgeTooltip: 'Q4 Review' },
+    { date: holidayA,    badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Office Closed' },
+    { date: holidayB,    badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'Office Closed' }
+  ];
+  console.log('[Method 4] specialDates set. Setting getBadgeTooltipCallback...');
+
+  // Add rich HTML tooltips, keyed by the same date strings used above.
+  const richTooltips = {
+    [meetingDate]: '<strong>Team Meeting</strong><br>⏰ 2:00 PM - 3:30 PM<br>📍 Conference Room A<br>👥 All hands required',
+    [partyDate]:   '<strong>Company Party</strong><br>🎊 Annual celebration<br>⏰ 7:00 PM onwards<br>📍 Main Hall',
+    [reviewDate]:  '<strong>Q4 Review</strong><br>📊 Quarterly results<br>⏰ 10:00 AM - 12:00 PM<br>💻 Virtual meeting',
+    [holidayA]:    '<strong>Office Closed</strong><br>🎁 Holiday party at 3pm<br>🍽️ Catered lunch',
+    [holidayB]:    '<strong>Office Closed</strong><br>🎉 End-of-year celebration<br>🎆 Fireworks at midnight'
+  };
+  methodTooltips.getBadgeTooltipCallback = (data) => richTooltips[data.dateString] || `<strong>${data.dateString}</strong>`;
+  console.log('[Method 4] getBadgeTooltipCallback set. Setup complete.');
+}
+
+// Method 5: Async data on month change (getMonthDataCallback)
+const methodAsync = document.getElementById('method-async');
+if (methodAsync) {
+  // Same tier styling as Method 2 so sold-out vs available reads clearly.
+  methodAsync.getCustomStylesCallback = () => `
+    .price-high {
+      background-color: #fee2e2 !important;
+      color: #991b1b !important;
+      border: 1px solid #f87171 !important;
+      font-weight: 600;
     }
+    .price-low {
+      background-color: #d1fae5 !important;
+      color: #065f46 !important;
+      border: 1px solid #34d399 !important;
+      font-weight: 600;
+    }
+  `;
 
-    // Cottage booking demo (simulated bookings)
-    const cottageDemo = document.getElementById('cottage-demo');
-    if (cottageDemo) {
-      // Inject CSS for booked badge styling into Shadow DOM
-      cottageDemo.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.booked {
-            background-color: rgba(107, 114, 128, 0.3) !important;
-            color: #374151 !important;
-            border: 1px solid #9ca3af !important;
-            font-weight: 600;
-          }
-        `;
-      };
-
-      // Simulate already booked date ranges (anchored to today so demo stays evergreen)
-      const bookedRanges = [
-        { start: dateAt(-18), end: dateAt(-12) },
-        { start: dateAt(-4),  end: dateAt(2)   },
-        { start: dateAt(15),  end: dateAt(22)  }
-      ];
-
-      cottageDemo.getDateMetadataCallback = ({ date }) => {
-        const checkDate = new Date(date);
-        checkDate.setHours(0, 0, 0, 0);
-
-        // Check if date is in a booked range
-        for (const range of bookedRanges) {
-          const start = new Date(range.start);
-          const end = new Date(range.end);
-          start.setHours(0, 0, 0, 0);
-          end.setHours(0, 0, 0, 0);
-
-          if (checkDate >= start && checkDate <= end) {
-            return {
-              isDisabled: true,
-              badgeClass: 'booked',
-              badgeText: '🔒',
-              badgeTooltip: 'Already booked',
-              dayTooltip: 'This date is not available'
-            };
-          }
+  // Mock API: availability/pricing for every day in [start, end].
+  // Deterministic from the date so a given fetch is
+  // stable, with a 600ms delay so the picker's async loading overlay shows.
+  const fetchAvailability = (start, end) =>
+    new Promise((resolve) => {
+      setTimeout(() => {
+        const days = [];
+        const cursor = new Date(start);
+        cursor.setHours(0, 0, 0, 0);
+        const last = new Date(end);
+        last.setHours(0, 0, 0, 0);
+        while (cursor <= last) {
+          const dow = cursor.getDay();
+          const dateNum = cursor.getDate();
+          // Every ~9th day is sold out; weekends cost more.
+          const available = (dateNum % 9 === 0) ? 0 : (dow === 0 || dow === 6 ? 4 : 12);
+          const price = ((dow === 0 || dow === 6) ? 220 : 150);
+          days.push({ date: toLocalISO(cursor), available, price });
+          cursor.setDate(cursor.getDate() + 1);
         }
+        resolve(days);
+      }, 600);
+    });
 
-        return null;
-      };
+  // days[] -> Map<'YYYY-MM-DD', DayMetadata>.
+  const buildMetadata = (days) => {
+    const metadata = new Map();
+    days.forEach((d) => metadata.set(d.date, {
+      isDisabled: d.available === 0,
+      badgeText:  d.available === 0 ? '✕' : `$${d.price}`,
+      badgeClass: d.available === 0 ? 'badge-number price-high' : 'badge-number price-low',
+      badgeTooltip: d.available === 0 ? 'Sold out — no rooms left' : `${d.available} rooms · $${d.price}/night`
+    }));
+    return metadata;
+  };
+
+  methodAsync.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+    const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
+    return { metadata: buildMetadata(days) };
+  };
+}
+
+// ========================================
+// Member Mapping Example
+// ========================================
+
+const memberMappingExample = document.getElementById('member-mapping-example');
+if (memberMappingExample) {
+  // Inject CSS for badge styling into Shadow DOM
+  memberMappingExample.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.holiday {
+        background-color: rgba(239, 68, 68, 0.3) !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.event {
+        background-color: rgba(59, 130, 246, 0.3) !important;
+        color: #1e40af !important;
+        border: 1px solid #60a5fa !important;
+        font-weight: 600;
+      }
+    `;
+  };
+
+  // Custom data structure with non-standard property names
+  const myHolidays = [
+    { id: 1, displayDate: dayOffset(-7),  icon: '🎄', description: 'Office Closed',     style: 'holiday', disabled: true },
+    { id: 2, displayDate: dayOffset(-3),  icon: '🥳', description: 'Team Party',        style: 'holiday', disabled: true },
+    { id: 3, displayDate: dayOffset(2),   icon: '🎆', description: 'Launch Day',        style: 'event',   disabled: true },
+    { id: 4, displayDate: dayOffset(5),   icon: '🎊', description: 'Office Closed',     style: 'holiday', disabled: true },
+    { id: 5, displayDate: dayOffset(8),   icon: '💝', description: 'Anniversary',       style: 'event',   disabled: false },
+    { id: 6, displayDate: dayOffset(13),  icon: '🦃', description: 'Office Closed',     style: 'holiday', disabled: true },
+    { id: 7, displayDate: dayOffset(16),  icon: '🛍️', description: 'Sale Day',          style: 'event',   disabled: false }
+  ];
+
+  // Map custom properties to picker properties
+  memberMappingExample.dateMember = 'displayDate';
+  memberMappingExample.badgeTextMember = 'icon';
+  memberMappingExample.badgeClassMember = 'style';
+  memberMappingExample.badgeTooltipMember = 'description';
+  memberMappingExample.isDisabledMember = 'disabled';
+
+  // Set the data
+  memberMappingExample.specialDates = myHolidays;
+}
+
+// ========================================
+// Method 2: Dynamic Metadata Callback
+// ========================================
+
+const dynamicPricing = document.getElementById('dynamic-pricing');
+if (dynamicPricing) {
+  // Inject CSS into Shadow DOM for price tier styling
+  dynamicPricing.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.price-high {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.price-medium {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+        border: 1px solid #fbbf24 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.price-low {
+        background-color: #d1fae5 !important;
+        color: #065f46 !important;
+        border: 1px solid #34d399 !important;
+        font-weight: 600;
+      }
+    `;
+  };
+
+  // Simulate dynamic pricing based on day of week and demand
+  dynamicPricing.getDateMetadataCallback = ({ date }) => {
+    const dayOfWeek = date.getDay();
+    const dateNum = date.getDate();
+
+    // Weekend pricing is higher
+    let basePrice = (dayOfWeek === 0 || dayOfWeek === 6) ? 200 : 150;
+
+    // Some dates have special demand
+    if (dateNum % 7 === 0) {
+      basePrice += 50; // High demand
     }
 
-    // ========================================
-    // Badge Implementation Methods
-    // ========================================
+    let badgeClass = 'badge-number';
+    if (basePrice >= 220) badgeClass += ' price-high';
+    else if (basePrice >= 180) badgeClass += ' price-medium';
+    else badgeClass += ' price-low';
 
-    // Method 1: Static Data (specialDates Array)
-    const methodStatic = document.getElementById('method-static');
-    if (methodStatic) {
-      methodStatic.specialDates = [
-        { date: dayOffset(-3), badgeText: '🎂', badgeTooltip: 'Birthday' },
-        { date: dayOffset(2),  badgeText: '🥳', badgeTooltip: 'Party' },
-        { date: dayOffset(9),  badgeText: '🎤', badgeTooltip: 'Karaoke' },
-        { date: dayOffset(15), badgeText: '🎬', badgeTooltip: 'Movie Night' }
-      ];
+    return {
+      badgeText: `$${basePrice}`,
+      badgeClass: badgeClass,
+      badgeTooltip: `Nightly rate: $${basePrice}`
+    };
+  };
+}
+
+const dynamicAvailability = document.getElementById('dynamic-availability');
+if (dynamicAvailability) {
+  // Inject CSS into Shadow DOM for availability styling
+  dynamicAvailability.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.low-availability {
+        background-color: rgba(239, 68, 68, 0.3) !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.medium-availability {
+        background-color: rgba(251, 191, 36, 0.3) !important;
+        color: #92400e !important;
+        border: 1px solid #fbbf24 !important;
+        font-weight: 600;
+      }
+
+      .drp__day-wrapper.low-availability-day {
+        background-color: rgba(254, 226, 226, 0.5) !important;
+        border-color: #fca5a5 !important;
+      }
+    `;
+  };
+
+  dynamicAvailability.getDateMetadataCallback = ({ date }) => {
+    const dateNum = date.getDate();
+
+    // Simulate varying availability
+    const available = (dateNum % 5) + 1;
+
+    let badgeClass = 'badge-count';
+    let dayClass = '';
+    if (available <= 2) {
+      badgeClass += ' low-availability';
+      dayClass = 'low-availability-day';
+    } else if (available <= 3) {
+      badgeClass += ' medium-availability';
     }
 
-    // Method 2: Dynamic Calculation (getDateMetadataCallback)
-    const methodDynamic = document.getElementById('method-dynamic');
-    if (methodDynamic) {
-      // Inject CSS into Shadow DOM for price tier styling
-      methodDynamic.getCustomStylesCallback = () => {
-        return `
-          .price-high {
-            background-color: #fee2e2 !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
+    return {
+      badgeText: `${available}`,
+      badgeClass: badgeClass,
+      badgeTooltip: `${available} rooms available`,
+      dayClass: dayClass
+    };
+  };
+}
 
-          .price-medium {
-            background-color: #fef3c7 !important;
-            color: #92400e !important;
-            border: 1px solid #fbbf24 !important;
-            font-weight: 600;
-          }
+// ========================================
+// Method 3: HTML Tooltip Callbacks
+// ========================================
 
-          .price-low {
-            background-color: #d1fae5 !important;
-            color: #065f46 !important;
-            border: 1px solid #34d399 !important;
-            font-weight: 600;
-          }
-        `;
-      };
+const htmlTooltipsBooking = document.getElementById('html-tooltips-booking');
+if (htmlTooltipsBooking) {
+  const bookingInfo = {
+    [dayOffset(2)]:  { price: 180, available: 5, rating: 4.5 },
+    [dayOffset(3)]:  { price: 200, available: 2, rating: 4.8 },
+    [dayOffset(9)]:  { price: 250, available: 1, rating: 4.9 },
+    [dayOffset(10)]: { price: 280, available: 3, rating: 4.7 },
+    [dayOffset(16)]: { price: 350, available: 1, rating: 5.0 },
+    [dayOffset(17)]: { price: 400, available: 0, rating: 5.0 }
+  };
 
-      methodDynamic.getDateMetadataCallback = ({ date }) => {
-        const dayOfWeek = date.getDay();
-        const dateNum = date.getDate();
+  // Set up badges
+  htmlTooltipsBooking.getDateMetadataCallback = ({ date }) => {
+    const dateStr = toLocalISO(date);
+    const info = bookingInfo[dateStr];
 
-        // Weekend pricing is higher, some dates have special demand
-        let price = (dayOfWeek === 0 || dayOfWeek === 6) ? 220 : 150;
-        if (dateNum % 7 === 0) price += 30; // High demand days
-
-        let badgeClass = 'badge-number';
-        if (price >= 220) badgeClass += ' price-high';
-        else if (price >= 180) badgeClass += ' price-medium';
-        else badgeClass += ' price-low';
-
-        return {
-          badgeText: `$${price}`,
-          badgeClass: badgeClass,
-          badgeTooltip: `Nightly rate: $${price}`
-        };
+    if (info) {
+      return {
+        badgeText: `$${info.price}`,
+        badgeClass: 'badge-number',
+        isDisabled: info.available === 0
       };
     }
+    return null;
+  };
 
-    // Method 3: Custom Data Structure (Member Mapping)
-    const methodMapping = document.getElementById('method-mapping');
-    if (methodMapping) {
-      // Inject CSS for badge styling into Shadow DOM
-      methodMapping.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.holiday {
-            background-color: rgba(239, 68, 68, 0.3) !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
+  // Add rich HTML tooltips
+  htmlTooltipsBooking.getDayTooltipCallback = (data) => {
+    const info = bookingInfo[data.dateString];
 
-          .drp__badge-cell.event {
-            background-color: rgba(59, 130, 246, 0.3) !important;
-            color: #1e40af !important;
-            border: 1px solid #60a5fa !important;
-            font-weight: 600;
-          }
-        `;
-      };
-
-      // Data from external system with different property names
-      const eventsData = [
-        { id: 1, eventDate: dayOffset(-3),  icon: '🎄', label: 'Office Party',    category: 'holiday', unavailable: true },
-        { id: 2, eventDate: dayOffset(0),   icon: '🥳', label: 'Today',           category: 'holiday', unavailable: true },
-        { id: 3, eventDate: dayOffset(4),   icon: '📅', label: 'Team Meeting',    category: 'event' },
-        { id: 4, eventDate: dayOffset(9),   icon: '🏖️', label: 'Company Retreat', category: 'event',   unavailable: true },
-        { id: 5, eventDate: dayOffset(14),  icon: '🎂', label: 'Birthday Party',  category: 'event' }
-      ];
-
-      // Map custom property names to picker properties
-      methodMapping.dateMember = 'eventDate';
-      methodMapping.badgeTextMember = 'icon';
-      methodMapping.badgeTooltipMember = 'label';
-      methodMapping.badgeClassMember = 'category';
-      methodMapping.isDisabledMember = 'unavailable';
-      methodMapping.specialDates = eventsData;
-    }
-
-    // Method 4: Rich Tooltips (getBadgeTooltipCallback)
-    const methodTooltips = document.getElementById('method-tooltips');
-    console.log('[Method 4] Element found:', !!methodTooltips);
-    if (methodTooltips) {
-      // Inject CSS for badge styling into Shadow DOM
-      methodTooltips.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.holiday {
-            background-color: rgba(239, 68, 68, 0.3) !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
-
-          .drp__badge-cell.event {
-            background-color: rgba(59, 130, 246, 0.3) !important;
-            color: #1e40af !important;
-            border: 1px solid #60a5fa !important;
-            font-weight: 600;
-          }
-        `;
-      };
-
-      console.log('[Method 4] Setting specialDates...');
-      // Set badges around today so the demo is always visible.
-      const meetingDate = dayOffset(2);
-      const partyDate = dayOffset(7);
-      const reviewDate = dayOffset(12);
-      const holidayA = dayOffset(18);
-      const holidayB = dayOffset(24);
-      methodTooltips.specialDates = [
-        { date: meetingDate, badgeText: '📅', badgeClass: 'event',   badgeTooltip: 'Team Meeting' },
-        { date: partyDate,   badgeText: '🎉', badgeClass: 'event',   badgeTooltip: 'Company Party' },
-        { date: reviewDate,  badgeText: '💼', badgeClass: 'event',   badgeTooltip: 'Q4 Review' },
-        { date: holidayA,    badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Office Closed' },
-        { date: holidayB,    badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'Office Closed' }
-      ];
-      console.log('[Method 4] specialDates set. Setting getBadgeTooltipCallback...');
-
-      // Add rich HTML tooltips, keyed by the same date strings used above.
-      const richTooltips = {
-        [meetingDate]: '<strong>Team Meeting</strong><br>⏰ 2:00 PM - 3:30 PM<br>📍 Conference Room A<br>👥 All hands required',
-        [partyDate]:   '<strong>Company Party</strong><br>🎊 Annual celebration<br>⏰ 7:00 PM onwards<br>📍 Main Hall',
-        [reviewDate]:  '<strong>Q4 Review</strong><br>📊 Quarterly results<br>⏰ 10:00 AM - 12:00 PM<br>💻 Virtual meeting',
-        [holidayA]:    '<strong>Office Closed</strong><br>🎁 Holiday party at 3pm<br>🍽️ Catered lunch',
-        [holidayB]:    '<strong>Office Closed</strong><br>🎉 End-of-year celebration<br>🎆 Fireworks at midnight'
-      };
-      methodTooltips.getBadgeTooltipCallback = (data) => richTooltips[data.dateString] || `<strong>${data.dateString}</strong>`;
-      console.log('[Method 4] getBadgeTooltipCallback set. Setup complete.');
-    }
-
-    // Method 5: Async data on month change (getMonthDataCallback)
-    const methodAsync = document.getElementById('method-async');
-    if (methodAsync) {
-      // Same tier styling as Method 2 so sold-out vs available reads clearly.
-      methodAsync.getCustomStylesCallback = () => `
-        .price-high {
-          background-color: #fee2e2 !important;
-          color: #991b1b !important;
-          border: 1px solid #f87171 !important;
-          font-weight: 600;
-        }
-        .price-low {
-          background-color: #d1fae5 !important;
-          color: #065f46 !important;
-          border: 1px solid #34d399 !important;
-          font-weight: 600;
-        }
+    if (info) {
+      const stars = '⭐'.repeat(Math.floor(info.rating));
+      return `
+        <div style="padding: 0.5rem; min-width: 200px;">
+          <strong style="display: block; margin-bottom: 0.5rem; font-size: 1rem;">
+            ${data.dateString}
+          </strong>
+          <div style="font-size: 0.875rem; line-height: 1.6;">
+            <div style="margin-bottom: 0.25rem;">💰 <strong>$${info.price}</strong>/night</div>
+            <div style="margin-bottom: 0.25rem;">🏠 ${info.available > 0 ? info.available + ' rooms' : 'Fully booked'}</div>
+            <div>${stars} ${info.rating}/5.0</div>
+          </div>
+        </div>
       `;
-
-      // Mock API: availability/pricing for every day in [start, end].
-      // Deterministic from the date so a given fetch is
-      // stable, with a 600ms delay so the picker's async loading overlay shows.
-      const fetchAvailability = (start, end) =>
-        new Promise((resolve) => {
-          setTimeout(() => {
-            const days = [];
-            const cursor = new Date(start);
-            cursor.setHours(0, 0, 0, 0);
-            const last = new Date(end);
-            last.setHours(0, 0, 0, 0);
-            while (cursor <= last) {
-              const dow = cursor.getDay();
-              const dateNum = cursor.getDate();
-              // Every ~9th day is sold out; weekends cost more.
-              const available = (dateNum % 9 === 0) ? 0 : (dow === 0 || dow === 6 ? 4 : 12);
-              const price = ((dow === 0 || dow === 6) ? 220 : 150);
-              days.push({ date: toLocalISO(cursor), available, price });
-              cursor.setDate(cursor.getDate() + 1);
-            }
-            resolve(days);
-          }, 600);
-        });
-
-      // days[] -> Map<'YYYY-MM-DD', DayMetadata>.
-      const buildMetadata = (days) => {
-        const metadata = new Map();
-        days.forEach((d) => metadata.set(d.date, {
-          isDisabled: d.available === 0,
-          badgeText:  d.available === 0 ? '✕' : `$${d.price}`,
-          badgeClass: d.available === 0 ? 'badge-number price-high' : 'badge-number price-low',
-          badgeTooltip: d.available === 0 ? 'Sold out — no rooms left' : `${d.available} rooms · $${d.price}/night`
-        }));
-        return metadata;
-      };
-
-      methodAsync.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
-        const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
-        return { metadata: buildMetadata(days) };
-      };
     }
 
-    // ========================================
-    // Member Mapping Example
-    // ========================================
+    return null;
+  };
+}
 
-    const memberMappingExample = document.getElementById('member-mapping-example');
-    if (memberMappingExample) {
-      // Inject CSS for badge styling into Shadow DOM
-      memberMappingExample.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.holiday {
-            background-color: rgba(239, 68, 68, 0.3) !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
-
-          .drp__badge-cell.event {
-            background-color: rgba(59, 130, 246, 0.3) !important;
-            color: #1e40af !important;
-            border: 1px solid #60a5fa !important;
-            font-weight: 600;
-          }
-        `;
-      };
-
-      // Custom data structure with non-standard property names
-      const myHolidays = [
-        { id: 1, displayDate: dayOffset(-7),  icon: '🎄', description: 'Office Closed',     style: 'holiday', disabled: true },
-        { id: 2, displayDate: dayOffset(-3),  icon: '🥳', description: 'Team Party',        style: 'holiday', disabled: true },
-        { id: 3, displayDate: dayOffset(2),   icon: '🎆', description: 'Launch Day',        style: 'event',   disabled: true },
-        { id: 4, displayDate: dayOffset(5),   icon: '🎊', description: 'Office Closed',     style: 'holiday', disabled: true },
-        { id: 5, displayDate: dayOffset(8),   icon: '💝', description: 'Anniversary',       style: 'event',   disabled: false },
-        { id: 6, displayDate: dayOffset(13),  icon: '🦃', description: 'Office Closed',     style: 'holiday', disabled: true },
-        { id: 7, displayDate: dayOffset(16),  icon: '🛍️', description: 'Sale Day',          style: 'event',   disabled: false }
-      ];
-
-      // Map custom properties to picker properties
-      memberMappingExample.dateMember = 'displayDate';
-      memberMappingExample.badgeTextMember = 'icon';
-      memberMappingExample.badgeClassMember = 'style';
-      memberMappingExample.badgeTooltipMember = 'description';
-      memberMappingExample.isDisabledMember = 'disabled';
-
-      // Set the data
-      memberMappingExample.specialDates = myHolidays;
+const htmlTooltipsEvents = document.getElementById('html-tooltips-events');
+if (htmlTooltipsEvents) {
+  const eventInfo = {
+    [dayOffset(2)]: {
+      title: 'Product Launch',
+      time: '10:00 AM - 2:00 PM',
+      location: 'Main Hall',
+      attendees: 150
+    },
+    [dayOffset(9)]: {
+      title: 'Team Building Workshop',
+      time: '9:00 AM - 5:00 PM',
+      location: 'Conference Room A',
+      attendees: 45
+    },
+    [dayOffset(18)]: {
+      title: 'Holiday Party',
+      time: '6:00 PM - 11:00 PM',
+      location: 'Grand Ballroom',
+      attendees: 300
     }
+  };
 
-    // ========================================
-    // Method 2: Dynamic Metadata Callback
-    // ========================================
+  htmlTooltipsEvents.getDateMetadataCallback = ({ date }) => {
+    const dateStr = toLocalISO(date);
+    const event = eventInfo[dateStr];
 
-    const dynamicPricing = document.getElementById('dynamic-pricing');
-    if (dynamicPricing) {
-      // Inject CSS into Shadow DOM for price tier styling
-      dynamicPricing.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.price-high {
-            background-color: #fee2e2 !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
-
-          .drp__badge-cell.price-medium {
-            background-color: #fef3c7 !important;
-            color: #92400e !important;
-            border: 1px solid #fbbf24 !important;
-            font-weight: 600;
-          }
-
-          .drp__badge-cell.price-low {
-            background-color: #d1fae5 !important;
-            color: #065f46 !important;
-            border: 1px solid #34d399 !important;
-            font-weight: 600;
-          }
-        `;
-      };
-
-      // Simulate dynamic pricing based on day of week and demand
-      dynamicPricing.getDateMetadataCallback = ({ date }) => {
-        const dayOfWeek = date.getDay();
-        const dateNum = date.getDate();
-
-        // Weekend pricing is higher
-        let basePrice = (dayOfWeek === 0 || dayOfWeek === 6) ? 200 : 150;
-
-        // Some dates have special demand
-        if (dateNum % 7 === 0) {
-          basePrice += 50; // High demand
-        }
-
-        let badgeClass = 'badge-number';
-        if (basePrice >= 220) badgeClass += ' price-high';
-        else if (basePrice >= 180) badgeClass += ' price-medium';
-        else badgeClass += ' price-low';
-
-        return {
-          badgeText: `$${basePrice}`,
-          badgeClass: badgeClass,
-          badgeTooltip: `Nightly rate: $${basePrice}`
-        };
+    if (event) {
+      return {
+        badgeText: '📅',
+        badgeClass: 'badge-emoji'
       };
     }
+    return null;
+  };
 
-    const dynamicAvailability = document.getElementById('dynamic-availability');
-    if (dynamicAvailability) {
-      // Inject CSS into Shadow DOM for availability styling
-      dynamicAvailability.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.low-availability {
-            background-color: rgba(239, 68, 68, 0.3) !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
+  htmlTooltipsEvents.getDayTooltipCallback = (data) => {
+    const event = eventInfo[data.dateString];
 
-          .drp__badge-cell.medium-availability {
-            background-color: rgba(251, 191, 36, 0.3) !important;
-            color: #92400e !important;
-            border: 1px solid #fbbf24 !important;
-            font-weight: 600;
-          }
-
-          .drp__day-wrapper.low-availability-day {
-            background-color: rgba(254, 226, 226, 0.5) !important;
-            border-color: #fca5a5 !important;
-          }
-        `;
-      };
-
-      dynamicAvailability.getDateMetadataCallback = ({ date }) => {
-        const dateNum = date.getDate();
-
-        // Simulate varying availability
-        const available = (dateNum % 5) + 1;
-
-        let badgeClass = 'badge-count';
-        let dayClass = '';
-        if (available <= 2) {
-          badgeClass += ' low-availability';
-          dayClass = 'low-availability-day';
-        } else if (available <= 3) {
-          badgeClass += ' medium-availability';
-        }
-
-        return {
-          badgeText: `${available}`,
-          badgeClass: badgeClass,
-          badgeTooltip: `${available} rooms available`,
-          dayClass: dayClass
-        };
-      };
-    }
-
-    // ========================================
-    // Method 3: HTML Tooltip Callbacks
-    // ========================================
-
-    const htmlTooltipsBooking = document.getElementById('html-tooltips-booking');
-    if (htmlTooltipsBooking) {
-      const bookingInfo = {
-        [dayOffset(2)]:  { price: 180, available: 5, rating: 4.5 },
-        [dayOffset(3)]:  { price: 200, available: 2, rating: 4.8 },
-        [dayOffset(9)]:  { price: 250, available: 1, rating: 4.9 },
-        [dayOffset(10)]: { price: 280, available: 3, rating: 4.7 },
-        [dayOffset(16)]: { price: 350, available: 1, rating: 5.0 },
-        [dayOffset(17)]: { price: 400, available: 0, rating: 5.0 }
-      };
-
-      // Set up badges
-      htmlTooltipsBooking.getDateMetadataCallback = ({ date }) => {
-        const dateStr = toLocalISO(date);
-        const info = bookingInfo[dateStr];
-
-        if (info) {
-          return {
-            badgeText: `$${info.price}`,
-            badgeClass: 'badge-number',
-            isDisabled: info.available === 0
-          };
-        }
-        return null;
-      };
-
-      // Add rich HTML tooltips
-      htmlTooltipsBooking.getDayTooltipCallback = (data) => {
-        const info = bookingInfo[data.dateString];
-
-        if (info) {
-          const stars = '⭐'.repeat(Math.floor(info.rating));
-          return `
-            <div style="padding: 0.5rem; min-width: 200px;">
-              <strong style="display: block; margin-bottom: 0.5rem; font-size: 1rem;">
-                ${data.dateString}
-              </strong>
-              <div style="font-size: 0.875rem; line-height: 1.6;">
-                <div style="margin-bottom: 0.25rem;">💰 <strong>$${info.price}</strong>/night</div>
-                <div style="margin-bottom: 0.25rem;">🏠 ${info.available > 0 ? info.available + ' rooms' : 'Fully booked'}</div>
-                <div>${stars} ${info.rating}/5.0</div>
-              </div>
-            </div>
-          `;
-        }
-
-        return null;
-      };
-    }
-
-    const htmlTooltipsEvents = document.getElementById('html-tooltips-events');
-    if (htmlTooltipsEvents) {
-      const eventInfo = {
-        [dayOffset(2)]: {
-          title: 'Product Launch',
-          time: '10:00 AM - 2:00 PM',
-          location: 'Main Hall',
-          attendees: 150
-        },
-        [dayOffset(9)]: {
-          title: 'Team Building Workshop',
-          time: '9:00 AM - 5:00 PM',
-          location: 'Conference Room A',
-          attendees: 45
-        },
-        [dayOffset(18)]: {
-          title: 'Holiday Party',
-          time: '6:00 PM - 11:00 PM',
-          location: 'Grand Ballroom',
-          attendees: 300
-        }
-      };
-
-      htmlTooltipsEvents.getDateMetadataCallback = ({ date }) => {
-        const dateStr = toLocalISO(date);
-        const event = eventInfo[dateStr];
-
-        if (event) {
-          return {
-            badgeText: '📅',
-            badgeClass: 'badge-emoji'
-          };
-        }
-        return null;
-      };
-
-      htmlTooltipsEvents.getDayTooltipCallback = (data) => {
-        const event = eventInfo[data.dateString];
-
-        if (event) {
-          return `
-            <div style="padding: 0.75rem; min-width: 250px;">
-              <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #3b82f6;">
-                ${event.title}
-              </div>
-              <div style="font-size: 0.875rem; line-height: 1.8;">
-                <div>🕐 ${event.time}</div>
-                <div>📍 ${event.location}</div>
-                <div>👥 ${event.attendees} attendees</div>
-              </div>
-            </div>
-          `;
-        }
-
-        return null;
-      };
-    }
-
-    // ========================================
-    // Combined Example
-    // ========================================
-
-    const combinedExample = document.getElementById('combined-example');
-    if (combinedExample) {
-      // Inject CSS for badge styling into Shadow DOM
-      combinedExample.getCustomStylesCallback = () => {
-        return `
-          .drp__badge-cell.holiday {
-            background-color: rgba(239, 68, 68, 0.3) !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
-
-          .drp__badge-cell.price-high {
-            background-color: #fee2e2 !important;
-            color: #991b1b !important;
-            border: 1px solid #f87171 !important;
-            font-weight: 600;
-          }
-
-          .drp__badge-cell.price-medium {
-            background-color: #fef3c7 !important;
-            color: #92400e !important;
-            border: 1px solid #fbbf24 !important;
-            font-weight: 600;
-          }
-        `;
-      };
-
-      // 1. Static holidays
-      combinedExample.specialDates = [
-        { date: dayOffset(20), badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Hotel Closed' },
-        { date: dayOffset(26), badgeClass: 'holiday', badgeText: '🥳', badgeTooltip: 'Anniversary Special' }
-      ];
-
-      // 2. Dynamic pricing — anchored to today
-      const priceData = {
-        [dayOffset(2)]:  180,
-        [dayOffset(3)]:  200,
-        [dayOffset(9)]:  250,
-        [dayOffset(10)]: 280,
-        [dayOffset(15)]: 300,
-        [dayOffset(16)]: 320,
-        [dayOffset(17)]: 340,
-        [dayOffset(18)]: 360,
-        [dayOffset(19)]: 400
-      };
-
-      combinedExample.getDateMetadataCallback = ({ date }) => {
-        const dateStr = toLocalISO(date);
-        const price = priceData[dateStr];
-
-        if (price) {
-          let badgeClass = 'badge-number';
-          if (price > 300) badgeClass += ' price-high';
-          else if (price > 200) badgeClass += ' price-medium';
-
-          return {
-            badgeText: `$${price}`,
-            badgeClass: badgeClass
-          };
-        }
-        return null;
-      };
-
-      // 3. Rich HTML tooltips
-      combinedExample.getDayTooltipCallback = (data) => {
-        const price = priceData[data.dateString];
-
-        if (price) {
-          const discount = price > 300 ? 0 : price > 200 ? 10 : 20;
-          return `
-            <div style="padding: 0.5rem;">
-              <div style="font-weight: 600; margin-bottom: 0.5rem;">
-                ${data.dateString}
-              </div>
-              <div style="font-size: 0.875rem;">
-                <div>Standard Rate: <strong>$${price}</strong>/night</div>
-                ${discount > 0 ? `<div style="color: #10b981;">Early Bird: ${discount}% off!</div>` : ''}
-                <div style="margin-top: 0.5rem; color: #6b7280;">
-                  Click to select this date
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
-        return null;
-      };
-    }
-
-    // ========================================
-    // Consumer-data classifier convention — three demos
-    // ========================================
-
-    // Demo 1 — built-in dayClass tints (.drp__day.holiday / .drp__day.event)
-    const dayclassBuiltinDemo = document.getElementById('dayclass-builtin-demo');
-    if (dayclassBuiltinDemo) {
-      dayclassBuiltinDemo.specialDates = [
-        { date: dayOffset(-7), dayClass: 'holiday', dayTooltip: 'Office closed' },
-        { date: dayOffset(-3), dayClass: 'event',   dayTooltip: 'Team offsite' },
-        { date: dayOffset(2),  dayClass: 'event',   dayTooltip: 'Product launch' },
-        { date: dayOffset(7),  dayClass: 'holiday', dayTooltip: 'Public holiday' },
-      ];
-    }
-
-    // Demo 2 — built-in badgeClass types (.drp__badge-cell.badge-number / -count / -text)
-    const badgeclassBuiltinDemo = document.getElementById('badgeclass-builtin-demo');
-    if (badgeclassBuiltinDemo) {
-      badgeclassBuiltinDemo.specialDates = [
-        { date: dayOffset(-5), badgeClass: 'badge-number', badgeText: '12',  badgeTooltip: 'Slot number' },
-        { date: dayOffset(-2), badgeClass: 'badge-count',  badgeText: '3',   badgeTooltip: '3 alerts' },
-        { date: dayOffset(1),  badgeClass: 'badge-text',   badgeText: 'NEW', badgeTooltip: 'New offering' },
-        { date: dayOffset(4),  badgeClass: 'badge-number', badgeText: '7',   badgeTooltip: 'Capacity' },
-        { date: dayOffset(8),  badgeClass: 'badge-count',  badgeText: '15',  badgeTooltip: '15 bookings' },
-      ];
-    }
-
-    // Demo 3 — custom classifier names (salsa / rumba / pilates) with shadow-DOM CSS injection
-    const customClassifierDemo = document.getElementById('custom-classifier-demo');
-    if (customClassifierDemo) {
-      customClassifierDemo.getCustomStylesCallback = () => `
-        .drp__day.salsa {
-          background: color-mix(in srgb, #fb7185 18%, transparent);
-          border-color: #fb7185;
-        }
-        .drp__day.rumba {
-          background: color-mix(in srgb, #f59e0b 18%, transparent);
-          border-color: #f59e0b;
-        }
-        .drp__day.pilates {
-          background: color-mix(in srgb, #6366f1 18%, transparent);
-          border-color: #6366f1;
-        }
+    if (event) {
+      return `
+        <div style="padding: 0.75rem; min-width: 250px;">
+          <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #3b82f6;">
+            ${event.title}
+          </div>
+          <div style="font-size: 0.875rem; line-height: 1.8;">
+            <div>🕐 ${event.time}</div>
+            <div>📍 ${event.location}</div>
+            <div>👥 ${event.attendees} attendees</div>
+          </div>
+        </div>
       `;
-      customClassifierDemo.specialDates = [
-        { date: dayOffset(-6), dayClass: 'salsa',   dayTooltip: 'Salsa basics' },
-        { date: dayOffset(-3), dayClass: 'rumba',   dayTooltip: 'Rumba intermediate' },
-        { date: dayOffset(0),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
-        { date: dayOffset(3),  dayClass: 'salsa',   dayTooltip: 'Salsa advanced' },
-        { date: dayOffset(6),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
-        { date: dayOffset(10), dayClass: 'rumba',   dayTooltip: 'Rumba show night' },
-      ];
     }
-  </script>
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+
+    return null;
+  };
+}
+
+// ========================================
+// Combined Example
+// ========================================
+
+const combinedExample = document.getElementById('combined-example');
+if (combinedExample) {
+  // Inject CSS for badge styling into Shadow DOM
+  combinedExample.getCustomStylesCallback = () => {
+    return `
+      .drp__badge-cell.holiday {
+        background-color: rgba(239, 68, 68, 0.3) !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.price-high {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border: 1px solid #f87171 !important;
+        font-weight: 600;
+      }
+
+      .drp__badge-cell.price-medium {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+        border: 1px solid #fbbf24 !important;
+        font-weight: 600;
+      }
+    `;
+  };
+
+  // 1. Static holidays
+  combinedExample.specialDates = [
+    { date: dayOffset(20), badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Hotel Closed' },
+    { date: dayOffset(26), badgeClass: 'holiday', badgeText: '🥳', badgeTooltip: 'Anniversary Special' }
+  ];
+
+  // 2. Dynamic pricing — anchored to today
+  const priceData = {
+    [dayOffset(2)]:  180,
+    [dayOffset(3)]:  200,
+    [dayOffset(9)]:  250,
+    [dayOffset(10)]: 280,
+    [dayOffset(15)]: 300,
+    [dayOffset(16)]: 320,
+    [dayOffset(17)]: 340,
+    [dayOffset(18)]: 360,
+    [dayOffset(19)]: 400
+  };
+
+  combinedExample.getDateMetadataCallback = ({ date }) => {
+    const dateStr = toLocalISO(date);
+    const price = priceData[dateStr];
+
+    if (price) {
+      let badgeClass = 'badge-number';
+      if (price > 300) badgeClass += ' price-high';
+      else if (price > 200) badgeClass += ' price-medium';
+
+      return {
+        badgeText: `$${price}`,
+        badgeClass: badgeClass
+      };
+    }
+    return null;
+  };
+
+  // 3. Rich HTML tooltips
+  combinedExample.getDayTooltipCallback = (data) => {
+    const price = priceData[data.dateString];
+
+    if (price) {
+      const discount = price > 300 ? 0 : price > 200 ? 10 : 20;
+      return `
+        <div style="padding: 0.5rem;">
+          <div style="font-weight: 600; margin-bottom: 0.5rem;">
+            ${data.dateString}
+          </div>
+          <div style="font-size: 0.875rem;">
+            <div>Standard Rate: <strong>$${price}</strong>/night</div>
+            ${discount > 0 ? `<div style="color: #10b981;">Early Bird: ${discount}% off!</div>` : ''}
+            <div style="margin-top: 0.5rem; color: #6b7280;">
+              Click to select this date
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return null;
+  };
+}
+
+// ========================================
+// Consumer-data classifier convention — three demos
+// ========================================
+
+// Demo 1 — built-in dayClass tints (.drp__day.holiday / .drp__day.event)
+const dayclassBuiltinDemo = document.getElementById('dayclass-builtin-demo');
+if (dayclassBuiltinDemo) {
+  dayclassBuiltinDemo.specialDates = [
+    { date: dayOffset(-7), dayClass: 'holiday', dayTooltip: 'Office closed' },
+    { date: dayOffset(-3), dayClass: 'event',   dayTooltip: 'Team offsite' },
+    { date: dayOffset(2),  dayClass: 'event',   dayTooltip: 'Product launch' },
+    { date: dayOffset(7),  dayClass: 'holiday', dayTooltip: 'Public holiday' },
+  ];
+}
+
+// Demo 2 — built-in badgeClass types (.drp__badge-cell.badge-number / -count / -text)
+const badgeclassBuiltinDemo = document.getElementById('badgeclass-builtin-demo');
+if (badgeclassBuiltinDemo) {
+  badgeclassBuiltinDemo.specialDates = [
+    { date: dayOffset(-5), badgeClass: 'badge-number', badgeText: '12',  badgeTooltip: 'Slot number' },
+    { date: dayOffset(-2), badgeClass: 'badge-count',  badgeText: '3',   badgeTooltip: '3 alerts' },
+    { date: dayOffset(1),  badgeClass: 'badge-text',   badgeText: 'NEW', badgeTooltip: 'New offering' },
+    { date: dayOffset(4),  badgeClass: 'badge-number', badgeText: '7',   badgeTooltip: 'Capacity' },
+    { date: dayOffset(8),  badgeClass: 'badge-count',  badgeText: '15',  badgeTooltip: '15 bookings' },
+  ];
+}
+
+// Demo 3 — custom classifier names (salsa / rumba / pilates) with shadow-DOM CSS injection
+const customClassifierDemo = document.getElementById('custom-classifier-demo');
+if (customClassifierDemo) {
+  customClassifierDemo.getCustomStylesCallback = () => `
+    .drp__day.salsa {
+      background: color-mix(in srgb, #fb7185 18%, transparent);
+      border-color: #fb7185;
+    }
+    .drp__day.rumba {
+      background: color-mix(in srgb, #f59e0b 18%, transparent);
+      border-color: #f59e0b;
+    }
+    .drp__day.pilates {
+      background: color-mix(in srgb, #6366f1 18%, transparent);
+      border-color: #6366f1;
+    }
+  `;
+  customClassifierDemo.specialDates = [
+    { date: dayOffset(-6), dayClass: 'salsa',   dayTooltip: 'Salsa basics' },
+    { date: dayOffset(-3), dayClass: 'rumba',   dayTooltip: 'Rumba intermediate' },
+    { date: dayOffset(0),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
+    { date: dayOffset(3),  dayClass: 'salsa',   dayTooltip: 'Salsa advanced' },
+    { date: dayOffset(6),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
+    { date: dayOffset(10), dayClass: 'rumba',   dayTooltip: 'Rumba show night' },
+  ];
+}
+</script>

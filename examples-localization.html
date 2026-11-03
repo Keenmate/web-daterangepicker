@@ -1,253 +1,238 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Localization &amp; Custom Names - Date Range Picker</title>
-  <link rel="stylesheet" href="examples-shared.css">
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>🌍 Localization &amp; Custom Names</h1>
-      <p class="subtitle">Intl locales, UI <code>labels</code>, week-start-day, and full control over month &amp; weekday names</p>
-    </header>
+<meta name="kmwc:title" content="🌍 Localization &amp; Custom Names">
+<meta name="kmwc:subtitle" content="Intl locales, UI <code>labels</code>, week-start-day, and full control over month &amp; weekday names">
 
-  <div class="note info">
-    <strong>Two override surfaces:</strong> the <code>month-names</code> and <code>weekday-names</code>
-    <strong>HTML attributes</strong> take a pipe-delimited (<code>|</code>) list, and the
-    <code>monthNames</code> / <code>weekdayNames</code> <strong>JS properties</strong> take a string array.
-    When both are set, the property wins.
-  </div>
+<link rel="stylesheet" href="examples-local.css">
 
-  <div class="note warning">
-    <strong>Indexing is fixed to the JS date number, not the visible order:</strong>
-    <code>month-names</code> is <code>[0]</code>=January … <code>[11]</code>=December (matches
-    <code>Date.getMonth()</code>), and <code>weekday-names</code> is <strong>always authored Sunday-first</strong>:
-    <code>[0]</code>=Sunday … <code>[6]</code>=Saturday (matches <code>Date.getDay()</code>).
-    <code>week-start-day</code> only <em>rotates the display</em> — you never re-order the list.
-  </div>
+<div class="note info">
+  <strong>Two override surfaces:</strong> the <code>month-names</code> and <code>weekday-names</code>
+  <strong>HTML attributes</strong> take a pipe-delimited (<code>|</code>) list, and the
+  <code>monthNames</code> / <code>weekdayNames</code> <strong>JS properties</strong> take a string array.
+  When both are set, the property wins.
+</div>
 
-  <!-- Built-in locales -->
-  <div class="card">
-    <h2>LO01 · Locales + labels</h2>
-    <p>The <code>locale</code> attribute drives the <code>Intl</code>-based month/weekday names for any
-      BCP-47 locale (<code>auto</code> = the browser language). The UI strings (buttons, summary, time
-      picker) are <strong>not</strong> bundled per language: they come from one <code>labels</code> object —
-      a partial override of the English defaults, as a property or a JSON attribute. <code>{count}</code>
-      is interpolated in the summary counts.</p>
+<div class="note warning">
+  <strong>Indexing is fixed to the JS date number, not the visible order:</strong>
+  <code>month-names</code> is <code>[0]</code>=January … <code>[11]</code>=December (matches
+  <code>Date.getMonth()</code>), and <code>weekday-names</code> is <strong>always authored Sunday-first</strong>:
+  <code>[0]</code>=Sunday … <code>[6]</code>=Saturday (matches <code>Date.getDay()</code>).
+  <code>week-start-day</code> only <em>rotates the display</em> — you never re-order the list.
+</div>
 
-    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
-      <div class="form-group">
-        <label>English (locale="en")</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          locale="en" positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>German (locale="de")</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          locale="de" positioning-mode="inline"
-          labels='{"today":"Heute","clear":"Löschen"}'></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>French (locale="fr")</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          locale="fr" positioning-mode="inline"
-          labels='{"today":"Aujourd&apos;hui","clear":"Effacer"}'></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>Spanish (locale="es")</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          locale="es" positioning-mode="inline"
-          labels='{"today":"Hoy","clear":"Limpiar"}'></web-daterangepicker>
-      </div>
+<!-- Built-in locales -->
+<div class="card">
+  <h2>LO01 · Locales + labels</h2>
+  <p>The <code>locale</code> attribute drives the <code>Intl</code>-based month/weekday names for any
+    BCP-47 locale (<code>auto</code> = the browser language). The UI strings (buttons, summary, time
+    picker) are <strong>not</strong> bundled per language: they come from one <code>labels</code> object —
+    a partial override of the English defaults, as a property or a JSON attribute. <code>{count}</code>
+    is interpolated in the summary counts.</p>
+
+  <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
+    <div class="form-group">
+      <label>English (locale="en")</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        locale="en" positioning-mode="inline"></web-daterangepicker>
     </div>
+    <div class="form-group">
+      <label>German (locale="de")</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        locale="de" positioning-mode="inline"
+        labels='{"today":"Heute","clear":"Löschen"}'></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>French (locale="fr")</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        locale="fr" positioning-mode="inline"
+        labels='{"today":"Aujourd&apos;hui","clear":"Effacer"}'></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>Spanish (locale="es")</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        locale="es" positioning-mode="inline"
+        labels='{"today":"Hoy","clear":"Limpiar"}'></web-daterangepicker>
+    </div>
+  </div>
 
-    <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span> <span class="property">locale</span>=<span class="string">"de"</span>
-  <span class="property">labels</span>=<span class="string">'{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span> <span class="property">locale</span>=<span class="string">"de"</span>
+<span class="property">labels</span>=<span class="string">'{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// or as a property — keys: today, clear, apply, now, close, preview, day, days,
 // night, nights, selectionCount, time, am, pm, hours, minutes, seconds, fullscreenTitle</span>
 el.<span class="property">labels</span> = { today: <span class="string">'Heute'</span>, days: <span class="string">'{count} Tage'</span> };</code></div>
-  </div>
+</div>
 
-  <!-- week-start-day -->
-  <div class="card">
-    <h2>LO02 · Week Start Day</h2>
-    <p><code>week-start-day</code> takes <code>auto</code> (locale-based) or <code>0</code>–<code>6</code>
-      (<code>0</code>=Sunday … <code>6</code>=Saturday). It rotates which day column comes first — the
-      day cells underneath stay aligned.</p>
+<!-- week-start-day -->
+<div class="card">
+  <h2>LO02 · Week Start Day</h2>
+  <p><code>week-start-day</code> takes <code>auto</code> (locale-based) or <code>0</code>–<code>6</code>
+    (<code>0</code>=Sunday … <code>6</code>=Saturday). It rotates which day column comes first — the
+    day cells underneath stay aligned.</p>
 
-    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
-      <div class="form-group">
-        <label>Sunday first (week-start-day="0")</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          week-start-day="0" positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>Monday first (week-start-day="1")</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          week-start-day="1" positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>Wednesday first (week-start-day="3")</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          week-start-day="3" positioning-mode="inline"></web-daterangepicker>
-      </div>
-    </div>
-  </div>
-
-  <!-- weekday-names attribute -->
-  <div class="card">
-    <h2>LO03 · Custom Weekday Names <span class="badge new">v2.0</span></h2>
-    <p>The <code>weekday-names</code> attribute overrides the header labels with a pipe-delimited list of
-      exactly 7 entries, <strong>authored Sunday-first</strong>. Here the same Czech list
-      <code>Ne|Po|Út|St|Čt|Pá|So</code> is reused across three different start days — note you
-      <strong>never re-order the list</strong>; the component rotates it and the labels stay glued to the right days.</p>
-
-    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
-      <div class="form-group">
-        <label>Czech + Sunday first → Ne Po Út St Čt Pá So</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          week-start-day="0"
-          weekday-names="Ne|Po|Út|St|Čt|Pá|So"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>Czech + Monday first → Po Út St Čt Pá So Ne</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          week-start-day="1"
-          weekday-names="Ne|Po|Út|St|Čt|Pá|So"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>Czech + Wednesday first → St Čt Pá So Ne Po Út</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          week-start-day="3"
-          weekday-names="Ne|Po|Út|St|Čt|Pá|So"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-    </div>
-
-    <div class="code-block"><code><span class="comment">&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">week-start-day</span>=<span class="string">"3"</span>
-  <span class="property">weekday-names</span>=<span class="string">"Ne|Po|Út|St|Čt|Pá|So"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
-
-    <table class="reference-table">
-      <thead>
-        <tr><th>List position</th><th>[0]</th><th>[1]</th><th>[2]</th><th>[3]</th><th>[4]</th><th>[5]</th><th>[6]</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Day of week</td><td>Sun</td><td>Mon</td><td>Tue</td><td>Wed</td><td>Thu</td><td>Fri</td><td>Sat</td></tr>
-        <tr><td>Czech label</td><td>Ne</td><td>Po</td><td>Út</td><td>St</td><td>Čt</td><td>Pá</td><td>So</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- month-names attribute -->
-  <div class="card">
-    <h2>LO04 · Custom Month Names <span class="badge new">v2.0</span></h2>
-    <p>The <code>month-names</code> attribute overrides month labels with a pipe-delimited list of exactly 12
-      entries, in calendar order (<code>[0]</code>=January … <code>[11]</code>=December). No rotation —
-      the list is always January → December.</p>
-
-    <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
-      <div class="form-group">
-        <label>Czech month names</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>June → "Červen"</small>
-      </div>
-      <div class="form-group">
-        <label>Numeric month names</label>
-        <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-          month-names="01|02|03|04|05|06|07|08|09|10|11|12"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>June → "06"</small>
-      </div>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">month-names</span>=<span class="string">"Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
-  </div>
-
-  <!-- Combined full Czech -->
-  <div class="card">
-    <h2>LO05 · Full Czech Calendar</h2>
-    <p>Combine <code>labels</code>, <code>week-start-day</code>, <code>month-names</code>, and
-      <code>weekday-names</code> for a fully localized picker (or just <code>locale="cs"</code> for the names). Czech convention starts the week on Monday.</p>
-
+  <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
     <div class="form-group">
-      <label>locale + Monday start + Czech month &amp; weekday names</label>
-      <web-daterangepicker
-        selection-mode="range"
-        visible-month-count="2"
-        initial-date="2026-06-15"
-        locale="auto"
-        week-start-day="1"
-        month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
+      <label>Sunday first (week-start-day="0")</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        week-start-day="0" positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>Monday first (week-start-day="1")</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        week-start-day="1" positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>Wednesday first (week-start-day="3")</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        week-start-day="3" positioning-mode="inline"></web-daterangepicker>
+    </div>
+  </div>
+</div>
+
+<!-- weekday-names attribute -->
+<div class="card">
+  <h2>LO03 · Custom Weekday Names <span class="badge new">v2.0</span></h2>
+  <p>The <code>weekday-names</code> attribute overrides the header labels with a pipe-delimited list of
+    exactly 7 entries, <strong>authored Sunday-first</strong>. Here the same Czech list
+    <code>Ne|Po|Út|St|Čt|Pá|So</code> is reused across three different start days — note you
+    <strong>never re-order the list</strong>; the component rotates it and the labels stay glued to the right days.</p>
+
+  <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
+    <div class="form-group">
+      <label>Czech + Sunday first → Ne Po Út St Čt Pá So</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        week-start-day="0"
         weekday-names="Ne|Po|Út|St|Čt|Pá|So"
-        labels='{"today":"Dnes","clear":"Vymazat","day":"{count} den","days":"{count} dní","night":"{count} noc","nights":"{count} nocí"}'
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>Czech + Monday first → Po Út St Čt Pá So Ne</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        week-start-day="1"
+        weekday-names="Ne|Po|Út|St|Čt|Pá|So"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>Czech + Wednesday first → St Čt Pá So Ne Po Út</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        week-start-day="3"
+        weekday-names="Ne|Po|Út|St|Čt|Pá|So"
         positioning-mode="inline"></web-daterangepicker>
     </div>
   </div>
 
-  <!-- JS property equivalents -->
-  <div class="card">
-    <h2>LO06 · Setting Names via JavaScript</h2>
-    <p>The same overrides are available as array properties — useful when the names come from a translation
-      bundle at runtime. The property wins if an attribute is also present.</p>
+  <div class="code-block"><code><span class="comment">&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;</span>
+<span class="keyword">&lt;web-daterangepicker</span>
+<span class="property">week-start-day</span>=<span class="string">"3"</span>
+<span class="property">weekday-names</span>=<span class="string">"Ne|Po|Út|St|Čt|Pá|So"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
 
+  <table class="reference-table">
+    <thead>
+      <tr><th>List position</th><th>[0]</th><th>[1]</th><th>[2]</th><th>[3]</th><th>[4]</th><th>[5]</th><th>[6]</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Day of week</td><td>Sun</td><td>Mon</td><td>Tue</td><td>Wed</td><td>Thu</td><td>Fri</td><td>Sat</td></tr>
+      <tr><td>Czech label</td><td>Ne</td><td>Po</td><td>Út</td><td>St</td><td>Čt</td><td>Pá</td><td>So</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- month-names attribute -->
+<div class="card">
+  <h2>LO04 · Custom Month Names <span class="badge new">v2.0</span></h2>
+  <p>The <code>month-names</code> attribute overrides month labels with a pipe-delimited list of exactly 12
+    entries, in calendar order (<code>[0]</code>=January … <code>[11]</code>=December). No rotation —
+    the list is always January → December.</p>
+
+  <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
     <div class="form-group">
-      <label>Configured in script with <code>monthNames</code> / <code>weekdayNames</code> arrays</label>
-      <web-daterangepicker id="js-names"
-        selection-mode="single" initial-date="2026-06-15"
-        week-start-day="1" positioning-mode="inline"></web-daterangepicker>
+      <label>Czech month names</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>June → "Červen"</small>
     </div>
+    <div class="form-group">
+      <label>Numeric month names</label>
+      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+        month-names="01|02|03|04|05|06|07|08|09|10|11|12"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>June → "06"</small>
+    </div>
+  </div>
 
-    <div class="code-block"><code><span class="keyword">const</span> el = document.getElementById(<span class="string">'js-names'</span>);
+  <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
+<span class="property">month-names</span>=<span class="string">"Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+</div>
+
+<!-- Combined full Czech -->
+<div class="card">
+  <h2>LO05 · Full Czech Calendar</h2>
+  <p>Combine <code>labels</code>, <code>week-start-day</code>, <code>month-names</code>, and
+    <code>weekday-names</code> for a fully localized picker (or just <code>locale="cs"</code> for the names). Czech convention starts the week on Monday.</p>
+
+  <div class="form-group">
+    <label>locale + Monday start + Czech month &amp; weekday names</label>
+    <web-daterangepicker
+      selection-mode="range"
+      visible-month-count="2"
+      initial-date="2026-06-15"
+      locale="auto"
+      week-start-day="1"
+      month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
+      weekday-names="Ne|Po|Út|St|Čt|Pá|So"
+      labels='{"today":"Dnes","clear":"Vymazat","day":"{count} den","days":"{count} dní","night":"{count} noc","nights":"{count} nocí"}'
+      positioning-mode="inline"></web-daterangepicker>
+  </div>
+</div>
+
+<!-- JS property equivalents -->
+<div class="card">
+  <h2>LO06 · Setting Names via JavaScript</h2>
+  <p>The same overrides are available as array properties — useful when the names come from a translation
+    bundle at runtime. The property wins if an attribute is also present.</p>
+
+  <div class="form-group">
+    <label>Configured in script with <code>monthNames</code> / <code>weekdayNames</code> arrays</label>
+    <web-daterangepicker id="js-names"
+      selection-mode="single" initial-date="2026-06-15"
+      week-start-day="1" positioning-mode="inline"></web-daterangepicker>
+  </div>
+
+  <div class="code-block"><code><span class="keyword">const</span> el = document.getElementById(<span class="string">'js-names'</span>);
 
 <span class="comment">// [0]=January … [11]=December</span>
 el.<span class="property">monthNames</span> = [<span class="string">'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
-                 'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'</span>];
+               'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'</span>];
 
 <span class="comment">// [0]=Sunday … [6]=Saturday</span>
 el.<span class="property">weekdayNames</span> = [<span class="string">'Nd','Pn','Wt','Śr','Cz','Pt','So'</span>];</code></div>
+</div>
+
+<!-- Validation -->
+<div class="card">
+  <h2>LO07 · Validation &amp; Fallback</h2>
+  <p>A pipe list must have <strong>exactly</strong> 12 (months) or 7 (weekdays) non-empty segments.
+    A wrong count or an empty segment is <strong>ignored</strong> — the picker falls back to locale
+    names and emits a <code>console.warn</code> naming the attribute. Open your DevTools console to see it.</p>
+
+  <div class="form-group">
+    <label>Only 3 weekday segments → ignored, English fallback (check console)</label>
+    <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
+      week-start-day="0"
+      weekday-names="Po|Út|St"
+      positioning-mode="inline"></web-daterangepicker>
   </div>
 
-  <!-- Validation -->
-  <div class="card">
-    <h2>LO07 · Validation &amp; Fallback</h2>
-    <p>A pipe list must have <strong>exactly</strong> 12 (months) or 7 (weekdays) non-empty segments.
-      A wrong count or an empty segment is <strong>ignored</strong> — the picker falls back to locale
-      names and emits a <code>console.warn</code> naming the attribute. Open your DevTools console to see it.</p>
-
-    <div class="form-group">
-      <label>Only 3 weekday segments → ignored, English fallback (check console)</label>
-      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-        week-start-day="0"
-        weekday-names="Po|Út|St"
-        positioning-mode="inline"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="comment">// Console output:</span>
+  <div class="code-block"><code><span class="comment">// Console output:</span>
 <span class="comment">// [web-daterangepicker] "weekday-names" ignored: expected exactly 7</span>
 <span class="comment">//   pipe-delimited segments, got 3. Falling back to locale names.</span></code></div>
-  </div>
+</div>
 
-  <script type="module" src="/src/index.ts"></script>
-  <script type="module">
-    // No whenDefined() needed — pre-upgrade properties are lifted on connect.
-    const el = document.getElementById('js-names');
-    el.monthNames = [
-      'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
-      'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'
-    ];
-    el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];
-  </script>
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+<script type="module">
+  // No whenDefined() needed — pre-upgrade properties are lifted on connect.
+  const el = document.getElementById('js-names');
+  el.monthNames = [
+    'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+    'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'
+  ];
+  el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];
+</script>

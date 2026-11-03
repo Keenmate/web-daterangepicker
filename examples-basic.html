@@ -1,313 +1,296 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Basic Usage — Date Range Picker</title>
-  <link rel="stylesheet" href="examples-shared.css">
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>📦 Basic Usage</h1>
-      <p class="subtitle">A quick overview of the most common use cases: single/range modes, trigger modes, date formats, multi-month layouts, pre-filled values, restrictions, and inline display</p>
-    </header>
+<meta name="kmwc:title" content="📦 Basic Usage">
+<meta name="kmwc:subtitle" content="A quick overview of the most common use cases: single/range modes, trigger modes, date formats, multi-month layouts, pre-filled values, restrictions, and inline display">
 
-    <div class="card">
-    <h2>BU01 · Basic Examples</h2>
-    <div class="grid">
-      <div class="form-group">
-        <label>Single Date Picker</label>
-        <web-daterangepicker selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Click to open calendar or type date directly</small>
-      </div>
+<link rel="stylesheet" href="examples-local.css">
 
-      <div class="form-group">
-        <label>Date Range Picker</label>
-        <web-daterangepicker selection-mode="range" placeholder="Start Date - End Date"></web-daterangepicker>
-        <small>Select start and end dates with day/night count</small>
-      </div>
-    </div>
+<div class="card">
+<h2>BU01 · Basic Examples</h2>
+<div class="grid">
+  <div class="form-group">
+    <label>Single Date Picker</label>
+    <web-daterangepicker selection-mode="single" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Click to open calendar or type date directly</small>
   </div>
 
-  <div class="card">
-    <h2>BU02 · Calendar Trigger Modes</h2>
-    <p>The <code>calendar-open-trigger</code> attribute controls when the calendar opens. Three modes are available: <code>focus</code> (opens on focus), <code>typing</code> (opens when typing starts), and <code>manual</code> (opens only via button).</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>Focus Mode (default)</label>
-        <div class="field-row">
-          <web-daterangepicker
-            class="field-grow"
-            id="picker-focus"
-            selection-mode="single"
-            date-format-mask="YYYY-MM-DD"
-            calendar-open-trigger="focus"
-            placeholder="Click to focus">
-          </web-daterangepicker>
-          <button
-            class="btn-outline"
-            data-calendar-button
-            onclick="document.getElementById('picker-focus').toggle()"
-            title="Toggle calendar">
-            📅
-          </button>
-        </div>
-        <small>📌 Calendar opens when input receives focus (tab or click)</small>
-      </div>
+  <div class="form-group">
+    <label>Date Range Picker</label>
+    <web-daterangepicker selection-mode="range" placeholder="Start Date - End Date"></web-daterangepicker>
+    <small>Select start and end dates with day/night count</small>
+  </div>
+</div>
+</div>
 
-      <div class="form-group">
-        <label>Typing Mode</label>
-        <div class="field-row">
-          <web-daterangepicker
-            class="field-grow"
-            id="picker-typing"
-            selection-mode="single"
-            date-format-mask="YYYY-MM-DD"
-            calendar-open-trigger="typing"
-            placeholder="Start typing...">
-          </web-daterangepicker>
-          <button
-            class="btn-outline"
-            data-calendar-button
-            onclick="document.getElementById('picker-typing').toggle()"
-            title="Toggle calendar">
-            📅
-          </button>
-        </div>
-        <small>⌨️ Calendar opens when you start typing (e.g., "2025")</small>
-      </div>
-
-      <div class="form-group">
-        <label>Manual Mode</label>
-        <div class="field-row">
-          <web-daterangepicker
-            class="field-grow"
-            id="picker-manual"
-            selection-mode="single"
-            date-format-mask="YYYY-MM-DD"
-            calendar-open-trigger="manual"
-            placeholder="Use button to open">
-          </web-daterangepicker>
-          <button
-            class="btn-outline"
-            data-calendar-button
-            onclick="document.getElementById('picker-manual').toggle()"
-            title="Toggle calendar">
-            📅
-          </button>
-        </div>
-        <small>🔘 Calendar only opens via button click or .open()/.toggle()</small>
-      </div>
+<div class="card">
+<h2>BU02 · Calendar Trigger Modes</h2>
+<p>The <code>calendar-open-trigger</code> attribute controls when the calendar opens. Three modes are available: <code>focus</code> (opens on focus), <code>typing</code> (opens when typing starts), and <code>manual</code> (opens only via button).</p>
+<div class="grid">
+  <div class="form-group">
+    <label>Focus Mode (default)</label>
+    <div class="field-row">
+      <web-daterangepicker
+        class="field-grow"
+        id="picker-focus"
+        selection-mode="single"
+        date-format-mask="YYYY-MM-DD"
+        calendar-open-trigger="focus"
+        placeholder="Click to focus">
+      </web-daterangepicker>
+      <button
+        class="btn-outline"
+        data-calendar-button
+        onclick="document.getElementById('picker-focus').toggle()"
+        title="Toggle calendar">
+        📅
+      </button>
     </div>
-    <p class="note info">
-      <strong>💡 Trigger Modes:</strong><br>
-      • <code>focus</code> - Opens on input focus (default behavior)<br>
-      • <code>typing</code> - Opens when user starts typing in the input<br>
-      • <code>manual</code> - Only opens via button click or programmatic calls (.open()/.toggle())<br>
-      <em>Note: Add <code>data-calendar-button</code> to buttons to prevent calendar from closing when clicked.</em>
-    </p>
+    <small>📌 Calendar opens when input receives focus (tab or click)</small>
   </div>
 
-  <div class="card">
-    <h2>BU03 · Different Date Formats</h2>
-    <div class="grid">
-      <div class="form-group">
-        <label>ISO Format (YYYY-MM-DD)</label>
-        <web-daterangepicker date-format-mask="YYYY-MM-DD" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Try typing: 20250115 → auto-formats to 2025-01-15</small>
-      </div>
-
-      <div class="form-group">
-        <label>European Format (DD.MM.YYYY)</label>
-        <web-daterangepicker date-format-mask="DD.MM.YYYY" placeholder="DD.MM.YYYY"></web-daterangepicker>
-        <small>Try typing: 15012025 → auto-formats to 15.01.2025</small>
-      </div>
-
-      <div class="form-group">
-        <label>US Format (MM/DD/YYYY)</label>
-        <web-daterangepicker date-format-mask="MM/DD/YYYY" placeholder="MM/DD/YYYY"></web-daterangepicker>
-        <small>Try typing: 01152025 → auto-formats to 01/15/2025</small>
-      </div>
+  <div class="form-group">
+    <label>Typing Mode</label>
+    <div class="field-row">
+      <web-daterangepicker
+        class="field-grow"
+        id="picker-typing"
+        selection-mode="single"
+        date-format-mask="YYYY-MM-DD"
+        calendar-open-trigger="typing"
+        placeholder="Start typing...">
+      </web-daterangepicker>
+      <button
+        class="btn-outline"
+        data-calendar-button
+        onclick="document.getElementById('picker-typing').toggle()"
+        title="Toggle calendar">
+        📅
+      </button>
     </div>
+    <small>⌨️ Calendar opens when you start typing (e.g., "2025")</small>
   </div>
 
-  <div class="card">
-    <h2>BU04 · Multi-Month Display</h2>
-    <div class="grid">
-      <div class="form-group">
-        <label>Range with 3 Months</label>
-        <web-daterangepicker selection-mode="range" visible-month-count="3" placeholder="Select range"></web-daterangepicker>
-        <small>Great for selecting dates far apart</small>
-      </div>
-
-      <div class="form-group">
-        <label>Single Date with 2 Months</label>
-        <web-daterangepicker selection-mode="single" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Each month has independent navigation</small>
-      </div>
+  <div class="form-group">
+    <label>Manual Mode</label>
+    <div class="field-row">
+      <web-daterangepicker
+        class="field-grow"
+        id="picker-manual"
+        selection-mode="single"
+        date-format-mask="YYYY-MM-DD"
+        calendar-open-trigger="manual"
+        placeholder="Use button to open">
+      </web-daterangepicker>
+      <button
+        class="btn-outline"
+        data-calendar-button
+        onclick="document.getElementById('picker-manual').toggle()"
+        title="Toggle calendar">
+        📅
+      </button>
     </div>
+    <small>🔘 Calendar only opens via button click or .open()/.toggle()</small>
+  </div>
+</div>
+<p class="note info">
+  <strong>💡 Trigger Modes:</strong><br>
+  • <code>focus</code> - Opens on input focus (default behavior)<br>
+  • <code>typing</code> - Opens when user starts typing in the input<br>
+  • <code>manual</code> - Only opens via button click or programmatic calls (.open()/.toggle())<br>
+  <em>Note: Add <code>data-calendar-button</code> to buttons to prevent calendar from closing when clicked.</em>
+</p>
+</div>
+
+<div class="card">
+<h2>BU03 · Different Date Formats</h2>
+<div class="grid">
+  <div class="form-group">
+    <label>ISO Format (YYYY-MM-DD)</label>
+    <web-daterangepicker date-format-mask="YYYY-MM-DD" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Try typing: 20250115 → auto-formats to 2025-01-15</small>
   </div>
 
-  <div class="card">
-    <h2>BU05 · Pre-filled Values</h2>
-    <div class="grid">
-      <div class="form-group">
-        <label>Single Date with Value</label>
-        <web-daterangepicker id="prefilled-single" placeholder="YYYY-MM-DD"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Date Range with Value</label>
-        <web-daterangepicker id="prefilled-range" selection-mode="range" placeholder="Start - End"></web-daterangepicker>
-      </div>
-    </div>
+  <div class="form-group">
+    <label>European Format (DD.MM.YYYY)</label>
+    <web-daterangepicker date-format-mask="DD.MM.YYYY" placeholder="DD.MM.YYYY"></web-daterangepicker>
+    <small>Try typing: 15012025 → auto-formats to 15.01.2025</small>
   </div>
 
-  <div class="card">
-    <h2>BU06 · Disabled State</h2>
-    <div class="grid">
-      <div class="form-group">
-        <label>Disabled Picker</label>
-        <web-daterangepicker id="prefilled-disabled" disabled placeholder="YYYY-MM-DD"></web-daterangepicker>
-      </div>
-    </div>
+  <div class="form-group">
+    <label>US Format (MM/DD/YYYY)</label>
+    <web-daterangepicker date-format-mask="MM/DD/YYYY" placeholder="MM/DD/YYYY"></web-daterangepicker>
+    <small>Try typing: 01152025 → auto-formats to 01/15/2025</small>
+  </div>
+</div>
+</div>
+
+<div class="card">
+<h2>BU04 · Multi-Month Display</h2>
+<div class="grid">
+  <div class="form-group">
+    <label>Range with 3 Months</label>
+    <web-daterangepicker selection-mode="range" visible-month-count="3" placeholder="Select range"></web-daterangepicker>
+    <small>Great for selecting dates far apart</small>
   </div>
 
-  <div class="card">
-    <h2>BU07 · Date Restrictions</h2>
-    <div class="grid">
-      <div class="form-group">
-        <label>Disable Weekends</label>
-        <web-daterangepicker disabled-weekdays="0,6" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Sunday (0) and Saturday (6) are disabled</small>
-      </div>
+  <div class="form-group">
+    <label>Single Date with 2 Months</label>
+    <web-daterangepicker selection-mode="single" visible-month-count="2" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Each month has independent navigation</small>
+  </div>
+</div>
+</div>
 
-      <div class="form-group">
-        <label>Date Range Limits</label>
-        <web-daterangepicker id="range-limits-demo" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Only the current month is selectable</small>
-      </div>
-
-      <div class="form-group">
-        <label>Disable Specific Dates</label>
-        <web-daterangepicker id="disabled-dates-demo" placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Christmas, New Year, and Thanksgiving disabled</small>
-      </div>
-    </div>
+<div class="card">
+<h2>BU05 · Pre-filled Values</h2>
+<div class="grid">
+  <div class="form-group">
+    <label>Single Date with Value</label>
+    <web-daterangepicker id="prefilled-single" placeholder="YYYY-MM-DD"></web-daterangepicker>
   </div>
 
-  <div class="card">
-    <h2>BU08 · Inline Calendar Display</h2>
-    <p>Display the calendar as a static block element (not a popup).</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>Inline Single Date Calendar</label>
-        <web-daterangepicker
-          id="inline-single"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>No input field - calendar always visible</small>
-        <div id="inline-single-output" class="output"></div>
-      </div>
+  <div class="form-group">
+    <label>Date Range with Value</label>
+    <web-daterangepicker id="prefilled-range" selection-mode="range" placeholder="Start - End"></web-daterangepicker>
+  </div>
+</div>
+</div>
 
-      <div class="form-group">
-        <label>Inline 2×3 Grid with Unified Navigation</label>
-        <web-daterangepicker
-          id="inline-unified-grid"
-          selection-mode="range"
-          positioning-mode="inline"
-          visible-month-count="6"
-          month-layout="grid"
-          grid-rows="2"
-          grid-columns="3"
-          enable-unified-navigation>
-        </web-daterangepicker>
-        <small>One navigation header controls all 6 months. Click the date range to open month/year selector.</small>
-        <div id="inline-unified-grid-output" class="output"></div>
-      </div>
-    </div>
+<div class="card">
+<h2>BU06 · Disabled State</h2>
+<div class="grid">
+  <div class="form-group">
+    <label>Disabled Picker</label>
+    <web-daterangepicker id="prefilled-disabled" disabled placeholder="YYYY-MM-DD"></web-daterangepicker>
+  </div>
+</div>
+</div>
+
+<div class="card">
+<h2>BU07 · Date Restrictions</h2>
+<div class="grid">
+  <div class="form-group">
+    <label>Disable Weekends</label>
+    <web-daterangepicker disabled-weekdays="0,6" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Sunday (0) and Saturday (6) are disabled</small>
   </div>
 
-  <script type="module" src="/src/index.ts"></script>
+  <div class="form-group">
+    <label>Date Range Limits</label>
+    <web-daterangepicker id="range-limits-demo" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Only the current month is selectable</small>
+  </div>
 
-  <script>
-    // Date helpers — keep example data anchored to today so the demos never go stale.
-    const _today = new Date(); _today.setHours(0, 0, 0, 0);
-    const dayOffset = (days) => {
-      const d = new Date(_today); d.setDate(d.getDate() + days);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    };
-    const monthFirstISO = () => {
-      const d = new Date(_today.getFullYear(), _today.getMonth(), 1);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-    };
-    const monthLastISO = () => {
-      const d = new Date(_today.getFullYear(), _today.getMonth() + 1, 0);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    };
-    // Wait for web components to be defined
-    customElements.whenDefined('web-daterangepicker').then(() => {
-      // Apply dynamic dates to the demos that previously had hardcoded values
-      const setIfPresent = (id, attrs) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-      };
-      setIfPresent('prefilled-single',   { value: dayOffset(0) });
-      setIfPresent('prefilled-range',    { value: `${dayOffset(0)}/${dayOffset(14)}` });
-      setIfPresent('prefilled-disabled', { value: dayOffset(0) });
-      setIfPresent('range-limits-demo',  { 'min-date': monthFirstISO(), 'max-date': monthLastISO() });
-      // Add event listeners to demo the events
-      document.querySelectorAll('web-daterangepicker').forEach(picker => {
-        picker.addEventListener('change', (e) => {
-          console.log('Date selected:', e.detail);
-        });
-      });
+  <div class="form-group">
+    <label>Disable Specific Dates</label>
+    <web-daterangepicker id="disabled-dates-demo" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>Christmas, New Year, and Thanksgiving disabled</small>
+  </div>
+</div>
+</div>
 
-      // Setup disabled dates demo — anchor to today so disabled dates are visible
-      const disabledDatesDemo = document.getElementById('disabled-dates-demo');
-      if (disabledDatesDemo) {
-        disabledDatesDemo.disabledDates = [
-          dayOffset(-3),
-          dayOffset(2),
-          dayOffset(7),
-          dayOffset(14)
-        ];
-      }
+<div class="card">
+<h2>BU08 · Inline Calendar Display</h2>
+<p>Display the calendar as a static block element (not a popup).</p>
+<div class="grid">
+  <div class="form-group">
+    <label>Inline Single Date Calendar</label>
+    <web-daterangepicker
+      id="inline-single"
+      selection-mode="single"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>No input field - calendar always visible</small>
+    <div id="inline-single-output" class="output"></div>
+  </div>
 
-      // Setup inline calendar examples
-      const inlineSingle = document.getElementById('inline-single');
-      if (inlineSingle) {
-        inlineSingle.addEventListener('change', (e) => {
-          const output = document.getElementById('inline-single-output');
-          if (output && e.detail.date) {
-            output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
-          }
-        });
-      }
+  <div class="form-group">
+    <label>Inline 2×3 Grid with Unified Navigation</label>
+    <web-daterangepicker
+      id="inline-unified-grid"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-month-count="6"
+      month-layout="grid"
+      grid-rows="2"
+      grid-columns="3"
+      enable-unified-navigation>
+    </web-daterangepicker>
+    <small>One navigation header controls all 6 months. Click the date range to open month/year selector.</small>
+    <div id="inline-unified-grid-output" class="output"></div>
+  </div>
+</div>
+</div>
 
-      const inlineUnifiedGrid = document.getElementById('inline-unified-grid');
-      if (inlineUnifiedGrid) {
-        inlineUnifiedGrid.addEventListener('change', (e) => {
-          const output = document.getElementById('inline-unified-grid-output');
-          if (output && e.detail.dateRange) {
-            const nights = Math.floor(
-              (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
-            );
-            output.innerHTML = `
-              <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
-              <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
-              <strong>Nights:</strong> ${nights}
-            `;
-          }
-        });
-      }
-
+<script>
+// Date helpers — keep example data anchored to today so the demos never go stale.
+const _today = new Date(); _today.setHours(0, 0, 0, 0);
+const dayOffset = (days) => {
+  const d = new Date(_today); d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const monthFirstISO = () => {
+  const d = new Date(_today.getFullYear(), _today.getMonth(), 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+};
+const monthLastISO = () => {
+  const d = new Date(_today.getFullYear(), _today.getMonth() + 1, 0);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+// Wait for web components to be defined
+customElements.whenDefined('web-daterangepicker').then(() => {
+  // Apply dynamic dates to the demos that previously had hardcoded values
+  const setIfPresent = (id, attrs) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  };
+  setIfPresent('prefilled-single',   { value: dayOffset(0) });
+  setIfPresent('prefilled-range',    { value: `${dayOffset(0)}/${dayOffset(14)}` });
+  setIfPresent('prefilled-disabled', { value: dayOffset(0) });
+  setIfPresent('range-limits-demo',  { 'min-date': monthFirstISO(), 'max-date': monthLastISO() });
+  // Add event listeners to demo the events
+  document.querySelectorAll('web-daterangepicker').forEach(picker => {
+    picker.addEventListener('change', (e) => {
+      console.log('Date selected:', e.detail);
     });
-  </script>
-  </div>
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+  });
+
+  // Setup disabled dates demo — anchor to today so disabled dates are visible
+  const disabledDatesDemo = document.getElementById('disabled-dates-demo');
+  if (disabledDatesDemo) {
+    disabledDatesDemo.disabledDates = [
+      dayOffset(-3),
+      dayOffset(2),
+      dayOffset(7),
+      dayOffset(14)
+    ];
+  }
+
+  // Setup inline calendar examples
+  const inlineSingle = document.getElementById('inline-single');
+  if (inlineSingle) {
+    inlineSingle.addEventListener('change', (e) => {
+      const output = document.getElementById('inline-single-output');
+      if (output && e.detail.date) {
+        output.innerHTML = `<strong>Selected:</strong> ${e.detail.date.toLocaleDateString()}`;
+      }
+    });
+  }
+
+  const inlineUnifiedGrid = document.getElementById('inline-unified-grid');
+  if (inlineUnifiedGrid) {
+    inlineUnifiedGrid.addEventListener('change', (e) => {
+      const output = document.getElementById('inline-unified-grid-output');
+      if (output && e.detail.dateRange) {
+        const nights = Math.floor(
+          (e.detail.dateRange.end - e.detail.dateRange.start) / (1000*60*60*24)
+        );
+        output.innerHTML = `
+          <strong>Check-in:</strong> ${e.detail.dateRange.start.toLocaleDateString()}<br>
+          <strong>Check-out:</strong> ${e.detail.dateRange.end.toLocaleDateString()}<br>
+          <strong>Nights:</strong> ${nights}
+        `;
+      }
+    });
+  }
+
+});
+</script>

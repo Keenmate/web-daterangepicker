@@ -1,60 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Events, Handlers & Interceptors — Date Range Picker</title>
-  <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* Page-specific log entry-token colors only. These color the tokens the
-       logEvent() script writes into each `.log-panel--dark` box (timestamp,
-       event name, JSON payload) and the divider between stacked entries. Not a
-       shared concern — every log-driven page styles its own entry tokens.
-       All layout / cards / notes / tables / status dots come from
-       examples-shared.css. */
-    .event-log-item {
-      border-bottom: 1px solid #374151;
-      padding-bottom: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
+<meta name="kmwc:title" content="⚡ Events, Handlers &amp; Interceptors">
+<meta name="kmwc:subtitle" content="Custom events, handler properties, and callbacks (beforeSelectCallback, beforeMonthChangeCallback, getMonthDataCallback) for validating, controlling, and enriching selections">
 
-    .event-log-item:last-child {
-      border-bottom: none;
-    }
+<link rel="stylesheet" href="examples-local.css">
 
-    .event-name { color: #34d399; font-weight: 600; }
-    .event-time { color: #9ca3af; font-size: 0.75rem; }
-    .event-data { color: #fbbf24; margin-top: 0.25rem; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>⚡ Events, Handlers & Interceptors</h1>
-      <p class="subtitle">Custom events, handler properties, and callbacks (beforeSelectCallback, beforeMonthChangeCallback, getMonthDataCallback) for validating, controlling, and enriching selections</p>
-    </header>
+<style>
+  /* Page-specific: the divider between stacked entries and the JSON payload the
+     logEvent() script writes into each `.log-panel--dark` box. The timestamp and
+     event name (.event-time / .event-name) take the kit's log tones. All layout /
+     cards / notes / tables / status dots come from the devkit kit. */
+  .event-log-item {
+    border-bottom: 1px solid var(--kmwc-log-rule-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
 
-  <!-- Events Overview -->
-  <div class="card">
-    <h2>EV01 · Events Fired by the Component</h2>
-    <p>The date picker fires these custom events:</p>
+  .event-log-item:last-child {
+    border-bottom: none;
+  }
 
-    <div class="note info">
-      <strong>Event Names:</strong>
-      <ul>
-        <li><code>change</code> - The selection was committed (a pick in <code>commit-mode="selection"</code>, Apply / <code>commit()</code> otherwise)</li>
-        <li><code>open</code> / <code>close</code> - The calendar popover opened / closed (any reason)</li>
-        <li><code>action</code> - An action button (built-ins too) or a <code>data-action</code> trigger was clicked (<code>detail.action</code>, <code>detail.id</code>, <code>detail.source</code>, <code>detail.dataset</code>)</li>
-        <li><code>month-change</code> - The visible month(s) changed (<code>detail.monthIndex</code>, <code>year</code>, <code>month</code>, <code>visibleMonths</code>)</li>
-        <li><code>ready</code> - The picker was built for the first time</li>
-      </ul>
-      <p><strong>Note:</strong> All events bubble from the <code>&lt;web-daterangepicker&gt;</code> element (they are not <code>composed</code>). Every detail also carries <code>controller</code> (the picker facade) and <code>element</code> (the host); both are non-enumerable, so <code>JSON.stringify(detail)</code> shows only the data.</p>
-      <p><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onChange</code>, <code>onOpen</code>, <code>onClose</code>, <code>onAction</code>, <code>onMonthChange</code> or <code>onReady</code>. Each receives the event <strong>detail</strong> (not the <code>CustomEvent</code>): <code>el.onChange = (detail) =&gt; detail.date</code>. Assign <code>null</code> to detach.</p>
-    </div>
+  .event-data { color: #fbbf24; margin-top: 0.25rem; }
+</style>
 
-    <h3>Event Detail Structure</h3>
-    <pre><code>// Single mode
+<!-- Events Overview -->
+<div class="card">
+  <h2>EV01 · Events Fired by the Component</h2>
+  <p>The date picker fires these custom events:</p>
+
+  <div class="note info">
+    <strong>Event Names:</strong>
+    <ul>
+      <li><code>change</code> - The selection was committed (a pick in <code>commit-mode="selection"</code>, Apply / <code>commit()</code> otherwise)</li>
+      <li><code>open</code> / <code>close</code> - The calendar popover opened / closed (any reason)</li>
+      <li><code>action</code> - An action button (built-ins too) or a <code>data-action</code> trigger was clicked (<code>detail.action</code>, <code>detail.id</code>, <code>detail.source</code>, <code>detail.dataset</code>)</li>
+      <li><code>month-change</code> - The visible month(s) changed (<code>detail.monthIndex</code>, <code>year</code>, <code>month</code>, <code>visibleMonths</code>)</li>
+      <li><code>ready</code> - The picker was built for the first time</li>
+    </ul>
+    <p><strong>Note:</strong> All events bubble from the <code>&lt;web-daterangepicker&gt;</code> element (they are not <code>composed</code>). Every detail also carries <code>controller</code> (the picker facade) and <code>element</code> (the host); both are non-enumerable, so <code>JSON.stringify(detail)</code> shows only the data.</p>
+    <p><strong>Handler properties:</strong> as an alternative to <code>addEventListener</code>, assign <code>onChange</code>, <code>onOpen</code>, <code>onClose</code>, <code>onAction</code>, <code>onMonthChange</code> or <code>onReady</code>. Each receives the event <strong>detail</strong> (not the <code>CustomEvent</code>): <code>el.onChange = (detail) =&gt; detail.date</code>. Assign <code>null</code> to detach.</p>
+  </div>
+
+  <h3>Event Detail Structure</h3>
+  <pre><code>// Single mode
 {
   formattedValue: "2025-11-17",
   date: Date object
@@ -72,26 +58,26 @@
   getTotalDays: () => number          // Helper function
 }</code></pre>
 
-    <h3>Listening to Events</h3>
-    <div class="grid">
-      <div class="form-group">
-        <label>Single Mode Event Demo</label>
-        <web-daterangepicker id="event-single"></web-daterangepicker>
-        <div id="event-log-single" class="log-panel log-panel--dark" style="--log-max-height: 300px">
-          <div class="muted">Select a date to see events...</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Range Mode Event Demo</label>
-        <web-daterangepicker id="event-range" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <div id="event-log-range" class="log-panel log-panel--dark" style="--log-max-height: 300px">
-          <div class="muted">Select a range to see events...</div>
-        </div>
+  <h3>Listening to Events</h3>
+  <div class="grid">
+    <div class="form-group">
+      <label>Single Mode Event Demo</label>
+      <web-daterangepicker id="event-single"></web-daterangepicker>
+      <div id="event-log-single" class="log-panel log-panel--dark" style="--log-max-height: 300px">
+        <div class="muted">Select a date to see events...</div>
       </div>
     </div>
 
-    <pre><code>// Listening to events
+    <div class="form-group">
+      <label>Range Mode Event Demo</label>
+      <web-daterangepicker id="event-range" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <div id="event-log-range" class="log-panel log-panel--dark" style="--log-max-height: 300px">
+        <div class="muted">Select a range to see events...</div>
+      </div>
+    </div>
+  </div>
+
+  <pre><code>// Listening to events
 const picker = document.getElementById('my-picker');
 
 picker.addEventListener('change', (event) => {
@@ -118,130 +104,130 @@ picker.addEventListener('month-change', (event) => {
   const { year, month, monthIndex } = event.detail; // month is 0-11
   console.log(`Column ${monthIndex} now shows ${year}-${month + 1}`);
 });</code></pre>
+</div>
+
+<!-- beforeSelectCallback Callback -->
+<div class="card">
+  <h2>EV02 · beforeSelectCallback - Validation & Control</h2>
+  <p>
+    The <code>beforeSelectCallback(ctx)</code> callback is invoked BEFORE a selection is finalized.
+    <code>ctx</code> carries the proposal (<code>mode</code>, <code>date</code> in single mode,
+    <code>range</code> in range mode, plus <code>subRanges</code> / <code>enabledDates</code> under
+    split/individual handling), <code>controller</code>, <code>element</code> and <code>markRangeInvalid()</code>.
+    It allows you to validate, block, adjust, or clear selections based on your business logic.
+  </p>
+
+  <div class="note info">
+    <strong>Key Features:</strong>
+    <ul>
+      <li>Works for both <strong>single</strong> and <strong>range</strong> modes</li>
+      <li>Supports <strong>synchronous</strong> and <strong>asynchronous</strong> validation</li>
+      <li>Can <strong>reject</strong>, <strong>adjust</strong>, or <strong>clear</strong> selections</li>
+      <li>Explain a decision with <code>ctx.controller.showMessage(text, { type })</code></li>
+      <li>Shows loading overlay during async operations</li>
+      <li>Called AFTER local validation (disabled dates, min/max) passes</li>
+    </ul>
   </div>
 
-  <!-- beforeSelectCallback Callback -->
-  <div class="card">
-    <h2>EV02 · beforeSelectCallback - Validation & Control</h2>
-    <p>
-      The <code>beforeSelectCallback(ctx)</code> callback is invoked BEFORE a selection is finalized.
-      <code>ctx</code> carries the proposal (<code>mode</code>, <code>date</code> in single mode,
-      <code>range</code> in range mode, plus <code>subRanges</code> / <code>enabledDates</code> under
-      split/individual handling), <code>controller</code>, <code>element</code> and <code>markRangeInvalid()</code>.
-      It allows you to validate, block, adjust, or clear selections based on your business logic.
-    </p>
+  <h3>Return Values</h3>
+  <table class="reference-table">
+    <thead>
+      <tr>
+        <th>Return</th>
+        <th>Description</th>
+        <th>Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>nothing (<code>undefined</code>)</td>
+        <td>Allow the selection as-is</td>
+        <td>Validation passed</td>
+      </tr>
+      <tr>
+        <td><code>false</code></td>
+        <td>Reject and revert to the previous selection (call <code>ctx.markRangeInvalid()</code> first to keep a rejected range visible with error styling)</td>
+        <td>Validation failed, keep previous state</td>
+      </tr>
+      <tr>
+        <td>a <code>Date</code> / <code>{ start, end }</code></td>
+        <td>Accept this adjusted selection instead</td>
+        <td>Round to business days, snap to availability</td>
+      </tr>
+      <tr>
+        <td><code>DateRange[]</code></td>
+        <td>Replace the proposal with these N ranges (range mode)</td>
+        <td>Split around unavailable days</td>
+      </tr>
+      <tr>
+        <td><code>null</code></td>
+        <td>Clear the selection entirely</td>
+        <td>Hard reset on validation failure</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-    <div class="note info">
-      <strong>Key Features:</strong>
-      <ul>
-        <li>Works for both <strong>single</strong> and <strong>range</strong> modes</li>
-        <li>Supports <strong>synchronous</strong> and <strong>asynchronous</strong> validation</li>
-        <li>Can <strong>reject</strong>, <strong>adjust</strong>, or <strong>clear</strong> selections</li>
-        <li>Explain a decision with <code>ctx.controller.showMessage(text, { type })</code></li>
-        <li>Shows loading overlay during async operations</li>
-        <li>Called AFTER local validation (disabled dates, min/max) passes</li>
-      </ul>
-    </div>
+<!-- Single Mode Examples -->
+<div class="card">
+  <h2>EV03 · Single Mode - beforeSelectCallback Examples</h2>
 
-    <h3>Return Values</h3>
-    <table class="reference-table">
-      <thead>
-        <tr>
-          <th>Return</th>
-          <th>Description</th>
-          <th>Use Case</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>nothing (<code>undefined</code>)</td>
-          <td>Allow the selection as-is</td>
-          <td>Validation passed</td>
-        </tr>
-        <tr>
-          <td><code>false</code></td>
-          <td>Reject and revert to the previous selection (call <code>ctx.markRangeInvalid()</code> first to keep a rejected range visible with error styling)</td>
-          <td>Validation failed, keep previous state</td>
-        </tr>
-        <tr>
-          <td>a <code>Date</code> / <code>{ start, end }</code></td>
-          <td>Accept this adjusted selection instead</td>
-          <td>Round to business days, snap to availability</td>
-        </tr>
-        <tr>
-          <td><code>DateRange[]</code></td>
-          <td>Replace the proposal with these N ranges (range mode)</td>
-          <td>Split around unavailable days</td>
-        </tr>
-        <tr>
-          <td><code>null</code></td>
-          <td>Clear the selection entirely</td>
-          <td>Hard reset on validation failure</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Single Mode Examples -->
-  <div class="card">
-    <h2>EV03 · Single Mode - beforeSelectCallback Examples</h2>
-
-    <div class="grid">
-      <!-- Example 1: Block Weekends -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--err"></span>
-          Block Weekends
-        </label>
-        <web-daterangepicker id="single-block-weekends"></web-daterangepicker>
-        <small>Try selecting Saturday or Sunday</small>
-        <div id="log-single-weekends" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
-      </div>
-
-      <!-- Example 2: Block Past Dates -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--err"></span>
-          Block Past Dates
-        </label>
-        <web-daterangepicker id="single-block-past"></web-daterangepicker>
-        <small>Only future dates allowed</small>
-        <div id="log-single-past" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
-      </div>
-
-      <!-- Example 3: Adjust to Next Business Day -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--warn"></span>
-          Adjust to Business Day
-        </label>
-        <web-daterangepicker id="single-adjust-business"></web-daterangepicker>
-        <small>Weekends auto-adjust to Monday</small>
-        <div id="log-single-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
-      </div>
-
-      <!-- Example 4: Async API Validation -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--ok"></span>
-          Async API Validation
-        </label>
-        <web-daterangepicker id="single-async"></web-daterangepicker>
-        <small>Simulates API call (500ms delay)</small>
-        <div id="log-single-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
+  <div class="grid">
+    <!-- Example 1: Block Weekends -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--err"></span>
+        Block Weekends
+      </label>
+      <web-daterangepicker id="single-block-weekends"></web-daterangepicker>
+      <small>Try selecting Saturday or Sunday</small>
+      <div id="log-single-weekends" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
       </div>
     </div>
 
-    <h3>Code Examples</h3>
-    <pre><code>// Block weekends
+    <!-- Example 2: Block Past Dates -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--err"></span>
+        Block Past Dates
+      </label>
+      <web-daterangepicker id="single-block-past"></web-daterangepicker>
+      <small>Only future dates allowed</small>
+      <div id="log-single-past" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
+      </div>
+    </div>
+
+    <!-- Example 3: Adjust to Next Business Day -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--warn"></span>
+        Adjust to Business Day
+      </label>
+      <web-daterangepicker id="single-adjust-business"></web-daterangepicker>
+      <small>Weekends auto-adjust to Monday</small>
+      <div id="log-single-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
+      </div>
+    </div>
+
+    <!-- Example 4: Async API Validation -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--ok"></span>
+        Async API Validation
+      </label>
+      <web-daterangepicker id="single-async"></web-daterangepicker>
+      <small>Simulates API call (500ms delay)</small>
+      <div id="log-single-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Code Examples</h3>
+  <pre><code>// Block weekends
 picker.beforeSelectCallback = ({ date, controller }) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   if (isWeekend) {
@@ -274,68 +260,68 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
     return false;
   }
 };</code></pre>
-  </div>
+</div>
 
-  <!-- Range Mode Examples -->
-  <div class="card">
-    <h2>EV04 · Range Mode - beforeSelectCallback Examples</h2>
+<!-- Range Mode Examples -->
+<div class="card">
+  <h2>EV04 · Range Mode - beforeSelectCallback Examples</h2>
 
-    <div class="grid">
-      <!-- Example 5: Minimum Nights -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--err"></span>
-          Minimum 2 Nights
-        </label>
-        <web-daterangepicker id="range-min-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <small>Requires at least 2 nights</small>
-        <div id="log-range-min" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
-      </div>
-
-      <!-- Example 6: Maximum Nights (with markRangeInvalid) -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--err"></span>
-          Maximum 7 Nights (markRangeInvalid)
-        </label>
-        <web-daterangepicker id="range-max-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <small>Cannot exceed 7 nights. Calls <code>ctx.markRangeInvalid()</code> before returning <code>false</code> to keep the invalid range visible with error styling.</small>
-        <div id="log-range-max" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
-      </div>
-
-      <!-- Example 7: Adjust End Date -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--warn"></span>
-          Auto-Adjust to Checkout Day
-        </label>
-        <web-daterangepicker id="range-adjust-checkout" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <small>End date must be Sunday (checkout day)</small>
-        <div id="log-range-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
-      </div>
-
-      <!-- Example 8: Async Availability with Custom Message -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--ok"></span>
-          Check Availability (Custom Message)
-        </label>
-        <web-daterangepicker id="range-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>ctx.controller.showMessage(html)</code> for full control; its buttons fire the <code>action</code> event.</small>
-        <div id="log-range-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Waiting for selection...</div>
-        </div>
+  <div class="grid">
+    <!-- Example 5: Minimum Nights -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--err"></span>
+        Minimum 2 Nights
+      </label>
+      <web-daterangepicker id="range-min-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <small>Requires at least 2 nights</small>
+      <div id="log-range-min" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
       </div>
     </div>
 
-    <h3>Code Examples</h3>
-    <pre><code>// Minimum nights requirement
+    <!-- Example 6: Maximum Nights (with markRangeInvalid) -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--err"></span>
+        Maximum 7 Nights (markRangeInvalid)
+      </label>
+      <web-daterangepicker id="range-max-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <small>Cannot exceed 7 nights. Calls <code>ctx.markRangeInvalid()</code> before returning <code>false</code> to keep the invalid range visible with error styling.</small>
+      <div id="log-range-max" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
+      </div>
+    </div>
+
+    <!-- Example 7: Adjust End Date -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--warn"></span>
+        Auto-Adjust to Checkout Day
+      </label>
+      <web-daterangepicker id="range-adjust-checkout" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <small>End date must be Sunday (checkout day)</small>
+      <div id="log-range-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
+      </div>
+    </div>
+
+    <!-- Example 8: Async Availability with Custom Message -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--ok"></span>
+        Check Availability (Custom Message)
+      </label>
+      <web-daterangepicker id="range-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>ctx.controller.showMessage(html)</code> for full control; its buttons fire the <code>action</code> event.</small>
+      <div id="log-range-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Waiting for selection...</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Code Examples</h3>
+  <pre><code>// Minimum nights requirement
 picker.beforeSelectCallback = ({ range, controller }) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
   if (nights &lt; 2) {
@@ -426,22 +412,22 @@ picker.addEventListener('action', (e) => {
   }];
   e.detail.controller.hideMessage();
 });</code></pre>
-  </div>
+</div>
 
-  <!-- getMonthDataCallback / beforeMonthChangeCallback Examples -->
-  <div class="card">
-    <h2>EV05 · getMonthDataCallback &amp; beforeMonthChangeCallback - Performance Optimization</h2>
-    <p>
-      <code>getMonthDataCallback(ctx)</code> loads data for the visible range on the initial open and
-      after every month navigation. Use it to bulk-load metadata for all visible dates in ONE API call
-      instead of calling <code>getDateMetadataCallback</code> 35-42 times per month; return
-      <code>{ metadata, monthHeaders }</code>. <code>beforeMonthChangeCallback(ctx)</code> runs before a
-      navigation; return <code>false</code> to block it. Both may be async (a loader shows meanwhile) and
-      receive <code>year</code>, <code>month</code> (0-11), <code>monthIndex</code>,
-      <code>firstVisibleDate</code>, <code>lastVisibleDate</code>, plus <code>controller</code> / <code>element</code>.
-    </p>
+<!-- getMonthDataCallback / beforeMonthChangeCallback Examples -->
+<div class="card">
+  <h2>EV05 · getMonthDataCallback &amp; beforeMonthChangeCallback - Performance Optimization</h2>
+  <p>
+    <code>getMonthDataCallback(ctx)</code> loads data for the visible range on the initial open and
+    after every month navigation. Use it to bulk-load metadata for all visible dates in ONE API call
+    instead of calling <code>getDateMetadataCallback</code> 35-42 times per month; return
+    <code>{ metadata, monthHeaders }</code>. <code>beforeMonthChangeCallback(ctx)</code> runs before a
+    navigation; return <code>false</code> to block it. Both may be async (a loader shows meanwhile) and
+    receive <code>year</code>, <code>month</code> (0-11), <code>monthIndex</code>,
+    <code>firstVisibleDate</code>, <code>lastVisibleDate</code>, plus <code>controller</code> / <code>element</code>.
+  </p>
 
-    <pre><code>// Bulk data for the visible range
+  <pre><code>// Bulk data for the visible range
 picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   const days = await fetchPricing(firstVisibleDate, lastVisibleDate);
   return {
@@ -458,133 +444,133 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
   if ((year - now.getFullYear()) * 12 + (month - now.getMonth()) > 2) return false;
 };</code></pre>
 
-    <div class="note info">
-      <strong>Performance:</strong> 1 API call per month vs 35-42 calls with per-day callbacks
-    </div>
+  <div class="note info">
+    <strong>Performance:</strong> 1 API call per month vs 35-42 calls with per-day callbacks
+  </div>
 
-    <div class="grid">
-      <!-- Example 9: Bulk Metadata Loading -->
-      <div class="form-group">
-        <label>
-          Hotel Pricing (Bulk Load)
-        </label>
-        <web-daterangepicker id="month-bulk-pricing" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <small>Navigate months to see bulk metadata loading in action. Check console for logs.</small>
-        <div id="log-month-bulk" class="log-panel log-panel--dark" style="--log-max-height: 200px">
-          <div class="muted">Navigate to a month to see bulk loading...</div>
-        </div>
-      </div>
-
-      <!-- Example 10: Block Navigation -->
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--err"></span>
-          Block Future Months
-        </label>
-        <web-daterangepicker id="month-block-future" selection-mode="single"></web-daterangepicker>
-        <small>Try navigating more than 2 months into the future - navigation will be blocked</small>
-        <div id="log-month-block" class="log-panel log-panel--dark" style="--log-max-height: 200px">
-          <div class="muted">Try navigating to future months...</div>
-        </div>
+  <div class="grid">
+    <!-- Example 9: Bulk Metadata Loading -->
+    <div class="form-group">
+      <label>
+        Hotel Pricing (Bulk Load)
+      </label>
+      <web-daterangepicker id="month-bulk-pricing" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <small>Navigate months to see bulk metadata loading in action. Check console for logs.</small>
+      <div id="log-month-bulk" class="log-panel log-panel--dark" style="--log-max-height: 200px">
+        <div class="muted">Navigate to a month to see bulk loading...</div>
       </div>
     </div>
 
-    <!-- New row for unified grid example -->
-    <div class="grid">
-      <!-- Example 11: Unified 3×2 Grid with Anchor Index 2 -->
-      <div class="form-group col-span-full">
-        <label>
-          Unified 3×2 Grid (Anchor: Index 2)
-        </label>
-        <web-daterangepicker
-          id="unified-grid-example"
-          selection-mode="range"
-          positioning-mode="inline"
-          visible-month-count="6"
-          month-layout="grid"
-          grid-rows="2"
-          grid-columns="3"
-          enable-unified-navigation="true"
-          unified-navigation-anchor-index="2"
-          unified-header-interactive="true">
-        </web-daterangepicker>
-        <small>Anchor month at index 2 (top-right). Navigation loads all 6 months at once. Try navigating beyond ±3 months to see blocking.</small>
-        <div id="log-unified-grid" class="log-panel log-panel--dark" style="--log-max-height: 200px">
-          <div class="muted">Navigate to see unified loading...</div>
-        </div>
+    <!-- Example 10: Block Navigation -->
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--err"></span>
+        Block Future Months
+      </label>
+      <web-daterangepicker id="month-block-future" selection-mode="single"></web-daterangepicker>
+      <small>Try navigating more than 2 months into the future - navigation will be blocked</small>
+      <div id="log-month-block" class="log-panel log-panel--dark" style="--log-max-height: 200px">
+        <div class="muted">Try navigating to future months...</div>
       </div>
     </div>
   </div>
 
-  <!-- Custom Month Headers -->
-  <div class="card">
-    <h2>EV06 · Custom Month Headers</h2>
-    <p>
-      Customize the month header text (e.g., "January 2026") to display additional information
-      like room availability, occupancy rates, or any business-specific data.
-    </p>
-
-    <div class="note info">
-      <strong>Two Approaches:</strong>
-      <ul>
-        <li><code>getMonthHeaderCallback</code> - Callback to generate header on-the-fly</li>
-        <li><code>monthHeaders</code> in the <code>getMonthDataCallback</code> result - Return headers with async-loaded data (keys <code>YYYY-MM</code>, 1-based month)</li>
-      </ul>
-      <p><strong>Priority:</strong> monthHeaders &gt; getMonthHeaderCallback &gt; default format</p>
-    </div>
-
-    <div class="grid">
-      <!-- Example: getMonthHeaderCallback -->
-      <div class="form-group">
-        <label>Working Days in Headers</label>
-        <web-daterangepicker id="header-callback" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <small>Headers show working day counts (excludes weekends &amp; holidays)</small>
-        <div id="log-header-callback" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Headers will update as you navigate...</div>
-        </div>
-      </div>
-
-      <!-- Example: monthHeaders from getMonthDataCallback -->
-      <div class="form-group">
-        <label>Headers from Async Data</label>
-        <web-daterangepicker id="header-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-        <small>Headers loaded with pricing data</small>
-        <div id="log-header-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Navigate to load headers with data...</div>
-        </div>
+  <!-- New row for unified grid example -->
+  <div class="grid">
+    <!-- Example 11: Unified 3×2 Grid with Anchor Index 2 -->
+    <div class="form-group col-span-full">
+      <label>
+        Unified 3×2 Grid (Anchor: Index 2)
+      </label>
+      <web-daterangepicker
+        id="unified-grid-example"
+        selection-mode="range"
+        positioning-mode="inline"
+        visible-month-count="6"
+        month-layout="grid"
+        grid-rows="2"
+        grid-columns="3"
+        enable-unified-navigation="true"
+        unified-navigation-anchor-index="2"
+        unified-header-interactive="true">
+      </web-daterangepicker>
+      <small>Anchor month at index 2 (top-right). Navigation loads all 6 months at once. Try navigating beyond ±3 months to see blocking.</small>
+      <div id="log-unified-grid" class="log-panel log-panel--dark" style="--log-max-height: 200px">
+        <div class="muted">Navigate to see unified loading...</div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="grid">
-      <div class="form-group">
-        <label>
-          <span class="status-dot status-dot--err"></span>
-          Block Navigation (3 months max)
-        </label>
-        <web-daterangepicker id="header-block" selection-mode="range" visible-month-count="1"></web-daterangepicker>
-        <small>Cannot navigate more than 3 months ahead</small>
-        <div id="log-header-block" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Try navigating past 3 months...</div>
-        </div>
-      </div>
+<!-- Custom Month Headers -->
+<div class="card">
+  <h2>EV06 · Custom Month Headers</h2>
+  <p>
+    Customize the month header text (e.g., "January 2026") to display additional information
+    like room availability, occupancy rates, or any business-specific data.
+  </p>
 
-      <div class="form-group">
-        <label>3-Month Grid with Occupancy</label>
-        <web-daterangepicker
-          id="header-grid"
-          selection-mode="range"
-          visible-month-count="3"
-          enable-unified-navigation="true"
-        ></web-daterangepicker>
-        <small>Headers show occupancy rates with icons</small>
-        <div id="log-header-grid" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-          <div class="muted">Headers show occupancy percentage...</div>
-        </div>
+  <div class="note info">
+    <strong>Two Approaches:</strong>
+    <ul>
+      <li><code>getMonthHeaderCallback</code> - Callback to generate header on-the-fly</li>
+      <li><code>monthHeaders</code> in the <code>getMonthDataCallback</code> result - Return headers with async-loaded data (keys <code>YYYY-MM</code>, 1-based month)</li>
+    </ul>
+    <p><strong>Priority:</strong> monthHeaders &gt; getMonthHeaderCallback &gt; default format</p>
+  </div>
+
+  <div class="grid">
+    <!-- Example: getMonthHeaderCallback -->
+    <div class="form-group">
+      <label>Working Days in Headers</label>
+      <web-daterangepicker id="header-callback" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <small>Headers show working day counts (excludes weekends &amp; holidays)</small>
+      <div id="log-header-callback" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Headers will update as you navigate...</div>
       </div>
     </div>
 
-    <h3>Code Examples</h3>
-    <pre><code>// Approach 1: getMonthHeaderCallback
+    <!-- Example: monthHeaders from getMonthDataCallback -->
+    <div class="form-group">
+      <label>Headers from Async Data</label>
+      <web-daterangepicker id="header-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
+      <small>Headers loaded with pricing data</small>
+      <div id="log-header-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Navigate to load headers with data...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="form-group">
+      <label>
+        <span class="status-dot status-dot--err"></span>
+        Block Navigation (3 months max)
+      </label>
+      <web-daterangepicker id="header-block" selection-mode="range" visible-month-count="1"></web-daterangepicker>
+      <small>Cannot navigate more than 3 months ahead</small>
+      <div id="log-header-block" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Try navigating past 3 months...</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>3-Month Grid with Occupancy</label>
+      <web-daterangepicker
+        id="header-grid"
+        selection-mode="range"
+        visible-month-count="3"
+        enable-unified-navigation="true"
+      ></web-daterangepicker>
+      <small>Headers show occupancy rates with icons</small>
+      <div id="log-header-grid" class="log-panel log-panel--dark" style="--log-max-height: 150px">
+        <div class="muted">Headers show occupancy percentage...</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Code Examples</h3>
+  <pre><code>// Approach 1: getMonthHeaderCallback
 picker.getMonthHeaderCallback = ({ month, monthName, year }) => {
   const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
   const rooms = roomAvailability[key] || 0;
@@ -606,765 +592,762 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     monthHeaders  // Custom headers returned with data
   };
 };</code></pre>
-  </div>
+</div>
 
-  <script type="module">
-    import { WebDaterangepickerElement } from './src/index.ts';
+<script type="module">
+  import { WebDaterangepickerElement } from './src/index.ts';
 
-    if (!customElements.get('web-daterangepicker')) {
-      customElements.define('web-daterangepicker', WebDaterangepickerElement);
-    }
+  if (!customElements.get('web-daterangepicker')) {
+    customElements.define('web-daterangepicker', WebDaterangepickerElement);
+  }
 
-    // Format a Date as YYYY-MM-DD in LOCAL time. Using Date.prototype.toISOString
-    // would return UTC, which shifts the result by ±1 day in non-UTC timezones —
-    // breaking lookups (badges land on the wrong day) and confusing log output.
-    const toLocalISO = (d) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  // Format a Date as YYYY-MM-DD in LOCAL time. Using Date.prototype.toISOString
+  // would return UTC, which shifts the result by ±1 day in non-UTC timezones —
+  // breaking lookups (badges land on the wrong day) and confusing log output.
+  const toLocalISO = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-    // Helper to log events
-    function logEvent(logId, eventName, data, status = 'info') {
-      const log = document.getElementById(logId);
-      const time = new Date().toLocaleTimeString();
-      const statusColors = {
-        info: '#3b82f6',
-        success: '#10b981',
-        warning: '#f59e0b',
-        error: '#ef4444'
-      };
+  // Helper to log events
+  function logEvent(logId, eventName, data, status = 'info') {
+    const log = document.getElementById(logId);
+    const time = new Date().toLocaleTimeString();
+    const statusColors = {
+      info: '#3b82f6',
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444'
+    };
 
-      log.innerHTML = `
-        <div class="event-log-item">
-          <div>
-            <span class="event-time">${time}</span>
-            <span class="event-name" style="color: ${statusColors[status]}">${eventName}</span>
-          </div>
-          <div class="event-data">${JSON.stringify(data, null, 2)}</div>
+    log.innerHTML = `
+      <div class="event-log-item">
+        <div>
+          <span class="event-time">${time}</span>
+          <span class="event-name" style="color: ${statusColors[status]}">${eventName}</span>
         </div>
-      ` + log.innerHTML;
+        <div class="event-data">${JSON.stringify(data, null, 2)}</div>
+      </div>
+    ` + log.innerHTML;
+  }
+
+  // =================================================================
+  // Event Listening Examples
+  // =================================================================
+
+  const eventSingle = document.getElementById('event-single');
+  const eventRange = document.getElementById('event-range');
+
+  eventSingle.addEventListener('change', (e) => {
+    logEvent('event-log-single', 'change', {
+      formattedValue: e.detail.formattedValue,
+      date: e.detail.date.toISOString()
+    }, 'success');
+  });
+
+  eventRange.addEventListener('change', (e) => {
+    logEvent('event-log-range', 'change', {
+      formattedValue: e.detail.formattedValue,
+      dateRange: {
+        start: e.detail.dateRange.start.toISOString(),
+        end: e.detail.dateRange.end.toISOString()
+      }
+    }, 'success');
+  });
+
+  // The popover opened / closed (open / close events, any reason)
+  for (const [el, log] of [[eventSingle, 'event-log-single'], [eventRange, 'event-log-range']]) {
+    el.addEventListener('open', () => logEvent(log, 'open', {}, 'info'));
+    el.addEventListener('close', () => logEvent(log, 'close', {}, 'info'));
+  }
+
+  // Handler property (on* twin): receives the detail, not the CustomEvent
+  eventRange.onMonthChange = (detail) => {
+    logEvent('event-log-range', 'month-change', {
+      monthIndex: detail.monthIndex,
+      year: detail.year,
+      month: detail.month + 1,
+      visibleMonths: detail.visibleMonths.map(m => `${m.year}-${m.month + 1}`)
+    }, 'info');
+  };
+
+  // =================================================================
+  // Single Mode Examples
+  // =================================================================
+
+  // Example 1: Block Weekends
+  const singleBlockWeekends = document.getElementById('single-block-weekends');
+  singleBlockWeekends.beforeSelectCallback = ({ date, controller }) => {
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+    logEvent('log-single-weekends',
+      isWeekend ? 'BLOCKED' : 'ALLOWED',
+      { date: toLocalISO(date), day: dayName },
+      isWeekend ? 'error' : 'success'
+    );
+
+    if (isWeekend) {
+      controller.showMessage('Weekends not allowed', { type: 'error' });
+      return false; // reject
+    }
+    // nothing returned = accept
+  };
+
+  // Example 2: Block Past Dates
+  const singleBlockPast = document.getElementById('single-block-past');
+  singleBlockPast.beforeSelectCallback = ({ date, controller }) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const isPast = date < today;
+
+    logEvent('log-single-past',
+      isPast ? 'BLOCKED (past date)' : 'ALLOWED',
+      { date: toLocalISO(date) },
+      isPast ? 'error' : 'success'
+    );
+
+    if (isPast) {
+      controller.showMessage('Past dates not allowed', { type: 'error' });
+      return false;
+    }
+  };
+
+  // Example 3: Adjust to Business Day
+  const singleAdjustBusiness = document.getElementById('single-adjust-business');
+  singleAdjustBusiness.beforeSelectCallback = ({ date, controller }) => {
+    const day = date.getDay();
+    let adjusted = null;
+    let message = '';
+
+    if (day === 0) { // Sunday → Monday
+      adjusted = new Date(date);
+      adjusted.setDate(date.getDate() + 1);
+      message = 'Adjusted Sunday to Monday';
+    } else if (day === 6) { // Saturday → Monday
+      adjusted = new Date(date);
+      adjusted.setDate(date.getDate() + 2);
+      message = 'Adjusted Saturday to Monday';
     }
 
-    // =================================================================
-    // Event Listening Examples
-    // =================================================================
+    logEvent('log-single-adjust',
+      adjusted ? 'ADJUSTED' : 'ACCEPTED',
+      {
+        original: toLocalISO(date),
+        adjusted: adjusted ? toLocalISO(adjusted) : null,
+        message
+      },
+      adjusted ? 'warning' : 'success'
+    );
 
-    const eventSingle = document.getElementById('event-single');
-    const eventRange = document.getElementById('event-range');
+    if (adjusted) {
+      controller.showMessage(message, { type: 'info' });
+      return adjusted; // accept this date instead
+    }
+  };
 
-    eventSingle.addEventListener('change', (e) => {
-      logEvent('event-log-single', 'change', {
-        formattedValue: e.detail.formattedValue,
-        date: e.detail.date.toISOString()
-      }, 'success');
-    });
+  // Example 4: Async API Validation
+  const singleAsync = document.getElementById('single-async');
+  singleAsync.beforeSelectCallback = async ({ date, controller }) => {
+    logEvent('log-single-async', 'Validating...', { date: toLocalISO(date) }, 'info');
 
-    eventRange.addEventListener('change', (e) => {
-      logEvent('event-log-range', 'change', {
-        formattedValue: e.detail.formattedValue,
-        dateRange: {
-          start: e.detail.dateRange.start.toISOString(),
-          end: e.detail.dateRange.end.toISOString()
-        }
-      }, 'success');
-    });
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // The popover opened / closed (open / close events, any reason)
-    for (const [el, log] of [[eventSingle, 'event-log-single'], [eventRange, 'event-log-range']]) {
-      el.addEventListener('open', () => logEvent(log, 'open', {}, 'info'));
-      el.addEventListener('close', () => logEvent(log, 'close', {}, 'info'));
+    // Simulate: block dates that are multiples of 5
+    const isBlocked = date.getDate() % 5 === 0;
+
+    logEvent('log-single-async',
+      isBlocked ? 'API: BLOCKED' : 'API: ALLOWED',
+      { date: toLocalISO(date) },
+      isBlocked ? 'error' : 'success'
+    );
+
+    if (isBlocked) {
+      controller.showMessage('Date unavailable per API', { type: 'error' });
+      return false;
+    }
+  };
+
+  // =================================================================
+  // Range Mode Examples
+  // =================================================================
+
+  // Example 5: Minimum Nights
+  const rangeMinNights = document.getElementById('range-min-nights');
+  rangeMinNights.beforeSelectCallback = ({ range, controller }) => {
+    const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+    const isValid = nights >= 2;
+
+    logEvent('log-range-min',
+      isValid ? 'ALLOWED' : 'BLOCKED (min 2 nights)',
+      {
+        start: toLocalISO(range.start),
+        end: toLocalISO(range.end),
+        nights
+      },
+      isValid ? 'success' : 'error'
+    );
+
+    if (!isValid) {
+      controller.showMessage('Minimum 2 nights required', { type: 'error' });
+      return false;
+    }
+  };
+
+  // Example 6: Maximum Nights (with markRangeInvalid)
+  const rangeMaxNights = document.getElementById('range-max-nights');
+  rangeMaxNights.beforeSelectCallback = ({ range, controller, markRangeInvalid }) => {
+    const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+    const isValid = nights <= 7;
+
+    logEvent('log-range-max',
+      isValid ? 'ALLOWED' : 'BLOCKED (max 7 nights)',
+      {
+        start: toLocalISO(range.start),
+        end: toLocalISO(range.end),
+        nights
+      },
+      isValid ? 'success' : 'error'
+    );
+
+    if (!isValid) {
+      // Keep the rejected range visible with error styling, explain, reject
+      markRangeInvalid();
+      controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
+      return false;
+    }
+  };
+
+  // Example 7: Adjust End Date to Sunday
+  const rangeAdjustCheckout = document.getElementById('range-adjust-checkout');
+  rangeAdjustCheckout.beforeSelectCallback = ({ range, controller }) => {
+    const endDay = range.end.getDay();
+
+    if (endDay !== 0) { // Not Sunday
+      const adjusted = new Date(range.end);
+      const daysToSunday = 7 - endDay;
+      adjusted.setDate(range.end.getDate() + daysToSunday);
+
+      logEvent('log-range-adjust', 'ADJUSTED to Sunday',
+        {
+          start: toLocalISO(range.start),
+          originalEnd: toLocalISO(range.end),
+          adjustedEnd: toLocalISO(adjusted)
+        },
+        'warning'
+      );
+
+      controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
+      return { start: range.start, end: adjusted }; // accept this range instead
     }
 
-    // Handler property (on* twin): receives the detail, not the CustomEvent
-    eventRange.onMonthChange = (detail) => {
-      logEvent('event-log-range', 'month-change', {
-        monthIndex: detail.monthIndex,
-        year: detail.year,
-        month: detail.month + 1,
-        visibleMonths: detail.visibleMonths.map(m => `${m.year}-${m.month + 1}`)
-      }, 'info');
-    };
-
-    // =================================================================
-    // Single Mode Examples
-    // =================================================================
-
-    // Example 1: Block Weekends
-    const singleBlockWeekends = document.getElementById('single-block-weekends');
-    singleBlockWeekends.beforeSelectCallback = ({ date, controller }) => {
-      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-
-      logEvent('log-single-weekends',
-        isWeekend ? 'BLOCKED' : 'ALLOWED',
-        { date: toLocalISO(date), day: dayName },
-        isWeekend ? 'error' : 'success'
-      );
-
-      if (isWeekend) {
-        controller.showMessage('Weekends not allowed', { type: 'error' });
-        return false; // reject
-      }
-      // nothing returned = accept
-    };
-
-    // Example 2: Block Past Dates
-    const singleBlockPast = document.getElementById('single-block-past');
-    singleBlockPast.beforeSelectCallback = ({ date, controller }) => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const isPast = date < today;
-
-      logEvent('log-single-past',
-        isPast ? 'BLOCKED (past date)' : 'ALLOWED',
-        { date: toLocalISO(date) },
-        isPast ? 'error' : 'success'
-      );
-
-      if (isPast) {
-        controller.showMessage('Past dates not allowed', { type: 'error' });
-        return false;
-      }
-    };
-
-    // Example 3: Adjust to Business Day
-    const singleAdjustBusiness = document.getElementById('single-adjust-business');
-    singleAdjustBusiness.beforeSelectCallback = ({ date, controller }) => {
-      const day = date.getDay();
-      let adjusted = null;
-      let message = '';
-
-      if (day === 0) { // Sunday → Monday
-        adjusted = new Date(date);
-        adjusted.setDate(date.getDate() + 1);
-        message = 'Adjusted Sunday to Monday';
-      } else if (day === 6) { // Saturday → Monday
-        adjusted = new Date(date);
-        adjusted.setDate(date.getDate() + 2);
-        message = 'Adjusted Saturday to Monday';
-      }
-
-      logEvent('log-single-adjust',
-        adjusted ? 'ADJUSTED' : 'ACCEPTED',
-        {
-          original: toLocalISO(date),
-          adjusted: adjusted ? toLocalISO(adjusted) : null,
-          message
-        },
-        adjusted ? 'warning' : 'success'
-      );
-
-      if (adjusted) {
-        controller.showMessage(message, { type: 'info' });
-        return adjusted; // accept this date instead
-      }
-    };
-
-    // Example 4: Async API Validation
-    const singleAsync = document.getElementById('single-async');
-    singleAsync.beforeSelectCallback = async ({ date, controller }) => {
-      logEvent('log-single-async', 'Validating...', { date: toLocalISO(date) }, 'info');
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Simulate: block dates that are multiples of 5
-      const isBlocked = date.getDate() % 5 === 0;
-
-      logEvent('log-single-async',
-        isBlocked ? 'API: BLOCKED' : 'API: ALLOWED',
-        { date: toLocalISO(date) },
-        isBlocked ? 'error' : 'success'
-      );
-
-      if (isBlocked) {
-        controller.showMessage('Date unavailable per API', { type: 'error' });
-        return false;
-      }
-    };
-
-    // =================================================================
-    // Range Mode Examples
-    // =================================================================
-
-    // Example 5: Minimum Nights
-    const rangeMinNights = document.getElementById('range-min-nights');
-    rangeMinNights.beforeSelectCallback = ({ range, controller }) => {
-      const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
-      const isValid = nights >= 2;
-
-      logEvent('log-range-min',
-        isValid ? 'ALLOWED' : 'BLOCKED (min 2 nights)',
-        {
-          start: toLocalISO(range.start),
-          end: toLocalISO(range.end),
-          nights
-        },
-        isValid ? 'success' : 'error'
-      );
-
-      if (!isValid) {
-        controller.showMessage('Minimum 2 nights required', { type: 'error' });
-        return false;
-      }
-    };
-
-    // Example 6: Maximum Nights (with markRangeInvalid)
-    const rangeMaxNights = document.getElementById('range-max-nights');
-    rangeMaxNights.beforeSelectCallback = ({ range, controller, markRangeInvalid }) => {
-      const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
-      const isValid = nights <= 7;
-
-      logEvent('log-range-max',
-        isValid ? 'ALLOWED' : 'BLOCKED (max 7 nights)',
-        {
-          start: toLocalISO(range.start),
-          end: toLocalISO(range.end),
-          nights
-        },
-        isValid ? 'success' : 'error'
-      );
-
-      if (!isValid) {
-        // Keep the rejected range visible with error styling, explain, reject
-        markRangeInvalid();
-        controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
-        return false;
-      }
-    };
-
-    // Example 7: Adjust End Date to Sunday
-    const rangeAdjustCheckout = document.getElementById('range-adjust-checkout');
-    rangeAdjustCheckout.beforeSelectCallback = ({ range, controller }) => {
-      const endDay = range.end.getDay();
-
-      if (endDay !== 0) { // Not Sunday
-        const adjusted = new Date(range.end);
-        const daysToSunday = 7 - endDay;
-        adjusted.setDate(range.end.getDate() + daysToSunday);
-
-        logEvent('log-range-adjust', 'ADJUSTED to Sunday',
-          {
-            start: toLocalISO(range.start),
-            originalEnd: toLocalISO(range.end),
-            adjustedEnd: toLocalISO(adjusted)
-          },
-          'warning'
-        );
-
-        controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
-        return { start: range.start, end: adjusted }; // accept this range instead
-      }
-
-      logEvent('log-range-adjust', 'ACCEPTED (already Sunday)',
-        {
-          start: toLocalISO(range.start),
-          end: toLocalISO(range.end)
-        },
-        'success'
-      );
-    };
-
-    // Example 8: Async Availability Check (with custom HTML message)
-    const rangeAsync = document.getElementById('range-async');
-    rangeAsync.beforeSelectCallback = async ({ range, controller, markRangeInvalid }) => {
-      logEvent('log-range-async', 'Checking availability...', {
+    logEvent('log-range-adjust', 'ACCEPTED (already Sunday)',
+      {
         start: toLocalISO(range.start),
         end: toLocalISO(range.end)
-      }, 'info');
+      },
+      'success'
+    );
+  };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+  // Example 8: Async Availability Check (with custom HTML message)
+  const rangeAsync = document.getElementById('range-async');
+  rangeAsync.beforeSelectCallback = async ({ range, controller, markRangeInvalid }) => {
+    logEvent('log-range-async', 'Checking availability...', {
+      start: toLocalISO(range.start),
+      end: toLocalISO(range.end)
+    }, 'info');
 
-      // Simulate: block if range is longer than 5 days
-      const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
-      const isAvailable = nights <= 5;
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-      logEvent('log-range-async',
-        isAvailable ? 'API: AVAILABLE' : 'API: NOT AVAILABLE',
-        {
-          start: toLocalISO(range.start),
-          end: toLocalISO(range.end),
-          nights
-        },
-        isAvailable ? 'success' : 'error'
-      );
+    // Simulate: block if range is longer than 5 days
+    const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
+    const isAvailable = nights <= 5;
 
-      if (!isAvailable) {
-        // Generate some fake "available" alternative ranges
-        const alt1Start = new Date(range.start);
-        const alt1End = new Date(range.start);
-        alt1End.setDate(alt1End.getDate() + 3);
-
-        const alt2Start = new Date(range.start);
-        alt2Start.setDate(alt2Start.getDate() + 7);
-        const alt2End = new Date(alt2Start);
-        alt2End.setDate(alt2End.getDate() + 4);
-
-        const formatDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-        // Show custom HTML message with available alternatives
-        // No type = raw HTML. A data-action="custom" data-id="…" button fires the 'action' event.
-        controller.showMessage(`
-          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px;">
-            <div style="color: #991b1b; font-weight: 600; margin-bottom: 8px;">
-              ⚠️ Selected dates not available
-            </div>
-            <div style="color: #7f1d1d; font-size: 0.875rem; margin-bottom: 10px;">
-              Maximum 5 nights per booking. You requested ${nights} nights.
-            </div>
-            <div style="color: #374151; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">
-              Available alternatives:
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button data-action="custom" data-id="use-alternative"
-                      data-start-date="${toLocalISO(alt1Start)}"
-                      data-end-date="${toLocalISO(alt1End)}"
-                      data-nights="3"
-                      style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-                ${formatDate(alt1Start)} - ${formatDate(alt1End)} (3 nights)
-              </button>
-              <button data-action="custom" data-id="use-alternative"
-                      data-start-date="${toLocalISO(alt2Start)}"
-                      data-end-date="${toLocalISO(alt2End)}"
-                      data-nights="4"
-                      style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-                ${formatDate(alt2Start)} - ${formatDate(alt2End)} (4 nights)
-              </button>
-            </div>
-          </div>
-        `);
-
-        markRangeInvalid();
-        return false;
-      }
-    };
-
-    // Handle the action event (source: 'message') to apply the chosen alternative
-    rangeAsync.addEventListener('action', (e) => {
-      if (e.detail.id !== 'use-alternative') return;
-      // The trigger's other data-* attributes: data-start-date → dataset.startDate
-      const { startDate, endDate, nights } = e.detail.dataset;
-
-      logEvent('log-range-async', 'ACTION', {
-        id: e.detail.id,
-        source: e.detail.source,
-        startDate,
-        endDate,
+    logEvent('log-range-async',
+      isAvailable ? 'API: AVAILABLE' : 'API: NOT AVAILABLE',
+      {
+        start: toLocalISO(range.start),
+        end: toLocalISO(range.end),
         nights
-      }, 'info');
+      },
+      isAvailable ? 'success' : 'error'
+    );
 
-      rangeAsync.selectedRanges = [{
-        start: new Date(`${startDate}T00:00`),
-        end: new Date(`${endDate}T00:00`)
-      }];
-      e.detail.controller.hideMessage();
-    });
+    if (!isAvailable) {
+      // Generate some fake "available" alternative ranges
+      const alt1Start = new Date(range.start);
+      const alt1End = new Date(range.start);
+      alt1End.setDate(alt1End.getDate() + 3);
 
-    // =================================================================
-    // getMonthDataCallback / beforeMonthChangeCallback Examples (Performance Optimization)
-    // =================================================================
+      const alt2Start = new Date(range.start);
+      alt2Start.setDate(alt2Start.getDate() + 7);
+      const alt2End = new Date(alt2Start);
+      alt2End.setDate(alt2End.getDate() + 4);
 
-    // Example 9: Bulk Metadata Loading (Hotel Pricing)
-    const monthBulkPricing = document.getElementById('month-bulk-pricing');
+      const formatDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    // Add custom styles for badge classes
-    monthBulkPricing.getCustomStylesCallback = () => `
-      .drp__badge-cell.available {
-        background-color: rgba(34, 197, 94, 0.3);
-        color: #166534;
-        font-weight: 600;
-      }
+      // Show custom HTML message with available alternatives
+      // No type = raw HTML. A data-action="custom" data-id="…" button fires the 'action' event.
+      controller.showMessage(`
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px;">
+          <div style="color: #991b1b; font-weight: 600; margin-bottom: 8px;">
+            ⚠️ Selected dates not available
+          </div>
+          <div style="color: #7f1d1d; font-size: 0.875rem; margin-bottom: 10px;">
+            Maximum 5 nights per booking. You requested ${nights} nights.
+          </div>
+          <div style="color: #374151; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">
+            Available alternatives:
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button data-action="custom" data-id="use-alternative"
+                    data-start-date="${toLocalISO(alt1Start)}"
+                    data-end-date="${toLocalISO(alt1End)}"
+                    data-nights="3"
+                    style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+              ${formatDate(alt1Start)} - ${formatDate(alt1End)} (3 nights)
+            </button>
+            <button data-action="custom" data-id="use-alternative"
+                    data-start-date="${toLocalISO(alt2Start)}"
+                    data-end-date="${toLocalISO(alt2End)}"
+                    data-nights="4"
+                    style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+              ${formatDate(alt2Start)} - ${formatDate(alt2End)} (4 nights)
+            </button>
+          </div>
+        </div>
+      `);
 
-      .drp__badge-cell.sold-out {
-        background-color: rgba(239, 68, 68, 0.3);
-        color: #991b1b;
-        font-weight: 600;
-      }
-    `;
+      markRangeInvalid();
+      return false;
+    }
+  };
 
-    // getMonthDataCallback runs on the initial open and after every month navigation
-    monthBulkPricing.getMonthDataCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
-      const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  // Handle the action event (source: 'message') to apply the chosen alternative
+  rangeAsync.addEventListener('action', (e) => {
+    if (e.detail.id !== 'use-alternative') return;
+    // The trigger's other data-* attributes: data-start-date → dataset.startDate
+    const { startDate, endDate, nights } = e.detail.dataset;
 
-      logEvent('log-month-bulk', `📅 Loading ${monthName}...`, {
-        range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`
-      }, 'info');
+    logEvent('log-range-async', 'ACTION', {
+      id: e.detail.id,
+      source: e.detail.source,
+      startDate,
+      endDate,
+      nights
+    }, 'info');
 
-      console.log(`[getMonthDataCallback] Loading ${monthName}`);
-      console.log(`  Visible range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
+    rangeAsync.selectedRanges = [{
+      start: new Date(`${startDate}T00:00`),
+      end: new Date(`${endDate}T00:00`)
+    }];
+    e.detail.controller.hideMessage();
+  });
 
-      // Simulate API call to fetch availability for entire month
-      await new Promise(resolve => setTimeout(resolve, 600));
+  // =================================================================
+  // getMonthDataCallback / beforeMonthChangeCallback Examples (Performance Optimization)
+  // =================================================================
 
-      // Build bulk metadata map (YYYY-MM-DD -> DateInfo)
-      const metadata = new Map();
-      let currentDate = new Date(firstVisibleDate);
+  // Example 9: Bulk Metadata Loading (Hotel Pricing)
+  const monthBulkPricing = document.getElementById('month-bulk-pricing');
 
-      while (currentDate <= lastVisibleDate) {
-        const dateKey = toLocalISO(currentDate);
+  // Add custom styles for badge classes
+  monthBulkPricing.getCustomStylesCallback = () => `
+    .drp__badge-cell.available {
+      background-color: rgba(34, 197, 94, 0.3);
+      color: #166534;
+      font-weight: 600;
+    }
 
-        // Example logic: weekends are more expensive
-        const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
-        const basePrice = isWeekend ? 250 : 150;
+    .drp__badge-cell.sold-out {
+      background-color: rgba(239, 68, 68, 0.3);
+      color: #991b1b;
+      font-weight: 600;
+    }
+  `;
 
-        // Add some variation
-        const price = basePrice + Math.floor(Math.random() * 50);
+  // getMonthDataCallback runs on the initial open and after every month navigation
+  monthBulkPricing.getMonthDataCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
+    const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-        // Some dates are unavailable (10% chance)
-        const available = Math.random() > 0.1;
+    logEvent('log-month-bulk', `📅 Loading ${monthName}...`, {
+      range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`
+    }, 'info');
 
-        metadata.set(dateKey, {
-          badgeText: available ? `$${price}` : '✕',
-          badgeClass: available ? 'available' : 'sold-out',
-          dayTooltip: available ? `$${price}/night - Available` : 'Sold out',
-          isDisabled: !available
-        });
+    console.log(`[getMonthDataCallback] Loading ${monthName}`);
+    console.log(`  Visible range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
 
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
+    // Simulate API call to fetch availability for entire month
+    await new Promise(resolve => setTimeout(resolve, 600));
 
-      console.log(`  ✅ Loaded ${metadata.size} dates with pricing`);
+    // Build bulk metadata map (YYYY-MM-DD -> DateInfo)
+    const metadata = new Map();
+    let currentDate = new Date(firstVisibleDate);
 
-      logEvent('log-month-bulk', `✅ Loaded ${metadata.size} dates`, {
-        month: monthName,
-        available: Array.from(metadata.values()).filter(m => !m.isDisabled).length,
-        soldOut: Array.from(metadata.values()).filter(m => m.isDisabled).length
-      }, 'success');
+    while (currentDate <= lastVisibleDate) {
+      const dateKey = toLocalISO(currentDate);
 
-      return { metadata };
-    };
+      // Example logic: weekends are more expensive
+      const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+      const basePrice = isWeekend ? 250 : 150;
 
-    // Example 10: Block Future Navigation
-    const monthBlockFuture = document.getElementById('month-block-future');
-    monthBlockFuture.beforeMonthChangeCallback = async ({ year, month }) => {
-      const today = new Date();
-      const currentMonth = today.getMonth();
-      const currentYear = today.getFullYear();
+      // Add some variation
+      const price = basePrice + Math.floor(Math.random() * 50);
 
-      // Calculate months from now
-      const targetMonthsFromNow = (year - currentYear) * 12 + (month - currentMonth);
+      // Some dates are unavailable (10% chance)
+      const available = Math.random() > 0.1;
 
-      const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      metadata.set(dateKey, {
+        badgeText: available ? `$${price}` : '✕',
+        badgeClass: available ? 'available' : 'sold-out',
+        dayTooltip: available ? `$${price}/night - Available` : 'Sold out',
+        isDisabled: !available
+      });
 
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    console.log(`  ✅ Loaded ${metadata.size} dates with pricing`);
+
+    logEvent('log-month-bulk', `✅ Loaded ${metadata.size} dates`, {
+      month: monthName,
+      available: Array.from(metadata.values()).filter(m => !m.isDisabled).length,
+      soldOut: Array.from(metadata.values()).filter(m => m.isDisabled).length
+    }, 'success');
+
+    return { metadata };
+  };
+
+  // Example 10: Block Future Navigation
+  const monthBlockFuture = document.getElementById('month-block-future');
+  monthBlockFuture.beforeMonthChangeCallback = async ({ year, month }) => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Calculate months from now
+    const targetMonthsFromNow = (year - currentYear) * 12 + (month - currentMonth);
+
+    const monthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    logEvent('log-month-block',
+      `Checking ${monthName} (${targetMonthsFromNow} months from now)...`,
+      {},
+      'info'
+    );
+
+    // Simulate async check
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Block if more than 2 months in the future
+    if (targetMonthsFromNow > 2) {
       logEvent('log-month-block',
-        `Checking ${monthName} (${targetMonthsFromNow} months from now)...`,
-        {},
-        'info'
+        `🚫 BLOCKED: ${monthName}`,
+        { reason: 'Cannot navigate more than 2 months into the future' },
+        'error'
       );
 
-      // Simulate async check
-      await new Promise(resolve => setTimeout(resolve, 300));
+      console.warn(`[beforeMonthChangeCallback] Blocked navigation to ${monthName}`);
 
-      // Block if more than 2 months in the future
-      if (targetMonthsFromNow > 2) {
-        logEvent('log-month-block',
-          `🚫 BLOCKED: ${monthName}`,
-          { reason: 'Cannot navigate more than 2 months into the future' },
-          'error'
-        );
+      return false; // block the navigation
+    }
 
-        console.warn(`[beforeMonthChangeCallback] Blocked navigation to ${monthName}`);
+    logEvent('log-month-block',
+      `✅ ALLOWED: ${monthName}`,
+      { monthsFromNow: targetMonthsFromNow },
+      'success'
+    );
+    // nothing returned = navigation continues
+  };
 
-        return false; // block the navigation
+  // =================================================================
+  // Example 11: Unified 3×2 Grid with Anchor Index 2
+  // =================================================================
+  const unifiedGridExample = document.getElementById('unified-grid-example');
+
+  // Add custom styles for badge classes
+  unifiedGridExample.getCustomStylesCallback = () => `
+    .drp__badge-cell.available {
+      background-color: rgba(34, 197, 94, 0.3);
+      color: #166534;
+      font-weight: 600;
+    }
+
+    .drp__badge-cell.sold-out {
+      background-color: rgba(239, 68, 68, 0.3);
+      color: #991b1b;
+      font-weight: 600;
+    }
+  `;
+
+  // Gate: block navigation beyond ±3 months from today
+  unifiedGridExample.beforeMonthChangeCallback = ({ year, month }) => {
+    const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const targetMonthsFromNow = (year - currentYear) * 12 + (month - currentMonth);
+
+    if (targetMonthsFromNow < -3 || targetMonthsFromNow > 3) {
+      logEvent('log-unified-grid', `🚫 BLOCKED: ${anchorMonthName}`, {
+        reason: 'Cannot navigate beyond ±3 months from today',
+        monthsFromNow: targetMonthsFromNow
+      }, 'error');
+
+      console.warn(`[Unified Grid] Navigation blocked: ${targetMonthsFromNow} months from now (limit: ±3)`);
+
+      return false;
+    }
+  };
+
+  // Data: one call for the whole 6-month grid (unified navigation)
+  unifiedGridExample.getMonthDataCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
+    const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    logEvent('log-unified-grid', `📅 Loading unified grid (anchor: ${anchorMonthName})...`, {
+      range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`,
+      anchorIndex: monthIndex
+    }, 'info');
+
+    console.log(`[Unified Grid] Anchor: ${anchorMonthName} (index ${monthIndex})`);
+    console.log(`  Full range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 700));
+
+    // Generate metadata for entire visible range (all 6 months)
+    const metadata = new Map();
+    let currentDate = new Date(firstVisibleDate);
+
+    while (currentDate <= lastVisibleDate) {
+      const dateKey = toLocalISO(currentDate);
+      const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+      const basePrice = isWeekend ? 280 : 180;
+      const price = basePrice + Math.floor(Math.random() * 70);
+      const available = Math.random() > 0.15;
+
+      metadata.set(dateKey, {
+        badgeText: available ? `$${price}` : '✕',
+        badgeClass: available ? 'available' : 'sold-out',
+        dayTooltip: available ? `$${price}/night` : 'Unavailable',
+        isDisabled: !available
+      });
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    console.log(`  ✅ Loaded ${metadata.size} dates across 6 months`);
+
+    logEvent('log-unified-grid', `✅ Loaded ${metadata.size} dates`, {
+      anchorMonth: anchorMonthName,
+      available: Array.from(metadata.values()).filter(m => !m.isDisabled).length,
+      unavailable: Array.from(metadata.values()).filter(m => m.isDisabled).length
+    }, 'success');
+
+    return { metadata };
+  };
+
+  // =================================================================
+  // Custom Month Headers Examples
+  // =================================================================
+
+  // Example: Working Days Count in Headers
+  const headerCallback = document.getElementById('header-callback');
+
+  // Helper to format date as YYYY-MM-DD (local timezone, no UTC shift)
+  function formatDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // Generate special days dynamically relative to current date
+  // This ensures the demo always has visible holidays regardless of when viewed
+  function generateSpecialDays() {
+    const specialDays = new Set();
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+
+    // For current month and surrounding months (±3 to +6), add some "holidays"
+    for (let offset = -3; offset <= 6; offset++) {
+      const targetDate = new Date(currentYear, currentMonth + offset, 1);
+      const year = targetDate.getFullYear();
+      const month = targetDate.getMonth();
+
+      // Add 15th of each month as a "company day off"
+      specialDays.add(formatDateKey(new Date(year, month, 15)));
+
+      // Add last Friday of each month as "monthly review day"
+      const lastDay = new Date(year, month + 1, 0);
+      while (lastDay.getDay() !== 5) lastDay.setDate(lastDay.getDate() - 1);
+      specialDays.add(formatDateKey(lastDay));
+
+      // Add first Monday of each month as "planning day"
+      const firstDay = new Date(year, month, 1);
+      while (firstDay.getDay() !== 1) firstDay.setDate(firstDay.getDate() + 1);
+      specialDays.add(formatDateKey(firstDay));
+    }
+    return specialDays;
+  }
+
+  const specialDays = generateSpecialDays();
+
+  // Custom styles for working day and special day highlighting
+  headerCallback.getCustomStylesCallback = () => `
+    .drp__day.working-day {
+      background-color: rgba(34, 197, 94, 0.15);
+    }
+    .drp__day.special-day {
+      background-color: rgba(251, 191, 36, 0.25);
+    }
+  `;
+
+  // Calculate working days for a month
+  function getWorkingDays(year, month) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let workingDays = 0;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dayOfWeek = date.getDay();
+      const dateStr = formatDateKey(date);
+
+      // Mon-Fri (1-5) and not a special day
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && !specialDays.has(dateStr)) {
+        workingDays++;
       }
+    }
+    return workingDays;
+  }
 
-      logEvent('log-month-block',
-        `✅ ALLOWED: ${monthName}`,
-        { monthsFromNow: targetMonthsFromNow },
-        'success'
-      );
-      // nothing returned = navigation continues
-    };
+  headerCallback.getMonthHeaderCallback = ({ month, monthName, year }) => {
+    const monthNum = month.getMonth();
+    const workingDays = getWorkingDays(year, monthNum);
+    const monthStr = String(monthNum + 1).padStart(2, '0');
+    logEvent('log-header-callback', `Header: ${monthStr}/${year}`, { workingDays }, 'success');
+    return `${monthStr}/${year} ${workingDays}WD`;
+  };
 
-    // =================================================================
-    // Example 11: Unified 3×2 Grid with Anchor Index 2
-    // =================================================================
-    const unifiedGridExample = document.getElementById('unified-grid-example');
+  // Mark working days and special days with colors
+  headerCallback.getMonthDataCallback = ({ firstVisibleDate, lastVisibleDate }) => {
+    const metadata = new Map();
+    const current = new Date(firstVisibleDate);
+    const endDate = new Date(lastVisibleDate);
 
-    // Add custom styles for badge classes
-    unifiedGridExample.getCustomStylesCallback = () => `
-      .drp__badge-cell.available {
-        background-color: rgba(34, 197, 94, 0.3);
-        color: #166534;
-        font-weight: 600;
-      }
+    while (current <= endDate) {
+      const dateStr = formatDateKey(current);
+      const dayOfWeek = current.getDay();
+      const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+      const isSpecialDay = specialDays.has(dateStr);
 
-      .drp__badge-cell.sold-out {
-        background-color: rgba(239, 68, 68, 0.3);
-        color: #991b1b;
-        font-weight: 600;
-      }
-    `;
-
-    // Gate: block navigation beyond ±3 months from today
-    unifiedGridExample.beforeMonthChangeCallback = ({ year, month }) => {
-      const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      const today = new Date();
-      const currentMonth = today.getMonth();
-      const currentYear = today.getFullYear();
-      const targetMonthsFromNow = (year - currentYear) * 12 + (month - currentMonth);
-
-      if (targetMonthsFromNow < -3 || targetMonthsFromNow > 3) {
-        logEvent('log-unified-grid', `🚫 BLOCKED: ${anchorMonthName}`, {
-          reason: 'Cannot navigate beyond ±3 months from today',
-          monthsFromNow: targetMonthsFromNow
-        }, 'error');
-
-        console.warn(`[Unified Grid] Navigation blocked: ${targetMonthsFromNow} months from now (limit: ±3)`);
-
-        return false;
-      }
-    };
-
-    // Data: one call for the whole 6-month grid (unified navigation)
-    unifiedGridExample.getMonthDataCallback = async ({ year, month, monthIndex, firstVisibleDate, lastVisibleDate }) => {
-      const anchorMonthName = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-      logEvent('log-unified-grid', `📅 Loading unified grid (anchor: ${anchorMonthName})...`, {
-        range: `${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`,
-        anchorIndex: monthIndex
-      }, 'info');
-
-      console.log(`[Unified Grid] Anchor: ${anchorMonthName} (index ${monthIndex})`);
-      console.log(`  Full range: ${toLocalISO(firstVisibleDate)} to ${toLocalISO(lastVisibleDate)}`);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 700));
-
-      // Generate metadata for entire visible range (all 6 months)
-      const metadata = new Map();
-      let currentDate = new Date(firstVisibleDate);
-
-      while (currentDate <= lastVisibleDate) {
-        const dateKey = toLocalISO(currentDate);
-        const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
-        const basePrice = isWeekend ? 280 : 180;
-        const price = basePrice + Math.floor(Math.random() * 70);
-        const available = Math.random() > 0.15;
-
-        metadata.set(dateKey, {
-          badgeText: available ? `$${price}` : '✕',
-          badgeClass: available ? 'available' : 'sold-out',
-          dayTooltip: available ? `$${price}/night` : 'Unavailable',
-          isDisabled: !available
+      if (isWeekday && !isSpecialDay) {
+        // Working day - light green
+        metadata.set(dateStr, { dayClass: 'working-day' });
+      } else if (isSpecialDay) {
+        // Special non-working day - amber/yellow
+        metadata.set(dateStr, {
+          dayClass: 'special-day',
+          dayTooltip: 'Non-working day'
         });
-
-        currentDate.setDate(currentDate.getDate() + 1);
       }
-
-      console.log(`  ✅ Loaded ${metadata.size} dates across 6 months`);
-
-      logEvent('log-unified-grid', `✅ Loaded ${metadata.size} dates`, {
-        anchorMonth: anchorMonthName,
-        available: Array.from(metadata.values()).filter(m => !m.isDisabled).length,
-        unavailable: Array.from(metadata.values()).filter(m => m.isDisabled).length
-      }, 'success');
-
-      return { metadata };
-    };
-
-    // =================================================================
-    // Custom Month Headers Examples
-    // =================================================================
-
-    // Example: Working Days Count in Headers
-    const headerCallback = document.getElementById('header-callback');
-
-    // Helper to format date as YYYY-MM-DD (local timezone, no UTC shift)
-    function formatDateKey(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
+      current.setDate(current.getDate() + 1);
     }
 
-    // Generate special days dynamically relative to current date
-    // This ensures the demo always has visible holidays regardless of when viewed
-    function generateSpecialDays() {
-      const specialDays = new Set();
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth();
+    return { metadata };
+  };
 
-      // For current month and surrounding months (±3 to +6), add some "holidays"
-      for (let offset = -3; offset <= 6; offset++) {
-        const targetDate = new Date(currentYear, currentMonth + offset, 1);
-        const year = targetDate.getFullYear();
-        const month = targetDate.getMonth();
+  // Example: monthHeaders from getMonthDataCallback
+  const headerAsync = document.getElementById('header-async');
 
-        // Add 15th of each month as a "company day off"
-        specialDays.add(formatDateKey(new Date(year, month, 15)));
+  // Custom styles for badge classes
+  headerAsync.getCustomStylesCallback = () => `
+    .drp__badge-cell.rooms-high {
+      background-color: rgba(34, 197, 94, 0.3);
+      color: #166534;
+    }
+    .drp__badge-cell.rooms-low {
+      background-color: rgba(251, 191, 36, 0.3);
+      color: #92400e;
+    }
+    .drp__badge-cell.rooms-none {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #991b1b;
+    }
+  `;
 
-        // Add last Friday of each month as "monthly review day"
-        const lastDay = new Date(year, month + 1, 0);
-        while (lastDay.getDay() !== 5) lastDay.setDate(lastDay.getDate() - 1);
-        specialDays.add(formatDateKey(lastDay));
+  headerAsync.getMonthDataCallback = async ({ year, month, firstVisibleDate, lastVisibleDate }) => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        // Add first Monday of each month as "planning day"
-        const firstDay = new Date(year, month, 1);
-        while (firstDay.getDay() !== 1) firstDay.setDate(firstDay.getDate() + 1);
-        specialDays.add(formatDateKey(firstDay));
-      }
-      return specialDays;
+    logEvent('log-header-async', `Loading ${monthNames[month]} ${year}...`, {}, 'info');
+
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    // Generate metadata
+    const metadata = new Map();
+    const monthHeaders = new Map();
+    let totalRooms = 0;
+
+    const currentDate = new Date(firstVisibleDate);
+    while (currentDate <= lastVisibleDate) {
+      const dateKey = toLocalISO(currentDate);
+      const rooms = Math.floor(Math.random() * 20);
+      totalRooms += rooms;
+
+      metadata.set(dateKey, {
+        badgeText: rooms > 0 ? `${rooms}` : '✕',
+        badgeClass: rooms >= 10 ? 'rooms-high' : rooms > 0 ? 'rooms-low' : 'rooms-none',
+        dayTooltip: `${rooms} rooms available`
+      });
+
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    const specialDays = generateSpecialDays();
+    // Set month header with loaded data (key: YYYY-MM, 1-based month)
+    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+    monthHeaders.set(monthKey, `${monthNames[month]} ${year} (${totalRooms} total)`);
 
-    // Custom styles for working day and special day highlighting
-    headerCallback.getCustomStylesCallback = () => `
-      .drp__day.working-day {
-        background-color: rgba(34, 197, 94, 0.15);
-      }
-      .drp__day.special-day {
-        background-color: rgba(251, 191, 36, 0.25);
-      }
-    `;
+    logEvent('log-header-async', `Loaded`, { header: monthHeaders.get(monthKey) }, 'success');
 
-    // Calculate working days for a month
-    function getWorkingDays(year, month) {
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      let workingDays = 0;
+    return { metadata, monthHeaders };
+  };
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dayOfWeek = date.getDay();
-        const dateStr = formatDateKey(date);
+  // Example: Block Navigation
+  const headerBlock = document.getElementById('header-block');
+  const todayForBlock = new Date();
+  const maxMonthForBlock = new Date(todayForBlock.getFullYear(), todayForBlock.getMonth() + 3, 1);
 
-        // Mon-Fri (1-5) and not a special day
-        if (dayOfWeek >= 1 && dayOfWeek <= 5 && !specialDays.has(dateStr)) {
-          workingDays++;
-        }
-      }
-      return workingDays;
+  headerBlock.beforeMonthChangeCallback = ({ year, month }) => {
+    const targetDate = new Date(year, month, 1);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    if (targetDate > maxMonthForBlock) {
+      logEvent('log-header-block', `BLOCKED: ${monthNames[month]} ${year}`, { reason: 'Too far ahead' }, 'error');
+      return false; // block
     }
 
-    headerCallback.getMonthHeaderCallback = ({ month, monthName, year }) => {
-      const monthNum = month.getMonth();
-      const workingDays = getWorkingDays(year, monthNum);
-      const monthStr = String(monthNum + 1).padStart(2, '0');
-      logEvent('log-header-callback', `Header: ${monthStr}/${year}`, { workingDays }, 'success');
-      return `${monthStr}/${year} ${workingDays}WD`;
-    };
+    logEvent('log-header-block', `Allowed: ${monthNames[month]} ${year}`, {}, 'success');
+  };
 
-    // Mark working days and special days with colors
-    headerCallback.getMonthDataCallback = ({ firstVisibleDate, lastVisibleDate }) => {
-      const metadata = new Map();
-      const current = new Date(firstVisibleDate);
-      const endDate = new Date(lastVisibleDate);
+  // Example: Grid with Occupancy
+  const headerGrid = document.getElementById('header-grid');
+  const occupancyRates = {
+    '2025-00': 78, '2025-01': 65, '2025-02': 82,
+    '2025-03': 91, '2025-04': 88, '2025-05': 95,
+    '2025-06': 98, '2025-07': 97, '2025-08': 85,
+    '2025-09': 72, '2025-10': 68, '2025-11': 89
+  };
 
-      while (current <= endDate) {
-        const dateStr = formatDateKey(current);
-        const dayOfWeek = current.getDay();
-        const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
-        const isSpecialDay = specialDays.has(dateStr);
-
-        if (isWeekday && !isSpecialDay) {
-          // Working day - light green
-          metadata.set(dateStr, { dayClass: 'working-day' });
-        } else if (isSpecialDay) {
-          // Special non-working day - amber/yellow
-          metadata.set(dateStr, {
-            dayClass: 'special-day',
-            dayTooltip: 'Non-working day'
-          });
-        }
-        current.setDate(current.getDate() + 1);
-      }
-
-      return { metadata };
-    };
-
-    // Example: monthHeaders from getMonthDataCallback
-    const headerAsync = document.getElementById('header-async');
-
-    // Custom styles for badge classes
-    headerAsync.getCustomStylesCallback = () => `
-      .drp__badge-cell.rooms-high {
-        background-color: rgba(34, 197, 94, 0.3);
-        color: #166534;
-      }
-      .drp__badge-cell.rooms-low {
-        background-color: rgba(251, 191, 36, 0.3);
-        color: #92400e;
-      }
-      .drp__badge-cell.rooms-none {
-        background-color: rgba(239, 68, 68, 0.2);
-        color: #991b1b;
-      }
-    `;
-
-    headerAsync.getMonthDataCallback = async ({ year, month, firstVisibleDate, lastVisibleDate }) => {
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-      logEvent('log-header-async', `Loading ${monthNames[month]} ${year}...`, {}, 'info');
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 400));
-
-      // Generate metadata
-      const metadata = new Map();
-      const monthHeaders = new Map();
-      let totalRooms = 0;
-
-      const currentDate = new Date(firstVisibleDate);
-      while (currentDate <= lastVisibleDate) {
-        const dateKey = toLocalISO(currentDate);
-        const rooms = Math.floor(Math.random() * 20);
-        totalRooms += rooms;
-
-        metadata.set(dateKey, {
-          badgeText: rooms > 0 ? `${rooms}` : '✕',
-          badgeClass: rooms >= 10 ? 'rooms-high' : rooms > 0 ? 'rooms-low' : 'rooms-none',
-          dayTooltip: `${rooms} rooms available`
-        });
-
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-
-      // Set month header with loaded data (key: YYYY-MM, 1-based month)
-      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
-      monthHeaders.set(monthKey, `${monthNames[month]} ${year} (${totalRooms} total)`);
-
-      logEvent('log-header-async', `Loaded`, { header: monthHeaders.get(monthKey) }, 'success');
-
-      return { metadata, monthHeaders };
-    };
-
-    // Example: Block Navigation
-    const headerBlock = document.getElementById('header-block');
-    const todayForBlock = new Date();
-    const maxMonthForBlock = new Date(todayForBlock.getFullYear(), todayForBlock.getMonth() + 3, 1);
-
-    headerBlock.beforeMonthChangeCallback = ({ year, month }) => {
-      const targetDate = new Date(year, month, 1);
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-      if (targetDate > maxMonthForBlock) {
-        logEvent('log-header-block', `BLOCKED: ${monthNames[month]} ${year}`, { reason: 'Too far ahead' }, 'error');
-        return false; // block
-      }
-
-      logEvent('log-header-block', `Allowed: ${monthNames[month]} ${year}`, {}, 'success');
-    };
-
-    // Example: Grid with Occupancy
-    const headerGrid = document.getElementById('header-grid');
-    const occupancyRates = {
-      '2025-00': 78, '2025-01': 65, '2025-02': 82,
-      '2025-03': 91, '2025-04': 88, '2025-05': 95,
-      '2025-06': 98, '2025-07': 97, '2025-08': 85,
-      '2025-09': 72, '2025-10': 68, '2025-11': 89
-    };
-
-    headerGrid.getMonthHeaderCallback = ({ month, monthName, year }) => {
-      const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
-      const occupancy = occupancyRates[key] || Math.floor(50 + Math.random() * 50);
-      const status = occupancy >= 90 ? '🔥' : occupancy >= 70 ? '📈' : '📉';
-      logEvent('log-header-grid', `${monthName} ${year}`, { occupancy: `${occupancy}%` }, 'success');
-      return `${monthName} ${year} ${status} ${occupancy}%`;
-    };
-  </script>
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+  headerGrid.getMonthHeaderCallback = ({ month, monthName, year }) => {
+    const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
+    const occupancy = occupancyRates[key] || Math.floor(50 + Math.random() * 50);
+    const status = occupancy >= 90 ? '🔥' : occupancy >= 70 ? '📈' : '📉';
+    logEvent('log-header-grid', `${monthName} ${year}`, { occupancy: `${occupancy}%` }, 'success');
+    return `${monthName} ${year} ${status} ${occupancy}%`;
+  };
+</script>

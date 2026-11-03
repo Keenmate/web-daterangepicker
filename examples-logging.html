@@ -1,244 +1,234 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Debug & Logging Examples - Date Range Picker</title>
-  <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* Page-specific log-category token colors only. These are the per-category
-       badge chips shown in the "Log Categories" reference table — a page-local
-       vocabulary that no shared class covers (mirrors the multiselect logging
-       page keeping only its entry-color classes). All layout / cards / notes /
-       code-blocks / tables come from examples-shared.css. */
-    .log-category {
-      display: inline-block;
-      padding: 0.125rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-right: 0.5rem;
-    }
+<meta name="kmwc:title" content="🐛 Logging &amp; Debugging">
+<meta name="kmwc:subtitle" content="Built-in logging system with categorized debug output for development and troubleshooting">
 
-    .cat-init { background: #dbeafe; color: #1e40af; }
-    .cat-navigation { background: #fef3c7; color: #92400e; }
-    .cat-ui { background: #d1fae5; color: #065f46; }
-    .cat-rendering { background: #fce7f3; color: #831843; }
-    .cat-selection { background: #e0e7ff; color: #3730a3; }
-    .cat-validation { background: #fed7aa; color: #9a3412; }
-    .cat-drag { background: #fecaca; color: #991b1b; }
-    .cat-interaction { background: #e9d5ff; color: #6b21a8; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>🐛 Logging & Debugging</h1>
-      <p class="subtitle">Built-in logging system with categorized debug output for development and troubleshooting</p>
-    </header>
+<link rel="stylesheet" href="examples-local.css">
 
-  <div class="card">
-    <h2>LG01 · Overview: Built-in Logging System</h2>
-    <div class="note info">
-      <strong>Built-in categorized logging</strong><br><br>
-      The date picker includes a comprehensive logging system provided by
-      <strong>@keenmate/web-components-core</strong>. Logs are grouped into colour-coded
-      <code>DRP:*</code> categories and easy to filter for troubleshooting.
-    </div>
-    <div class="note warning">
-      <strong>⚠️ Development Only</strong><br>
-      Debug logging is for development only. Never ship a page that turns it on in production!
-    </div>
+<style>
+  /* Page-specific log-category token colors only. These are the per-category
+     badge chips shown in the "Log Categories" reference table — a page-local
+     vocabulary that no shared class covers (mirrors the multiselect logging
+     page keeping only its entry-color classes). All layout / cards / notes /
+     code-blocks / tables come from the devkit kit. */
+  .log-category {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+
+  .cat-init { background: #dbeafe; color: #1e40af; }
+  .cat-navigation { background: #fef3c7; color: #92400e; }
+  .cat-ui { background: #d1fae5; color: #065f46; }
+  .cat-rendering { background: #fce7f3; color: #831843; }
+  .cat-selection { background: #e0e7ff; color: #3730a3; }
+  .cat-validation { background: #fed7aa; color: #9a3412; }
+  .cat-drag { background: #fecaca; color: #991b1b; }
+  .cat-interaction { background: #e9d5ff; color: #6b21a8; }
+</style>
+
+<div class="card">
+  <h2>LG01 · Overview: Built-in Logging System</h2>
+  <div class="note info">
+    <strong>Built-in categorized logging</strong><br><br>
+    The date picker includes a comprehensive logging system provided by
+    <strong>@keenmate/web-components-core</strong>. Logs are grouped into colour-coded
+    <code>DRP:*</code> categories and easy to filter for troubleshooting.
   </div>
-
-  <div class="card">
-    <h2>LG02 · Log Categories</h2>
-    <p>The logging system organizes output into 8 categories. In the console each line is prefixed with the full category name — <code>DRP:GENERAL</code>, <code>DRP:UI</code>, etc. (the short badge below is just the suffix):</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Badge</th>
-          <th>What It Logs</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>DRP:GENERAL</code></td>
-          <td><span class="log-category cat-init">GENERAL</span></td>
-          <td>General/initialization, option parsing, setup</td>
-        </tr>
-        <tr>
-          <td><code>NAVIGATION</code></td>
-          <td><span class="log-category cat-navigation">NAVIGATION</span></td>
-          <td>Month navigation, keyboard navigation</td>
-        </tr>
-        <tr>
-          <td><code>UI</code></td>
-          <td><span class="log-category cat-ui">UI</span></td>
-          <td>Show/hide calendar, positioning, visibility changes</td>
-        </tr>
-        <tr>
-          <td><code>RENDERING</code></td>
-          <td><span class="log-category cat-rendering">RENDERING</span></td>
-          <td>Calendar rendering, day cell updates, DOM operations</td>
-        </tr>
-        <tr>
-          <td><code>SELECTION</code></td>
-          <td><span class="log-category cat-selection">SELECTION</span></td>
-          <td>Date selection, range selection, value changes</td>
-        </tr>
-        <tr>
-          <td><code>VALIDATION</code></td>
-          <td><span class="log-category cat-validation">VALIDATION</span></td>
-          <td>Date validation, disabled date handling, range validation</td>
-        </tr>
-        <tr>
-          <td><code>DRAG</code></td>
-          <td><span class="log-category cat-drag">DRAG</span></td>
-          <td>Drag-to-adjust functionality, drag previews</td>
-        </tr>
-        <tr>
-          <td><code>INTERACTION</code></td>
-          <td><span class="log-category cat-interaction">INTERACTION</span></td>
-          <td>User interactions, clicks, hover events</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="note warning">
+    <strong>⚠️ Development Only</strong><br>
+    Debug logging is for development only. Never ship a page that turns it on in production!
   </div>
+</div>
 
-  <div class="card">
-    <h2>LG03 · Basic Logging</h2>
-    <p>Turn debug logging on through the component's logging bundle (all pickers on the page), the
-       page-wide switch for every KeenMate component, or one element's instance loggers. This page
-       calls the first one on load.</p>
-    <div class="code-block"><code>// every DRP:* category of every picker on the page
+<div class="card">
+  <h2>LG02 · Log Categories</h2>
+  <p>The logging system organizes output into 8 categories. In the console each line is prefixed with the full category name — <code>DRP:GENERAL</code>, <code>DRP:UI</code>, etc. (the short badge below is just the suffix):</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Badge</th>
+        <th>What It Logs</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>DRP:GENERAL</code></td>
+        <td><span class="log-category cat-init">GENERAL</span></td>
+        <td>General/initialization, option parsing, setup</td>
+      </tr>
+      <tr>
+        <td><code>NAVIGATION</code></td>
+        <td><span class="log-category cat-navigation">NAVIGATION</span></td>
+        <td>Month navigation, keyboard navigation</td>
+      </tr>
+      <tr>
+        <td><code>UI</code></td>
+        <td><span class="log-category cat-ui">UI</span></td>
+        <td>Show/hide calendar, positioning, visibility changes</td>
+      </tr>
+      <tr>
+        <td><code>RENDERING</code></td>
+        <td><span class="log-category cat-rendering">RENDERING</span></td>
+        <td>Calendar rendering, day cell updates, DOM operations</td>
+      </tr>
+      <tr>
+        <td><code>SELECTION</code></td>
+        <td><span class="log-category cat-selection">SELECTION</span></td>
+        <td>Date selection, range selection, value changes</td>
+      </tr>
+      <tr>
+        <td><code>VALIDATION</code></td>
+        <td><span class="log-category cat-validation">VALIDATION</span></td>
+        <td>Date validation, disabled date handling, range validation</td>
+      </tr>
+      <tr>
+        <td><code>DRAG</code></td>
+        <td><span class="log-category cat-drag">DRAG</span></td>
+        <td>Drag-to-adjust functionality, drag previews</td>
+      </tr>
+      <tr>
+        <td><code>INTERACTION</code></td>
+        <td><span class="log-category cat-interaction">INTERACTION</span></td>
+        <td>User interactions, clicks, hover events</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>LG03 · Basic Logging</h2>
+  <p>Turn debug logging on through the component's logging bundle (all pickers on the page), the
+     page-wide switch for every KeenMate component, or one element's instance loggers. This page
+     calls the first one on load.</p>
+  <div class="code-block"><code>// every DRP:* category of every picker on the page
 window.components['web-daterangepicker'].logging.enableLogging();
 // every KeenMate component on the page
 window.components.logging.enableLogging();
 // just this element's own (instance) loggers
 document.querySelector('web-daterangepicker').enableLogging();</code></div>
 
-    <div class="form-group">
-      <label>Try it - Open console (F12) and interact:</label>
-      <web-daterangepicker
-        id="basic-debug"
-        selection-mode="single"
-        placeholder="Click to see logs">
-      </web-daterangepicker>
-    </div>
+  <div class="form-group">
+    <label>Try it - Open console (F12) and interact:</label>
+    <web-daterangepicker
+      id="basic-debug"
+      selection-mode="single"
+      placeholder="Click to see logs">
+    </web-daterangepicker>
+  </div>
 
-    <div class="note success">
-      ✅ Open your browser console (F12) and click the input to see initialization and UI logs
-    </div>
+  <div class="note success">
+    ✅ Open your browser console (F12) and click the input to see initialization and UI logs
+  </div>
 
-    <p><strong>Expected console output:</strong></p>
-    <div class="code-block"><code>[DRP:GENERAL] Week starts on day: 1
+  <p><strong>Expected console output:</strong></p>
+  <div class="code-block"><code>[DRP:GENERAL] Week starts on day: 1
 [DRP:GENERAL] Creating calendar
 [DRP:RENDERING] renderCalendar() called
 [DRP:UI] open() - adding visible class
 [DRP:UI] Positioning calendar
 [DRP:RENDERING] Rendering month 0: November 2025</code></div>
+</div>
+
+<div class="card">
+  <h2>LG04 · Range Selection with Validation Logs</h2>
+  <p>See validation logs when selecting date ranges with disabled dates:</p>
+  <div class="form-group">
+    <label>Range picker with disabled weekends:</label>
+    <web-daterangepicker
+      id="range-debug"
+      selection-mode="range"
+      visible-month-count="2"
+      disabled-weekdays="0,6"
+      disabled-dates-handling="block"
+      placeholder="Select a range">
+    </web-daterangepicker>
   </div>
 
-  <div class="card">
-    <h2>LG04 · Range Selection with Validation Logs</h2>
-    <p>See validation logs when selecting date ranges with disabled dates:</p>
-    <div class="form-group">
-      <label>Range picker with disabled weekends:</label>
-      <web-daterangepicker
-        id="range-debug"
-        selection-mode="range"
-        visible-month-count="2"
-        disabled-weekdays="0,6"
-        disabled-dates-handling="block"
-        placeholder="Select a range">
-      </web-daterangepicker>
-    </div>
+  <div class="note info">
+    💡 Try selecting a range that crosses weekends. Watch the console for <strong>VALIDATION</strong> logs showing how the component adjusts the range.
+  </div>
 
-    <div class="note info">
-      💡 Try selecting a range that crosses weekends. Watch the console for <strong>VALIDATION</strong> logs showing how the component adjusts the range.
-    </div>
-
-    <p><strong>Expected validation logs:</strong></p>
-    <div class="code-block"><code>[DRP:VALIDATION] validateRangeAsync called - mode: block
+  <p><strong>Expected validation logs:</strong></p>
+  <div class="code-block"><code>[DRP:VALIDATION] validateRangeAsync called - mode: block
 [DRP:VALIDATION] BLOCK mode - adjusted end: Fri Jan 05 2025
 [DRP:SELECTION] Range selected: 2025-01-02 to 2025-01-05
 [DRP:VALIDATION] Validating 4 enabled dates</code></div>
+</div>
+
+<div class="card">
+  <h2>LG05 · Navigation & Rendering Logs</h2>
+  <p>Track calendar navigation and rendering:</p>
+  <div class="form-group">
+    <label>Multi-month picker:</label>
+    <web-daterangepicker
+      id="nav-debug"
+      selection-mode="single"
+      visible-month-count="3"
+      placeholder="Navigate months">
+    </web-daterangepicker>
   </div>
 
-  <div class="card">
-    <h2>LG05 · Navigation & Rendering Logs</h2>
-    <p>Track calendar navigation and rendering:</p>
-    <div class="form-group">
-      <label>Multi-month picker:</label>
-      <web-daterangepicker
-        id="nav-debug"
-        selection-mode="single"
-        visible-month-count="3"
-        placeholder="Navigate months">
-      </web-daterangepicker>
-    </div>
+  <div class="note info">
+    💡 Click the navigation arrows to switch months. Watch for <strong>NAVIGATION</strong> and <strong>RENDERING</strong> logs.
+  </div>
 
-    <div class="note info">
-      💡 Click the navigation arrows to switch months. Watch for <strong>NAVIGATION</strong> and <strong>RENDERING</strong> logs.
-    </div>
-
-    <p><strong>Expected navigation logs:</strong></p>
-    <div class="code-block"><code>[DRP:NAVIGATION] Next month clicked for index 0
+  <p><strong>Expected navigation logs:</strong></p>
+  <div class="code-block"><code>[DRP:NAVIGATION] Next month clicked for index 0
 [DRP:NAVIGATION] New month: December 2025
 [DRP:RENDERING] renderCalendar() called
 [DRP:RENDERING] Rendering month 0: December 2025
 [DRP:RENDERING] Rendering month 1: January 2026
 [DRP:RENDERING] Rendering month 2: February 2026</code></div>
+</div>
+
+<div class="card">
+  <h2>LG06 · Drag-to-Adjust Logs</h2>
+  <p>Track drag interactions in range mode:</p>
+  <div class="form-group">
+    <label>Range picker with drag support:</label>
+    <web-daterangepicker
+      id="drag-debug"
+      selection-mode="range"
+      visible-month-count="2"
+      placeholder="Select and drag">
+    </web-daterangepicker>
   </div>
 
-  <div class="card">
-    <h2>LG06 · Drag-to-Adjust Logs</h2>
-    <p>Track drag interactions in range mode:</p>
-    <div class="form-group">
-      <label>Range picker with drag support:</label>
-      <web-daterangepicker
-        id="drag-debug"
-        selection-mode="range"
-        visible-month-count="2"
-        placeholder="Select and drag">
-      </web-daterangepicker>
-    </div>
+  <div class="note info">
+    💡 Select a range, then drag the start or end dates. Watch for <strong>DRAG</strong> logs showing drag start, preview, and end.
+  </div>
 
-    <div class="note info">
-      💡 Select a range, then drag the start or end dates. Watch for <strong>DRAG</strong> logs showing drag start, preview, and end.
-    </div>
-
-    <p><strong>Expected drag logs:</strong></p>
-    <div class="code-block"><code>[DRP:DRAG] Drag started - type: start
+  <p><strong>Expected drag logs:</strong></p>
+  <div class="code-block"><code>[DRP:DRAG] Drag started - type: start
 [DRP:DRAG] Dragging over: 2025-11-08
 [DRP:DRAG] Preview range: 2025-11-08 to 2025-11-20
 [DRP:DRAG] Drag ended
 [DRP:SELECTION] Range updated via drag: 2025-11-08 to 2025-11-20</code></div>
-  </div>
+</div>
 
-  <div class="card">
-    <h2>LG07 · Filtering Console Logs</h2>
-    <p>Use browser console filters to focus on specific categories:</p>
+<div class="card">
+  <h2>LG07 · Filtering Console Logs</h2>
+  <p>Use browser console filters to focus on specific categories:</p>
 
-    <h3 class="subsection">Filter by Category</h3>
-    <div class="code-block"><code>// In browser console filter box:
+  <h3 class="subsection">Filter by Category</h3>
+  <div class="code-block"><code>// In browser console filter box:
 DRP:GENERAL      // Only general/initialization logs
 DRP:VALIDATION   // Only validation logs
 DRP:SELECTION    // Only selection logs
 DRP:DRAG         // Only drag logs
 DRP:             // All categories</code></div>
 
-    <h3 class="subsection">Filter by Function</h3>
-    <div class="code-block"><code>// Filter by function name:
+  <h3 class="subsection">Filter by Function</h3>
+  <div class="code-block"><code>// Filter by function name:
 renderCalendar  // Only calendar rendering
 validateRange   // Only range validation
 selectDate      // Only date selection</code></div>
 
-    <h3 class="subsection">Programmatic Control</h3>
-    <div class="code-block"><code>// Logging is controlled globally (not per-element), via the component's
+  <h3 class="subsection">Programmatic Control</h3>
+  <div class="code-block"><code>// Logging is controlled globally (not per-element), via the component's
 // entry on window.components — or the named module exports.
 const { logging } = window.components['web-daterangepicker'];
 
@@ -249,99 +239,94 @@ logging.setCategoryLevel('DRP:UI', 'debug');   // one category (bare 'UI' also w
 
 // Equivalent named imports:
 // import { enableLogging, setLogLevel, setCategoryLevel } from '@keenmate/web-daterangepicker';</code></div>
-  </div>
+</div>
 
-  <div class="card">
-    <h2>LG08 · Log Message Format</h2>
-    <p>Each log line is prefixed with its colour-coded category, followed by the message:</p>
-    <div class="code-block"><code>[DRP:CATEGORY] Message with context
+<div class="card">
+  <h2>LG08 · Log Message Format</h2>
+  <p>Each log line is prefixed with its colour-coded category, followed by the message:</p>
+  <div class="code-block"><code>[DRP:CATEGORY] Message with context
 
 Example:
 [DRP:GENERAL] Week starts on day: 1
- │             │
- │             └─ Message with details
- └─────────────── Category label (DRP:GENERAL, DRP:UI, …), colour-coded per category</code></div>
-  </div>
+│             │
+│             └─ Message with details
+└─────────────── Category label (DRP:GENERAL, DRP:UI, …), colour-coded per category</code></div>
+</div>
 
-  <div class="card">
-    <h2>LG09 · Best Practices</h2>
-    <ul>
-      <li><strong>Development:</strong> Call <code>window.components['web-daterangepicker'].logging.enableLogging()</code> (or <code>el.enableLogging()</code> for one element) when troubleshooting</li>
-      <li><strong>Production:</strong> Leave logging at its default (<code>warn</code>)</li>
-      <li><strong>Performance:</strong> Logs are minimal overhead when disabled</li>
-      <li><strong>Filtering:</strong> Use console filters to reduce noise</li>
-      <li><strong>Categories:</strong> Focus on specific categories for targeted debugging (filter on <code>DRP:</code>)</li>
-    </ul>
-  </div>
+<div class="card">
+  <h2>LG09 · Best Practices</h2>
+  <ul>
+    <li><strong>Development:</strong> Call <code>window.components['web-daterangepicker'].logging.enableLogging()</code> (or <code>el.enableLogging()</code> for one element) when troubleshooting</li>
+    <li><strong>Production:</strong> Leave logging at its default (<code>warn</code>)</li>
+    <li><strong>Performance:</strong> Logs are minimal overhead when disabled</li>
+    <li><strong>Filtering:</strong> Use console filters to reduce noise</li>
+    <li><strong>Categories:</strong> Focus on specific categories for targeted debugging (filter on <code>DRP:</code>)</li>
+  </ul>
+</div>
 
-  <div class="card">
-    <h2>LG10 · Complete Example</h2>
-    <div class="code-block"><code>&lt;!-- HTML with debug enabled --&gt;
+<div class="card">
+  <h2>LG10 · Complete Example</h2>
+  <div class="code-block"><code>&lt;!-- HTML with debug enabled --&gt;
 &lt;web-daterangepicker
-  selection-mode="range"
-  visible-month-count="2"
-  disabled-weekdays="0,6"
-  disabled-dates-handling="block"&gt;
+selection-mode="range"
+visible-month-count="2"
+disabled-weekdays="0,6"
+disabled-dates-handling="block"&gt;
 &lt;/web-daterangepicker&gt;
 
 &lt;script&gt;
-  // Debug logging for the DRP:* categories
-  window.components['web-daterangepicker'].logging.enableLogging();
+// Debug logging for the DRP:* categories
+window.components['web-daterangepicker'].logging.enableLogging();
 
-  // Listen to events and log details
-  const picker = document.querySelector('web-daterangepicker');
+// Listen to events and log details
+const picker = document.querySelector('web-daterangepicker');
 
-  picker.addEventListener('change', (e) => {
-    console.log('Date selected event:', e.detail);
-  });
+picker.addEventListener('change', (e) => {
+  console.log('Date selected event:', e.detail);
+});
 
-  // Programmatic logging control
-  setTimeout(() => {
-    // Disable logging after 30 seconds
-    window.components['web-daterangepicker'].logging.disableLogging();
-    console.log('Debug logging disabled');
-  }, 30000);
+// Programmatic logging control
+setTimeout(() => {
+  // Disable logging after 30 seconds
+  window.components['web-daterangepicker'].logging.disableLogging();
+  console.log('Debug logging disabled');
+}, 30000);
 &lt;/script&gt;</code></div>
-  </div>
+</div>
 
-  <script type="module" src="/src/index.ts"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Turn the DRP:* loggers up to debug for the whole page (index.ts has run by now).
+    customElements.whenDefined('web-daterangepicker').then(() => {
+      window.components?.['web-daterangepicker']?.logging?.enableLogging();
+    });
+    // Set the drag-debug picker's pre-fill value relative to today.
+    const dragDebug = document.getElementById('drag-debug');
+    if (dragDebug) {
+      const _today = new Date(); _today.setHours(0, 0, 0, 0);
+      const off = (n) => {
+        const d = new Date(_today); d.setDate(d.getDate() + n);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      };
+      dragDebug.setAttribute('value', `${off(-5)}/${off(5)}`);
+    }
+    console.log('🐛 Debug & Logging Examples Loaded');
+    console.log('');
+    console.log('📋 Instructions:');
+    console.log('1. Keep this console open (F12)');
+    console.log('2. Interact with the date pickers above');
+    console.log('3. Watch the categorized log output');
+    console.log('4. Try filtering logs by category: DRP:GENERAL, DRP:SELECTION, DRP:VALIDATION, etc.');
+    console.log('');
+    console.log('💡 Debug logging is enabled for every picker on this page');
+    console.log('');
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Turn the DRP:* loggers up to debug for the whole page (index.ts has run by now).
-      customElements.whenDefined('web-daterangepicker').then(() => {
-        window.components?.['web-daterangepicker']?.logging?.enableLogging();
-      });
-      // Set the drag-debug picker's pre-fill value relative to today.
-      const dragDebug = document.getElementById('drag-debug');
-      if (dragDebug) {
-        const _today = new Date(); _today.setHours(0, 0, 0, 0);
-        const off = (n) => {
-          const d = new Date(_today); d.setDate(d.getDate() + n);
-          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        };
-        dragDebug.setAttribute('value', `${off(-5)}/${off(5)}`);
-      }
-      console.log('🐛 Debug & Logging Examples Loaded');
-      console.log('');
-      console.log('📋 Instructions:');
-      console.log('1. Keep this console open (F12)');
-      console.log('2. Interact with the date pickers above');
-      console.log('3. Watch the categorized log output');
-      console.log('4. Try filtering logs by category: DRP:GENERAL, DRP:SELECTION, DRP:VALIDATION, etc.');
-      console.log('');
-      console.log('💡 Debug logging is enabled for every picker on this page');
-      console.log('');
-
-      // Add event listeners for demonstrations
-      const pickers = document.querySelectorAll('web-daterangepicker');
-      pickers.forEach((picker, index) => {
-        picker.addEventListener('change', (e) => {
-          console.log(`%c[DEMO] Picker ${index + 1} selected:`, 'color: #10b981; font-weight: bold', e.detail);
-        });
+    // Add event listeners for demonstrations
+    const pickers = document.querySelectorAll('web-daterangepicker');
+    pickers.forEach((picker, index) => {
+      picker.addEventListener('change', (e) => {
+        console.log(`%c[DEMO] Picker ${index + 1} selected:`, 'color: #10b981; font-weight: bold', e.detail);
       });
     });
-  </script>
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+  });
+</script>

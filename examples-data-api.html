@@ -1,182 +1,172 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data & API — Date Range Picker</title>
-  <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* The DateRangePickerEngine *class* renders its calendar into LIGHT DOM (unlike the
-       <web-daterangepicker> element, which is shadow-isolated). So this page's global
-       `* { margin:0; padding:0 }` reset in examples-shared.css leaks straight into the
-       calendar and flattens all of the component's own spacing. The component declares
-       that spacing inside `@layer component`, and an UNLAYERED page rule (the reset)
-       beats any layer regardless of specificity — so without this the fullscreen sheet
-       has no content gutter, the nav/✕ buttons hug the edges, and the floating/inline
-       calendars look cramped too. `revert-layer`, scoped to the picker subtree, defers
-       margin/padding on those elements back down to the component's own layers (and to
-       the UA default where the component sets nothing). Shadow-DOM pages are unaffected:
-       the reset never crosses the boundary, and `.drp__picker` doesn't exist in their
-       light DOM, so this rule is a harmless no-op there. */
-    .drp__picker,
-    .drp__picker * {
-      margin: revert-layer;
-      padding: revert-layer;
-    }
+<meta name="kmwc:title" content="🔨 Data &amp; API">
+<meta name="kmwc:subtitle" content="Instantiate pickers in JavaScript, drive them with the public API, and wire up advanced data-driven behaviors">
 
-    /* Page-specific bespoke widget only — the real light-DOM <input> elements that
-       the DateRangePickerEngine class attaches to (this page demonstrates JS instantiation
-       against plain inputs). Everything else (cards, code blocks, copy buttons,
-       notes, output panels) uses shared classes from examples-shared.css. */
-    .demo-input {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      font-size: 1rem;
-      transition: border-color 150ms;
-    }
+<link rel="stylesheet" href="examples-local.css">
 
-    .demo-input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
+<style>
+  /* The DateRangePickerEngine *class* renders its calendar into LIGHT DOM (unlike the
+     <web-daterangepicker> element, which is shadow-isolated). So this page's global
+     `* { margin:0; padding:0 }` reset (once the old shared stylesheet, unlayered) leaked straight into the
+     calendar and flattens all of the component's own spacing. The component declares
+     that spacing inside `@layer component`, and an UNLAYERED page rule (the reset)
+     beats any layer regardless of specificity — so without this the fullscreen sheet
+     has no content gutter, the nav/✕ buttons hug the edges, and the floating/inline
+     calendars look cramped too. `revert-layer`, scoped to the picker subtree, defers
+     margin/padding on those elements back down to the component's own layers (and to
+     the UA default where the component sets nothing). Shadow-DOM pages are unaffected:
+     the reset never crosses the boundary, and `.drp__picker` doesn't exist in their
+     light DOM, so this rule is a harmless no-op there. */
+  .drp__picker,
+  .drp__picker * {
+    margin: revert-layer;
+    padding: revert-layer;
+  }
 
-    /* Kept bespoke: the JS-instantiation demos assign this class by name in
-       script (output.className = 'output-box') and it appears verbatim in the
-       code samples, so it can't be renamed to a shared class. It's the small
-       per-demo result panel. */
-    .output-box {
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.375rem;
-      padding: 1rem;
-      margin-top: 1rem;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875rem;
-      min-height: 3rem;
-    }
+  /* Page-specific bespoke widget only — the real light-DOM <input> elements that
+     the DateRangePickerEngine class attaches to (this page demonstrates JS instantiation
+     against plain inputs). Everything else (cards, code blocks, copy buttons,
+     notes, output panels) uses shared classes from the devkit kit. */
+  .demo-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 150ms;
+  }
 
-    /* Page-unique only — everything else comes from examples-shared.css.
-       .method-signature / .return-type / .param-name are a bespoke way to
-       typeset method signatures (monospace box + colored return/param tokens);
-       there is no shared equivalent. */
-    .method-signature {
-      background: #f1f3f5;
-      padding: 0.75rem 1rem;
-      border-left: 3px solid #4dabf7;
-      border-radius: 4px;
-      margin: 1rem 0;
-      font-family: 'Courier New', monospace;
-      font-size: 0.875rem;
-    }
+  .demo-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
 
-    .return-type {
-      color: #0c8599;
-      font-weight: 600;
-    }
+  /* Kept bespoke: the JS-instantiation demos assign this class by name in
+     script (output.className = 'output-box') and it appears verbatim in the
+     code samples, so it can't be renamed to a shared class. It's the small
+     per-demo result panel. */
+  .output-box {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    min-height: 3rem;
+  }
 
-    .param-name {
-      color: #c92a2a;
-    }
+  /* Page-unique only — everything else comes from the devkit kit.
+     .method-signature / .return-type / .param-name are a bespoke way to
+     typeset method signatures (monospace box + colored return/param tokens);
+     there is no shared equivalent. */
+  .method-signature {
+    background: #f1f3f5;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid #4dabf7;
+    border-radius: 4px;
+    margin: 1rem 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+  }
 
-    /* Status pill used inside the booking-desk status line. The static
-       markup uses the shared `.pill`/`.pill--ok`/`.pill--warn`, but the
-       JS (refresh9) rebuilds this line via innerHTML with these class
-       names — and the JS must not be changed — so the equivalents are
-       kept here. */
-    .lock-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.15rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      font-family: ui-monospace, SFMono-Regular, Menlo, 'Courier New', monospace;
-      background: #e5e7eb;
-      color: #374151;
-    }
-    .lock-pill--locked { background: #fef3c7; color: #92400e; }
-    .lock-pill--open   { background: #dcfce7; color: #166534; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>🔨 Data &amp; API</h1>
-      <p class="subtitle">Instantiate pickers in JavaScript, drive them with the public API, and wire up advanced data-driven behaviors</p>
-    </header>
+  .return-type {
+    color: #0c8599;
+    font-weight: 600;
+  }
 
-  <!-- ===== GETTING STARTED ===== -->
+  .param-name {
+    color: #c92a2a;
+  }
 
-  <div class="card">
-    <h2>DA01 · Why Use JavaScript Instantiation?</h2>
-    <p>While the web component approach (<code>&lt;web-daterangepicker&gt;</code>) is convenient for static configurations,
-    JavaScript instantiation is useful when:</p>
-    <ul>
-      <li>You need to create pickers dynamically based on user actions or data</li>
-      <li>You're working with existing HTML inputs that can't be replaced</li>
-      <li>You prefer a programmatic API over HTML attributes</li>
-      <li>You need to attach pickers to inputs created by other frameworks</li>
-    </ul>
+  /* Status pill used inside the booking-desk status line. The static
+     markup uses the shared `.pill`/`.pill--ok`/`.pill--warn`, but the
+     JS (refresh9) rebuilds this line via innerHTML with these class
+     names — and the JS must not be changed — so the equivalents are
+     kept here. */
+  .lock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: ui-monospace, SFMono-Regular, Menlo, 'Courier New', monospace;
+    background: #e5e7eb;
+    color: #374151;
+  }
+  .lock-pill--locked { background: #fef3c7; color: #92400e; }
+  .lock-pill--open   { background: #dcfce7; color: #166534; }
+</style>
 
-    <div class="note warning">
-      <strong>⚠️ Important:</strong> When using JavaScript instantiation, you must create a regular
-      <code>&lt;input type="text"&gt;</code> element first, then pass it to the <code>DateRangePickerEngine</code>
-      constructor. The class will attach the calendar functionality to your existing input.
-    </div>
+<!-- ===== GETTING STARTED ===== -->
+
+<div class="card">
+  <h2>DA01 · Why Use JavaScript Instantiation?</h2>
+  <p>While the web component approach (<code>&lt;web-daterangepicker&gt;</code>) is convenient for static configurations,
+  JavaScript instantiation is useful when:</p>
+  <ul>
+    <li>You need to create pickers dynamically based on user actions or data</li>
+    <li>You're working with existing HTML inputs that can't be replaced</li>
+    <li>You prefer a programmatic API over HTML attributes</li>
+    <li>You need to attach pickers to inputs created by other frameworks</li>
+  </ul>
+
+  <div class="note warning">
+    <strong>⚠️ Important:</strong> When using JavaScript instantiation, you must create a regular
+    <code>&lt;input type="text"&gt;</code> element first, then pass it to the <code>DateRangePickerEngine</code>
+    constructor. The class will attach the calendar functionality to your existing input.
+  </div>
+</div>
+
+<!-- CSS Requirements -->
+<div class="card">
+  <h2>DA02 · Critical: CSS Requirements</h2>
+  <p><strong>Unlike the web component approach, the <code>DateRangePickerEngine</code> class does NOT automatically inject styles.</strong>
+  You MUST import the CSS separately, or you'll see an unstyled matrix of day numbers.</p>
+
+  <div class="note warning">
+    <strong>🚨 Common Mistake:</strong> If you only see plain numbers in a grid without any styling,
+    you forgot to import the CSS! This is the #1 issue when using JavaScript instantiation.
   </div>
 
-  <!-- CSS Requirements -->
-  <div class="card">
-    <h2>DA02 · Critical: CSS Requirements</h2>
-    <p><strong>Unlike the web component approach, the <code>DateRangePickerEngine</code> class does NOT automatically inject styles.</strong>
-    You MUST import the CSS separately, or you'll see an unstyled matrix of day numbers.</p>
-
-    <div class="note warning">
-      <strong>🚨 Common Mistake:</strong> If you only see plain numbers in a grid without any styling,
-      you forgot to import the CSS! This is the #1 issue when using JavaScript instantiation.
-    </div>
-
-    <h3>Method 1: Import CSS in JavaScript (Recommended for Bundlers)</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>// When using a bundler (Webpack, Vite, Rollup, etc.)
+  <h3>Method 1: Import CSS in JavaScript (Recommended for Bundlers)</h3>
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>// When using a bundler (Webpack, Vite, Rollup, etc.)
 import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/dist/style.css';
 
 const picker = new DateRangePickerEngine(inputElement, options);</pre>
-    </div>
+  </div>
 
-    <h3>Method 2: Link CSS in HTML (For CDN or Simple Setups)</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>&lt;!-- In your HTML &lt;head&gt; --&gt;
+  <h3>Method 2: Link CSS in HTML (For CDN or Simple Setups)</h3>
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>&lt;!-- In your HTML &lt;head&gt; --&gt;
 &lt;link rel="stylesheet" href="./node_modules/@keenmate/web-daterangepicker/dist/style.css"&gt;
 
 &lt;script type="module"&gt;
   import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
   const picker = new DateRangePickerEngine(inputElement, options);
 &lt;/script&gt;</pre>
-    </div>
+  </div>
 
-    <h3>Method 3: Import CSS Source (For Custom Builds)</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>// If you want to customize variables or build from source
+  <h3>Method 3: Import CSS Source (For Custom Builds)</h3>
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>// If you want to customize variables or build from source
 import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/src/css/main.css';
 
 const picker = new DateRangePickerEngine(inputElement, options);</pre>
-    </div>
+  </div>
 
-    <h3>Method 4: Programmatic Injection (Alternative)</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>// Inject styles programmatically (no CSS import needed!)
+  <h3>Method 4: Programmatic Injection (Alternative)</h3>
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>// Inject styles programmatically (no CSS import needed!)
 import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 // Inject styles once before creating any pickers
@@ -184,37 +174,37 @@ DateRangePickerEngine.injectGlobalStyles();
 
 // Now create your pickers
 const picker = new DateRangePickerEngine(inputElement, options);</pre>
-    </div>
-
-    <div class="note info">
-      <strong>💡 Why is this necessary?</strong><br>
-      The web component (<code>&lt;web-daterangepicker&gt;</code>) uses Shadow DOM and injects styles automatically
-      into its isolated scope. The <code>DateRangePickerEngine</code> class doesn't use Shadow DOM - it creates
-      calendar elements in the regular DOM, so it expects global CSS to be loaded separately.
-    </div>
-
-    <div class="note info">
-      <strong>📝 Note:</strong> This page uses <strong>Method 3</strong> (CSS source import) in development mode with Vite.
-      Check the source code to see the implementation.
-    </div>
   </div>
 
-  <!-- ===== CREATING PICKERS ===== -->
+  <div class="note info">
+    <strong>💡 Why is this necessary?</strong><br>
+    The web component (<code>&lt;web-daterangepicker&gt;</code>) uses Shadow DOM and injects styles automatically
+    into its isolated scope. The <code>DateRangePickerEngine</code> class doesn't use Shadow DOM - it creates
+    calendar elements in the regular DOM, so it expects global CSS to be loaded separately.
+  </div>
 
-  <!-- Example 1: Basic Single Date Picker -->
-  <div class="card">
-    <h2>DA03 · Basic Single Date Picker</h2>
-    <p>Create a simple single-date picker with default options.</p>
+  <div class="note info">
+    <strong>📝 Note:</strong> This page uses <strong>Method 3</strong> (CSS source import) in development mode with Vite.
+    Check the source code to see the implementation.
+  </div>
+</div>
 
-    <div class="form-group">
-      <label for="input-1">Select a Date</label>
-      <input type="text" id="input-1" class="demo-input" placeholder="YYYY-MM-DD">
-      <div id="output-1" class="output-box">No date selected</div>
-    </div>
+<!-- ===== CREATING PICKERS ===== -->
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import {
+<!-- Example 1: Basic Single Date Picker -->
+<div class="card">
+  <h2>DA03 · Basic Single Date Picker</h2>
+  <p>Create a simple single-date picker with default options.</p>
+
+  <div class="form-group">
+    <label for="input-1">Select a Date</label>
+    <input type="text" id="input-1" class="demo-input" placeholder="YYYY-MM-DD">
+    <div id="output-1" class="output-box">No date selected</div>
+  </div>
+
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>import {
   DateRangePickerEngine, observeEnvironment, classifyDevice
 } from '@keenmate/web-daterangepicker';
 
@@ -239,23 +229,23 @@ const picker = new DateRangePickerEngine(inputElement, {
 // desktop → floating. observeEnvironment fires now and on every flip.
 const BY_DEVICE = { mobile: 'fullscreen', tablet: 'modal', desktop: 'floating' };
 observeEnvironment(env => picker.setPresentation(BY_DEVICE[classifyDevice(env)]));</pre>
-    </div>
+  </div>
+</div>
+
+<!-- Example 2: Date Range Picker -->
+<div class="card">
+  <h2>DA04 · Date Range Picker with Multiple Months</h2>
+  <p>Create a range picker with 2 visible months and custom configuration.</p>
+
+  <div class="form-group">
+    <label for="input-2">Select Date Range</label>
+    <input type="text" id="input-2" class="demo-input" placeholder="Start Date - End Date">
+    <div id="output-2" class="output-box">No range selected</div>
   </div>
 
-  <!-- Example 2: Date Range Picker -->
-  <div class="card">
-    <h2>DA04 · Date Range Picker with Multiple Months</h2>
-    <p>Create a range picker with 2 visible months and custom configuration.</p>
-
-    <div class="form-group">
-      <label for="input-2">Select Date Range</label>
-      <input type="text" id="input-2" class="demo-input" placeholder="Start Date - End Date">
-      <div id="output-2" class="output-box">No range selected</div>
-    </div>
-
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const inputElement = document.getElementById('input-2');
 
@@ -275,31 +265,31 @@ const picker = new DateRangePickerEngine(inputElement, {
       `Nights: ${nights}`;
   }
 });</pre>
+  </div>
+</div>
+
+<!-- Example 4: Different Formats -->
+<div class="card">
+  <h2>DA05 · Different Date Formats</h2>
+  <p>Create pickers with various date format masks.</p>
+
+  <div class="grid">
+    <div class="form-group">
+      <label for="input-4a">European Format (DD.MM.YYYY)</label>
+      <input type="text" id="input-4a" class="demo-input" placeholder="DD.MM.YYYY">
+      <div id="output-4a" class="output-box">No date selected</div>
+    </div>
+
+    <div class="form-group">
+      <label for="input-4b">US Format (MM/DD/YYYY)</label>
+      <input type="text" id="input-4b" class="demo-input" placeholder="MM/DD/YYYY">
+      <div id="output-4b" class="output-box">No date selected</div>
     </div>
   </div>
 
-  <!-- Example 4: Different Formats -->
-  <div class="card">
-    <h2>DA05 · Different Date Formats</h2>
-    <p>Create pickers with various date format masks.</p>
-
-    <div class="grid">
-      <div class="form-group">
-        <label for="input-4a">European Format (DD.MM.YYYY)</label>
-        <input type="text" id="input-4a" class="demo-input" placeholder="DD.MM.YYYY">
-        <div id="output-4a" class="output-box">No date selected</div>
-      </div>
-
-      <div class="form-group">
-        <label for="input-4b">US Format (MM/DD/YYYY)</label>
-        <input type="text" id="input-4b" class="demo-input" placeholder="MM/DD/YYYY">
-        <div id="output-4b" class="output-box">No date selected</div>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>// European format
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>// European format
 const pickerEU = new DateRangePickerEngine(document.getElementById('input-4a'), {
   selectionMode: 'single',
   dateFormatMask: 'DD.MM.YYYY',
@@ -318,24 +308,24 @@ const pickerUS = new DateRangePickerEngine(document.getElementById('input-4b'), 
       `Selected: ${detail.formattedValue}`;
   }
 });</pre>
-    </div>
+  </div>
+</div>
+
+<!-- Example 3: With Date Restrictions -->
+<div class="card">
+  <h2>DA06 · With Date Restrictions</h2>
+  <p>Configure min/max dates, disabled weekends, and specific disabled dates.</p>
+
+  <div class="form-group">
+    <label for="input-3">Business Days Only</label>
+    <input type="text" id="input-3" class="demo-input" placeholder="YYYY-MM-DD">
+    <small>Weekends disabled, limited to current month</small>
+    <div id="output-3" class="output-box">No date selected</div>
   </div>
 
-  <!-- Example 3: With Date Restrictions -->
-  <div class="card">
-    <h2>DA06 · With Date Restrictions</h2>
-    <p>Configure min/max dates, disabled weekends, and specific disabled dates.</p>
-
-    <div class="form-group">
-      <label for="input-3">Business Days Only</label>
-      <input type="text" id="input-3" class="demo-input" placeholder="YYYY-MM-DD">
-      <small>Weekends disabled, limited to current month</small>
-      <div id="output-3" class="output-box">No date selected</div>
-    </div>
-
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const today = new Date();
 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -357,23 +347,23 @@ const picker = new DateRangePickerEngine(inputElement, {
       `Selected business day: ${detail.formattedValue}`;
   }
 });</pre>
-    </div>
+  </div>
+</div>
+
+<!-- Example 5: Inline Calendar (No Input) -->
+<div class="card">
+  <h2>DA07 · Inline Calendar (No Input Field)</h2>
+  <p>Create a standalone calendar without an input field.</p>
+
+  <div class="form-group">
+    <label>Inline Calendar</label>
+    <div id="inline-container"></div>
+    <div id="output-5" class="output-box">No date selected</div>
   </div>
 
-  <!-- Example 5: Inline Calendar (No Input) -->
-  <div class="card">
-    <h2>DA07 · Inline Calendar (No Input Field)</h2>
-    <p>Create a standalone calendar without an input field.</p>
-
-    <div class="form-group">
-      <label>Inline Calendar</label>
-      <div id="inline-container"></div>
-      <div id="output-5" class="output-box">No date selected</div>
-    </div>
-
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 // For inline mode, pass null as the input element
 const picker = new DateRangePickerEngine(null, {
@@ -386,28 +376,28 @@ const picker = new DateRangePickerEngine(null, {
       `Selected: ${detail.date.toLocaleDateString()}`;
   }
 });</pre>
-    </div>
-
-    <div class="note info">
-      <strong>💡 Tip:</strong> When using <code>positioningMode: 'inline'</code>, pass <code>null</code>
-      as the first argument and specify a <code>container</code> in the options.
-    </div>
   </div>
 
-  <!-- Example 6: Grid Layout -->
-  <div class="card">
-    <h2>DA08 · Grid Layout (2×3)</h2>
-    <p>Display 6 months in a grid layout for easier navigation.</p>
+  <div class="note info">
+    <strong>💡 Tip:</strong> When using <code>positioningMode: 'inline'</code>, pass <code>null</code>
+    as the first argument and specify a <code>container</code> in the options.
+  </div>
+</div>
 
-    <div class="form-group">
-      <label for="input-6">Grid Layout Picker</label>
-      <input type="text" id="input-6" class="demo-input" placeholder="YYYY-MM-DD">
-      <div id="output-6" class="output-box">No date selected</div>
-    </div>
+<!-- Example 6: Grid Layout -->
+<div class="card">
+  <h2>DA08 · Grid Layout (2×3)</h2>
+  <p>Display 6 months in a grid layout for easier navigation.</p>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="form-group">
+    <label for="input-6">Grid Layout Picker</label>
+    <input type="text" id="input-6" class="demo-input" placeholder="YYYY-MM-DD">
+    <div id="output-6" class="output-box">No date selected</div>
+  </div>
+
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
   selectionMode: 'single',
@@ -421,23 +411,23 @@ const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
       `Selected: ${detail.formattedValue}`;
   }
 });</pre>
-    </div>
   </div>
+</div>
 
-  <!-- Example 7: Dynamic Creation -->
-  <div class="card">
-    <h2>DA09 · Dynamic Creation</h2>
-    <p>Create pickers on-the-fly based on user actions.</p>
+<!-- Example 7: Dynamic Creation -->
+<div class="card">
+  <h2>DA09 · Dynamic Creation</h2>
+  <p>Create pickers on-the-fly based on user actions.</p>
 
-    <button id="add-picker-btn" class="mt-1">
-      + Add Date Picker
-    </button>
+  <button id="add-picker-btn" class="mt-1">
+    + Add Date Picker
+  </button>
 
-    <div id="dynamic-pickers"></div>
+  <div id="dynamic-pickers"></div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 let pickerCount = 0;
 
@@ -480,320 +470,320 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
     }
   });
 });</pre>
-    </div>
   </div>
+</div>
 
-  <!-- ===== ADVANCED CONFIGURATION ===== -->
+<!-- ===== ADVANCED CONFIGURATION ===== -->
 
-  <div class="card">
-    <h2>DA10 · Rolling Selector Constraints (Year/Month Picker)</h2>
-    <p>Configure which years and months appear in the rolling selector, and automatically disable unavailable options based on minDate/maxDate.</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>Limited to Current Year Only</label>
-        <web-daterangepicker
-          id="year-limit-demo"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD">
-        </web-daterangepicker>
-        <small>Click month/year to open rolling selector - only the current year is enabled (other years disabled)</small>
-      </div>
-
-      <div class="form-group">
-        <label>Custom Year Range (2024-2026)</label>
-        <web-daterangepicker
-          selection-mode="single"
-          rolling-year-range="2024-2026"
-          placeholder="YYYY-MM-DD">
-        </web-daterangepicker>
-        <small>Rolling selector only shows years 2024, 2025, 2026 (instead of the shown year ±1)</small>
-      </div>
-
-      <div class="form-group">
-        <label>Relative Year Range (-5:+5)</label>
-        <web-daterangepicker
-          selection-mode="single"
-          rolling-year-range="-5:+5"
-          placeholder="YYYY-MM-DD">
-        </web-daterangepicker>
-        <small>Five years either side of <strong>today's</strong> year — moves with the calendar date, not with the shown month. Mixed forms work too: <code>2020:+2</code></small>
-      </div>
-
-      <div class="form-group">
-        <label>Summer Months Only (June-August)</label>
-        <web-daterangepicker
-          selection-mode="single"
-          rolling-month-range="06-08"
-          rolling-year-range="2024-2026"
-          placeholder="YYYY-MM-DD">
-        </web-daterangepicker>
-        <small>Rolling selector only shows June, July, August in years 2024-2026</small>
-      </div>
-
-      <div class="form-group">
-        <label>Q4 Business Planning (Oct-Dec, current year)</label>
-        <web-daterangepicker
-          id="q4-demo"
-          selection-mode="range"
-          rolling-month-range="10-12"
-          visible-month-count="2"
-          placeholder="Select dates">
-        </web-daterangepicker>
-        <small>Only the current year, only Oct/Nov/Dec visible and enabled</small>
-      </div>
-
-      <div class="form-group">
-        <label>Year-End Booking (Nov-Dec only)</label>
-        <web-daterangepicker
-          selection-mode="range"
-          rolling-month-range="11-12"
-          rolling-year-range="2024-2025"
-          visible-month-count="2"
-          placeholder="Select dates">
-        </web-daterangepicker>
-        <small>Years 2024-2025 available, but only November and December months selectable</small>
-      </div>
-
-      <div class="form-group">
-        <label>Current Year Only</label>
-        <web-daterangepicker
-          selection-mode="single"
-          rolling-year-range="2025"
-          placeholder="YYYY-MM-DD">
-        </web-daterangepicker>
-        <small>Rolling selector locked to 2025 - no other years shown</small>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>DA11 · Range Selection Modes (over disabled dates)</h2>
-    <div class="grid">
-      <div class="form-group">
-        <label>Allow Mode (default)</label>
-        <web-daterangepicker
-          id="mode-allow"
-          selection-mode="range"
-          visible-month-count="2"
-          disabled-weekdays="0,6"
-          disabled-dates-handling="allow"
-          placeholder="Select range"></web-daterangepicker>
-        <small>Allows range over disabled dates. Returns enabled/disabled arrays.</small>
-        <div id="mode-allow-output" class="output"></div>
-      </div>
-
-      <div class="form-group">
-        <label>Block Mode</label>
-        <web-daterangepicker
-          id="mode-block"
-          selection-mode="range"
-          visible-month-count="2"
-          disabled-weekdays="0,3,6"
-          disabled-dates-handling="block"
-          placeholder="Select range"></web-daterangepicker>
-        <small>Blocks range from crossing disabled dates. Snaps to last enabled date. (Sundays, Wednesdays, Saturdays disabled)</small>
-        <div id="mode-block-output" class="output"></div>
-      </div>
-
-      <div class="form-group">
-        <label>Split Mode (no disabled highlighting)</label>
-        <web-daterangepicker
-          id="mode-split"
-          selection-mode="range"
-          visible-month-count="2"
-          disabled-weekdays="0,6"
-          disabled-dates-handling="split"
-          highlight-disabled-in-range="false"
-          placeholder="Select range"></web-daterangepicker>
-        <small>Returns multiple ranges split by disabled dates. Weekends not highlighted.</small>
-        <div id="mode-split-output" class="output"></div>
-      </div>
-
-      <div class="form-group">
-        <label>Individual Mode (no disabled highlighting)</label>
-        <web-daterangepicker
-          id="mode-individual"
-          selection-mode="range"
-          visible-month-count="2"
-          disabled-weekdays="0,6"
-          disabled-dates-handling="individual"
-          highlight-disabled-in-range="false"
-          placeholder="Select range"></web-daterangepicker>
-        <small>Returns flat array of individual enabled dates. Weekends not highlighted.</small>
-        <div id="mode-individual-output" class="output"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>DA12 · Week-Snapping Selection (<code>beforeSelectCallback</code> → <code>DateRange[]</code>)</h2>
-    <p>
-      A <code>beforeSelectCallback</code> that rewrites the raw selection into
-      whole weeks. For every week the selection touches, it counts the selected
-      <strong>work days (Mon–Fri)</strong>: if <strong>2 or more</strong> land in
-      that week the <strong>entire week (Mon–Sun) is selected</strong>; if fewer
-      than 2, that week contributes <strong>0 days</strong> and is dropped. The
-      surviving weeks are returned as a <code>DateRange[]</code> — one range per
-      week — so the grid, summary, and <code>onChange</code> all reflect the snap.
-    </p>
+<div class="card">
+  <h2>DA10 · Rolling Selector Constraints (Year/Month Picker)</h2>
+  <p>Configure which years and months appear in the rolling selector, and automatically disable unavailable options based on minDate/maxDate.</p>
+  <div class="grid">
     <div class="form-group">
-      <label>Select a span across a few weeks</label>
+      <label>Limited to Current Year Only</label>
       <web-daterangepicker
-        id="week-snap"
+        id="year-limit-demo"
+        selection-mode="single"
+        placeholder="YYYY-MM-DD">
+      </web-daterangepicker>
+      <small>Click month/year to open rolling selector - only the current year is enabled (other years disabled)</small>
+    </div>
+
+    <div class="form-group">
+      <label>Custom Year Range (2024-2026)</label>
+      <web-daterangepicker
+        selection-mode="single"
+        rolling-year-range="2024-2026"
+        placeholder="YYYY-MM-DD">
+      </web-daterangepicker>
+      <small>Rolling selector only shows years 2024, 2025, 2026 (instead of the shown year ±1)</small>
+    </div>
+
+    <div class="form-group">
+      <label>Relative Year Range (-5:+5)</label>
+      <web-daterangepicker
+        selection-mode="single"
+        rolling-year-range="-5:+5"
+        placeholder="YYYY-MM-DD">
+      </web-daterangepicker>
+      <small>Five years either side of <strong>today's</strong> year — moves with the calendar date, not with the shown month. Mixed forms work too: <code>2020:+2</code></small>
+    </div>
+
+    <div class="form-group">
+      <label>Summer Months Only (June-August)</label>
+      <web-daterangepicker
+        selection-mode="single"
+        rolling-month-range="06-08"
+        rolling-year-range="2024-2026"
+        placeholder="YYYY-MM-DD">
+      </web-daterangepicker>
+      <small>Rolling selector only shows June, July, August in years 2024-2026</small>
+    </div>
+
+    <div class="form-group">
+      <label>Q4 Business Planning (Oct-Dec, current year)</label>
+      <web-daterangepicker
+        id="q4-demo"
+        selection-mode="range"
+        rolling-month-range="10-12"
+        visible-month-count="2"
+        placeholder="Select dates">
+      </web-daterangepicker>
+      <small>Only the current year, only Oct/Nov/Dec visible and enabled</small>
+    </div>
+
+    <div class="form-group">
+      <label>Year-End Booking (Nov-Dec only)</label>
+      <web-daterangepicker
+        selection-mode="range"
+        rolling-month-range="11-12"
+        rolling-year-range="2024-2025"
+        visible-month-count="2"
+        placeholder="Select dates">
+      </web-daterangepicker>
+      <small>Years 2024-2025 available, but only November and December months selectable</small>
+    </div>
+
+    <div class="form-group">
+      <label>Current Year Only</label>
+      <web-daterangepicker
+        selection-mode="single"
+        rolling-year-range="2025"
+        placeholder="YYYY-MM-DD">
+      </web-daterangepicker>
+      <small>Rolling selector locked to 2025 - no other years shown</small>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>DA11 · Range Selection Modes (over disabled dates)</h2>
+  <div class="grid">
+    <div class="form-group">
+      <label>Allow Mode (default)</label>
+      <web-daterangepicker
+        id="mode-allow"
         selection-mode="range"
         visible-month-count="2"
-        week-start-day="1"
+        disabled-weekdays="0,6"
+        disabled-dates-handling="allow"
         placeholder="Select range"></web-daterangepicker>
-      <small>Select Mon–Tue of a week → snaps to the full week. Select a lone Friday → dropped (0 days).</small>
-      <div id="week-snap-output" class="output"></div>
+      <small>Allows range over disabled dates. Returns enabled/disabled arrays.</small>
+      <div id="mode-allow-output" class="output"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Block Mode</label>
+      <web-daterangepicker
+        id="mode-block"
+        selection-mode="range"
+        visible-month-count="2"
+        disabled-weekdays="0,3,6"
+        disabled-dates-handling="block"
+        placeholder="Select range"></web-daterangepicker>
+      <small>Blocks range from crossing disabled dates. Snaps to last enabled date. (Sundays, Wednesdays, Saturdays disabled)</small>
+      <div id="mode-block-output" class="output"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Split Mode (no disabled highlighting)</label>
+      <web-daterangepicker
+        id="mode-split"
+        selection-mode="range"
+        visible-month-count="2"
+        disabled-weekdays="0,6"
+        disabled-dates-handling="split"
+        highlight-disabled-in-range="false"
+        placeholder="Select range"></web-daterangepicker>
+      <small>Returns multiple ranges split by disabled dates. Weekends not highlighted.</small>
+      <div id="mode-split-output" class="output"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Individual Mode (no disabled highlighting)</label>
+      <web-daterangepicker
+        id="mode-individual"
+        selection-mode="range"
+        visible-month-count="2"
+        disabled-weekdays="0,6"
+        disabled-dates-handling="individual"
+        highlight-disabled-in-range="false"
+        placeholder="Select range"></web-daterangepicker>
+      <small>Returns flat array of individual enabled dates. Weekends not highlighted.</small>
+      <div id="mode-individual-output" class="output"></div>
     </div>
   </div>
+</div>
 
-  <div class="card">
-    <h2>DA13 · Custom Summary Formatting</h2>
-    <p>Use the <code>renderSummaryCallback</code> option to completely customize the summary display below the calendar.</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>Custom Pricing Display</label>
-        <web-daterangepicker
-          id="summary-pricing"
-          selection-mode="range"
-          visible-month-count="2"
-          placeholder="Select dates"></web-daterangepicker>
-        <small>Shows calculated price based on nights</small>
-      </div>
+<div class="card">
+  <h2>DA12 · Week-Snapping Selection (<code>beforeSelectCallback</code> → <code>DateRange[]</code>)</h2>
+  <p>
+    A <code>beforeSelectCallback</code> that rewrites the raw selection into
+    whole weeks. For every week the selection touches, it counts the selected
+    <strong>work days (Mon–Fri)</strong>: if <strong>2 or more</strong> land in
+    that week the <strong>entire week (Mon–Sun) is selected</strong>; if fewer
+    than 2, that week contributes <strong>0 days</strong> and is dropped. The
+    surviving weeks are returned as a <code>DateRange[]</code> — one range per
+    week — so the grid, summary, and <code>onChange</code> all reflect the snap.
+  </p>
+  <div class="form-group">
+    <label>Select a span across a few weeks</label>
+    <web-daterangepicker
+      id="week-snap"
+      selection-mode="range"
+      visible-month-count="2"
+      week-start-day="1"
+      placeholder="Select range"></web-daterangepicker>
+    <small>Select Mon–Tue of a week → snaps to the full week. Select a lone Friday → dropped (0 days).</small>
+    <div id="week-snap-output" class="output"></div>
+  </div>
+</div>
 
-      <div class="form-group">
-        <label>Weekdays Only Counter</label>
-        <web-daterangepicker
-          id="summary-weekdays"
-          selection-mode="range"
-          visible-month-count="2"
-          disabled-weekdays="0,6"
-          disabled-dates-handling="allow"
-          placeholder="Select range"></web-daterangepicker>
-        <small>Shows weekdays vs weekends breakdown</small>
-      </div>
+<div class="card">
+  <h2>DA13 · Custom Summary Formatting</h2>
+  <p>Use the <code>renderSummaryCallback</code> option to completely customize the summary display below the calendar.</p>
+  <div class="grid">
+    <div class="form-group">
+      <label>Custom Pricing Display</label>
+      <web-daterangepicker
+        id="summary-pricing"
+        selection-mode="range"
+        visible-month-count="2"
+        placeholder="Select dates"></web-daterangepicker>
+      <small>Shows calculated price based on nights</small>
+    </div>
 
-      <div class="form-group">
-        <label>Multiple Ranges Display</label>
-        <web-daterangepicker
-          id="summary-split"
-          selection-mode="range"
-          visible-month-count="2"
-          disabled-weekdays="0,6"
-          disabled-dates-handling="split"
-          placeholder="Select range"></web-daterangepicker>
-        <small>Shows count of separate periods (weekends excluded)</small>
-      </div>
+    <div class="form-group">
+      <label>Weekdays Only Counter</label>
+      <web-daterangepicker
+        id="summary-weekdays"
+        selection-mode="range"
+        visible-month-count="2"
+        disabled-weekdays="0,6"
+        disabled-dates-handling="allow"
+        placeholder="Select range"></web-daterangepicker>
+      <small>Shows weekdays vs weekends breakdown</small>
+    </div>
 
-      <div class="form-group">
-        <label>Nights Only Display</label>
-        <web-daterangepicker
-          id="summary-nights"
-          selection-mode="range"
-          visible-month-count="2"
-          placeholder="Select dates"></web-daterangepicker>
-        <small>Custom format showing only nights</small>
-      </div>
+    <div class="form-group">
+      <label>Multiple Ranges Display</label>
+      <web-daterangepicker
+        id="summary-split"
+        selection-mode="range"
+        visible-month-count="2"
+        disabled-weekdays="0,6"
+        disabled-dates-handling="split"
+        placeholder="Select range"></web-daterangepicker>
+      <small>Shows count of separate periods (weekends excluded)</small>
+    </div>
+
+    <div class="form-group">
+      <label>Nights Only Display</label>
+      <web-daterangepicker
+        id="summary-nights"
+        selection-mode="range"
+        visible-month-count="2"
+        placeholder="Select dates"></web-daterangepicker>
+      <small>Custom format showing only nights</small>
     </div>
   </div>
+</div>
 
-  <div class="card">
-    <h2>DA14 · Position Control</h2>
-    <p>Control where the popup appears relative to the input field.</p>
-    <div class="grid">
-      <div class="form-group">
-        <label>Bottom Center (default for grid)</label>
-        <web-daterangepicker
-          selection-mode="single"
-          calendar-placement="bottom"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Centered below the input</small>
-      </div>
+<div class="card">
+  <h2>DA14 · Position Control</h2>
+  <p>Control where the popup appears relative to the input field.</p>
+  <div class="grid">
+    <div class="form-group">
+      <label>Bottom Center (default for grid)</label>
+      <web-daterangepicker
+        selection-mode="single"
+        calendar-placement="bottom"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+      <small>Centered below the input</small>
+    </div>
 
-      <div class="form-group">
-        <label>Bottom Start (default for horizontal)</label>
-        <web-daterangepicker
-          selection-mode="single"
-          calendar-placement="bottom-start"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Left-aligned below the input</small>
-      </div>
+    <div class="form-group">
+      <label>Bottom Start (default for horizontal)</label>
+      <web-daterangepicker
+        selection-mode="single"
+        calendar-placement="bottom-start"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+      <small>Left-aligned below the input</small>
+    </div>
 
-      <div class="form-group">
-        <label>Bottom End</label>
-        <web-daterangepicker
-          selection-mode="single"
-          calendar-placement="bottom-end"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Right-aligned below the input</small>
-      </div>
+    <div class="form-group">
+      <label>Bottom End</label>
+      <web-daterangepicker
+        selection-mode="single"
+        calendar-placement="bottom-end"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+      <small>Right-aligned below the input</small>
+    </div>
 
-      <div class="form-group">
-        <label>Top Center</label>
-        <web-daterangepicker
-          selection-mode="single"
-          calendar-placement="top"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Centered above the input</small>
-      </div>
+    <div class="form-group">
+      <label>Top Center</label>
+      <web-daterangepicker
+        selection-mode="single"
+        calendar-placement="top"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+      <small>Centered above the input</small>
+    </div>
 
-      <div class="form-group">
-        <label>Top Start</label>
-        <web-daterangepicker
-          selection-mode="single"
-          calendar-placement="top-start"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Left-aligned above the input</small>
-      </div>
+    <div class="form-group">
+      <label>Top Start</label>
+      <web-daterangepicker
+        selection-mode="single"
+        calendar-placement="top-start"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+      <small>Left-aligned above the input</small>
+    </div>
 
-      <div class="form-group">
-        <label>Top End</label>
-        <web-daterangepicker
-          selection-mode="single"
-          calendar-placement="top-end"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-        <small>Right-aligned above the input</small>
-      </div>
+    <div class="form-group">
+      <label>Top End</label>
+      <web-daterangepicker
+        selection-mode="single"
+        calendar-placement="top-end"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+      <small>Right-aligned above the input</small>
     </div>
   </div>
+</div>
 
-  <!-- ===== CONTROLLING PROGRAMMATICALLY ===== -->
+<!-- ===== CONTROLLING PROGRAMMATICALLY ===== -->
 
-  <!-- Section 1: Show/Hide/Toggle Methods -->
-  <section class="card">
-    <div>
-      <h2>DA15 · Show/Hide/Toggle Methods</h2>
-      <p class="description">
-        Control calendar visibility programmatically. These methods are useful for external triggers,
-        keyboard shortcuts, or conditional UI flows.
-      </p>
-    </div>
-    <div>
-      <div class="demo-area">
-        <web-daterangepicker
-          id="picker-1"
-          selection-mode="single"
-          close-on-select="false"
-          calendar-placement="top"
-          placeholder="Click buttons to control visibility">
-        </web-daterangepicker>
+<!-- Section 1: Show/Hide/Toggle Methods -->
+<section class="card">
+  <div>
+    <h2>DA15 · Show/Hide/Toggle Methods</h2>
+    <p class="description">
+      Control calendar visibility programmatically. These methods are useful for external triggers,
+      keyboard shortcuts, or conditional UI flows.
+    </p>
+  </div>
+  <div>
+    <div class="demo-area">
+      <web-daterangepicker
+        id="picker-1"
+        selection-mode="single"
+        close-on-select="false"
+        calendar-placement="top"
+        placeholder="Click buttons to control visibility">
+      </web-daterangepicker>
 
-        <div class="controls">
-          <button id="btn-show" data-calendar-button>Show Calendar</button>
-          <button id="btn-hide" data-calendar-button>Hide Calendar</button>
-          <button id="btn-toggle" data-calendar-button>Toggle Calendar</button>
-        </div>
-
-        <div class="log-panel" id="output-m1">
-          Calendar state: <span id="state-1">closed</span>
-        </div>
+      <div class="controls">
+        <button id="btn-show" data-calendar-button>Show Calendar</button>
+        <button id="btn-hide" data-calendar-button>Hide Calendar</button>
+        <button id="btn-toggle" data-calendar-button>Toggle Calendar</button>
       </div>
 
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>&lt;!-- This demo overrides the default placement (bottom-start).
+      <div class="log-panel" id="output-m1">
+        Calendar state: <span id="state-1">closed</span>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>&lt;!-- This demo overrides the default placement (bottom-start).
      "top" is center-aligned, so the calendar sits in the middle
      of the wide input (and flips below when space above is tight).
 
@@ -824,63 +814,63 @@ console.log('Calendar open?', picker.isOpen);
 // Tip: Add data-calendar-button to external trigger buttons
 // to prevent "click outside" from closing the calendar
 // &lt;button data-calendar-button onclick="picker.toggle()"&gt;Toggle&lt;/button&gt;</code></pre>
+    </div>
+
+    <div class="method-signature">
+      <div><span class="return-type">void</span> open()</div>
+      <div><span class="return-type">void</span> close()</div>
+      <div><span class="return-type">void</span> toggle()</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Get/Set Input Value -->
+<section class="card">
+  <div>
+    <h2>DA16 · Get/Set Input Value</h2>
+    <p class="description">
+      Read and write the formatted input value. The format follows the <code>date-format-mask</code> attribute.
+      For range mode, use " - " separator (space-dash-space).
+    </p>
+  </div>
+  <div>
+    <div class="demo-area">
+      <div class="field-row">
+        <div class="field-grow">
+          <label class="demo-label">Single Date (YYYY-MM-DD)</label>
+          <web-daterangepicker
+            id="picker-2a"
+            selection-mode="single"
+            date-format-mask="YYYY-MM-DD"
+            placeholder="YYYY-MM-DD">
+          </web-daterangepicker>
+        </div>
+        <div class="field-grow">
+          <label class="demo-label">Date Range (MM/DD/YYYY)</label>
+          <web-daterangepicker
+            id="picker-2b"
+            selection-mode="range"
+            date-format-mask="MM/DD/YYYY"
+            placeholder="MM/DD/YYYY - MM/DD/YYYY">
+          </web-daterangepicker>
+        </div>
       </div>
 
-      <div class="method-signature">
-        <div><span class="return-type">void</span> open()</div>
-        <div><span class="return-type">void</span> close()</div>
-        <div><span class="return-type">void</span> toggle()</div>
+      <div class="controls">
+        <button id="btn-get-single">Get Single Value</button>
+        <button id="btn-set-single">Set Single (2025-03-15)</button>
+        <button id="btn-get-range">Get Range Value</button>
+        <button id="btn-set-range">Set Range (01/01/2025 - 01/31/2025)</button>
+      </div>
+
+      <div class="log-panel" id="output-m2">
+        Click buttons to get/set values...
       </div>
     </div>
-  </section>
 
-  <!-- Section 2: Get/Set Input Value -->
-  <section class="card">
-    <div>
-      <h2>DA16 · Get/Set Input Value</h2>
-      <p class="description">
-        Read and write the formatted input value. The format follows the <code>date-format-mask</code> attribute.
-        For range mode, use " - " separator (space-dash-space).
-      </p>
-    </div>
-    <div>
-      <div class="demo-area">
-        <div class="field-row">
-          <div class="field-grow">
-            <label class="demo-label">Single Date (YYYY-MM-DD)</label>
-            <web-daterangepicker
-              id="picker-2a"
-              selection-mode="single"
-              date-format-mask="YYYY-MM-DD"
-              placeholder="YYYY-MM-DD">
-            </web-daterangepicker>
-          </div>
-          <div class="field-grow">
-            <label class="demo-label">Date Range (MM/DD/YYYY)</label>
-            <web-daterangepicker
-              id="picker-2b"
-              selection-mode="range"
-              date-format-mask="MM/DD/YYYY"
-              placeholder="MM/DD/YYYY - MM/DD/YYYY">
-            </web-daterangepicker>
-          </div>
-        </div>
-
-        <div class="controls">
-          <button id="btn-get-single">Get Single Value</button>
-          <button id="btn-set-single">Set Single (2025-03-15)</button>
-          <button id="btn-get-range">Get Range Value</button>
-          <button id="btn-set-range">Set Range (01/01/2025 - 01/31/2025)</button>
-        </div>
-
-        <div class="log-panel" id="output-m2">
-          Click buttons to get/set values...
-        </div>
-      </div>
-
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>const singlePicker = document.getElementById('picker-2a');
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>const singlePicker = document.getElementById('picker-2a');
 const rangePicker = document.getElementById('picker-2b');
 
 // Get current input value (formatted string)
@@ -897,57 +887,57 @@ rangePicker.value = '01/01/2025 - 01/31/2025';
 // Clear input
 singlePicker.value = '';
 rangePicker.value = '';</code></pre>
+    </div>
+
+    <div class="method-signature">
+      <div><span class="return-type">string</span> value <span class="param-name">(get / set)</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Clear Selection -->
+<section class="card">
+  <div>
+    <h2>DA17 · Clear Selection</h2>
+    <p class="description">
+      Clear the current selection and reset the picker to its initial state.
+      This clears both the input value and internal date state.
+    </p>
+  </div>
+  <div>
+    <div class="demo-area">
+      <div class="field-row">
+        <div class="field-grow">
+          <web-daterangepicker
+            id="picker-3a"
+            selection-mode="single"
+            placeholder="Select a date">
+          </web-daterangepicker>
+        </div>
+        <div class="field-grow">
+          <web-daterangepicker
+            id="picker-3b"
+            selection-mode="range"
+            visible-month-count="2"
+            placeholder="Select date range">
+          </web-daterangepicker>
+        </div>
       </div>
 
-      <div class="method-signature">
-        <div><span class="return-type">string</span> value <span class="param-name">(get / set)</span></div>
+      <div class="controls">
+        <button id="btn-clear-single">Clear Single Picker</button>
+        <button id="btn-clear-range">Clear Range Picker</button>
+        <button id="btn-clear-both">Clear Both</button>
+      </div>
+
+      <div class="log-panel" id="output-m3">
+        Selections will be cleared...
       </div>
     </div>
-  </section>
 
-  <!-- Section 3: Clear Selection -->
-  <section class="card">
-    <div>
-      <h2>DA17 · Clear Selection</h2>
-      <p class="description">
-        Clear the current selection and reset the picker to its initial state.
-        This clears both the input value and internal date state.
-      </p>
-    </div>
-    <div>
-      <div class="demo-area">
-        <div class="field-row">
-          <div class="field-grow">
-            <web-daterangepicker
-              id="picker-3a"
-              selection-mode="single"
-              placeholder="Select a date">
-            </web-daterangepicker>
-          </div>
-          <div class="field-grow">
-            <web-daterangepicker
-              id="picker-3b"
-              selection-mode="range"
-              visible-month-count="2"
-              placeholder="Select date range">
-            </web-daterangepicker>
-          </div>
-        </div>
-
-        <div class="controls">
-          <button id="btn-clear-single">Clear Single Picker</button>
-          <button id="btn-clear-range">Clear Range Picker</button>
-          <button id="btn-clear-both">Clear Both</button>
-        </div>
-
-        <div class="log-panel" id="output-m3">
-          Selections will be cleared...
-        </div>
-      </div>
-
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>const picker = document.getElementById('picker-3a');
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>const picker = document.getElementById('picker-3a');
 
 // Clear selection
 picker.clearSelection();
@@ -958,60 +948,60 @@ console.log(picker.value); // ""
 // Clear and reset to specific date
 picker.clearSelection();
 picker.value = '2025-12-25';</code></pre>
+    </div>
+
+    <div class="method-signature">
+      <div><span class="return-type">void</span> clearSelection()</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Reactive Properties (selectedDate, selectedRanges) -->
+<section class="card">
+  <div>
+    <h2>DA18 · Reactive Properties (selectedDate, selectedRanges)</h2>
+    <p class="description">
+      Access and modify selection using Date objects. These properties are reactive and trigger
+      re-rendering and events when changed.
+    </p>
+  </div>
+  <div>
+    <div class="demo-area">
+      <div class="field-row">
+        <div class="field-grow">
+          <label class="demo-label">Single Mode</label>
+          <web-daterangepicker
+            id="picker-4a"
+            selection-mode="single"
+            placeholder="Single date picker">
+          </web-daterangepicker>
+        </div>
+        <div class="field-grow">
+          <label class="demo-label">Range Mode</label>
+          <web-daterangepicker
+            id="picker-4b"
+            selection-mode="range"
+            visible-month-count="2"
+            placeholder="Range picker">
+          </web-daterangepicker>
+        </div>
       </div>
 
-      <div class="method-signature">
-        <div><span class="return-type">void</span> clearSelection()</div>
+      <div class="controls">
+        <button id="btn-get-date">Get Single Date</button>
+        <button id="btn-set-today">Set Today</button>
+        <button id="btn-get-ranges">Get Ranges</button>
+        <button id="btn-set-this-week">Set This Week</button>
+      </div>
+
+      <div class="log-panel" id="output-m4">
+        Click buttons to interact with reactive properties...
       </div>
     </div>
-  </section>
 
-  <!-- Section 4: Reactive Properties (selectedDate, selectedRanges) -->
-  <section class="card">
-    <div>
-      <h2>DA18 · Reactive Properties (selectedDate, selectedRanges)</h2>
-      <p class="description">
-        Access and modify selection using Date objects. These properties are reactive and trigger
-        re-rendering and events when changed.
-      </p>
-    </div>
-    <div>
-      <div class="demo-area">
-        <div class="field-row">
-          <div class="field-grow">
-            <label class="demo-label">Single Mode</label>
-            <web-daterangepicker
-              id="picker-4a"
-              selection-mode="single"
-              placeholder="Single date picker">
-            </web-daterangepicker>
-          </div>
-          <div class="field-grow">
-            <label class="demo-label">Range Mode</label>
-            <web-daterangepicker
-              id="picker-4b"
-              selection-mode="range"
-              visible-month-count="2"
-              placeholder="Range picker">
-            </web-daterangepicker>
-          </div>
-        </div>
-
-        <div class="controls">
-          <button id="btn-get-date">Get Single Date</button>
-          <button id="btn-set-today">Set Today</button>
-          <button id="btn-get-ranges">Get Ranges</button>
-          <button id="btn-set-this-week">Set This Week</button>
-        </div>
-
-        <div class="log-panel" id="output-m4">
-          Click buttons to interact with reactive properties...
-        </div>
-      </div>
-
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>const singlePicker = document.getElementById('picker-4a');
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>const singlePicker = document.getElementById('picker-4a');
 const rangePicker = document.getElementById('picker-4b');
 
 // Get selected date (single mode)
@@ -1036,47 +1026,47 @@ rangePicker.selectedRanges = [{
 // Clear using properties
 singlePicker.selectedDate = null;
 rangePicker.selectedRanges = [];</code></pre>
-      </div>
-
-      <div class="method-signature">
-        <div><span class="return-type">Date | null</span> selectedDate</div>
-        <div><span class="return-type">DateRange[]</span> selectedRanges</div>
-      </div>
     </div>
-  </section>
 
-  <!-- Section 5: Calendar State (isOpen) -->
-  <section class="card">
-    <div>
-      <h2>DA19 · Calendar State (isOpen)</h2>
-      <p class="description">
-        Read the current calendar visibility state. This is useful for conditional logic,
-        UI synchronization, or analytics tracking.
-      </p>
+    <div class="method-signature">
+      <div><span class="return-type">Date | null</span> selectedDate</div>
+      <div><span class="return-type">DateRange[]</span> selectedRanges</div>
     </div>
-    <div>
-      <div class="demo-area">
-        <div class="field-row">
-          <web-daterangepicker
-            id="picker-5"
-            selection-mode="single"
-            placeholder="Click input or buttons">
-          </web-daterangepicker>
+  </div>
+</section>
 
-          <div class="controls">
-            <button id="btn-check-state" data-calendar-button>Check State</button>
-            <button id="btn-toggle-5" data-calendar-button>Toggle Calendar</button>
-          </div>
-        </div>
+<!-- Section 5: Calendar State (isOpen) -->
+<section class="card">
+  <div>
+    <h2>DA19 · Calendar State (isOpen)</h2>
+    <p class="description">
+      Read the current calendar visibility state. This is useful for conditional logic,
+      UI synchronization, or analytics tracking.
+    </p>
+  </div>
+  <div>
+    <div class="demo-area">
+      <div class="field-row">
+        <web-daterangepicker
+          id="picker-5"
+          selection-mode="single"
+          placeholder="Click input or buttons">
+        </web-daterangepicker>
 
-        <div class="log-panel" id="output-m5">
-          Calendar state: <span id="state-5">unknown</span>
+        <div class="controls">
+          <button id="btn-check-state" data-calendar-button>Check State</button>
+          <button id="btn-toggle-5" data-calendar-button>Toggle Calendar</button>
         </div>
       </div>
 
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>const picker = document.getElementById('picker-5');
+      <div class="log-panel" id="output-m5">
+        Calendar state: <span id="state-5">unknown</span>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>const picker = document.getElementById('picker-5');
 
 // Check if calendar is open
 if (picker.isOpen) {
@@ -1101,47 +1091,47 @@ picker.open();
 console.log('isOpen is now:', picker.isOpen); // true
 picker.close();
 console.log('isOpen is now:', picker.isOpen); // false</code></pre>
+    </div>
+
+    <div class="method-signature">
+      <div><span class="return-type">boolean</span> isOpen <em>(read/write)</em></div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 6: Controller Access -->
+<section class="card">
+  <div>
+    <h2>DA20 · Controller Access (<code>el.controller</code>)</h2>
+    <p class="description">
+      <code>el.controller</code> is the picker's public facade — a stable surface for reading the
+      selection and driving the picker. It is the same object every callback context and event
+      detail carries as <code>controller</code>, and it survives internal rebuilds. The internal
+      engine is not part of the public API.
+    </p>
+  </div>
+  <div>
+    <div class="demo-area">
+      <web-daterangepicker
+        id="picker-6"
+        selection-mode="range"
+        visible-month-count="2"
+        placeholder="Advanced picker">
+      </web-daterangepicker>
+
+      <div class="controls">
+        <button id="btn-get-instance">Read via Controller</button>
+        <button id="btn-get-internal-state">Drive via Controller</button>
       </div>
 
-      <div class="method-signature">
-        <div><span class="return-type">boolean</span> isOpen <em>(read/write)</em></div>
+      <div class="log-panel" id="output-m6">
+        Click buttons to explore the controller...
       </div>
     </div>
-  </section>
 
-  <!-- Section 6: Controller Access -->
-  <section class="card">
-    <div>
-      <h2>DA20 · Controller Access (<code>el.controller</code>)</h2>
-      <p class="description">
-        <code>el.controller</code> is the picker's public facade — a stable surface for reading the
-        selection and driving the picker. It is the same object every callback context and event
-        detail carries as <code>controller</code>, and it survives internal rebuilds. The internal
-        engine is not part of the public API.
-      </p>
-    </div>
-    <div>
-      <div class="demo-area">
-        <web-daterangepicker
-          id="picker-6"
-          selection-mode="range"
-          visible-month-count="2"
-          placeholder="Advanced picker">
-        </web-daterangepicker>
-
-        <div class="controls">
-          <button id="btn-get-instance">Read via Controller</button>
-          <button id="btn-get-internal-state">Drive via Controller</button>
-        </div>
-
-        <div class="log-panel" id="output-m6">
-          Click buttons to explore the controller...
-        </div>
-      </div>
-
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>const component = document.getElementById('picker-6');
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>const component = document.getElementById('picker-6');
 const controller = component.controller;
 
 // Read the selection
@@ -1159,29 +1149,29 @@ controller.unlock();
 // Configuration is read from the element itself
 console.log('Mode:', component.selectionMode);
 console.log('Months to show:', component.visibleMonthCount);</code></pre>
-      </div>
-
-      <div class="method-signature">
-        <div><span class="return-type">DateRangePickerController</span> controller <em>(read-only)</em></div>
-      </div>
-    </div>
-  </section>
-
-  <div class="card">
-    <h2>DA21 · Programmatic API</h2>
-    <div class="form-group">
-      <label>API Demo</label>
-      <web-daterangepicker id="api-demo" selection-mode="range"></web-daterangepicker>
-      <div class="controls mt-1">
-        <button class="btn-outline" onclick="document.getElementById('api-demo').open()">Show</button>
-        <button class="btn-outline" onclick="document.getElementById('api-demo').close()">Hide</button>
-        <button class="btn-outline" onclick="document.getElementById('api-demo').toggle()">Toggle</button>
-        <button class="btn-outline" onclick="document.getElementById('api-demo').clearSelection()">Clear</button>
-        <button class="btn-outline" onclick="alert(document.getElementById('api-demo').value)">Get Value</button>
-      </div>
     </div>
 
-    <div class="code-block"><pre>const picker = document.querySelector('web-daterangepicker');
+    <div class="method-signature">
+      <div><span class="return-type">DateRangePickerController</span> controller <em>(read-only)</em></div>
+    </div>
+  </div>
+</section>
+
+<div class="card">
+  <h2>DA21 · Programmatic API</h2>
+  <div class="form-group">
+    <label>API Demo</label>
+    <web-daterangepicker id="api-demo" selection-mode="range"></web-daterangepicker>
+    <div class="controls mt-1">
+      <button class="btn-outline" onclick="document.getElementById('api-demo').open()">Show</button>
+      <button class="btn-outline" onclick="document.getElementById('api-demo').close()">Hide</button>
+      <button class="btn-outline" onclick="document.getElementById('api-demo').toggle()">Toggle</button>
+      <button class="btn-outline" onclick="document.getElementById('api-demo').clearSelection()">Clear</button>
+      <button class="btn-outline" onclick="alert(document.getElementById('api-demo').value)">Get Value</button>
+    </div>
+  </div>
+
+  <div class="code-block"><pre>const picker = document.querySelector('web-daterangepicker');
 
 // Methods
 picker.open();        // Show calendar
@@ -1202,75 +1192,75 @@ picker.addEventListener('change', (e) => {
 });
 // ...or the on* twin, which receives the detail directly
 picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);</pre></div>
+</div>
+
+<!-- ===== REAL-WORLD PATTERNS ===== -->
+
+<!-- Section 7: Booking desk — confirm & lock (scoped read-only) -->
+<section class="card">
+  <div>
+    <h2>DA22 · Booking desk — confirm &amp; lock (scoped read-only)</h2>
+    <p class="description">
+      Freeze user interaction while keeping the value <strong>readable</strong> (unlike
+      <code>disabled</code>, which greys the input out). Each day shows its <strong>nightly rate</strong>
+      as a badge (via <code>getDateMetadataCallback</code>, the same pricing model as the
+      <em>Dynamic Calculation</em> badges demo). The flow: the guest picks a range, hits
+      <strong>Book</strong> in the calendar's own action bar, the app calls the server, and on success
+      the range is <strong>locked</strong> and the button flips to <strong>Amend</strong> so the
+      confirmed dates can't change until the guest amends. The summary shows a client-side
+      <strong>estimate</strong> (sum of the badges) while selecting, then the server's <strong>real
+      price</strong> — which may land a little higher or lower — once confirmed.
+      Locking is <strong>scoped</strong> —
+      freeze everything, or just some of four aspects
+      (<code>selection</code> · <code>navigation</code> · <code>actions</code> · <code>open</code>).
+      The programmatic API is never gated; only the end user is.
+    </p>
   </div>
-
-  <!-- ===== REAL-WORLD PATTERNS ===== -->
-
-  <!-- Section 7: Booking desk — confirm & lock (scoped read-only) -->
-  <section class="card">
-    <div>
-      <h2>DA22 · Booking desk — confirm &amp; lock (scoped read-only)</h2>
-      <p class="description">
-        Freeze user interaction while keeping the value <strong>readable</strong> (unlike
-        <code>disabled</code>, which greys the input out). Each day shows its <strong>nightly rate</strong>
-        as a badge (via <code>getDateMetadataCallback</code>, the same pricing model as the
-        <em>Dynamic Calculation</em> badges demo). The flow: the guest picks a range, hits
-        <strong>Book</strong> in the calendar's own action bar, the app calls the server, and on success
-        the range is <strong>locked</strong> and the button flips to <strong>Amend</strong> so the
-        confirmed dates can't change until the guest amends. The summary shows a client-side
-        <strong>estimate</strong> (sum of the badges) while selecting, then the server's <strong>real
-        price</strong> — which may land a little higher or lower — once confirmed.
-        Locking is <strong>scoped</strong> —
-        freeze everything, or just some of four aspects
-        (<code>selection</code> · <code>navigation</code> · <code>actions</code> · <code>open</code>).
-        The programmatic API is never gated; only the end user is.
-      </p>
-    </div>
-    <div>
-      <div class="grid" style="--grid-min: 320px">
-        <!-- Calendar -->
-        <div class="demo-card">
-          <h4>Inline range picker</h4>
-          <web-daterangepicker
-            id="picker-9"
-            selection-mode="range"
-            positioning-mode="inline"
-            visible-month-count="2">
-          </web-daterangepicker>
-        </div>
-
-        <!-- Drive-it panel -->
-        <div class="demo-card">
-          <h4>Drive the lock</h4>
-          <p>
-            Pick a range — the summary shows a live <strong>estimate</strong> (the sum of the
-            on-screen badges). Then hit <strong>Book</strong> in the calendar's action bar: a mock
-            server round-trip returns the <strong>real price</strong> (which can land a bit higher or
-            lower than the estimate) plus a reference code, the confirmed dates
-            <strong>lock</strong> (<span class="pill pill--warn">🔒 read-only</span>), and
-            the button flips to <strong>Amend</strong>. Try clicking a day or dragging an endpoint —
-            nothing moves; only <strong>Amend</strong> stays live (the <code>actions</code> aspect is
-            left unlocked on purpose). Amend releases the lock and drops back to the estimate.
-          </p>
-
-          <p class="mt-1">
-            Or a <strong>partial</strong> lock — freeze the range &amp; buttons but keep the
-            <code>&lt;</code> <code>&gt;</code> arrows live so the guest can still look around:
-          </p>
-          <div class="controls">
-            <button id="btn-lock-partial-9">Lock selection + actions</button>
-            <button id="btn-unlock-9">Unlock everything</button>
-          </div>
-
-          <div class="note" id="output-9">
-            Status: <span id="state-9">unlocked · fully interactive</span>
-          </div>
-        </div>
+  <div>
+    <div class="grid" style="--grid-min: 320px">
+      <!-- Calendar -->
+      <div class="demo-card">
+        <h4>Inline range picker</h4>
+        <web-daterangepicker
+          id="picker-9"
+          selection-mode="range"
+          positioning-mode="inline"
+          visible-month-count="2">
+        </web-daterangepicker>
       </div>
 
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>const picker = document.getElementById('picker-9');
+      <!-- Drive-it panel -->
+      <div class="demo-card">
+        <h4>Drive the lock</h4>
+        <p>
+          Pick a range — the summary shows a live <strong>estimate</strong> (the sum of the
+          on-screen badges). Then hit <strong>Book</strong> in the calendar's action bar: a mock
+          server round-trip returns the <strong>real price</strong> (which can land a bit higher or
+          lower than the estimate) plus a reference code, the confirmed dates
+          <strong>lock</strong> (<span class="pill pill--warn">🔒 read-only</span>), and
+          the button flips to <strong>Amend</strong>. Try clicking a day or dragging an endpoint —
+          nothing moves; only <strong>Amend</strong> stays live (the <code>actions</code> aspect is
+          left unlocked on purpose). Amend releases the lock and drops back to the estimate.
+        </p>
+
+        <p class="mt-1">
+          Or a <strong>partial</strong> lock — freeze the range &amp; buttons but keep the
+          <code>&lt;</code> <code>&gt;</code> arrows live so the guest can still look around:
+        </p>
+        <div class="controls">
+          <button id="btn-lock-partial-9">Lock selection + actions</button>
+          <button id="btn-unlock-9">Unlock everything</button>
+        </div>
+
+        <div class="note" id="output-9">
+          Status: <span id="state-9">unlocked · fully interactive</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>const picker = document.getElementById('picker-9');
 
 // Nightly-rate badges — same getDateMetadataCallback as the
 // "Dynamic Calculation" demo (examples-badges-tooltips.html).
@@ -1330,65 +1320,65 @@ picker.unlock('selection');     // just one aspect
 // &lt;web-daterangepicker readonly&gt;&lt;/web-daterangepicker&gt;
 picker.isReadonly = true;
 picker.lockedAspects;           // -> ['selection','navigation','actions','open']</code></pre>
+    </div>
+
+    <div class="method-signature">
+      <div><span class="return-type">void</span> lock(aspects?: LockAspect | LockAspect[])</div>
+      <div><span class="return-type">void</span> unlock(aspects?: LockAspect | LockAspect[])</div>
+      <div><span class="return-type">void</span> toggleLock(aspects?: LockAspect | LockAspect[])</div>
+      <div><span class="return-type">boolean</span> isAspectLocked(aspect: LockAspect)</div>
+      <div><span class="return-type">LockAspect[]</span> lockedAspects</div>
+      <div><span class="return-type">boolean</span> readonly</div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 8: Confirm & close — validate before dismissing (floating) -->
+<section class="card">
+  <div>
+    <h2>DA23 · Confirm &amp; close — validate before dismissing</h2>
+    <p class="description">
+      A custom <strong>Confirm</strong> button that runs your own logic <em>before</em> the calendar
+      closes. A <strong>custom</strong> action button never auto-closes the picker, so the callback is
+      fully in control: when the selection is invalid it calls
+      <code>showMessage(&hellip;)</code> and <strong>returns</strong> — the calendar stays open with the
+      warning — and only when the selection passes does it call <code>commit()</code>, which commits the
+      value <strong>and</strong> closes. Paired with <code>commit-mode="manual"</code> so a bare day click
+      can't dismiss the picker before the guest reaches the gate and no built-in Apply button renders —
+      Confirm is the only commit path. This example
+      requires a range of <strong>at least 3 nights</strong>. The <code>onClick</code> is
+      <code>await</code>ed, so the same shape works against an async/server check.
+    </p>
+  </div>
+  <div>
+    <div class="grid" style="--grid-min: 320px">
+      <div class="demo-card">
+        <h4>Floating range picker</h4>
+        <web-daterangepicker
+          id="picker-confirm"
+          selection-mode="range"
+          commit-mode="manual"
+          visible-month-count="2"
+          placeholder="Select a range (min 3 nights)">
+        </web-daterangepicker>
+        <div class="note mt-1" id="confirm-output">Status: <span id="confirm-state">nothing confirmed yet</span></div>
       </div>
 
-      <div class="method-signature">
-        <div><span class="return-type">void</span> lock(aspects?: LockAspect | LockAspect[])</div>
-        <div><span class="return-type">void</span> unlock(aspects?: LockAspect | LockAspect[])</div>
-        <div><span class="return-type">void</span> toggleLock(aspects?: LockAspect | LockAspect[])</div>
-        <div><span class="return-type">boolean</span> isAspectLocked(aspect: LockAspect)</div>
-        <div><span class="return-type">LockAspect[]</span> lockedAspects</div>
-        <div><span class="return-type">boolean</span> readonly</div>
+      <div class="demo-card">
+        <h4>What to try</h4>
+        <p>
+          Open the calendar and hit <strong>Confirm</strong> with <strong>no selection</strong> — you
+          get a warning and the calendar stays open. Pick a <strong>1&ndash;2 night</strong> range
+          and confirm — it warns that the minimum is 3 nights and stays open. Pick <strong>3+
+          nights</strong> and confirm — the value commits, the calendar <strong>closes</strong>, and
+          the status line below updates.
+        </p>
       </div>
     </div>
-  </section>
 
-  <!-- Section 8: Confirm & close — validate before dismissing (floating) -->
-  <section class="card">
-    <div>
-      <h2>DA23 · Confirm &amp; close — validate before dismissing</h2>
-      <p class="description">
-        A custom <strong>Confirm</strong> button that runs your own logic <em>before</em> the calendar
-        closes. A <strong>custom</strong> action button never auto-closes the picker, so the callback is
-        fully in control: when the selection is invalid it calls
-        <code>showMessage(&hellip;)</code> and <strong>returns</strong> — the calendar stays open with the
-        warning — and only when the selection passes does it call <code>commit()</code>, which commits the
-        value <strong>and</strong> closes. Paired with <code>commit-mode="manual"</code> so a bare day click
-        can't dismiss the picker before the guest reaches the gate and no built-in Apply button renders —
-        Confirm is the only commit path. This example
-        requires a range of <strong>at least 3 nights</strong>. The <code>onClick</code> is
-        <code>await</code>ed, so the same shape works against an async/server check.
-      </p>
-    </div>
-    <div>
-      <div class="grid" style="--grid-min: 320px">
-        <div class="demo-card">
-          <h4>Floating range picker</h4>
-          <web-daterangepicker
-            id="picker-confirm"
-            selection-mode="range"
-            commit-mode="manual"
-            visible-month-count="2"
-            placeholder="Select a range (min 3 nights)">
-          </web-daterangepicker>
-          <div class="note mt-1" id="confirm-output">Status: <span id="confirm-state">nothing confirmed yet</span></div>
-        </div>
-
-        <div class="demo-card">
-          <h4>What to try</h4>
-          <p>
-            Open the calendar and hit <strong>Confirm</strong> with <strong>no selection</strong> — you
-            get a warning and the calendar stays open. Pick a <strong>1&ndash;2 night</strong> range
-            and confirm — it warns that the minimum is 3 nights and stays open. Pick <strong>3+
-            nights</strong> and confirm — the value commits, the calendar <strong>closes</strong>, and
-            the status line below updates.
-          </p>
-        </div>
-      </div>
-
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>&lt;web-daterangepicker id="picker" selection-mode="range"
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>&lt;web-daterangepicker id="picker" selection-mode="range"
                      commit-mode="manual"&gt;&lt;/web-daterangepicker&gt;
 
 const picker = document.getElementById('picker');
@@ -1423,30 +1413,30 @@ picker.actionButtons = [
         }
     }
 ];</code></pre>
-      </div>
-
-      <div class="method-signature">
-        <div><span class="return-type">void</span> controller.showMessage(html: string, { type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number })</div>
-        <div><span class="return-type">void</span> hideMessage()</div>
-        <div><span class="return-type">void</span> commit()</div>
-        <div><span class="return-type">void</span> close()</div>
-      </div>
     </div>
-  </section>
 
-  <!-- Section 10: Integration Patterns -->
-  <section class="card">
-    <div>
-      <h2>DA24 · Integration Patterns</h2>
-      <p class="description">
-        Common patterns for integrating the date picker with forms, frameworks, and application state.
-      </p>
+    <div class="method-signature">
+      <div><span class="return-type">void</span> controller.showMessage(html: string, { type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number })</div>
+      <div><span class="return-type">void</span> hideMessage()</div>
+      <div><span class="return-type">void</span> commit()</div>
+      <div><span class="return-type">void</span> close()</div>
     </div>
-    <div>
-      <h3>Form Integration</h3>
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>&lt;form id="booking-form"&gt;
+  </div>
+</section>
+
+<!-- Section 10: Integration Patterns -->
+<section class="card">
+  <div>
+    <h2>DA24 · Integration Patterns</h2>
+    <p class="description">
+      Common patterns for integrating the date picker with forms, frameworks, and application state.
+    </p>
+  </div>
+  <div>
+    <h3>Form Integration</h3>
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>&lt;form id="booking-form"&gt;
     &lt;web-daterangepicker
         id="check-in"
         name="check-in-date"
@@ -1480,12 +1470,12 @@ form.addEventListener('submit', (e) => {
     });
 });
 &lt;/script&gt;</code></pre>
-      </div>
+    </div>
 
-      <h3>React/Vue Integration</h3>
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>// React
+    <h3>React/Vue Integration</h3>
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>// React
 import { useRef, useEffect } from 'react';
 
 function DatePicker({ value, onChange }) {
@@ -1535,12 +1525,12 @@ watch(selectedValue, (newValue) => {
     }
 });
 &lt;/script&gt;</code></pre>
-      </div>
+    </div>
 
-      <h3>State Synchronization</h3>
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>// Synchronize with application state
+    <h3>State Synchronization</h3>
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>// Synchronize with application state
 class DateRangeManager {
     constructor() {
         this.picker = document.getElementById('date-range');
@@ -1596,38 +1586,38 @@ class DateRangeManager {
 }
 
 const manager = new DateRangeManager();</code></pre>
-      </div>
     </div>
-  </section>
-
-  <!-- ===== REFERENCE ===== -->
-
-  <div class="card">
-    <h2>DA25 · Keyboard Shortcuts</h2>
-    <ul>
-      <li><strong>↑ ↓</strong> - Navigate up/down by week</li>
-      <li><strong>← →</strong> - Navigate left/right by day</li>
-      <li><strong>Ctrl+← / Ctrl+→</strong> - Previous / next month</li>
-      <li><strong>Home</strong> - First day of current month</li>
-      <li><strong>End</strong> - Last day of current month</li>
-      <li><strong>Ctrl+Home</strong> - January 1st of current year (repeat for previous year)</li>
-      <li><strong>Ctrl+End</strong> - December 31st of current year (repeat for next year)</li>
-      <li><strong>PageUp / PageDown</strong> - Previous / next month</li>
-      <li><strong>Enter</strong> - Select focused day</li>
-      <li><strong>Escape</strong> - Close calendar</li>
-      <li><strong>Tab / Shift+Tab</strong> - Switch between month columns (multi-month mode)</li>
-      <li><strong>T</strong> - Jump to today</li>
-    </ul>
   </div>
+</section>
 
-  <!-- Example 8: All Options Reference -->
-  <div class="card">
-    <h2>DA26 · Complete Options Reference</h2>
-    <p>All available options you can pass to the DateRangePickerEngine constructor.</p>
+<!-- ===== REFERENCE ===== -->
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+<div class="card">
+  <h2>DA25 · Keyboard Shortcuts</h2>
+  <ul>
+    <li><strong>↑ ↓</strong> - Navigate up/down by week</li>
+    <li><strong>← →</strong> - Navigate left/right by day</li>
+    <li><strong>Ctrl+← / Ctrl+→</strong> - Previous / next month</li>
+    <li><strong>Home</strong> - First day of current month</li>
+    <li><strong>End</strong> - Last day of current month</li>
+    <li><strong>Ctrl+Home</strong> - January 1st of current year (repeat for previous year)</li>
+    <li><strong>Ctrl+End</strong> - December 31st of current year (repeat for next year)</li>
+    <li><strong>PageUp / PageDown</strong> - Previous / next month</li>
+    <li><strong>Enter</strong> - Select focused day</li>
+    <li><strong>Escape</strong> - Close calendar</li>
+    <li><strong>Tab / Shift+Tab</strong> - Switch between month columns (multi-month mode)</li>
+    <li><strong>T</strong> - Jump to today</li>
+  </ul>
+</div>
+
+<!-- Example 8: All Options Reference -->
+<div class="card">
+  <h2>DA26 · Complete Options Reference</h2>
+  <p>All available options you can pass to the DateRangePickerEngine constructor.</p>
+
+  <div class="code-block">
+    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const picker = new DateRangePickerEngine(inputElement, {
   // Selection
@@ -1758,279 +1748,279 @@ const picker = new DateRangePickerEngine(inputElement, {
   badgeTooltipMember: 'badgeTooltip',             // Custom badge tooltip property
   dayTooltipMember: 'dayTooltip'                  // Custom day tooltip property
 });</pre>
-    </div>
   </div>
+</div>
 
-  <!-- Section 9: Complete API Reference -->
-  <section class="card">
-    <div>
-      <h2>DA27 · Complete API Reference</h2>
-      <p class="description">
-        Full reference of all public methods, properties, and events available on the
-        <code>&lt;web-daterangepicker&gt;</code> component.
-      </p>
-    </div>
-    <div>
-      <h3>Methods</h3>
-      <table class="reference-table">
-        <thead>
-          <tr>
-            <th>Method</th>
-            <th>Returns</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>open()</code></td>
-            <td><code>void</code></td>
-            <td>Open the calendar (floating/modal modes)</td>
-          </tr>
-          <tr>
-            <td><code>close()</code></td>
-            <td><code>void</code></td>
-            <td>Close the calendar (floating/modal modes)</td>
-          </tr>
-          <tr>
-            <td><code>toggle()</code></td>
-            <td><code>void</code></td>
-            <td>Toggle the calendar open/closed</td>
-          </tr>
-          <tr>
-            <td><code>clearSelection()</code></td>
-            <td><code>void</code></td>
-            <td>Clear the current selection and reset the input</td>
-          </tr>
-          <tr>
-            <td><code>value</code></td>
-            <td><code>string</code></td>
-            <td>Current input text (floating/modal modes); <code>''</code> when there is no input</td>
-          </tr>
-          <tr>
-            <td><code>commit()</code></td>
-            <td><code>void</code></td>
-            <td>Commit the staged selection (what Apply does; the app's call in <code>commit-mode="manual"</code>)</td>
-          </tr>
-          <tr>
-            <td><code>showMessage(content, { type?, autoHideMs? })</code></td>
-            <td><code>void</code></td>
-            <td>Show an inline message; <code>type</code> ∈ error/warning/info/success, <code>autoHideMs</code> auto-dismisses</td>
-          </tr>
-          <tr>
-            <td><code>hideMessage()</code></td>
-            <td><code>void</code></td>
-            <td>Hide the current inline message</td>
-          </tr>
-          <tr>
-            <td><code>showSummary(content)</code></td>
-            <td><code>void</code></td>
-            <td>Write custom HTML into the summary block (pins until the next selection change)</td>
-          </tr>
-          <tr>
-            <td><code>hideSummary()</code></td>
-            <td><code>void</code></td>
-            <td>Drop any summary override and re-derive from selection state</td>
-          </tr>
-          <tr>
-            <td><code>refreshSummary()</code></td>
-            <td><code>void</code></td>
-            <td>Re-run summary derivation now (respects an active override)</td>
-          </tr>
-          <tr>
-            <td><code>showLoader(target?)</code></td>
-            <td><code>void</code></td>
-            <td>Show a loader overlay. <code>target</code>: <code>calendar</code> (default) / <code>message</code> / <code>summary</code></td>
-          </tr>
-          <tr>
-            <td><code>hideLoader(target?)</code></td>
-            <td><code>void</code></td>
-            <td>Hide the loader for the given target</td>
-          </tr>
-          <tr>
-            <td><code>lock(aspects?)</code></td>
-            <td><code>void</code></td>
-            <td>Freeze interaction. No argument = full lock; else <code>'selection' | 'navigation' | 'actions' | 'open'</code>. The programmatic API is unaffected</td>
-          </tr>
-          <tr>
-            <td><code>unlock(aspects?)</code></td>
-            <td><code>void</code></td>
-            <td>Release the given aspect(s), or the whole lock when called with no argument</td>
-          </tr>
-          <tr>
-            <td><code>toggleLock(aspects?)</code></td>
-            <td><code>void</code></td>
-            <td>Toggle the given aspect(s), or the whole lock when called with no argument</td>
-          </tr>
-          <tr>
-            <td><code>isAspectLocked(aspect)</code></td>
-            <td><code>boolean</code></td>
-            <td>True when the given aspect is currently locked</td>
-          </tr>
-          <tr>
-            <td><code>setRollingItemAlignment(alignment)</code></td>
-            <td><code>void</code></td>
-            <td>Align items within the rolling year/month selector (<code>'flex-start' | 'center' | 'flex-end'</code>)</td>
-          </tr>
-        </tbody>
-      </table>
+<!-- Section 9: Complete API Reference -->
+<section class="card">
+  <div>
+    <h2>DA27 · Complete API Reference</h2>
+    <p class="description">
+      Full reference of all public methods, properties, and events available on the
+      <code>&lt;web-daterangepicker&gt;</code> component.
+    </p>
+  </div>
+  <div>
+    <h3>Methods</h3>
+    <table class="reference-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Returns</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>open()</code></td>
+          <td><code>void</code></td>
+          <td>Open the calendar (floating/modal modes)</td>
+        </tr>
+        <tr>
+          <td><code>close()</code></td>
+          <td><code>void</code></td>
+          <td>Close the calendar (floating/modal modes)</td>
+        </tr>
+        <tr>
+          <td><code>toggle()</code></td>
+          <td><code>void</code></td>
+          <td>Toggle the calendar open/closed</td>
+        </tr>
+        <tr>
+          <td><code>clearSelection()</code></td>
+          <td><code>void</code></td>
+          <td>Clear the current selection and reset the input</td>
+        </tr>
+        <tr>
+          <td><code>value</code></td>
+          <td><code>string</code></td>
+          <td>Current input text (floating/modal modes); <code>''</code> when there is no input</td>
+        </tr>
+        <tr>
+          <td><code>commit()</code></td>
+          <td><code>void</code></td>
+          <td>Commit the staged selection (what Apply does; the app's call in <code>commit-mode="manual"</code>)</td>
+        </tr>
+        <tr>
+          <td><code>showMessage(content, { type?, autoHideMs? })</code></td>
+          <td><code>void</code></td>
+          <td>Show an inline message; <code>type</code> ∈ error/warning/info/success, <code>autoHideMs</code> auto-dismisses</td>
+        </tr>
+        <tr>
+          <td><code>hideMessage()</code></td>
+          <td><code>void</code></td>
+          <td>Hide the current inline message</td>
+        </tr>
+        <tr>
+          <td><code>showSummary(content)</code></td>
+          <td><code>void</code></td>
+          <td>Write custom HTML into the summary block (pins until the next selection change)</td>
+        </tr>
+        <tr>
+          <td><code>hideSummary()</code></td>
+          <td><code>void</code></td>
+          <td>Drop any summary override and re-derive from selection state</td>
+        </tr>
+        <tr>
+          <td><code>refreshSummary()</code></td>
+          <td><code>void</code></td>
+          <td>Re-run summary derivation now (respects an active override)</td>
+        </tr>
+        <tr>
+          <td><code>showLoader(target?)</code></td>
+          <td><code>void</code></td>
+          <td>Show a loader overlay. <code>target</code>: <code>calendar</code> (default) / <code>message</code> / <code>summary</code></td>
+        </tr>
+        <tr>
+          <td><code>hideLoader(target?)</code></td>
+          <td><code>void</code></td>
+          <td>Hide the loader for the given target</td>
+        </tr>
+        <tr>
+          <td><code>lock(aspects?)</code></td>
+          <td><code>void</code></td>
+          <td>Freeze interaction. No argument = full lock; else <code>'selection' | 'navigation' | 'actions' | 'open'</code>. The programmatic API is unaffected</td>
+        </tr>
+        <tr>
+          <td><code>unlock(aspects?)</code></td>
+          <td><code>void</code></td>
+          <td>Release the given aspect(s), or the whole lock when called with no argument</td>
+        </tr>
+        <tr>
+          <td><code>toggleLock(aspects?)</code></td>
+          <td><code>void</code></td>
+          <td>Toggle the given aspect(s), or the whole lock when called with no argument</td>
+        </tr>
+        <tr>
+          <td><code>isAspectLocked(aspect)</code></td>
+          <td><code>boolean</code></td>
+          <td>True when the given aspect is currently locked</td>
+        </tr>
+        <tr>
+          <td><code>setRollingItemAlignment(alignment)</code></td>
+          <td><code>void</code></td>
+          <td>Align items within the rolling year/month selector (<code>'flex-start' | 'center' | 'flex-end'</code>)</td>
+        </tr>
+      </tbody>
+    </table>
 
-      <h3>Properties</h3>
-      <table class="reference-table">
-        <thead>
-          <tr>
-            <th>Property</th>
-            <th>Type</th>
-            <th>Access</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>value</code></td>
-            <td><code>string</code></td>
-            <td>Read/Write</td>
-            <td>The current value as the input shows it; assigning sets the selection (the <code>value</code> attribute stays the <code>form.reset()</code> default)</td>
-          </tr>
-          <tr>
-            <td><code>isReadonly</code></td>
-            <td><code>boolean</code></td>
-            <td>Read/Write</td>
-            <td>Full read-only lock (attribute <code>readonly</code>) — use <code>lock([…])</code> / <code>lockedAspects</code> for partial locks</td>
-          </tr>
-          <tr>
-            <td><code>isDisabled</code></td>
-            <td><code>boolean</code></td>
-            <td>Read/Write</td>
-            <td>Disable the control (attribute <code>disabled</code>; an ancestor <code>&lt;fieldset disabled&gt;</code> disables it too)</td>
-          </tr>
-          <tr>
-            <td><code>selectionMode</code></td>
-            <td><code>'single' | 'range' | 'multiple'</code></td>
-            <td>Read/Write</td>
-            <td>Selection mode</td>
-          </tr>
-          <tr>
-            <td><code>selectedDate</code></td>
-            <td><code>Date | null</code></td>
-            <td>Read/Write</td>
-            <td>Committed date (single mode); assigning replaces the selection</td>
-          </tr>
-          <tr>
-            <td><code>selectedRanges</code></td>
-            <td><code>DateRange[]</code></td>
-            <td>Read/Write</td>
-            <td>Committed ranges (range mode); assigning replaces the selection</td>
-          </tr>
-          <tr>
-            <td><code>selectedDates</code></td>
-            <td><code>Date[]</code></td>
-            <td>Read/Write</td>
-            <td>Committed dates (multiple mode); assigning replaces the selection</td>
-          </tr>
-          <tr>
-            <td><code>selectedStartDate</code></td>
-            <td><code>Date | null</code></td>
-            <td>Read-only</td>
-            <td>Committed range start (set a range via <code>selectedRanges</code>)</td>
-          </tr>
-          <tr>
-            <td><code>selectedEndDate</code></td>
-            <td><code>Date | null</code></td>
-            <td>Read-only</td>
-            <td>Committed range end (set a range via <code>selectedRanges</code>)</td>
-          </tr>
-          <tr>
-            <td><code>isOpen</code></td>
-            <td><code>boolean</code></td>
-            <td>Read/Write</td>
-            <td>Whether the calendar is open; assigning opens/closes it</td>
-          </tr>
-          <tr>
-            <td><code>dateFormatMask</code></td>
-            <td><code>string</code></td>
-            <td>Read/Write</td>
-            <td>Date format mask (e.g., 'YYYY-MM-DD')</td>
-          </tr>
-          <tr>
-            <td><code>minDate</code></td>
-            <td><code>string | null</code></td>
-            <td>Read/Write</td>
-            <td>Earliest selectable date (ISO string)</td>
-          </tr>
-          <tr>
-            <td><code>maxDate</code></td>
-            <td><code>string | null</code></td>
-            <td>Read/Write</td>
-            <td>Latest selectable date (ISO string)</td>
-          </tr>
-          <tr>
-            <td><code>disabledDates</code></td>
-            <td><code>Array&lt;Date | string&gt;</code></td>
-            <td>Read/Write</td>
-            <td>Specific dates that cannot be selected</td>
-          </tr>
-          <tr>
-            <td><code>lockedAspects</code></td>
-            <td><code>LockAspect[]</code></td>
-            <td>Read-only</td>
-            <td>The currently locked aspects (read-only snapshot)</td>
-          </tr>
-          <tr>
-            <td><code>controller</code></td>
-            <td><code>DateRangePickerController</code></td>
-            <td>Read-only</td>
-            <td>Public facade (read the selection, open/close, messages, loaders, locks) — the same object every callback context and event detail carries as <code>controller</code></td>
-          </tr>
-        </tbody>
-      </table>
+    <h3>Properties</h3>
+    <table class="reference-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Access</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>value</code></td>
+          <td><code>string</code></td>
+          <td>Read/Write</td>
+          <td>The current value as the input shows it; assigning sets the selection (the <code>value</code> attribute stays the <code>form.reset()</code> default)</td>
+        </tr>
+        <tr>
+          <td><code>isReadonly</code></td>
+          <td><code>boolean</code></td>
+          <td>Read/Write</td>
+          <td>Full read-only lock (attribute <code>readonly</code>) — use <code>lock([…])</code> / <code>lockedAspects</code> for partial locks</td>
+        </tr>
+        <tr>
+          <td><code>isDisabled</code></td>
+          <td><code>boolean</code></td>
+          <td>Read/Write</td>
+          <td>Disable the control (attribute <code>disabled</code>; an ancestor <code>&lt;fieldset disabled&gt;</code> disables it too)</td>
+        </tr>
+        <tr>
+          <td><code>selectionMode</code></td>
+          <td><code>'single' | 'range' | 'multiple'</code></td>
+          <td>Read/Write</td>
+          <td>Selection mode</td>
+        </tr>
+        <tr>
+          <td><code>selectedDate</code></td>
+          <td><code>Date | null</code></td>
+          <td>Read/Write</td>
+          <td>Committed date (single mode); assigning replaces the selection</td>
+        </tr>
+        <tr>
+          <td><code>selectedRanges</code></td>
+          <td><code>DateRange[]</code></td>
+          <td>Read/Write</td>
+          <td>Committed ranges (range mode); assigning replaces the selection</td>
+        </tr>
+        <tr>
+          <td><code>selectedDates</code></td>
+          <td><code>Date[]</code></td>
+          <td>Read/Write</td>
+          <td>Committed dates (multiple mode); assigning replaces the selection</td>
+        </tr>
+        <tr>
+          <td><code>selectedStartDate</code></td>
+          <td><code>Date | null</code></td>
+          <td>Read-only</td>
+          <td>Committed range start (set a range via <code>selectedRanges</code>)</td>
+        </tr>
+        <tr>
+          <td><code>selectedEndDate</code></td>
+          <td><code>Date | null</code></td>
+          <td>Read-only</td>
+          <td>Committed range end (set a range via <code>selectedRanges</code>)</td>
+        </tr>
+        <tr>
+          <td><code>isOpen</code></td>
+          <td><code>boolean</code></td>
+          <td>Read/Write</td>
+          <td>Whether the calendar is open; assigning opens/closes it</td>
+        </tr>
+        <tr>
+          <td><code>dateFormatMask</code></td>
+          <td><code>string</code></td>
+          <td>Read/Write</td>
+          <td>Date format mask (e.g., 'YYYY-MM-DD')</td>
+        </tr>
+        <tr>
+          <td><code>minDate</code></td>
+          <td><code>string | null</code></td>
+          <td>Read/Write</td>
+          <td>Earliest selectable date (ISO string)</td>
+        </tr>
+        <tr>
+          <td><code>maxDate</code></td>
+          <td><code>string | null</code></td>
+          <td>Read/Write</td>
+          <td>Latest selectable date (ISO string)</td>
+        </tr>
+        <tr>
+          <td><code>disabledDates</code></td>
+          <td><code>Array&lt;Date | string&gt;</code></td>
+          <td>Read/Write</td>
+          <td>Specific dates that cannot be selected</td>
+        </tr>
+        <tr>
+          <td><code>lockedAspects</code></td>
+          <td><code>LockAspect[]</code></td>
+          <td>Read-only</td>
+          <td>The currently locked aspects (read-only snapshot)</td>
+        </tr>
+        <tr>
+          <td><code>controller</code></td>
+          <td><code>DateRangePickerController</code></td>
+          <td>Read-only</td>
+          <td>Public facade (read the selection, open/close, messages, loaders, locks) — the same object every callback context and event detail carries as <code>controller</code></td>
+        </tr>
+      </tbody>
+    </table>
 
-      <p class="description" style="margin-top: 0.75rem;">
-        This lists the most-used members. For the full attribute / property / method / event
-        surface (~60 properties), see <code>API.md</code> or <a href="https://web-daterangepicker.keenmate.dev">the docs</a>.
-      </p>
+    <p class="description" style="margin-top: 0.75rem;">
+      This lists the most-used members. For the full attribute / property / method / event
+      surface (~60 properties), see <code>API.md</code> or <a href="https://web-daterangepicker.keenmate.dev">the docs</a>.
+    </p>
 
-      <h3>Events</h3>
-      <table class="reference-table">
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Detail Type</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>select</code></td>
-            <td><code>ChangeEventDetail</code></td>
-            <td>Fired when date(s) selected (twin: <code>onChange(detail)</code>)</td>
-          </tr>
-          <tr>
-            <td><code>change</code></td>
-            <td><code>ChangeEventDetail</code></td>
-            <td>Fires right after <code>select</code> (same detail; twin: <code>onChange(detail)</code>)</td>
-          </tr>
-          <tr>
-            <td><code>action</code></td>
-            <td><code>DateRangePickerActionEventDetail</code></td>
-            <td>Fired for every action button (built-ins too) and every <code>data-action</code> trigger (<code>detail.action</code> / <code>detail.id</code> / <code>detail.source</code> / <code>detail.dataset</code>)</td>
-          </tr>
-          <tr>
-            <td><code>month-change</code></td>
-            <td><code>MonthChangeEventDetail</code></td>
-            <td>The visible month(s) changed (<code>monthIndex</code>, <code>year</code>, <code>month</code>, <code>visibleMonths</code>)</td>
-          </tr>
-          <tr>
-            <td><code>ready</code></td>
-            <td><code>ReadyEventDetail</code></td>
-            <td>First build finished (<code>detail.controller</code> / <code>detail.element</code>)</td>
-          </tr>
-        </tbody>
-      </table>
+    <h3>Events</h3>
+    <table class="reference-table">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Detail Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>select</code></td>
+          <td><code>ChangeEventDetail</code></td>
+          <td>Fired when date(s) selected (twin: <code>onChange(detail)</code>)</td>
+        </tr>
+        <tr>
+          <td><code>change</code></td>
+          <td><code>ChangeEventDetail</code></td>
+          <td>Fires right after <code>select</code> (same detail; twin: <code>onChange(detail)</code>)</td>
+        </tr>
+        <tr>
+          <td><code>action</code></td>
+          <td><code>DateRangePickerActionEventDetail</code></td>
+          <td>Fired for every action button (built-ins too) and every <code>data-action</code> trigger (<code>detail.action</code> / <code>detail.id</code> / <code>detail.source</code> / <code>detail.dataset</code>)</td>
+        </tr>
+        <tr>
+          <td><code>month-change</code></td>
+          <td><code>MonthChangeEventDetail</code></td>
+          <td>The visible month(s) changed (<code>monthIndex</code>, <code>year</code>, <code>month</code>, <code>visibleMonths</code>)</td>
+        </tr>
+        <tr>
+          <td><code>ready</code></td>
+          <td><code>ReadyEventDetail</code></td>
+          <td>First build finished (<code>detail.controller</code> / <code>detail.element</code>)</td>
+        </tr>
+      </tbody>
+    </table>
 
-      <h3>TypeScript Interfaces</h3>
-      <div class="code-block">
-        <button class="copy-button" onclick="copyCode(this)">Copy</button>
-        <pre><code>interface DateRange {
+    <h3>TypeScript Interfaces</h3>
+    <div class="code-block">
+      <button class="copy-button" onclick="copyCode(this)">Copy</button>
+      <pre><code>interface DateRange {
     start: Date;
     end: Date;
 }
@@ -2056,11 +2046,11 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
         console.log('Range:', event.detail.dateRange.start, '-', event.detail.dateRange.end);
     }
 });</code></pre>
-      </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  </div><!-- /.container -->
+<!-- /.container -->
 
   <!-- ============================================================= -->
   <!-- SCRIPTS                                                       -->
@@ -2594,7 +2584,6 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
 
   <!-- Advanced basic-example demos (web component instances) -->
   <script type="module">
-    import './src/index.ts';
 
     // Date helpers — keep example data anchored to today so the demos never go stale.
     const _today = new Date(); _today.setHours(0, 0, 0, 0);
@@ -2876,7 +2865,3 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
       }
     });
   </script>
-
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>

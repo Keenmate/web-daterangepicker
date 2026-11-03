@@ -1,0 +1,10 @@
+/* Component-only example rules (unlayered → always beat the devkit's @layer kmwc).
+   Page-specific rules stay in each page's own <style>. */
+
+/* Theme swatch buttons — coloured preview buttons in the theming page's "switch theme"
+   row. Each keeps its colour on hover (the colour IS the preview). */
+.swatch--blue,   .swatch--blue:hover   { background: #3b82f6; color: #fff; }
+.swatch--green,  .swatch--green:hover  { background: #10b981; color: #fff; }
+.swatch--purple, .swatch--purple:hover { background: #8b5cf6; color: #fff; }
+.swatch--red,    .swatch--red:hover    { background: #ef4444; color: #fff; }
+.swatch--dark,   .swatch--dark:hover   { background: #1f2937; color: #fff; }

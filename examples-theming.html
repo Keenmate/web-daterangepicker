@@ -1,561 +1,557 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Theming &amp; Sizing — Date Range Picker</title>
-  <link rel="stylesheet" href="examples-shared.css">
-  <style>
-    /* Page-unique theming ONLY: each rule sets component --drp-* CSS variables on a
-       picker instance — this is the POINT of the page (mirrors multiselect's approach
-       of keeping only theme color-scheme declarations here). All generic layout,
-       card, note, and code-block styling comes from examples-shared.css. */
+<meta name="kmwc:title" content="🎭 Theming &amp; Sizing">
+<meta name="kmwc:subtitle" content="Customize appearance with CSS custom properties and scale the whole calendar with the unified density system">
 
-    /* Default picker - no overrides */
-    web-daterangepicker.default {
-      /* Uses component defaults */
+<link rel="stylesheet" href="examples-local.css">
+
+<style>
+  /* Page-unique theming ONLY: each rule sets component --drp-* CSS variables on a
+     picker instance — this is the POINT of the page (mirrors multiselect's approach
+     of keeping only theme color-scheme declarations here). All generic layout,
+     card, note, and code-block styling comes from the devkit kit. */
+
+  /* Default picker - no overrides */
+  web-daterangepicker.default {
+    /* Uses component defaults */
+  }
+
+  /* Green theme */
+  web-daterangepicker.theme-green {
+    --drp-accent-color: #10b981;
+    --drp-accent-color-hover: #059669;
+  }
+
+  /* Purple theme */
+  web-daterangepicker.theme-purple {
+    --drp-accent-color: #8b5cf6;
+    --drp-accent-color-hover: #7c3aed;
+  }
+
+  /* Red theme */
+  web-daterangepicker.theme-red {
+    --drp-accent-color: #ef4444;
+    --drp-accent-color-hover: #dc2626;
+  }
+
+  /* Orange theme */
+  web-daterangepicker.theme-orange {
+    --drp-accent-color: #f97316;
+    --drp-accent-color-hover: #ea580c;
+  }
+
+  /* Dark theme */
+  web-daterangepicker.theme-dark {
+    --drp-dropdown-bg: #1e293b;
+    --drp-text-primary: #f1f5f9;
+    --drp-text-secondary: #cbd5e1;
+    --drp-border-color: #334155;
+    --drp-accent-color: #3b82f6;
+    --drp-accent-color-hover: #2563eb;
+    --drp-primary-bg: #334155;
+    --drp-primary-bg-hover: #475569;
+    --drp-text-color-on-accent: #ffffff;
+    --drp-button-accent-text-color: #ffffff;
+  }
+
+  /* Large size with rounded corners */
+  web-daterangepicker.custom-large {
+    --base-border-radius-sm: 0.5;   /* 5px - day cells */
+    --base-border-radius-md: 1.0;   /* 10px - inputs, buttons */
+    --base-border-radius-lg: 1.5;   /* 15px - calendar popup */
+    --drp-font-size-base: 1.125rem;
+    --drp-spacing-md: 1.25rem;
+  }
+
+  /* Compact theme */
+  web-daterangepicker.theme-compact {
+    --drp-spacing-xs: 0.125rem;
+    --drp-spacing-sm: 0.25rem;
+    --drp-spacing-md: 0.5rem;
+    --drp-font-size-base: 0.875rem;
+    --drp-border-radius: 0.25rem;
+  }
+
+  /* Custom selection hover states — full color inversion */
+  web-daterangepicker.theme-selection-hover {
+    --drp-day-range-bg: #111827;
+    --drp-day-range-color: #ffffff;
+    --drp-day-range-bg-hover: #ffffff;
+    --drp-day-range-color-hover: #111827;
+    --drp-day-selected-bg: #111827;
+    --drp-day-selected-color: #ffffff;
+    --drp-day-selected-bg-hover: #ffffff;
+    --drp-day-selected-color-hover: #111827;
+  }
+
+  web-daterangepicker.theme-selection-contrast {
+    --drp-day-range-bg: #dc2626;
+    --drp-day-range-bg-hover: #fca5a5;
+    --drp-day-range-color: #ffffff;
+    --drp-day-selected-bg: #dc2626;
+    --drp-day-selected-bg-hover: #fca5a5;
+    --drp-day-selected-color: #ffffff;
+  }
+
+  /* Pastel yellow/orange theme */
+  web-daterangepicker.theme-pastel {
+    --drp-dropdown-bg: #fef3c7;
+    --drp-border-color: #fbbf24;
+    --drp-accent-color: #f59e0b;
+    --drp-accent-color-hover: #d97706;
+    --drp-primary-bg: #fed7aa;
+    --drp-primary-bg-hover: #fdba74;
+    --drp-text-color-on-accent: #ffffff;
+  }
+
+  /* Classifier retheming — recolor the built-in dayClass/badgeClass conventions.
+     The picker ships .drp__day.holiday / .drp__day.event / .drp__badge-cell.badge-*
+     rules that read these variables, so an override on the host repaints every
+     day/badge consuming that classifier — no CSS rewrite needed. */
+  web-daterangepicker.theme-classifier-corporate {
+    --drp-holiday-color: #475569;          /* slate instead of red */
+    --drp-event-color: #0ea5e9;            /* sky blue instead of green */
+    --drp-badge-number-bg: #0ea5e9;
+    --drp-badge-count-bg: #475569;
+    --drp-badge-text-bg: #64748b;
+  }
+
+  web-daterangepicker.theme-classifier-festival {
+    --drp-holiday-color: #c026d3;          /* fuchsia */
+    --drp-event-color: #facc15;            /* amber */
+    --drp-holiday-bg-opacity: 0.18;        /* stronger tint */
+    --drp-event-bg-opacity: 0.22;
+    --drp-badge-number-bg: #c026d3;
+    --drp-badge-count-bg: #f97316;
+    --drp-badge-text-bg: #facc15;
+    --drp-badge-text-color: #1e293b;       /* dark text on amber */
+  }
+
+  /* Icon theming — override the shared --base-icon-* glyphs. Every --drp-icon-*
+     chains to --base-icon-*, so one override re-skins the prev/next nav chevrons,
+     the input clear ✕, and the calendar affordance at once (and, set on :root,
+     would re-skin every other KeenMate component in lockstep). */
+  web-daterangepicker.icons-alt {
+    /* Lucide chevrons-right (double) — one directional glyph, rotated per nav dir. */
+    --base-icon-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 17 5-5-5-5'/><path d='m13 17 5-5-5-5'/></svg>");
+    /* Lucide circle-x — the clear ✕ follows --base-icon-close. */
+    --base-icon-close: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='m15 9-6 6'/><path d='m9 9 6 6'/></svg>");
+    /* Lucide calendar-days — the input affordance. */
+    --base-icon-calendar: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v4'/><path d='M16 2v4'/><rect width='18' height='18' x='3' y='4' rx='2'/><path d='M3 10h18'/><path d='M8 14h.01'/><path d='M12 14h.01'/><path d='M16 14h.01'/><path d='M8 18h.01'/><path d='M12 18h.01'/></svg>");
+  }
+
+  /* ---- Sizing presets (merged from the Sizing page) ---- */
+
+  /* Global-scale presets (--drp-rem) applied per demo instance. */
+  .scale-xs { --drp-rem: 6px; }
+  .scale-sm { --drp-rem: 8px; }
+  .scale-md { --drp-rem: 10px; }
+  .scale-lg { --drp-rem: 15px; }
+  .scale-xl { --drp-rem: 20px; }
+  /* A 150% / 200% inline calendar is wider than a phone by design — it scrolls in its
+     own row instead of widening the page. */
+  .form-group:has(> .scale-lg, > .scale-xl) { overflow-x: auto; }
+  /* The inline calendar in the typography demo sits three boxes deep — on a 320px phone it
+     scrolls in its demo area. */
+  .demo-card .demo-area:has(> web-daterangepicker[positioning-mode="inline"]) { overflow-x: auto; }
+
+  /* Spacing-token overrides applied per demo instance. */
+  .spacing-compact {
+    --drp-spacing-xs: 1px;
+    --drp-spacing-sm: 2px;
+    --drp-spacing-md: 4px;
+    --drp-spacing-lg: 6px;
+    --drp-spacing-xl: 8px;
+  }
+
+  .spacing-spacious {
+    --drp-spacing-xs: 6px;
+    --drp-spacing-sm: 10px;
+    --drp-spacing-md: 16px;
+    --drp-spacing-lg: 24px;
+    --drp-spacing-xl: 32px;
+  }
+
+  /* Font-size-token overrides applied per demo instance. */
+  .fonts-small {
+    --drp-font-size-2xs: 8px;
+    --drp-font-size-xs: 9px;
+    --drp-font-size-sm: 10px;
+    --drp-font-size-base: 11px;
+    --drp-font-size-lg: 12px;
+    --drp-font-size-xl: 14px;
+  }
+
+  .fonts-large {
+    --drp-font-size-2xs: 12px;
+    --drp-font-size-xs: 14px;
+    --drp-font-size-sm: 16px;
+    --drp-font-size-base: 18px;
+    --drp-font-size-lg: 20px;
+    --drp-font-size-xl: 24px;
+  }
+
+  /* Responsive --drp-rem preset — the whole point of the responsive demo, so
+     the media queries must target the element directly (Shadow DOM). */
+  @media (max-width: 768px) {
+    .responsive-calendar {
+      --drp-rem: 8px;
     }
+  }
 
-    /* Green theme */
-    web-daterangepicker.theme-green {
-      --drp-accent-color: #10b981;
-      --drp-accent-color-hover: #059669;
+  @media (min-width: 769px) and (max-width: 1200px) {
+    .responsive-calendar {
+      --drp-rem: 10px;
     }
+  }
 
-    /* Purple theme */
-    web-daterangepicker.theme-purple {
-      --drp-accent-color: #8b5cf6;
-      --drp-accent-color-hover: #7c3aed;
+  @media (min-width: 1201px) {
+    .responsive-calendar {
+      --drp-rem: 12px;
     }
+  }
 
-    /* Red theme */
-    web-daterangepicker.theme-red {
-      --drp-accent-color: #ef4444;
-      --drp-accent-color-hover: #dc2626;
-    }
+  /* Slider panel: shared `.controls` gives the flex row; these bits (range
+     width + monospace output pill) are page-unique. */
+  .demo-controls input[type="range"] {
+    width: 150px;
+  }
 
-    /* Orange theme */
-    web-daterangepicker.theme-orange {
-      --drp-accent-color: #f97316;
-      --drp-accent-color-hover: #ea580c;
-    }
+  .demo-controls output {
+    font-family: monospace;
+    background: #e5e7eb;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
 
-    /* Dark theme */
-    web-daterangepicker.theme-dark {
-      --drp-dropdown-bg: #1e293b;
-      --drp-text-primary: #f1f5f9;
-      --drp-text-secondary: #cbd5e1;
-      --drp-border-color: #334155;
-      --drp-accent-color: #3b82f6;
-      --drp-accent-color-hover: #2563eb;
-      --drp-primary-bg: #334155;
-      --drp-primary-bg-hover: #475569;
-      --drp-text-color-on-accent: #ffffff;
-      --drp-button-accent-text-color: #ffffff;
-    }
+  /* ---- Typography-controls panel (merged from the Base Variables page) ---- */
 
-    /* Large size with rounded corners */
-    web-daterangepicker.custom-large {
-      --base-border-radius-sm: 0.5;   /* 5px - day cells */
-      --base-border-radius-md: 1.0;   /* 10px - inputs, buttons */
-      --base-border-radius-lg: 1.5;   /* 15px - calendar popup */
-      --drp-font-size-base: 1.125rem;
-      --drp-spacing-md: 1.25rem;
-    }
+  /* Controls-panel header row (title + reset button on one line). */
+  .controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
 
-    /* Compact theme */
-    web-daterangepicker.theme-compact {
-      --drp-spacing-xs: 0.125rem;
-      --drp-spacing-sm: 0.25rem;
-      --drp-spacing-md: 0.5rem;
-      --drp-font-size-base: 0.875rem;
-      --drp-border-radius: 0.25rem;
-    }
+  .controls-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    border: none;
+    padding: 0;
+  }
 
-    /* Custom selection hover states — full color inversion */
-    web-daterangepicker.theme-selection-hover {
-      --drp-day-range-bg: #111827;
-      --drp-day-range-color: #ffffff;
-      --drp-day-range-bg-hover: #ffffff;
-      --drp-day-range-color-hover: #111827;
-      --drp-day-selected-bg: #111827;
-      --drp-day-selected-color: #ffffff;
-      --drp-day-selected-bg-hover: #ffffff;
-      --drp-day-selected-color-hover: #111827;
-    }
+  /* Grouped sections of controls inside the panel, each with an uppercase
+     label rule + optional descriptive line. */
+  .control-section {
+    margin-bottom: 1.5rem;
+  }
 
-    web-daterangepicker.theme-selection-contrast {
-      --drp-day-range-bg: #dc2626;
-      --drp-day-range-bg-hover: #fca5a5;
-      --drp-day-range-color: #ffffff;
-      --drp-day-selected-bg: #dc2626;
-      --drp-day-selected-bg-hover: #fca5a5;
-      --drp-day-selected-color: #ffffff;
-    }
+  .control-section:last-child {
+    margin-bottom: 0;
+  }
 
-    /* Pastel yellow/orange theme */
-    web-daterangepicker.theme-pastel {
-      --drp-dropdown-bg: #fef3c7;
-      --drp-border-color: #fbbf24;
-      --drp-accent-color: #f59e0b;
-      --drp-accent-color-hover: #d97706;
-      --drp-primary-bg: #fed7aa;
-      --drp-primary-bg-hover: #fdba74;
-      --drp-text-color-on-accent: #ffffff;
-    }
+  .control-section h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    margin: 0 0 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+  }
 
-    /* Classifier retheming — recolor the built-in dayClass/badgeClass conventions.
-       The picker ships .drp__day.holiday / .drp__day.event / .drp__badge-cell.badge-*
-       rules that read these variables, so an override on the host repaints every
-       day/badge consuming that classifier — no CSS rewrite needed. */
-    web-daterangepicker.theme-classifier-corporate {
-      --drp-holiday-color: #475569;          /* slate instead of red */
-      --drp-event-color: #0ea5e9;            /* sky blue instead of green */
-      --drp-badge-number-bg: #0ea5e9;
-      --drp-badge-count-bg: #475569;
-      --drp-badge-text-bg: #64748b;
-    }
+  .section-desc {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.4;
+  }
 
-    web-daterangepicker.theme-classifier-festival {
-      --drp-holiday-color: #c026d3;          /* fuchsia */
-      --drp-event-color: #facc15;            /* amber */
-      --drp-holiday-bg-opacity: 0.18;        /* stronger tint */
-      --drp-event-bg-opacity: 0.22;
-      --drp-badge-number-bg: #c026d3;
-      --drp-badge-count-bg: #f97316;
-      --drp-badge-text-bg: #facc15;
-      --drp-badge-text-color: #1e293b;       /* dark text on amber */
-    }
+  .section-desc strong {
+    color: #374151;
+  }
 
-    /* Icon theming — override the shared --base-icon-* glyphs. Every --drp-icon-*
-       chains to --base-icon-*, so one override re-skins the prev/next nav chevrons,
-       the input clear ✕, and the calendar affordance at once (and, set on :root,
-       would re-skin every other KeenMate component in lockstep). */
-    web-daterangepicker.icons-alt {
-      /* Lucide chevrons-right (double) — one directional glyph, rotated per nav dir. */
-      --base-icon-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 17 5-5-5-5'/><path d='m13 17 5-5-5-5'/></svg>");
-      /* Lucide circle-x — the clear ✕ follows --base-icon-close. */
-      --base-icon-close: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='m15 9-6 6'/><path d='m9 9 6 6'/></svg>");
-      /* Lucide calendar-days — the input affordance. */
-      --base-icon-calendar: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 2v4'/><path d='M16 2v4'/><rect width='18' height='18' x='3' y='4' rx='2'/><path d='M3 10h18'/><path d='M8 14h.01'/><path d='M12 14h.01'/><path d='M16 14h.01'/><path d='M8 18h.01'/><path d='M12 18h.01'/></svg>");
-    }
+  /* Fixed input widths for the typography controls (text vs number vs URL). */
+  .control-group input[type="text"] {
+    width: 250px;
+  }
 
-    /* ---- Sizing presets (merged from the Sizing page) ---- */
+  .control-group input[type="number"] {
+    width: 80px;
+  }
 
-    /* Global-scale presets (--drp-rem) applied per demo instance. */
-    .scale-xs { --drp-rem: 6px; }
-    .scale-sm { --drp-rem: 8px; }
-    .scale-md { --drp-rem: 10px; }
-    .scale-lg { --drp-rem: 15px; }
-    .scale-xl { --drp-rem: 20px; }
+  .font-link-input {
+    width: min(500px, 100%) !important;
+  }
 
-    /* Spacing-token overrides applied per demo instance. */
-    .spacing-compact {
-      --drp-spacing-xs: 1px;
-      --drp-spacing-sm: 2px;
-      --drp-spacing-md: 4px;
-      --drp-spacing-lg: 6px;
-      --drp-spacing-xl: 8px;
-    }
+  /* Current values dump — box from shared `.log-panel--dark`; kept green +
+     preformatted for the terminal-style values readout. */
+  .current-values {
+    --log-max-height: 300px;
+    color: #a5d6a7;
+    margin-top: 2rem;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
 
-    .spacing-spacious {
-      --drp-spacing-xs: 6px;
-      --drp-spacing-sm: 10px;
-      --drp-spacing-md: 16px;
-      --drp-spacing-lg: 24px;
-      --drp-spacing-xl: 32px;
-    }
+  .current-values-header {
+    color: #93c5fd;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+</style>
 
-    /* Font-size-token overrides applied per demo instance. */
-    .fonts-small {
-      --drp-font-size-2xs: 8px;
-      --drp-font-size-xs: 9px;
-      --drp-font-size-sm: 10px;
-      --drp-font-size-base: 11px;
-      --drp-font-size-lg: 12px;
-      --drp-font-size-xl: 14px;
-    }
-
-    .fonts-large {
-      --drp-font-size-2xs: 12px;
-      --drp-font-size-xs: 14px;
-      --drp-font-size-sm: 16px;
-      --drp-font-size-base: 18px;
-      --drp-font-size-lg: 20px;
-      --drp-font-size-xl: 24px;
-    }
-
-    /* Responsive --drp-rem preset — the whole point of the responsive demo, so
-       the media queries must target the element directly (Shadow DOM). */
-    @media (max-width: 768px) {
-      .responsive-calendar {
-        --drp-rem: 8px;
-      }
-    }
-
-    @media (min-width: 769px) and (max-width: 1200px) {
-      .responsive-calendar {
-        --drp-rem: 10px;
-      }
-    }
-
-    @media (min-width: 1201px) {
-      .responsive-calendar {
-        --drp-rem: 12px;
-      }
-    }
-
-    /* Slider panel: shared `.controls` gives the flex row; these bits (range
-       width + monospace output pill) are page-unique. */
-    .demo-controls input[type="range"] {
-      width: 150px;
-    }
-
-    .demo-controls output {
-      font-family: monospace;
-      background: #e5e7eb;
-      padding: 0.125rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.875rem;
-    }
-
-    /* ---- Typography-controls panel (merged from the Base Variables page) ---- */
-
-    /* Controls-panel header row (title + reset button on one line). */
-    .controls-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .controls-header h2 {
-      margin: 0;
-      font-size: 1.25rem;
-      border: none;
-      padding: 0;
-    }
-
-    /* Grouped sections of controls inside the panel, each with an uppercase
-       label rule + optional descriptive line. */
-    .control-section {
-      margin-bottom: 1.5rem;
-    }
-
-    .control-section:last-child {
-      margin-bottom: 0;
-    }
-
-    .control-section h3 {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #6b7280;
-      margin: 0 0 0.75rem 0;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 0.5rem;
-    }
-
-    .section-desc {
-      font-size: 0.75rem;
-      color: #6b7280;
-      margin: 0 0 0.75rem 0;
-      line-height: 1.4;
-    }
-
-    .section-desc strong {
-      color: #374151;
-    }
-
-    /* Fixed input widths for the typography controls (text vs number vs URL). */
-    .control-group input[type="text"] {
-      width: 250px;
-    }
-
-    .control-group input[type="number"] {
-      width: 80px;
-    }
-
-    .font-link-input {
-      width: 500px !important;
-    }
-
-    /* Current values dump — box from shared `.log-panel--dark`; kept green +
-       preformatted for the terminal-style values readout. */
-    .current-values {
-      --log-max-height: 300px;
-      color: #a5d6a7;
-      margin-top: 2rem;
-      font-size: 0.75rem;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    .current-values-header {
-      color: #93c5fd;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>🎭 Theming &amp; Sizing</h1>
-      <p class="subtitle">Customize appearance with CSS custom properties and scale the whole calendar with the unified density system</p>
-    </header>
-
-  <div class="card">
-    <h2>TH01 · Overview: How CSS Variable Theming Works</h2>
-    <div class="note info">
-      <strong>✅ Shadow DOM + CSS Variables = Powerful Theming</strong><br><br>
-      This component uses <strong>:host</strong> to define CSS variables inside the shadow DOM. This means:
-      <ul>
-        <li>Variables are accessible to component styles</li>
-        <li>You can override them from your page CSS</li>
-        <li>Each instance can have a different theme</li>
-      </ul>
-    </div>
-    <div class="code-block">/* Your page CSS */
+<div class="card">
+  <h2>TH01 · Overview: How CSS Variable Theming Works</h2>
+  <div class="note info">
+    <strong>✅ Shadow DOM + CSS Variables = Powerful Theming</strong><br><br>
+    This component uses <strong>:host</strong> to define CSS variables inside the shadow DOM. This means:
+    <ul>
+      <li>Variables are accessible to component styles</li>
+      <li>You can override them from your page CSS</li>
+      <li>Each instance can have a different theme</li>
+    </ul>
+  </div>
+  <div class="code-block">/* Your page CSS */
 web-daterangepicker.theme-green {
-  --drp-accent-color: #10b981;
-  --drp-accent-color-hover: #059669;
+--drp-accent-color: #10b981;
+--drp-accent-color-hover: #059669;
 }</div>
 
-    <div class="note info">
-      <strong>🎬 Shared rich demo:</strong> Every calendar picker in the theming sections renders the
-      <em>same</em> set of demo data &mdash; emoji badges for events 🎂&nbsp;☕&nbsp;🎉&nbsp;🎤&nbsp;🎬, disabled holidays 🎄&nbsp;🥳,
-      dynamic weekend / weekday price badges, and rich HTML tooltips on hover. Open any picker to compare how
-      identical content renders under each theme. Time-picker examples intentionally show no calendar data.
-    </div>
+  <div class="note info">
+    <strong>🎬 Shared rich demo:</strong> Every calendar picker in the theming sections renders the
+    <em>same</em> set of demo data &mdash; emoji badges for events 🎂&nbsp;☕&nbsp;🎉&nbsp;🎤&nbsp;🎬, disabled holidays 🎄&nbsp;🥳,
+    dynamic weekend / weekday price badges, and rich HTML tooltips on hover. Open any picker to compare how
+    identical content renders under each theme. Time-picker examples intentionally show no calendar data.
   </div>
+</div>
 
-  <div class="card">
-    <h2>TH02 · Default Theme (Blue)</h2>
-    <p>Uses component's default CSS variables</p>
-    <label>Select a date range:</label>
-    <web-daterangepicker
-      class="default"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Default theme">
-    </web-daterangepicker>
-    <div class="note success">
-      ✓ If this picker appears with blue accent color, defaults are working
-    </div>
+<div class="card">
+  <h2>TH02 · Default Theme (Blue)</h2>
+  <p>Uses component's default CSS variables</p>
+  <label>Select a date range:</label>
+  <web-daterangepicker
+    class="default"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Default theme">
+  </web-daterangepicker>
+  <div class="note success">
+    ✓ If this picker appears with blue accent color, defaults are working
   </div>
+</div>
 
-  <div class="card">
-    <h2>TH03 · Color Theme Overrides</h2>
-    <p>Override --drp-accent-color to change the theme color</p>
+<div class="card">
+  <h2>TH03 · Color Theme Overrides</h2>
+  <p>Override --drp-accent-color to change the theme color</p>
 
-    <label>Green Theme:</label>
-    <web-daterangepicker
-      class="theme-green"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Green theme">
-    </web-daterangepicker>
+  <label>Green Theme:</label>
+  <web-daterangepicker
+    class="theme-green"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Green theme">
+  </web-daterangepicker>
 
-    <label class="mt-1">Purple Theme:</label>
-    <web-daterangepicker
-      class="theme-purple"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Purple theme">
-    </web-daterangepicker>
+  <label class="mt-1">Purple Theme:</label>
+  <web-daterangepicker
+    class="theme-purple"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Purple theme">
+  </web-daterangepicker>
 
-    <label class="mt-1">Red Theme:</label>
-    <web-daterangepicker
-      class="theme-red"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Red theme">
-    </web-daterangepicker>
+  <label class="mt-1">Red Theme:</label>
+  <web-daterangepicker
+    class="theme-red"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Red theme">
+  </web-daterangepicker>
 
-    <label class="mt-1">Orange Theme:</label>
-    <web-daterangepicker
-      class="theme-orange"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Orange theme">
-    </web-daterangepicker>
+  <label class="mt-1">Orange Theme:</label>
+  <web-daterangepicker
+    class="theme-orange"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Orange theme">
+  </web-daterangepicker>
 
-    <div class="note success">
-      ✓ If selected dates appear in different colors, CSS variable override is working!
-    </div>
+  <div class="note success">
+    ✓ If selected dates appear in different colors, CSS variable override is working!
   </div>
+</div>
 
-  <div class="card">
-    <h2>TH04 · Dark Theme (Multiple Variables)</h2>
-    <p>Overrides multiple variables for complete dark mode</p>
-    <label>Select a date range:</label>
-    <web-daterangepicker
-      class="theme-dark"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Dark theme">
-    </web-daterangepicker>
-    <div class="note success">
-      ✓ If calendar has dark background and light text, multiple variable override is working!
-    </div>
-    <div class="code-block">web-daterangepicker.theme-dark {
-  --drp-dropdown-bg: #1e293b;
-  --drp-text-primary: #f1f5f9;
-  --drp-text-secondary: #cbd5e1;
-  --drp-border-color: #334155;
-  --drp-accent-color: #3b82f6;
-  --drp-accent-color-hover: #2563eb;
-  --drp-primary-bg: #334155;
-  --drp-primary-bg-hover: #475569;
-  --drp-text-color-on-accent: #ffffff;
-  --drp-button-accent-text-color: #ffffff;
+<div class="card">
+  <h2>TH04 · Dark Theme (Multiple Variables)</h2>
+  <p>Overrides multiple variables for complete dark mode</p>
+  <label>Select a date range:</label>
+  <web-daterangepicker
+    class="theme-dark"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Dark theme">
+  </web-daterangepicker>
+  <div class="note success">
+    ✓ If calendar has dark background and light text, multiple variable override is working!
+  </div>
+  <div class="code-block">web-daterangepicker.theme-dark {
+--drp-dropdown-bg: #1e293b;
+--drp-text-primary: #f1f5f9;
+--drp-text-secondary: #cbd5e1;
+--drp-border-color: #334155;
+--drp-accent-color: #3b82f6;
+--drp-accent-color-hover: #2563eb;
+--drp-primary-bg: #334155;
+--drp-primary-bg-hover: #475569;
+--drp-text-color-on-accent: #ffffff;
+--drp-button-accent-text-color: #ffffff;
 }</div>
+</div>
+
+<div class="card">
+  <h2>TH05 · Range Mode with Themes</h2>
+  <p>Range selection works with all themes</p>
+
+  <label>Green theme range:</label>
+  <web-daterangepicker
+    class="theme-green"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Range with green theme">
+  </web-daterangepicker>
+
+  <label class="mt-1">Dark theme range:</label>
+  <web-daterangepicker
+    class="theme-dark"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Range with dark theme">
+  </web-daterangepicker>
+
+  <div class="note success">
+    ✓ If range selections appear in themed colors, CSS variables work in range mode too!
   </div>
+</div>
 
-  <div class="card">
-    <h2>TH05 · Range Mode with Themes</h2>
-    <p>Range selection works with all themes</p>
+<div class="card">
+  <h2>TH06 · Selection Hover States</h2>
+  <p>Override hover colors for selected days and range start/end independently from the generic day hover</p>
 
-    <label>Green theme range:</label>
-    <web-daterangepicker
-      class="theme-green"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Range with green theme">
-    </web-daterangepicker>
+  <label>Black selection with gray hover (range):</label>
+  <web-daterangepicker
+    class="theme-selection-hover"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Select a range and hover over start/end">
+  </web-daterangepicker>
 
-    <label class="mt-1">Dark theme range:</label>
-    <web-daterangepicker
-      class="theme-dark"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Range with dark theme">
-    </web-daterangepicker>
+  <label class="mt-1">Black selection with gray hover (single):</label>
+  <web-daterangepicker
+    class="theme-selection-hover"
+    selection-mode="single"
+    data-rich-demo
+    placeholder="Select a date and hover over it">
+  </web-daterangepicker>
 
-    <div class="note success">
-      ✓ If range selections appear in themed colors, CSS variables work in range mode too!
-    </div>
+  <label class="mt-1">Red selection with light-red hover (range):</label>
+  <web-daterangepicker
+    class="theme-selection-contrast"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Select a range and hover over start/end">
+  </web-daterangepicker>
+
+  <div class="note success">
+    ✓ Hover over the range start/end days - they should change to the hover color, NOT the generic day hover
   </div>
-
-  <div class="card">
-    <h2>TH06 · Selection Hover States</h2>
-    <p>Override hover colors for selected days and range start/end independently from the generic day hover</p>
-
-    <label>Black selection with gray hover (range):</label>
-    <web-daterangepicker
-      class="theme-selection-hover"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Select a range and hover over start/end">
-    </web-daterangepicker>
-
-    <label class="mt-1">Black selection with gray hover (single):</label>
-    <web-daterangepicker
-      class="theme-selection-hover"
-      selection-mode="single"
-      data-rich-demo
-      placeholder="Select a date and hover over it">
-    </web-daterangepicker>
-
-    <label class="mt-1">Red selection with light-red hover (range):</label>
-    <web-daterangepicker
-      class="theme-selection-contrast"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Select a range and hover over start/end">
-    </web-daterangepicker>
-
-    <div class="note success">
-      ✓ Hover over the range start/end days - they should change to the hover color, NOT the generic day hover
-    </div>
-    <div class="code-block">/* Full color inversion on hover */
+  <div class="code-block">/* Full color inversion on hover */
 web-daterangepicker.theme-selection-hover {
-  /* Range start/end: black bg + white text */
-  --drp-day-range-bg: #111827;
-  --drp-day-range-color: #ffffff;
-  /* Hover: white bg + black text (full inversion) */
-  --drp-day-range-bg-hover: #ffffff;
-  --drp-day-range-color-hover: #111827;
+/* Range start/end: black bg + white text */
+--drp-day-range-bg: #111827;
+--drp-day-range-color: #ffffff;
+/* Hover: white bg + black text (full inversion) */
+--drp-day-range-bg-hover: #ffffff;
+--drp-day-range-color-hover: #111827;
 
-  /* Single selected: same treatment */
-  --drp-day-selected-bg: #111827;
-  --drp-day-selected-color: #ffffff;
-  --drp-day-selected-bg-hover: #ffffff;
-  --drp-day-selected-color-hover: #111827;
+/* Single selected: same treatment */
+--drp-day-selected-bg: #111827;
+--drp-day-selected-color: #ffffff;
+--drp-day-selected-bg-hover: #ffffff;
+--drp-day-selected-color-hover: #111827;
 }
 
 /* Available selection state variables:
-   --drp-day-selected-bg            Selected day background
-   --drp-day-selected-color         Selected day text color
-   --drp-day-selected-bg-hover      Selected day hover background
-   --drp-day-selected-color-hover   Selected day hover text color
-   --drp-day-range-bg               Range start/end background
-   --drp-day-range-color            Range start/end text color
-   --drp-day-range-bg-hover         Range start/end hover background
-   --drp-day-range-color-hover      Range start/end hover text color */</div>
+ --drp-day-selected-bg            Selected day background
+ --drp-day-selected-color         Selected day text color
+ --drp-day-selected-bg-hover      Selected day hover background
+ --drp-day-selected-color-hover   Selected day hover text color
+ --drp-day-range-bg               Range start/end background
+ --drp-day-range-color            Range start/end text color
+ --drp-day-range-bg-hover         Range start/end hover background
+ --drp-day-range-color-hover      Range start/end hover text color */</div>
+</div>
+
+<div class="card">
+  <h2>TH07 · Pastel Theme (Custom Background)</h2>
+  <p>Completely custom color scheme</p>
+  <label>Pastel theme:</label>
+  <web-daterangepicker
+    class="theme-pastel"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Pastel theme">
+  </web-daterangepicker>
+  <div class="note success">
+    ✓ Background, borders, and accents all customized
+  </div>
+</div>
+
+<div class="card">
+  <h2>TH08 · Classifier Retheming (dayClass / badgeClass conventions)</h2>
+  <p>
+    The picker ships default styling for five consumer-data class names
+    (<code>dayClass: 'holiday' | 'event'</code> and <code>badgeClass: 'badge-number' | 'badge-count' | 'badge-text'</code>),
+    each backed by overridable CSS variables. Set <code>dayClass</code> / <code>badgeClass</code> on your data;
+    override the variables on the host to recolor every day or badge using that classifier.
+    No <code>getCustomStylesCallback</code> required &mdash; the rules already exist in shipped CSS.
+  </p>
+
+  <label>Default (red holidays, green events):</label>
+  <web-daterangepicker
+    id="classifier-default"
+    visible-month-count="2"
+    placeholder="Default classifier theme">
+  </web-daterangepicker>
+
+  <label class="mt-1">Corporate (slate holidays, sky-blue events):</label>
+  <web-daterangepicker
+    id="classifier-corporate"
+    class="theme-classifier-corporate"
+    visible-month-count="2"
+    placeholder="Corporate classifier theme">
+  </web-daterangepicker>
+
+  <label class="mt-1">Festival (fuchsia + amber, stronger tints):</label>
+  <web-daterangepicker
+    id="classifier-festival"
+    class="theme-classifier-festival"
+    visible-month-count="2"
+    placeholder="Festival classifier theme">
+  </web-daterangepicker>
+
+  <div class="note success">
+    &check; All three pickers receive the same <code>specialDates</code> data; only the variable overrides differ.
   </div>
 
-  <div class="card">
-    <h2>TH07 · Pastel Theme (Custom Background)</h2>
-    <p>Completely custom color scheme</p>
-    <label>Pastel theme:</label>
-    <web-daterangepicker
-      class="theme-pastel"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Pastel theme">
-    </web-daterangepicker>
-    <div class="note success">
-      ✓ Background, borders, and accents all customized
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>TH08 · Classifier Retheming (dayClass / badgeClass conventions)</h2>
-    <p>
-      The picker ships default styling for five consumer-data class names
-      (<code>dayClass: 'holiday' | 'event'</code> and <code>badgeClass: 'badge-number' | 'badge-count' | 'badge-text'</code>),
-      each backed by overridable CSS variables. Set <code>dayClass</code> / <code>badgeClass</code> on your data;
-      override the variables on the host to recolor every day or badge using that classifier.
-      No <code>getCustomStylesCallback</code> required &mdash; the rules already exist in shipped CSS.
-    </p>
-
-    <label>Default (red holidays, green events):</label>
-    <web-daterangepicker
-      id="classifier-default"
-      visible-month-count="2"
-      placeholder="Default classifier theme">
-    </web-daterangepicker>
-
-    <label class="mt-1">Corporate (slate holidays, sky-blue events):</label>
-    <web-daterangepicker
-      id="classifier-corporate"
-      class="theme-classifier-corporate"
-      visible-month-count="2"
-      placeholder="Corporate classifier theme">
-    </web-daterangepicker>
-
-    <label class="mt-1">Festival (fuchsia + amber, stronger tints):</label>
-    <web-daterangepicker
-      id="classifier-festival"
-      class="theme-classifier-festival"
-      visible-month-count="2"
-      placeholder="Festival classifier theme">
-    </web-daterangepicker>
-
-    <div class="note success">
-      &check; All three pickers receive the same <code>specialDates</code> data; only the variable overrides differ.
-    </div>
-
-    <div class="code-block">/* Override on the host element — every day/badge using that classifier repaints. */
+  <div class="code-block">/* Override on the host element — every day/badge using that classifier repaints. */
 web-daterangepicker.theme-classifier-corporate {
-  --drp-holiday-color: #475569;          /* slate instead of red */
-  --drp-event-color:   #0ea5e9;          /* sky blue instead of green */
-  --drp-badge-number-bg: #0ea5e9;
-  --drp-badge-count-bg:  #475569;
-  --drp-badge-text-bg:   #64748b;
+--drp-holiday-color: #475569;          /* slate instead of red */
+--drp-event-color:   #0ea5e9;          /* sky blue instead of green */
+--drp-badge-number-bg: #0ea5e9;
+--drp-badge-count-bg:  #475569;
+--drp-badge-text-bg:   #64748b;
 }
 
 /* All twelve classifier variables you can override: */
@@ -565,221 +561,221 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-badge-count-bg,  --drp-badge-count-color
 --drp-badge-text-bg,   --drp-badge-text-color</div>
 
-    <div class="note info">
-      <strong>Custom classifier names</strong> (e.g., <code>dayClass: 'salsa'</code>) live outside this convention &mdash;
-      you ship the CSS via <code>getCustomStylesCallback</code> instead. See the
-      <a href="examples-badges-tooltips.html">Badges &amp; Tooltips examples</a> for the custom-classifier demo.
+  <div class="note info">
+    <strong>Custom classifier names</strong> (e.g., <code>dayClass: 'salsa'</code>) live outside this convention &mdash;
+    you ship the CSS via <code>getCustomStylesCallback</code> instead. See the
+    <a href="examples-badges-tooltips.html">Badges &amp; Tooltips examples</a> for the custom-classifier demo.
+  </div>
+</div>
+
+<div class="card">
+  <h2>TH09 · Time Picker Theming (all four UIs)</h2>
+  <p>All four time UIs &mdash; rolls, clock, wheel, compact &mdash; consume the same
+    <code>--drp-accent-color</code> token used elsewhere. Selected hour/minute, the
+    clock hand, the AM/PM toggle, the wheel's center selection band, the compact pill
+    backgrounds and focus ring &mdash; all follow it automatically. No
+    display-specific overrides needed for color theming.</p>
+
+  <div class="card-grid mt-1" style="--grid-gap: 1rem">
+    <div>
+      <label>Rolls &mdash; default (blue)</label>
+      <web-daterangepicker
+        picker-mode="time"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div>
+      <label>Rolls &mdash; green theme</label>
+      <web-daterangepicker
+        class="theme-green"
+        picker-mode="time"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div>
+      <label>Rolls &mdash; purple theme</label>
+      <web-daterangepicker
+        class="theme-purple"
+        picker-mode="time"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
     </div>
   </div>
 
-  <div class="card">
-    <h2>TH09 · Time Picker Theming (all four UIs)</h2>
-    <p>All four time UIs &mdash; rolls, clock, wheel, compact &mdash; consume the same
-      <code>--drp-accent-color</code> token used elsewhere. Selected hour/minute, the
-      clock hand, the AM/PM toggle, the wheel's center selection band, the compact pill
-      backgrounds and focus ring &mdash; all follow it automatically. No
-      display-specific overrides needed for color theming.</p>
-
-    <div class="card-grid mt-1" style="--grid-gap: 1rem">
-      <div>
-        <label>Rolls &mdash; default (blue)</label>
-        <web-daterangepicker
-          picker-mode="time"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Rolls &mdash; green theme</label>
-        <web-daterangepicker
-          class="theme-green"
-          picker-mode="time"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Rolls &mdash; purple theme</label>
-        <web-daterangepicker
-          class="theme-purple"
-          picker-mode="time"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-    </div>
-
-    <div class="card-grid mt-1" style="--grid-gap: 1rem">
-      <div>
-        <label>Clock &mdash; default (blue)</label>
-        <web-daterangepicker
-          picker-mode="time"
-          time-display="clock"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Clock &mdash; green theme</label>
-        <web-daterangepicker
-          class="theme-green"
-          picker-mode="time"
-          time-display="clock"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Clock &mdash; red theme (h24 dual ring)</label>
-        <web-daterangepicker
-          class="theme-red"
-          picker-mode="time"
-          time-display="clock"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-    </div>
-
-    <div class="mt-1">
-      <label>Dark theme &mdash; rolls + datetime side by side</label>
+  <div class="card-grid mt-1" style="--grid-gap: 1rem">
+    <div>
+      <label>Clock &mdash; default (blue)</label>
       <web-daterangepicker
-        class="theme-dark"
-        picker-mode="datetime"
-        positioning-mode="inline"></web-daterangepicker>
-    </div>
-
-    <div class="mt-1">
-      <label>Pastel theme &mdash; clock + datetime</label>
-      <web-daterangepicker
-        class="theme-pastel"
-        picker-mode="datetime"
+        picker-mode="time"
         time-display="clock"
         time-format-mask="hh:mm a"
         positioning-mode="inline"></web-daterangepicker>
     </div>
-
-    <div class="card-grid mt-1" style="--grid-gap: 1rem">
-      <div>
-        <label>Wheel &mdash; default (blue)</label>
-        <web-daterangepicker
-          picker-mode="time"
-          time-display="wheel"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Wheel &mdash; green theme (h12)</label>
-        <web-daterangepicker
-          class="theme-green"
-          picker-mode="time"
-          time-display="wheel"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Wheel &mdash; red theme</label>
-        <web-daterangepicker
-          class="theme-red"
-          picker-mode="time"
-          time-display="wheel"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
+    <div>
+      <label>Clock &mdash; green theme</label>
+      <web-daterangepicker
+        class="theme-green"
+        picker-mode="time"
+        time-display="clock"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
     </div>
-
-    <div class="card-grid mt-1" style="--grid-gap: 1rem">
-      <div>
-        <label>Compact &mdash; default (blue)</label>
-        <web-daterangepicker
-          picker-mode="time"
-          time-display="compact"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Compact &mdash; green theme (h12)</label>
-        <web-daterangepicker
-          class="theme-green"
-          picker-mode="time"
-          time-display="compact"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-      <div>
-        <label>Compact &mdash; purple theme</label>
-        <web-daterangepicker
-          class="theme-purple"
-          picker-mode="time"
-          time-display="compact"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
+    <div>
+      <label>Clock &mdash; red theme (h24 dual ring)</label>
+      <web-daterangepicker
+        class="theme-red"
+        picker-mode="time"
+        time-display="clock"
+        positioning-mode="inline"></web-daterangepicker>
     </div>
+  </div>
 
-    <div class="note success">
-      &check; Accent, background, border, and text-on-accent tokens cascade into all four time pickers without extra overrides.
-    </div>
+  <div class="mt-1">
+    <label>Dark theme &mdash; rolls + datetime side by side</label>
+    <web-daterangepicker
+      class="theme-dark"
+      picker-mode="datetime"
+      positioning-mode="inline"></web-daterangepicker>
+  </div>
 
-    <div class="note info">
-      <strong>For fine-grained control</strong>, override the time/clock-specific tokens directly &mdash; e.g.,
-      <code>--drp-clock-hand-color</code> for a different hand color than the accent,
-      <code>--drp-clock-face-bg</code> for the dial background,
-      <code>--drp-time-picker-label-color</code> for the column headers, etc. See the variable list below.
+  <div class="mt-1">
+    <label>Pastel theme &mdash; clock + datetime</label>
+    <web-daterangepicker
+      class="theme-pastel"
+      picker-mode="datetime"
+      time-display="clock"
+      time-format-mask="hh:mm a"
+      positioning-mode="inline"></web-daterangepicker>
+  </div>
+
+  <div class="card-grid mt-1" style="--grid-gap: 1rem">
+    <div>
+      <label>Wheel &mdash; default (blue)</label>
+      <web-daterangepicker
+        picker-mode="time"
+        time-display="wheel"
+        positioning-mode="inline"></web-daterangepicker>
     </div>
+    <div>
+      <label>Wheel &mdash; green theme (h12)</label>
+      <web-daterangepicker
+        class="theme-green"
+        picker-mode="time"
+        time-display="wheel"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div>
+      <label>Wheel &mdash; red theme</label>
+      <web-daterangepicker
+        class="theme-red"
+        picker-mode="time"
+        time-display="wheel"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="card-grid mt-1" style="--grid-gap: 1rem">
+    <div>
+      <label>Compact &mdash; default (blue)</label>
+      <web-daterangepicker
+        picker-mode="time"
+        time-display="compact"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div>
+      <label>Compact &mdash; green theme (h12)</label>
+      <web-daterangepicker
+        class="theme-green"
+        picker-mode="time"
+        time-display="compact"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+    <div>
+      <label>Compact &mdash; purple theme</label>
+      <web-daterangepicker
+        class="theme-purple"
+        picker-mode="time"
+        time-display="compact"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="note success">
+    &check; Accent, background, border, and text-on-accent tokens cascade into all four time pickers without extra overrides.
   </div>
 
   <div class="note info">
-    <strong>How sizing works:</strong> The calendar uses <code>--drp-rem</code> (default: 10px) as a base unit.
-    All spacing, fonts, and sizes derive from this. Change <code>--drp-rem</code> to scale everything proportionally,
-    or override individual CSS variables for fine-grained control.
+    <strong>For fine-grained control</strong>, override the time/clock-specific tokens directly &mdash; e.g.,
+    <code>--drp-clock-hand-color</code> for a different hand color than the accent,
+    <code>--drp-clock-face-bg</code> for the dial background,
+    <code>--drp-time-picker-label-color</code> for the column headers, etc. See the variable list below.
+  </div>
+</div>
+
+<div class="note info">
+  <strong>How sizing works:</strong> The calendar uses <code>--drp-rem</code> (default: 10px) as a base unit.
+  All spacing, fonts, and sizes derive from this. Change <code>--drp-rem</code> to scale everything proportionally,
+  or override individual CSS variables for fine-grained control.
+</div>
+
+<div class="note warning">
+  <strong>Shadow DOM Note:</strong> CSS variables must be set directly on the <code>&lt;web-daterangepicker&gt;</code>
+  element (via inline style or CSS selector), not on a wrapper div. This is because the component uses Shadow DOM.
+</div>
+
+<!-- Global Scaling via --drp-rem -->
+<div class="card">
+  <h2>TH10 · Global Scaling via --drp-rem</h2>
+  <p>Scale the entire calendar by setting <code>--drp-rem</code> directly on the element. Default is 10px.</p>
+
+  <div class="form-group">
+    <label>Extra Small (--drp-rem: 6px) - 60%</label>
+    <web-daterangepicker
+      class="scale-xs"
+      selection-mode="single"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Perfect for dense dashboards</small>
   </div>
 
-  <div class="note warning">
-    <strong>Shadow DOM Note:</strong> CSS variables must be set directly on the <code>&lt;web-daterangepicker&gt;</code>
-    element (via inline style or CSS selector), not on a wrapper div. This is because the component uses Shadow DOM.
+  <div class="form-group">
+    <label>Small (--drp-rem: 8px) - 80%</label>
+    <web-daterangepicker
+      class="scale-sm"
+      selection-mode="single"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Good for compact layouts</small>
   </div>
 
-  <!-- Global Scaling via --drp-rem -->
-  <div class="card">
-    <h2>TH10 · Global Scaling via --drp-rem</h2>
-    <p>Scale the entire calendar by setting <code>--drp-rem</code> directly on the element. Default is 10px.</p>
+  <div class="form-group">
+    <label>Medium (--drp-rem: 10px) - 100% (default)</label>
+    <web-daterangepicker
+      class="scale-md"
+      selection-mode="single"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Standard size</small>
+  </div>
 
-    <div class="form-group">
-      <label>Extra Small (--drp-rem: 6px) - 60%</label>
-      <web-daterangepicker
-        class="scale-xs"
-        selection-mode="single"
-        positioning-mode="inline"></web-daterangepicker>
-      <small>Perfect for dense dashboards</small>
-    </div>
+  <div class="form-group">
+    <label>Large (--drp-rem: 15px) - 150%</label>
+    <web-daterangepicker
+      class="scale-lg"
+      selection-mode="single"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Spacious desktop layouts</small>
+  </div>
 
-    <div class="form-group">
-      <label>Small (--drp-rem: 8px) - 80%</label>
-      <web-daterangepicker
-        class="scale-sm"
-        selection-mode="single"
-        positioning-mode="inline"></web-daterangepicker>
-      <small>Good for compact layouts</small>
-    </div>
+  <div class="form-group">
+    <label>Extra Large (--drp-rem: 20px) - 200%</label>
+    <web-daterangepicker
+      class="scale-xl"
+      selection-mode="single"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Touch-friendly, accessibility, kiosks</small>
+  </div>
 
-    <div class="form-group">
-      <label>Medium (--drp-rem: 10px) - 100% (default)</label>
-      <web-daterangepicker
-        class="scale-md"
-        selection-mode="single"
-        positioning-mode="inline"></web-daterangepicker>
-      <small>Standard size</small>
-    </div>
-
-    <div class="form-group">
-      <label>Large (--drp-rem: 15px) - 150%</label>
-      <web-daterangepicker
-        class="scale-lg"
-        selection-mode="single"
-        positioning-mode="inline"></web-daterangepicker>
-      <small>Spacious desktop layouts</small>
-    </div>
-
-    <div class="form-group">
-      <label>Extra Large (--drp-rem: 20px) - 200%</label>
-      <web-daterangepicker
-        class="scale-xl"
-        selection-mode="single"
-        positioning-mode="inline"></web-daterangepicker>
-      <small>Touch-friendly, accessibility, kiosks</small>
-    </div>
-
-    <div class="code-block"><span class="comment">/* Option 1: CSS class targeting the element */</span>
+  <div class="code-block"><span class="comment">/* Option 1: CSS class targeting the element */</span>
 <span class="keyword">web-daterangepicker.scale-sm</span> {
-  <span class="property">--drp-rem</span>: <span class="string">8px</span>;
+<span class="property">--drp-rem</span>: <span class="string">8px</span>;
 }
 
 <span class="comment">/* Option 2: Inline style */</span>
@@ -787,360 +783,309 @@ web-daterangepicker.theme-classifier-corporate {
 
 <span class="comment">/* Option 3: ID selector */</span>
 <span class="keyword">#my-calendar</span> {
-  <span class="property">--drp-rem</span>: <span class="string">15px</span>;
+<span class="property">--drp-rem</span>: <span class="string">15px</span>;
 }</div>
-  </div>
+</div>
 
-  <!-- Input Size Attribute -->
-  <div class="card">
-    <h2>TH11 · Input Size Attribute</h2>
-    <p>The <code>input-size</code> attribute controls input field size in floating mode. This is a built-in attribute.</p>
+<!-- Input Size Attribute -->
+<div class="card">
+  <h2>TH11 · Input Size Attribute</h2>
+  <p>The <code>input-size</code> attribute controls input field size in floating mode. This is a built-in attribute.</p>
 
-    <div class="grid">
-      <div class="form-group">
-        <label>Extra Small (xs) - 31px</label>
-        <web-daterangepicker
-          input-size="xs"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Small (sm) - 33px</label>
-        <web-daterangepicker
-          input-size="sm"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Medium (md) - 35px (default)</label>
-        <web-daterangepicker
-          input-size="md"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Large (lg) - 38px</label>
-        <web-daterangepicker
-          input-size="lg"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Extra Large (xl) - 41px</label>
-        <web-daterangepicker
-          input-size="xl"
-          selection-mode="single"
-          placeholder="YYYY-MM-DD"></web-daterangepicker>
-      </div>
+  <div class="grid">
+    <div class="form-group">
+      <label>Extra Small (xs) - 31px</label>
+      <web-daterangepicker
+        input-size="xs"
+        selection-mode="single"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
     </div>
 
-    <div class="code-block"><span class="comment">/* Usage */</span>
+    <div class="form-group">
+      <label>Small (sm) - 33px</label>
+      <web-daterangepicker
+        input-size="sm"
+        selection-mode="single"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Medium (md) - 35px (default)</label>
+      <web-daterangepicker
+        input-size="md"
+        selection-mode="single"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Large (lg) - 38px</label>
+      <web-daterangepicker
+        input-size="lg"
+        selection-mode="single"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Extra Large (xl) - 41px</label>
+      <web-daterangepicker
+        input-size="xl"
+        selection-mode="single"
+        placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="code-block"><span class="comment">/* Usage */</span>
 <span class="keyword">&lt;web-daterangepicker</span> <span class="property">input-size</span>=<span class="string">"lg"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></div>
-  </div>
+</div>
 
-  <!-- Spacing Control -->
-  <div class="card">
-    <h2>TH12 · Custom Spacing</h2>
-    <p>Override spacing variables for fine-grained control over gaps and padding:</p>
+<!-- Spacing Control -->
+<div class="card">
+  <h2>TH12 · Custom Spacing</h2>
+  <p>Override spacing variables for fine-grained control over gaps and padding:</p>
 
-    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
-      <div class="form-group">
-        <label>Compact Spacing</label>
-        <web-daterangepicker
-          class="spacing-compact"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Tighter gaps between elements</small>
-      </div>
-
-      <div class="form-group">
-        <label>Spacious Layout</label>
-        <web-daterangepicker
-          class="spacing-spacious"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>More breathing room</small>
-      </div>
+  <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Compact Spacing</label>
+      <web-daterangepicker
+        class="spacing-compact"
+        selection-mode="single"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Tighter gaps between elements</small>
     </div>
 
-    <div class="code-block"><span class="comment">/* Target the element directly */</span>
+    <div class="form-group">
+      <label>Spacious Layout</label>
+      <web-daterangepicker
+        class="spacing-spacious"
+        selection-mode="single"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>More breathing room</small>
+    </div>
+  </div>
+
+  <div class="code-block"><span class="comment">/* Target the element directly */</span>
 <span class="keyword">web-daterangepicker.compact</span> {
-  <span class="property">--drp-spacing-xs</span>: <span class="string">1px</span>;
-  <span class="property">--drp-spacing-sm</span>: <span class="string">2px</span>;
-  <span class="property">--drp-spacing-md</span>: <span class="string">4px</span>;
-  <span class="property">--drp-spacing-lg</span>: <span class="string">6px</span>;
-  <span class="property">--drp-spacing-xl</span>: <span class="string">8px</span>;
+<span class="property">--drp-spacing-xs</span>: <span class="string">1px</span>;
+<span class="property">--drp-spacing-sm</span>: <span class="string">2px</span>;
+<span class="property">--drp-spacing-md</span>: <span class="string">4px</span>;
+<span class="property">--drp-spacing-lg</span>: <span class="string">6px</span>;
+<span class="property">--drp-spacing-xl</span>: <span class="string">8px</span>;
 }
 
 <span class="keyword">web-daterangepicker.spacious</span> {
-  <span class="property">--drp-spacing-xs</span>: <span class="string">6px</span>;
-  <span class="property">--drp-spacing-sm</span>: <span class="string">10px</span>;
-  <span class="property">--drp-spacing-md</span>: <span class="string">16px</span>;
-  <span class="property">--drp-spacing-lg</span>: <span class="string">24px</span>;
-  <span class="property">--drp-spacing-xl</span>: <span class="string">32px</span>;
+<span class="property">--drp-spacing-xs</span>: <span class="string">6px</span>;
+<span class="property">--drp-spacing-sm</span>: <span class="string">10px</span>;
+<span class="property">--drp-spacing-md</span>: <span class="string">16px</span>;
+<span class="property">--drp-spacing-lg</span>: <span class="string">24px</span>;
+<span class="property">--drp-spacing-xl</span>: <span class="string">32px</span>;
 }</div>
-  </div>
+</div>
 
-  <!-- Font Size Control -->
-  <div class="card">
-    <h2>TH13 · Custom Font Sizes</h2>
-    <p>Override font size variables independently from the overall scale:</p>
+<!-- Font Size Control -->
+<div class="card">
+  <h2>TH13 · Custom Font Sizes</h2>
+  <p>Override font size variables independently from the overall scale:</p>
 
-    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
-      <div class="form-group">
-        <label>Small Fonts</label>
-        <web-daterangepicker
-          class="fonts-small"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Smaller text for compact UIs</small>
-      </div>
-
-      <div class="form-group">
-        <label>Large Fonts</label>
-        <web-daterangepicker
-          class="fonts-large"
-          selection-mode="single"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>Larger text for readability</small>
-      </div>
+  <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Small Fonts</label>
+      <web-daterangepicker
+        class="fonts-small"
+        selection-mode="single"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Smaller text for compact UIs</small>
     </div>
 
-    <div class="code-block"><span class="comment">/* Custom font sizes */</span>
+    <div class="form-group">
+      <label>Large Fonts</label>
+      <web-daterangepicker
+        class="fonts-large"
+        selection-mode="single"
+        positioning-mode="inline"></web-daterangepicker>
+      <small>Larger text for readability</small>
+    </div>
+  </div>
+
+  <div class="code-block"><span class="comment">/* Custom font sizes */</span>
 <span class="keyword">web-daterangepicker.large-fonts</span> {
-  <span class="property">--drp-font-size-2xs</span>: <span class="string">12px</span>;
-  <span class="property">--drp-font-size-xs</span>: <span class="string">14px</span>;
-  <span class="property">--drp-font-size-sm</span>: <span class="string">16px</span>;
-  <span class="property">--drp-font-size-base</span>: <span class="string">18px</span>;
-  <span class="property">--drp-font-size-lg</span>: <span class="string">20px</span>;
-  <span class="property">--drp-font-size-xl</span>: <span class="string">24px</span>;
+<span class="property">--drp-font-size-2xs</span>: <span class="string">12px</span>;
+<span class="property">--drp-font-size-xs</span>: <span class="string">14px</span>;
+<span class="property">--drp-font-size-sm</span>: <span class="string">16px</span>;
+<span class="property">--drp-font-size-base</span>: <span class="string">18px</span>;
+<span class="property">--drp-font-size-lg</span>: <span class="string">20px</span>;
+<span class="property">--drp-font-size-xl</span>: <span class="string">24px</span>;
 }</div>
+</div>
+
+<!-- Typography Controls (from Base Variables) -->
+<div class="card">
+  <div class="controls-header">
+    <h2>TH14 · Typography Controls</h2>
+    <button class="btn-secondary" id="resetBtn">Reset All</button>
   </div>
 
-  <!-- Typography Controls (from Base Variables) -->
-  <div class="card">
-    <div class="controls-header">
-      <h2>TH14 · Typography Controls</h2>
-      <button class="btn-secondary" id="resetBtn">Reset All</button>
+  <!-- Font Link -->
+  <div class="control-section">
+    <h3>Font Link (Google Fonts, etc.)</h3>
+    <div class="control-row">
+      <div class="control-group">
+        <label for="fontLink">Paste &lt;link&gt; tag or URL</label>
+        <input type="text" id="fontLink" class="font-link-input" placeholder="e.g., https://fonts.googleapis.com/css2?family=Lexend...">
+      </div>
+      <button id="loadFontBtn" class="btn-outline">Load Font</button>
     </div>
+  </div>
 
-    <!-- Font Link -->
-    <div class="control-section">
-      <h3>Font Link (Google Fonts, etc.)</h3>
-      <div class="control-row">
-        <div class="control-group">
-          <label for="fontLink">Paste &lt;link&gt; tag or URL</label>
-          <input type="text" id="fontLink" class="font-link-input" placeholder="e.g., https://fonts.googleapis.com/css2?family=Lexend...">
-        </div>
-        <button id="loadFontBtn" class="btn-outline">Load Font</button>
+  <!-- Font Family -->
+  <div class="control-section">
+    <h3>Font Family</h3>
+    <div class="control-row">
+      <div class="control-group">
+        <label for="fontFamily">--base-font-family</label>
+        <input type="text" id="fontFamily" placeholder="e.g., 'Lexend', sans-serif">
       </div>
     </div>
+  </div>
 
-    <!-- Font Family -->
-    <div class="control-section">
-      <h3>Font Family</h3>
-      <div class="control-row">
-        <div class="control-group">
-          <label for="fontFamily">--base-font-family</label>
-          <input type="text" id="fontFamily" placeholder="e.g., 'Lexend', sans-serif">
-        </div>
+  <!-- Font Sizes -->
+  <div class="control-section">
+    <h3>Font Sizes (multipliers)</h3>
+    <p class="section-desc">
+      <strong>2xs:</strong> badges &bull;
+      <strong>xs:</strong> weekday headers, tooltips &bull;
+      <strong>sm:</strong> day numbers, summary text &bull;
+      <strong>base:</strong> month/year labels, input text &bull;
+      <strong>lg:</strong> navigation arrows
+    </p>
+    <div class="control-row">
+      <div class="control-group">
+        <label for="fontSize2xs">2xs</label>
+        <input type="number" id="fontSize2xs" value="1" step="0.1">
+      </div>
+      <div class="control-group">
+        <label for="fontSizeXs">xs</label>
+        <input type="number" id="fontSizeXs" value="1.2" step="0.1">
+      </div>
+      <div class="control-group">
+        <label for="fontSizeSm">sm</label>
+        <input type="number" id="fontSizeSm" value="1.4" step="0.1">
+      </div>
+      <div class="control-group">
+        <label for="fontSizeBase">base</label>
+        <input type="number" id="fontSizeBase" value="1.6" step="0.1">
+      </div>
+      <div class="control-group">
+        <label for="fontSizeLg">lg</label>
+        <input type="number" id="fontSizeLg" value="1.8" step="0.1">
+      </div>
+      <div class="control-group">
+        <label for="fontSizeXl">xl</label>
+        <input type="number" id="fontSizeXl" value="2" step="0.1">
+      </div>
+      <div class="control-group">
+        <label for="fontSize2xl">2xl</label>
+        <input type="number" id="fontSize2xl" value="2.4" step="0.1">
       </div>
     </div>
+  </div>
 
-    <!-- Font Sizes -->
-    <div class="control-section">
-      <h3>Font Sizes (multipliers)</h3>
-      <p class="section-desc">
-        <strong>2xs:</strong> badges &bull;
-        <strong>xs:</strong> weekday headers, tooltips &bull;
-        <strong>sm:</strong> day numbers, summary text &bull;
-        <strong>base:</strong> month/year labels, input text &bull;
-        <strong>lg:</strong> navigation arrows
-      </p>
-      <div class="control-row">
-        <div class="control-group">
-          <label for="fontSize2xs">2xs</label>
-          <input type="number" id="fontSize2xs" value="1" step="0.1">
-        </div>
-        <div class="control-group">
-          <label for="fontSizeXs">xs</label>
-          <input type="number" id="fontSizeXs" value="1.2" step="0.1">
-        </div>
-        <div class="control-group">
-          <label for="fontSizeSm">sm</label>
-          <input type="number" id="fontSizeSm" value="1.4" step="0.1">
-        </div>
-        <div class="control-group">
-          <label for="fontSizeBase">base</label>
-          <input type="number" id="fontSizeBase" value="1.6" step="0.1">
-        </div>
-        <div class="control-group">
-          <label for="fontSizeLg">lg</label>
-          <input type="number" id="fontSizeLg" value="1.8" step="0.1">
-        </div>
-        <div class="control-group">
-          <label for="fontSizeXl">xl</label>
-          <input type="number" id="fontSizeXl" value="2" step="0.1">
-        </div>
-        <div class="control-group">
-          <label for="fontSize2xl">2xl</label>
-          <input type="number" id="fontSize2xl" value="2.4" step="0.1">
-        </div>
+  <!-- Font Weights -->
+  <div class="control-section">
+    <h3>Font Weights</h3>
+    <div class="control-row">
+      <div class="control-group">
+        <label for="fontWeightNormal">normal</label>
+        <input type="number" id="fontWeightNormal" value="400" step="100" min="100" max="900">
+      </div>
+      <div class="control-group">
+        <label for="fontWeightMedium">medium</label>
+        <input type="number" id="fontWeightMedium" value="500" step="100" min="100" max="900">
+      </div>
+      <div class="control-group">
+        <label for="fontWeightSemibold">semibold</label>
+        <input type="number" id="fontWeightSemibold" value="600" step="100" min="100" max="900">
       </div>
     </div>
+  </div>
 
-    <!-- Font Weights -->
-    <div class="control-section">
-      <h3>Font Weights</h3>
-      <div class="control-row">
-        <div class="control-group">
-          <label for="fontWeightNormal">normal</label>
-          <input type="number" id="fontWeightNormal" value="400" step="100" min="100" max="900">
-        </div>
-        <div class="control-group">
-          <label for="fontWeightMedium">medium</label>
-          <input type="number" id="fontWeightMedium" value="500" step="100" min="100" max="900">
-        </div>
-        <div class="control-group">
-          <label for="fontWeightSemibold">semibold</label>
-          <input type="number" id="fontWeightSemibold" value="600" step="100" min="100" max="900">
-        </div>
+  <!-- Line Heights -->
+  <div class="control-section">
+    <h3>Line Heights</h3>
+    <div class="control-row">
+      <div class="control-group">
+        <label for="lineHeightTight">tight</label>
+        <input type="number" id="lineHeightTight" value="1.25" step="0.05" min="1" max="3">
+      </div>
+      <div class="control-group">
+        <label for="lineHeightNormal">normal</label>
+        <input type="number" id="lineHeightNormal" value="1.5" step="0.05" min="1" max="3">
+      </div>
+      <div class="control-group">
+        <label for="lineHeightRelaxed">relaxed</label>
+        <input type="number" id="lineHeightRelaxed" value="1.75" step="0.05" min="1" max="3">
       </div>
     </div>
+  </div>
 
-    <!-- Line Heights -->
-    <div class="control-section">
-      <h3>Line Heights</h3>
-      <div class="control-row">
-        <div class="control-group">
-          <label for="lineHeightTight">tight</label>
-          <input type="number" id="lineHeightTight" value="1.25" step="0.05" min="1" max="3">
-        </div>
-        <div class="control-group">
-          <label for="lineHeightNormal">normal</label>
-          <input type="number" id="lineHeightNormal" value="1.5" step="0.05" min="1" max="3">
-        </div>
-        <div class="control-group">
-          <label for="lineHeightRelaxed">relaxed</label>
-          <input type="number" id="lineHeightRelaxed" value="1.75" step="0.05" min="1" max="3">
-        </div>
-      </div>
+  <!-- Demo Cards -->
+  <div class="grid-2 mt-1">
+    <!-- Floating Mode (Range) -->
+    <div class="demo-card">
+      <h3>Floating Mode (Range)</h3>
+      <p>Click the input to open the calendar popup. Tests input styling + calendar typography.</p>
+      <web-daterangepicker
+        id="floatingPicker"
+        selection-mode="range"
+        placeholder="Select date range..."
+        date-format-mask="YYYY-MM-DD"
+      ></web-daterangepicker>
     </div>
 
-    <!-- Demo Cards -->
-    <div class="grid-2 mt-1">
-      <!-- Floating Mode (Range) -->
-      <div class="demo-card">
-        <h3>Floating Mode (Range)</h3>
-        <p>Click the input to open the calendar popup. Tests input styling + calendar typography.</p>
+    <!-- Inline Calendar Mode -->
+    <div class="demo-card">
+      <h3>Inline Calendar Mode (Range)</h3>
+      <p>Standalone calendar with range selection. Tests calendar typography directly.</p>
+      <div class="demo-area">
         <web-daterangepicker
-          id="floatingPicker"
+          id="inlinePicker"
           selection-mode="range"
-          placeholder="Select date range..."
+          positioning-mode="inline"
           date-format-mask="YYYY-MM-DD"
         ></web-daterangepicker>
       </div>
-
-      <!-- Inline Calendar Mode -->
-      <div class="demo-card">
-        <h3>Inline Calendar Mode (Range)</h3>
-        <p>Standalone calendar with range selection. Tests calendar typography directly.</p>
-        <div class="demo-area">
-          <web-daterangepicker
-            id="inlinePicker"
-            selection-mode="range"
-            positioning-mode="inline"
-            date-format-mask="YYYY-MM-DD"
-          ></web-daterangepicker>
-        </div>
-      </div>
     </div>
+  </div>
 
-    <!-- Current Values Display -->
-    <div class="log-panel log-panel--dark current-values">
-      <div class="current-values-header">/* Current --base-* CSS Variables */</div>
-      <div id="currentValues">:root {
-  /* No overrides set - using component defaults */
+  <!-- Current Values Display -->
+  <div class="log-panel log-panel--dark current-values">
+    <div class="current-values-header">/* Current --base-* CSS Variables */</div>
+    <div id="currentValues">:root {
+/* No overrides set - using component defaults */
 }</div>
-    </div>
   </div>
+</div>
 
-  <!-- Time Picker Scaling -->
-  <div class="card">
-    <h2>TH15 · Time Picker — Scaling</h2>
-    <p>The <code>picker-mode="time"</code> rolling lists derive their column width, item height, padding,
-      and font size from <code>--drp-rem</code> (and the spacing/font tokens it drives). Change <code>--drp-rem</code>
-      and the whole time picker scales.</p>
+<!-- Time Picker Scaling -->
+<div class="card">
+  <h2>TH15 · Time Picker — Scaling</h2>
+  <p>The <code>picker-mode="time"</code> rolling lists derive their column width, item height, padding,
+    and font size from <code>--drp-rem</code> (and the spacing/font tokens it drives). Change <code>--drp-rem</code>
+    and the whole time picker scales.</p>
 
-    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
-      <div class="form-group">
-        <label>Extra Small (--drp-rem: 6px)</label>
-        <web-daterangepicker
-          class="scale-xs"
-          picker-mode="time"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Small (--drp-rem: 8px)</label>
-        <web-daterangepicker
-          class="scale-sm"
-          picker-mode="time"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Medium (--drp-rem: 10px, default)</label>
-        <web-daterangepicker
-          class="scale-md"
-          picker-mode="time"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Large (--drp-rem: 15px)</label>
-        <web-daterangepicker
-          class="scale-lg"
-          picker-mode="time"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Extra Large (--drp-rem: 20px)</label>
-        <web-daterangepicker
-          class="scale-xl"
-          picker-mode="time"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>12-hour with seconds @ Large</label>
-        <web-daterangepicker
-          class="scale-lg"
-          picker-mode="time"
-          time-format-mask="hh:mm:ss a"
-          positioning-mode="inline"></web-daterangepicker>
-        <small>4 columns (H, M, S, AM/PM) scale together</small>
-      </div>
+  <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Extra Small (--drp-rem: 6px)</label>
+      <web-daterangepicker
+        class="scale-xs"
+        picker-mode="time"
+        positioning-mode="inline"></web-daterangepicker>
     </div>
-  </div>
-
-  <!-- Datetime Picker Scaling -->
-  <div class="card">
-    <h2>TH16 · Datetime Picker — Scaling</h2>
-    <p><code>picker-mode="datetime"</code> places the calendar and the time rolls side by side. The popover floor
-      (<code>--drp-datetime-min-width</code>, default <code>calc(56 * var(--drp-rem))</code>) scales with <code>--drp-rem</code>
-      so the side-by-side layout holds at any scale. Inline mode skips the floor and sizes to content.</p>
 
     <div class="form-group">
       <label>Small (--drp-rem: 8px)</label>
       <web-daterangepicker
         class="scale-sm"
-        picker-mode="datetime"
+        picker-mode="time"
         positioning-mode="inline"></web-daterangepicker>
     </div>
 
@@ -1148,7 +1093,7 @@ web-daterangepicker.theme-classifier-corporate {
       <label>Medium (--drp-rem: 10px, default)</label>
       <web-daterangepicker
         class="scale-md"
-        picker-mode="datetime"
+        picker-mode="time"
         positioning-mode="inline"></web-daterangepicker>
     </div>
 
@@ -1156,301 +1101,352 @@ web-daterangepicker.theme-classifier-corporate {
       <label>Large (--drp-rem: 15px)</label>
       <web-daterangepicker
         class="scale-lg"
-        picker-mode="datetime"
+        picker-mode="time"
         positioning-mode="inline"></web-daterangepicker>
     </div>
 
     <div class="form-group">
-      <label>Spacious tokens + large fonts @ Medium</label>
+      <label>Extra Large (--drp-rem: 20px)</label>
       <web-daterangepicker
-        class="scale-md spacing-spacious fonts-large"
-        picker-mode="datetime"
+        class="scale-xl"
+        picker-mode="time"
         positioning-mode="inline"></web-daterangepicker>
-      <small>Spacing and font overrides flow through to the time rolls too</small>
-    </div>
-  </div>
-
-  <!-- Clock Picker Scaling -->
-  <div class="card">
-    <h2>TH17 · Clock Picker — Scaling</h2>
-    <p><code>time-display="clock"</code> uses a fixed-aspect dial. All clock metrics
-      (dial size, ring radii, number-button diameter, hand pivot) derive from
-      <code>--drp-rem</code> via <code>calc()</code>, so the whole face scales
-      proportionally without breaking the angle math.</p>
-
-    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
-      <div class="form-group">
-        <label>Small (--drp-rem: 8px) &mdash; h12</label>
-        <web-daterangepicker
-          class="scale-sm"
-          picker-mode="time"
-          time-display="clock"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Medium (--drp-rem: 10px, default) &mdash; h24 dual ring</label>
-        <web-daterangepicker
-          class="scale-md"
-          picker-mode="time"
-          time-display="clock"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Large (--drp-rem: 15px) &mdash; h24 dual ring</label>
-        <web-daterangepicker
-          class="scale-lg"
-          picker-mode="time"
-          time-display="clock"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
     </div>
 
     <div class="form-group">
-      <label>Datetime + clock @ Large &mdash; h24</label>
+      <label>12-hour with seconds @ Large</label>
       <web-daterangepicker
         class="scale-lg"
-        picker-mode="datetime"
-        time-display="clock"
+        picker-mode="time"
+        time-format-mask="hh:mm:ss a"
         positioning-mode="inline"></web-daterangepicker>
-      <small>Calendar + clock side by side, both scaled together</small>
+      <small>4 columns (H, M, S, AM/PM) scale together</small>
     </div>
   </div>
+</div>
 
-  <!-- Wheel Picker Scaling -->
-  <div class="card">
-    <h2>TH18 · Wheel Picker — Scaling</h2>
-    <p><code>time-display="wheel"</code> is an iOS-style barrel of snap-scrolling
-      columns. The center band height, item height, and fade gradients all derive
-      from <code>--drp-rem</code>, so all three sizes feel identical at their
-      respective scales.</p>
+<!-- Datetime Picker Scaling -->
+<div class="card">
+  <h2>TH16 · Datetime Picker — Scaling</h2>
+  <p><code>picker-mode="datetime"</code> places the calendar and the time rolls side by side. The popover floor
+    (<code>--drp-datetime-min-width</code>, default <code>calc(56 * var(--drp-rem))</code>) scales with <code>--drp-rem</code>
+    so the side-by-side layout holds at any scale. Inline mode skips the floor and sizes to content.</p>
 
-    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
-      <div class="form-group">
-        <label>Small (--drp-rem: 8px) &mdash; h12</label>
-        <web-daterangepicker
-          class="scale-sm"
-          picker-mode="time"
-          time-display="wheel"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
+  <div class="form-group">
+    <label>Small (--drp-rem: 8px)</label>
+    <web-daterangepicker
+      class="scale-sm"
+      picker-mode="datetime"
+      positioning-mode="inline"></web-daterangepicker>
+  </div>
 
-      <div class="form-group">
-        <label>Medium (--drp-rem: 10px, default) &mdash; h24</label>
-        <web-daterangepicker
-          class="scale-md"
-          picker-mode="time"
-          time-display="wheel"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
+  <div class="form-group">
+    <label>Medium (--drp-rem: 10px, default)</label>
+    <web-daterangepicker
+      class="scale-md"
+      picker-mode="datetime"
+      positioning-mode="inline"></web-daterangepicker>
+  </div>
 
-      <div class="form-group">
-        <label>Large (--drp-rem: 15px) &mdash; h24 with seconds</label>
-        <web-daterangepicker
-          class="scale-lg"
-          picker-mode="time"
-          time-display="wheel"
-          time-format-mask="HH:mm:ss"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
+  <div class="form-group">
+    <label>Large (--drp-rem: 15px)</label>
+    <web-daterangepicker
+      class="scale-lg"
+      picker-mode="datetime"
+      positioning-mode="inline"></web-daterangepicker>
+  </div>
+
+  <div class="form-group">
+    <label>Spacious tokens + large fonts @ Medium</label>
+    <web-daterangepicker
+      class="scale-md spacing-spacious fonts-large"
+      picker-mode="datetime"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Spacing and font overrides flow through to the time rolls too</small>
+  </div>
+</div>
+
+<!-- Clock Picker Scaling -->
+<div class="card">
+  <h2>TH17 · Clock Picker — Scaling</h2>
+  <p><code>time-display="clock"</code> uses a fixed-aspect dial. All clock metrics
+    (dial size, ring radii, number-button diameter, hand pivot) derive from
+    <code>--drp-rem</code> via <code>calc()</code>, so the whole face scales
+    proportionally without breaking the angle math.</p>
+
+  <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Small (--drp-rem: 8px) &mdash; h12</label>
+      <web-daterangepicker
+        class="scale-sm"
+        picker-mode="time"
+        time-display="clock"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
     </div>
 
     <div class="form-group">
-      <label>Datetime + wheel @ Medium &mdash; h24</label>
+      <label>Medium (--drp-rem: 10px, default) &mdash; h24 dual ring</label>
       <web-daterangepicker
         class="scale-md"
-        picker-mode="datetime"
-        time-display="wheel"
+        picker-mode="time"
+        time-display="clock"
         positioning-mode="inline"></web-daterangepicker>
-      <small>Calendar + wheel barrel side by side</small>
-    </div>
-  </div>
-
-  <!-- Compact Picker Scaling -->
-  <div class="card">
-    <h2>TH19 · Compact Picker — Scaling</h2>
-    <p><code>time-display="compact"</code> is iOS 14+ pills. The pill size,
-      padding, and AM/PM toggle scale with <code>--drp-rem</code> so the row
-      stays proportionate to the surrounding input.</p>
-
-    <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
-      <div class="form-group">
-        <label>Small (--drp-rem: 8px) &mdash; h12</label>
-        <web-daterangepicker
-          class="scale-sm"
-          picker-mode="time"
-          time-display="compact"
-          time-format-mask="hh:mm a"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Medium (--drp-rem: 10px, default) &mdash; h24</label>
-        <web-daterangepicker
-          class="scale-md"
-          picker-mode="time"
-          time-display="compact"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>Large (--drp-rem: 15px) &mdash; h24 with seconds</label>
-        <web-daterangepicker
-          class="scale-lg"
-          picker-mode="time"
-          time-display="compact"
-          time-format-mask="HH:mm:ss"
-          positioning-mode="inline"></web-daterangepicker>
-      </div>
     </div>
 
     <div class="form-group">
-      <label>Datetime + compact @ Large &mdash; h12</label>
+      <label>Large (--drp-rem: 15px) &mdash; h24 dual ring</label>
       <web-daterangepicker
         class="scale-lg"
-        picker-mode="datetime"
-        time-display="compact"
-        hour-cycle="h12"
+        picker-mode="time"
+        time-display="clock"
         positioning-mode="inline"></web-daterangepicker>
-      <small>Calendar + compact pills side by side</small>
     </div>
   </div>
 
-  <!-- Interactive Demo -->
-  <div class="card">
-    <h2>TH20 · Interactive Scale Demo</h2>
-    <p>Drag the slider to see live scaling:</p>
+  <div class="form-group">
+    <label>Datetime + clock @ Large &mdash; h24</label>
+    <web-daterangepicker
+      class="scale-lg"
+      picker-mode="datetime"
+      time-display="clock"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Calendar + clock side by side, both scaled together</small>
+  </div>
+</div>
 
-    <div class="controls demo-controls">
-      <label>
-        --drp-rem:
-        <input type="range" id="remSlider" min="5" max="25" value="10" step="1">
-        <output id="remValue">10px</output>
-      </label>
+<!-- Wheel Picker Scaling -->
+<div class="card">
+  <h2>TH18 · Wheel Picker — Scaling</h2>
+  <p><code>time-display="wheel"</code> is an iOS-style barrel of snap-scrolling
+    columns. The center band height, item height, and fade gradients all derive
+    from <code>--drp-rem</code>, so all three sizes feel identical at their
+    respective scales.</p>
+
+  <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Small (--drp-rem: 8px) &mdash; h12</label>
+      <web-daterangepicker
+        class="scale-sm"
+        picker-mode="time"
+        time-display="wheel"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
     </div>
 
+    <div class="form-group">
+      <label>Medium (--drp-rem: 10px, default) &mdash; h24</label>
+      <web-daterangepicker
+        class="scale-md"
+        picker-mode="time"
+        time-display="wheel"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Large (--drp-rem: 15px) &mdash; h24 with seconds</label>
+      <web-daterangepicker
+        class="scale-lg"
+        picker-mode="time"
+        time-display="wheel"
+        time-format-mask="HH:mm:ss"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Datetime + wheel @ Medium &mdash; h24</label>
     <web-daterangepicker
-      id="interactive-demo"
-      style="--drp-rem: 10px;"
+      class="scale-md"
+      picker-mode="datetime"
+      time-display="wheel"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Calendar + wheel barrel side by side</small>
+  </div>
+</div>
+
+<!-- Compact Picker Scaling -->
+<div class="card">
+  <h2>TH19 · Compact Picker — Scaling</h2>
+  <p><code>time-display="compact"</code> is iOS 14+ pills. The pill size,
+    padding, and AM/PM toggle scale with <code>--drp-rem</code> so the row
+    stays proportionate to the surrounding input.</p>
+
+  <div class="card-grid" style="--grid-min: 400px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Small (--drp-rem: 8px) &mdash; h12</label>
+      <web-daterangepicker
+        class="scale-sm"
+        picker-mode="time"
+        time-display="compact"
+        time-format-mask="hh:mm a"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Medium (--drp-rem: 10px, default) &mdash; h24</label>
+      <web-daterangepicker
+        class="scale-md"
+        picker-mode="time"
+        time-display="compact"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Large (--drp-rem: 15px) &mdash; h24 with seconds</label>
+      <web-daterangepicker
+        class="scale-lg"
+        picker-mode="time"
+        time-display="compact"
+        time-format-mask="HH:mm:ss"
+        positioning-mode="inline"></web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Datetime + compact @ Large &mdash; h12</label>
+    <web-daterangepicker
+      class="scale-lg"
+      picker-mode="datetime"
+      time-display="compact"
+      hour-cycle="h12"
+      positioning-mode="inline"></web-daterangepicker>
+    <small>Calendar + compact pills side by side</small>
+  </div>
+</div>
+
+<!-- Interactive Demo -->
+<div class="card">
+  <h2>TH20 · Interactive Scale Demo</h2>
+  <p>Drag the slider to see live scaling:</p>
+
+  <div class="controls demo-controls">
+    <label>
+      --drp-rem:
+      <input type="range" id="remSlider" min="5" max="25" value="10" step="1">
+      <output id="remValue">10px</output>
+    </label>
+  </div>
+
+  <web-daterangepicker
+    id="interactive-demo"
+    style="--drp-rem: 10px;"
+    selection-mode="range"
+    positioning-mode="inline"
+    visible-month-count="2"></web-daterangepicker>
+
+  <div class="code-block"><span class="comment">/* The CSS variable being changed: */</span>
+<span class="keyword">#interactive-demo</span> {
+<span class="property">--drp-rem</span>: <span class="string" id="codeRemValue">10px</span>;
+}</div>
+</div>
+
+<!-- Combined Example -->
+<div class="card">
+  <h2>TH21 · Combined: Scale + Spacing + Fonts</h2>
+  <p>Mix and match different customizations using multiple classes:</p>
+
+  <div class="form-group">
+    <label>Large Scale + Compact Spacing + Large Fonts</label>
+    <web-daterangepicker
+      class="scale-lg spacing-compact fonts-large"
       selection-mode="range"
       positioning-mode="inline"
       visible-month-count="2"></web-daterangepicker>
-
-    <div class="code-block"><span class="comment">/* The CSS variable being changed: */</span>
-<span class="keyword">#interactive-demo</span> {
-  <span class="property">--drp-rem</span>: <span class="string" id="codeRemValue">10px</span>;
-}</div>
+    <small>Big cells but tight layout with readable text</small>
   </div>
 
-  <!-- Combined Example -->
-  <div class="card">
-    <h2>TH21 · Combined: Scale + Spacing + Fonts</h2>
-    <p>Mix and match different customizations using multiple classes:</p>
-
-    <div class="form-group">
-      <label>Large Scale + Compact Spacing + Large Fonts</label>
-      <web-daterangepicker
-        class="scale-lg spacing-compact fonts-large"
-        selection-mode="range"
-        positioning-mode="inline"
-        visible-month-count="2"></web-daterangepicker>
-      <small>Big cells but tight layout with readable text</small>
-    </div>
-
-    <div class="code-block"><span class="comment">/* Combine multiple classes */</span>
+  <div class="code-block"><span class="comment">/* Combine multiple classes */</span>
 <span class="keyword">&lt;web-daterangepicker class=</span><span class="string">"scale-lg spacing-compact fonts-large"</span><span class="keyword">&gt;</span>
 
 <span class="comment">/* Or use inline style for quick one-offs */</span>
 <span class="keyword">&lt;web-daterangepicker</span> <span class="property">style</span>=<span class="string">"--drp-rem: 15px; --drp-spacing-xs: 2px;"</span><span class="keyword">&gt;</span></div>
+</div>
+
+<!-- Responsive Example -->
+<div class="card">
+  <h2>TH22 · Responsive Sizing</h2>
+  <p>Use media queries targeting the element to scale based on viewport:</p>
+
+  <div class="form-group">
+    <label>Responsive Calendar (resize browser to see effect)</label>
+    <web-daterangepicker
+      class="responsive-calendar"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-month-count="2"></web-daterangepicker>
+    <small>8px on mobile, 10px on tablet, 12px on desktop</small>
   </div>
 
-  <!-- Responsive Example -->
-  <div class="card">
-    <h2>TH22 · Responsive Sizing</h2>
-    <p>Use media queries targeting the element to scale based on viewport:</p>
-
-    <div class="form-group">
-      <label>Responsive Calendar (resize browser to see effect)</label>
-      <web-daterangepicker
-        class="responsive-calendar"
-        selection-mode="range"
-        positioning-mode="inline"
-        visible-month-count="2"></web-daterangepicker>
-      <small>8px on mobile, 10px on tablet, 12px on desktop</small>
-    </div>
-
-    <div class="code-block"><span class="comment">/* Responsive scaling with media queries */</span>
+  <div class="code-block"><span class="comment">/* Responsive scaling with media queries */</span>
 <span class="keyword">@media (max-width: 768px)</span> {
-  <span class="keyword">web-daterangepicker.responsive-calendar</span> {
-    <span class="property">--drp-rem</span>: <span class="string">8px</span>;
-  }
+<span class="keyword">web-daterangepicker.responsive-calendar</span> {
+  <span class="property">--drp-rem</span>: <span class="string">8px</span>;
+}
 }
 
 <span class="keyword">@media (min-width: 769px) and (max-width: 1200px)</span> {
-  <span class="keyword">web-daterangepicker.responsive-calendar</span> {
-    <span class="property">--drp-rem</span>: <span class="string">10px</span>;
-  }
+<span class="keyword">web-daterangepicker.responsive-calendar</span> {
+  <span class="property">--drp-rem</span>: <span class="string">10px</span>;
+}
 }
 
 <span class="keyword">@media (min-width: 1201px)</span> {
-  <span class="keyword">web-daterangepicker.responsive-calendar</span> {
-    <span class="property">--drp-rem</span>: <span class="string">12px</span>;
-  }
+<span class="keyword">web-daterangepicker.responsive-calendar</span> {
+  <span class="property">--drp-rem</span>: <span class="string">12px</span>;
+}
 }</div>
+</div>
+
+<!-- Multi-Month Grid Examples -->
+<div class="card">
+  <h2>TH23 · Scaled Grid Layouts</h2>
+  <p>Multi-month grids at different scales:</p>
+
+  <div class="form-group">
+    <label>6-Month Grid at 60% Scale</label>
+    <web-daterangepicker
+      class="scale-xs"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-month-count="6"
+      month-layout="grid"
+      grid-rows="2"
+      grid-columns="3"></web-daterangepicker>
+    <small>Dense dashboard view - perfect for year-at-a-glance</small>
   </div>
 
-  <!-- Multi-Month Grid Examples -->
-  <div class="card">
-    <h2>TH23 · Scaled Grid Layouts</h2>
-    <p>Multi-month grids at different scales:</p>
-
-    <div class="form-group">
-      <label>6-Month Grid at 60% Scale</label>
-      <web-daterangepicker
-        class="scale-xs"
-        selection-mode="range"
-        positioning-mode="inline"
-        visible-month-count="6"
-        month-layout="grid"
-        grid-rows="2"
-        grid-columns="3"></web-daterangepicker>
-      <small>Dense dashboard view - perfect for year-at-a-glance</small>
-    </div>
-
-    <div class="form-group">
-      <label>6-Month Grid at 100% Scale</label>
-      <web-daterangepicker
-        class="scale-md"
-        selection-mode="range"
-        positioning-mode="inline"
-        visible-month-count="6"
-        month-layout="grid"
-        grid-rows="2"
-        grid-columns="3"></web-daterangepicker>
-      <small>Normal size for standard displays</small>
-    </div>
+  <div class="form-group">
+    <label>6-Month Grid at 100% Scale</label>
+    <web-daterangepicker
+      class="scale-md"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-month-count="6"
+      month-layout="grid"
+      grid-rows="2"
+      grid-columns="3"></web-daterangepicker>
+    <small>Normal size for standard displays</small>
   </div>
+</div>
 
-  <div class="card">
-    <h2>TH24 · Available CSS Custom Properties</h2>
-    <p>All variables you can override with <code>--drp-</code> prefix:</p>
+<div class="card">
+  <h2>TH24 · Available CSS Custom Properties</h2>
+  <p>All variables you can override with <code>--drp-</code> prefix:</p>
 
-    <h3 class="subsection">Base Unit</h3>
-    <div class="code-block"><span class="property">--drp-rem</span>: <span class="string">var(--base-rem, 10px)</span>;  <span class="comment">/* Base unit — chains to the family-wide --base-rem; change either to scale everything */</span></div>
+  <h3 class="subsection">Base Unit</h3>
+  <div class="code-block"><span class="property">--drp-rem</span>: <span class="string">var(--base-rem, 10px)</span>;  <span class="comment">/* Base unit — chains to the family-wide --base-rem; change either to scale everything */</span></div>
 
-    <h3 class="subsection">Icons (chain to the shared --base-icon-* contract)</h3>
-    <div class="code-block">--drp-icon-close      /* full-screen close ✕   → var(--base-icon-close, …) */
+  <h3 class="subsection">Icons (chain to the shared --base-icon-* contract)</h3>
+  <div class="code-block">--drp-icon-close      /* full-screen close ✕   → var(--base-icon-close, …) */
 --drp-icon-clear      /* input clear ✕         → var(--base-icon-clear, --drp-icon-close) */
 --drp-icon-chevron    /* prev/next nav (one directional glyph, rotated per dir) → var(--base-icon-chevron, …) */
 --drp-icon-calendar   /* input affordance      → var(--base-icon-calendar, …) */
 --drp-nav-icon-rotate-prev   /* 180deg — override with a pre-oriented glyph */
 --drp-nav-icon-rotate-next   /* 0deg */</div>
 
-    <h3 class="subsection">Colors</h3>
-    <div class="code-block">--drp-dropdown-bg           /* Calendar background */
+  <h3 class="subsection">Colors</h3>
+  <div class="code-block">--drp-dropdown-bg           /* Calendar background */
 --drp-border-color          /* Border color */
 --drp-primary-bg            /* Primary background (hover states) */
 --drp-primary-bg-hover      /* Primary background hover */
@@ -1460,15 +1456,15 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-text-secondary        /* Secondary text color */
 --drp-text-color-on-accent  /* Text on accent backgrounds */</div>
 
-    <h3 class="subsection">Spacing</h3>
-    <div class="code-block">--drp-spacing-xs            /* Extra small spacing (4px) */
+  <h3 class="subsection">Spacing</h3>
+  <div class="code-block">--drp-spacing-xs            /* Extra small spacing (4px) */
 --drp-spacing-sm            /* Small spacing (8px) */
 --drp-spacing-md            /* Medium spacing (16px) */
 --drp-spacing-lg            /* Large spacing (24px) */
 --drp-spacing-xl            /* Extra large spacing (32px) */</div>
 
-    <h3 class="subsection">Typography</h3>
-    <div class="code-block">--drp-font-size-2xs         /* Extra extra small (badges) */
+  <h3 class="subsection">Typography</h3>
+  <div class="code-block">--drp-font-size-2xs         /* Extra extra small (badges) */
 --drp-font-size-xs          /* Extra small (small labels) */
 --drp-font-size-sm          /* Small (day numbers) */
 --drp-font-size-base        /* Base font size (header text) */
@@ -1478,22 +1474,22 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-font-weight-medium    /* Medium weight */
 --drp-font-weight-semibold  /* Semibold weight */</div>
 
-    <h3 class="subsection">Input Size (set automatically by input-size attribute)</h3>
-    <div class="code-block">--drp-input-size-xs-height  /* 31px */
+  <h3 class="subsection">Input Size (set automatically by input-size attribute)</h3>
+  <div class="code-block">--drp-input-size-xs-height  /* 31px */
 --drp-input-size-sm-height  /* 33px */
 --drp-input-size-md-height  /* 35px */
 --drp-input-size-lg-height  /* 38px */
 --drp-input-size-xl-height  /* 41px */</div>
 
-    <h3 class="subsection">Borders & Other</h3>
-    <div class="code-block">--drp-border-width-base     /* Base border width */
+  <h3 class="subsection">Borders & Other</h3>
+  <div class="code-block">--drp-border-width-base     /* Base border width */
 --drp-border-radius         /* Border radius */
 --drp-shadow-xl             /* Extra large shadow */
 --drp-transition-fast       /* 0.1s (--base-duration-fast); 0s = off */
 --drp-transition-normal     /* 0.15s (--base-duration-normal); 0s = off */</div>
 
-    <h3 class="subsection">Time Picker (rolls)</h3>
-    <div class="code-block">--drp-time-picker-gap              /* Gap between roll columns */
+  <h3 class="subsection">Time Picker (rolls)</h3>
+  <div class="code-block">--drp-time-picker-gap              /* Gap between roll columns */
 --drp-time-picker-padding          /* Padding around the time picker block */
 --drp-time-picker-roll-min-width   /* Minimum column width */
 --drp-time-picker-roll-min-height  /* Minimum roll height (~5-6 items visible) */
@@ -1502,8 +1498,8 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-time-picker-main-gap         /* Gap between calendar and rolls in datetime mode */
 --drp-datetime-min-width           /* Popover width floor in datetime mode (560px default) */</div>
 
-    <h3 class="subsection">Clock Picker (Material face)</h3>
-    <div class="code-block">--drp-clock-size                       /* Dial square size (280px default) */
+  <h3 class="subsection">Clock Picker (Material face)</h3>
+  <div class="code-block">--drp-clock-size                       /* Dial square size (280px default) */
 --drp-clock-face-bg                    /* Dial background circle */
 --drp-clock-radius-outer               /* Outer hour-ring radius */
 --drp-clock-radius-inner               /* Inner hour-ring radius (h24 only) */
@@ -1521,8 +1517,8 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-clock-header-digit-color-active  /* Active digit (current step) color */
 --drp-clock-ampm-bg-selected           /* AM/PM toggle selected background */</div>
 
-    <h3 class="subsection">Wheel Picker (iOS barrel)</h3>
-    <div class="code-block">--drp-wheel-bg                         /* Barrel background (whole row) */
+  <h3 class="subsection">Wheel Picker (iOS barrel)</h3>
+  <div class="code-block">--drp-wheel-bg                         /* Barrel background (whole row) */
 --drp-wheel-band-bg                    /* Center selection band fill */
 --drp-wheel-item-height                /* Per-item row height (also drives band height + fade) */
 --drp-wheel-item-font-size             /* Digit font size */
@@ -1535,8 +1531,8 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-wheel-min-height                 /* Barrel height (~180px default — 5-6 items visible) */
 --drp-wheel-fade-height                /* Top/bottom gradient height */</div>
 
-    <h3 class="subsection">Compact Picker (iOS pills)</h3>
-    <div class="code-block">--drp-compact-pill-bg                  /* Pill background (defaults to accent @ 12% alpha) */
+  <h3 class="subsection">Compact Picker (iOS pills)</h3>
+  <div class="code-block">--drp-compact-pill-bg                  /* Pill background (defaults to accent @ 12% alpha) */
 --drp-compact-pill-bg-hover            /* Pill hover background */
 --drp-compact-pill-color               /* Committed pill text (defaults to accent) */
 --drp-compact-pill-color-uncommitted   /* Pill text before user has typed */
@@ -1549,410 +1545,403 @@ web-daterangepicker.theme-classifier-corporate {
 --drp-compact-ampm-bg-selected         /* AM/PM button background (selected, defaults to accent) */
 --drp-compact-ampm-color               /* AM/PM unselected text */
 --drp-compact-ampm-color-selected      /* AM/PM selected text */</div>
-  </div>
+</div>
 
-  <div class="card">
-    <h2>TH25 · Dynamic Theme Switching</h2>
-    <p>Change themes at runtime with JavaScript</p>
-    <label>Dynamic theme picker:</label>
-    <web-daterangepicker
-      id="dynamic-picker"
-      class="theme-green"
-      selection-mode="range"
-      visible-month-count="2" data-rich-demo
-      placeholder="Dynamic theme">
-    </web-daterangepicker>
-    <div class="controls">
-      <button onclick="switchTheme('default')" class="swatch--blue">Blue</button>
-      <button onclick="switchTheme('theme-green')" class="swatch--green">Green</button>
-      <button onclick="switchTheme('theme-purple')" class="swatch--purple">Purple</button>
-      <button onclick="switchTheme('theme-red')" class="swatch--red">Red</button>
-      <button onclick="switchTheme('theme-dark')" class="swatch--dark">Dark</button>
-    </div>
-    <div class="code-block">// Switch theme dynamically
+<div class="card">
+  <h2>TH25 · Dynamic Theme Switching</h2>
+  <p>Change themes at runtime with JavaScript</p>
+  <label>Dynamic theme picker:</label>
+  <web-daterangepicker
+    id="dynamic-picker"
+    class="theme-green"
+    selection-mode="range"
+    visible-month-count="2" data-rich-demo
+    placeholder="Dynamic theme">
+  </web-daterangepicker>
+  <div class="controls">
+    <button onclick="switchTheme('default')" class="swatch--blue">Blue</button>
+    <button onclick="switchTheme('theme-green')" class="swatch--green">Green</button>
+    <button onclick="switchTheme('theme-purple')" class="swatch--purple">Purple</button>
+    <button onclick="switchTheme('theme-red')" class="swatch--red">Red</button>
+    <button onclick="switchTheme('theme-dark')" class="swatch--dark">Dark</button>
+  </div>
+  <div class="code-block">// Switch theme dynamically
 const picker = document.getElementById('dynamic-picker');
 
 function switchTheme(newTheme) {
-  picker.className = newTheme;
+picker.className = newTheme;
 }</div>
+</div>
+
+<div class="card">
+  <h2>TH26 · Icon Theming via <code>--base-icon-*</code></h2>
+  <p>
+    Every <code>--drp-icon-*</code> glyph chains to the shared
+    <code>--base-icon-*</code> contract (<code>var(--base-icon-chevron, …)</code>),
+    so overriding a base icon on the host re-skins the prev/next nav chevrons, the
+    input clear ✕, and the calendar affordance at once. Set the same override on
+    <code>:root</code> and it re-skins <em>every</em> KeenMate component
+    (multiselect, treeview, …) in lockstep. The nav reuses <strong>one</strong>
+    directional chevron rotated per direction, so there's a single glyph to swap.
+  </p>
+
+  <div class="card-grid mt-1" style="--grid-min: 320px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Default (Lucide) — compare the nav arrows ›</label>
+      <web-daterangepicker
+        selection-mode="range"
+        positioning-mode="inline"
+        visible-month-count="1"></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>Icon swap (<code>--base-icon-*</code> overridden) — double-chevron nav »</label>
+      <web-daterangepicker
+        class="icons-alt"
+        selection-mode="range"
+        positioning-mode="inline"
+        visible-month-count="1"></web-daterangepicker>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>TH26 · Icon Theming via <code>--base-icon-*</code></h2>
-    <p>
-      Every <code>--drp-icon-*</code> glyph chains to the shared
-      <code>--base-icon-*</code> contract (<code>var(--base-icon-chevron, …)</code>),
-      so overriding a base icon on the host re-skins the prev/next nav chevrons, the
-      input clear ✕, and the calendar affordance at once. Set the same override on
-      <code>:root</code> and it re-skins <em>every</em> KeenMate component
-      (multiselect, treeview, …) in lockstep. The nav reuses <strong>one</strong>
-      directional chevron rotated per direction, so there's a single glyph to swap.
-    </p>
+  <label class="mt-1">Floating input — the calendar affordance (and the clear ✕ once a date is picked) follow the same base tokens:</label>
+  <web-daterangepicker
+    class="icons-alt"
+    selection-mode="single"
+    initial-date="2026-06-15"
+    placeholder="Icon-swapped floating picker"></web-daterangepicker>
 
-    <div class="card-grid mt-1" style="--grid-min: 320px; --grid-gap: 1.5rem;">
-      <div class="form-group">
-        <label>Default (Lucide) — compare the nav arrows ›</label>
-        <web-daterangepicker
-          selection-mode="range"
-          positioning-mode="inline"
-          visible-month-count="1"></web-daterangepicker>
-      </div>
-      <div class="form-group">
-        <label>Icon swap (<code>--base-icon-*</code> overridden) — double-chevron nav »</label>
-        <web-daterangepicker
-          class="icons-alt"
-          selection-mode="range"
-          positioning-mode="inline"
-          visible-month-count="1"></web-daterangepicker>
-      </div>
-    </div>
+  <div class="note success">
+    ✓ The swapped picker shows double-chevron nav arrows, a circled ✕ clear, and a
+    dotted calendar glyph — all from <code>--base-icon-*</code> overrides, with no
+    <code>--drp-icon-*</code> touched.
+  </div>
 
-    <label class="mt-1">Floating input — the calendar affordance (and the clear ✕ once a date is picked) follow the same base tokens:</label>
-    <web-daterangepicker
-      class="icons-alt"
-      selection-mode="single"
-      initial-date="2026-06-15"
-      placeholder="Icon-swapped floating picker"></web-daterangepicker>
-
-    <div class="note success">
-      ✓ The swapped picker shows double-chevron nav arrows, a circled ✕ clear, and a
-      dotted calendar glyph — all from <code>--base-icon-*</code> overrides, with no
-      <code>--drp-icon-*</code> touched.
-    </div>
-
-    <div class="code-block"><span class="comment">/* One override re-skins nav + clear + calendar (and every other KM component). */</span>
+  <div class="code-block"><span class="comment">/* One override re-skins nav + clear + calendar (and every other KM component). */</span>
 <span class="keyword">web-daterangepicker.icons-alt</span> {
-  <span class="property">--base-icon-chevron</span>:  <span class="string">url("…chevrons-right…")</span>;  <span class="comment">/* prev/next nav (rotated per dir) */</span>
-  <span class="property">--base-icon-close</span>:    <span class="string">url("…circle-x…")</span>;        <span class="comment">/* input clear ✕ (clear follows close) */</span>
-  <span class="property">--base-icon-calendar</span>: <span class="string">url("…calendar-days…")</span>;   <span class="comment">/* input affordance */</span>
+<span class="property">--base-icon-chevron</span>:  <span class="string">url("…chevrons-right…")</span>;  <span class="comment">/* prev/next nav (rotated per dir) */</span>
+<span class="property">--base-icon-close</span>:    <span class="string">url("…circle-x…")</span>;        <span class="comment">/* input clear ✕ (clear follows close) */</span>
+<span class="property">--base-icon-calendar</span>: <span class="string">url("…calendar-days…")</span>;   <span class="comment">/* input affordance */</span>
 }</div>
-  </div>
+</div>
 
-  </div>
+<script type="module">
+  // Wait for the web component to be registered before assigning properties.
+  await customElements.whenDefined('web-daterangepicker');
 
-  <script type="module" src="/src/index.ts"></script>
+  // ----- Anchor all demo data to today so the page never goes stale -----
+  const _today = new Date(); _today.setHours(0, 0, 0, 0);
+  const toLocalISO = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const dayOffset = (days) => {
+    const d = new Date(_today); d.setDate(d.getDate() + days);
+    return toLocalISO(d);
+  };
 
-  <script type="module">
-    // Wait for the web component to be registered before assigning properties.
-    await customElements.whenDefined('web-daterangepicker');
+  // Curated mix: events stay clickable (badgeClass 'event'); holidays are disabled (badgeClass 'holiday')
+  const SPECIAL_DATES = [
+    { date: dayOffset(-7),  badgeText: '🎂', badgeClass: 'event',   badgeTooltip: 'Birthday' },
+    { date: dayOffset(-3),  badgeText: '☕', badgeClass: 'event',   badgeTooltip: 'Coffee meeting' },
+    { date: dayOffset(2),   badgeText: '🎉', badgeClass: 'event',   badgeTooltip: 'Team celebration' },
+    { date: dayOffset(5),   badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Public holiday (office closed)', isDisabled: true },
+    { date: dayOffset(11),  badgeText: '🎤', badgeClass: 'event',   badgeTooltip: 'Karaoke night' },
+    { date: dayOffset(17),  badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'Company off-day',                isDisabled: true },
+    { date: dayOffset(23),  badgeText: '🎬', badgeClass: 'event',   badgeTooltip: 'Movie screening' }
+  ];
+  const SPECIAL_KEYS = new Set(SPECIAL_DATES.map(d => d.date));
 
-    // ----- Anchor all demo data to today so the page never goes stale -----
-    const _today = new Date(); _today.setHours(0, 0, 0, 0);
-    const toLocalISO = (d) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const dayOffset = (days) => {
-      const d = new Date(_today); d.setDate(d.getDate() + days);
-      return toLocalISO(d);
-    };
+  // Rich HTML day tooltips for the event dates (holidays use the plain badge tooltip)
+  const RICH_TOOLTIPS = {
+    [dayOffset(-7)]: '<strong>Birthday 🎂</strong><br>🎁 Bring cake<br>📍 Kitchen<br>👥 Whole team',
+    [dayOffset(-3)]: '<strong>Coffee Meeting ☕</strong><br>⏰ 10:00 – 11:00 AM<br>📍 Stairwell Café<br>👥 With marketing',
+    [dayOffset(2)]:  '<strong>Team Celebration 🎉</strong><br>⏰ 4:00 – 6:00 PM<br>📍 Rooftop<br>🍕 Pizza & drinks',
+    [dayOffset(11)]: '<strong>Karaoke Night 🎤</strong><br>⏰ 7:00 PM onwards<br>📍 Sound Garden<br>🎶 BYO playlist',
+    [dayOffset(23)]: '<strong>Movie Screening 🎬</strong><br>⏰ 8:00 PM<br>📍 Auditorium B<br>🍿 Snacks provided'
+  };
 
-    // Curated mix: events stay clickable (badgeClass 'event'); holidays are disabled (badgeClass 'holiday')
-    const SPECIAL_DATES = [
-      { date: dayOffset(-7),  badgeText: '🎂', badgeClass: 'event',   badgeTooltip: 'Birthday' },
-      { date: dayOffset(-3),  badgeText: '☕', badgeClass: 'event',   badgeTooltip: 'Coffee meeting' },
-      { date: dayOffset(2),   badgeText: '🎉', badgeClass: 'event',   badgeTooltip: 'Team celebration' },
-      { date: dayOffset(5),   badgeText: '🎄', badgeClass: 'holiday', badgeTooltip: 'Public holiday (office closed)', isDisabled: true },
-      { date: dayOffset(11),  badgeText: '🎤', badgeClass: 'event',   badgeTooltip: 'Karaoke night' },
-      { date: dayOffset(17),  badgeText: '🥳', badgeClass: 'holiday', badgeTooltip: 'Company off-day',                isDisabled: true },
-      { date: dayOffset(23),  badgeText: '🎬', badgeClass: 'event',   badgeTooltip: 'Movie screening' }
-    ];
-    const SPECIAL_KEYS = new Set(SPECIAL_DATES.map(d => d.date));
+  // Inject styles into each picker's Shadow DOM. color-mix keeps badges readable on
+  // light AND dark theme backgrounds without per-theme overrides.
+  const richDemoStyles = () => `
+    .drp__badge-cell.event {
+      background-color: color-mix(in srgb, #3b82f6 28%, transparent) !important;
+      color: var(--drp-text-primary, currentColor) !important;
+      font-weight: 600;
+    }
+    .drp__badge-cell.holiday {
+      background-color: color-mix(in srgb, #ef4444 28%, transparent) !important;
+      color: var(--drp-text-primary, currentColor) !important;
+      font-weight: 600;
+    }
+    .drp__badge-cell.price-high {
+      background-color: color-mix(in srgb, #ef4444 22%, transparent) !important;
+      color: var(--drp-text-primary, currentColor) !important;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    .drp__badge-cell.price-mid {
+      background-color: color-mix(in srgb, #f59e0b 26%, transparent) !important;
+      color: var(--drp-text-primary, currentColor) !important;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    .drp__badge-cell.price-low {
+      background-color: color-mix(in srgb, #10b981 22%, transparent) !important;
+      color: var(--drp-text-primary, currentColor) !important;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+  `;
 
-    // Rich HTML day tooltips for the event dates (holidays use the plain badge tooltip)
-    const RICH_TOOLTIPS = {
-      [dayOffset(-7)]: '<strong>Birthday 🎂</strong><br>🎁 Bring cake<br>📍 Kitchen<br>👥 Whole team',
-      [dayOffset(-3)]: '<strong>Coffee Meeting ☕</strong><br>⏰ 10:00 – 11:00 AM<br>📍 Stairwell Café<br>👥 With marketing',
-      [dayOffset(2)]:  '<strong>Team Celebration 🎉</strong><br>⏰ 4:00 – 6:00 PM<br>📍 Rooftop<br>🍕 Pizza & drinks',
-      [dayOffset(11)]: '<strong>Karaoke Night 🎤</strong><br>⏰ 7:00 PM onwards<br>📍 Sound Garden<br>🎶 BYO playlist',
-      [dayOffset(23)]: '<strong>Movie Screening 🎬</strong><br>⏰ 8:00 PM<br>📍 Auditorium B<br>🍿 Snacks provided'
-    };
+  function setupRichDemo(picker) {
+    // Keep the popover open after the end click so the days/nights summary
+    // block stays visible — default 'selection' snaps it shut too fast to see.
+    // Setting the attribute (not the property) lets the component pick it up
+    // on first init alongside the other observed attributes.
+    if (picker.getAttribute('selection-mode') === 'range') {
+      picker.setAttribute('commit-mode', 'apply');
+    }
 
-    // Inject styles into each picker's Shadow DOM. color-mix keeps badges readable on
-    // light AND dark theme backgrounds without per-theme overrides.
-    const richDemoStyles = () => `
-      .drp__badge-cell.event {
-        background-color: color-mix(in srgb, #3b82f6 28%, transparent) !important;
-        color: var(--drp-text-primary, currentColor) !important;
-        font-weight: 600;
-      }
-      .drp__badge-cell.holiday {
-        background-color: color-mix(in srgb, #ef4444 28%, transparent) !important;
-        color: var(--drp-text-primary, currentColor) !important;
-        font-weight: 600;
-      }
-      .drp__badge-cell.price-high {
-        background-color: color-mix(in srgb, #ef4444 22%, transparent) !important;
-        color: var(--drp-text-primary, currentColor) !important;
-        font-size: 0.65rem;
-        font-weight: 600;
-      }
-      .drp__badge-cell.price-mid {
-        background-color: color-mix(in srgb, #f59e0b 26%, transparent) !important;
-        color: var(--drp-text-primary, currentColor) !important;
-        font-size: 0.65rem;
-        font-weight: 600;
-      }
-      .drp__badge-cell.price-low {
-        background-color: color-mix(in srgb, #10b981 22%, transparent) !important;
-        color: var(--drp-text-primary, currentColor) !important;
-        font-size: 0.65rem;
-        font-weight: 600;
-      }
-    `;
+    picker.getCustomStylesCallback = richDemoStyles;
+    picker.specialDates = SPECIAL_DATES;
 
-    function setupRichDemo(picker) {
-      // Keep the popover open after the end click so the days/nights summary
-      // block stays visible — default 'selection' snaps it shut too fast to see.
-      // Setting the attribute (not the property) lets the component pick it up
-      // on first init alongside the other observed attributes.
-      if (picker.getAttribute('selection-mode') === 'range') {
-        picker.setAttribute('commit-mode', 'apply');
-      }
-
-      picker.getCustomStylesCallback = richDemoStyles;
-      picker.specialDates = SPECIAL_DATES;
-
-      // Dynamic weekday/weekend pricing for every non-special date.
-      // specialDates take priority so we just skip those keys here.
-      picker.getDateMetadataCallback = ({ date }) => {
-        const iso = toLocalISO(date);
-        if (SPECIAL_KEYS.has(iso)) return null;
-        const dow = date.getDay();
-        const isWeekend = (dow === 0 || dow === 6);
-        const price = isWeekend ? 220 : 150;
-        const cls = price >= 220 ? 'price-high' : (price >= 180 ? 'price-mid' : 'price-low');
-        return {
-          badgeText: `$${price}`,
-          badgeClass: cls,
-          badgeTooltip: `${isWeekend ? 'Weekend' : 'Weekday'} rate: $${price}/night`
-        };
+    // Dynamic weekday/weekend pricing for every non-special date.
+    // specialDates take priority so we just skip those keys here.
+    picker.getDateMetadataCallback = ({ date }) => {
+      const iso = toLocalISO(date);
+      if (SPECIAL_KEYS.has(iso)) return null;
+      const dow = date.getDay();
+      const isWeekend = (dow === 0 || dow === 6);
+      const price = isWeekend ? 220 : 150;
+      const cls = price >= 220 ? 'price-high' : (price >= 180 ? 'price-mid' : 'price-low');
+      return {
+        badgeText: `$${price}`,
+        badgeClass: cls,
+        badgeTooltip: `${isWeekend ? 'Weekend' : 'Weekday'} rate: $${price}/night`
       };
-
-      // Rich HTML tooltip when an event date is hovered.
-      picker.getDayTooltipCallback = (data) => RICH_TOOLTIPS[data.dateString] || null;
-    }
-
-    document.querySelectorAll('web-daterangepicker[data-rich-demo]').forEach(setupRichDemo);
-
-    // ----- Classifier retheming -----
-    // Same data, three pickers — only the host variable overrides differ.
-    // dayClass: 'holiday' / 'event' fires the shipped .drp__day.{holiday,event} rules
-    // (consume --drp-holiday-color / --drp-event-color).
-    // badgeClass: 'badge-number' / 'badge-count' / 'badge-text' fires the shipped
-    // .drp__badge-cell.badge-* rules (consume --drp-badge-*-bg / -color).
-    const CLASSIFIER_SPECIAL_DATES = [
-      { date: dayOffset(-7), dayClass: 'holiday', badgeClass: 'badge-text',   badgeText: 'OFF',  badgeTooltip: 'Office closed' },
-      { date: dayOffset(-3), dayClass: 'event',   badgeClass: 'badge-number', badgeText: '12',   badgeTooltip: 'Slot 12' },
-      { date: dayOffset(2),  dayClass: 'event',   badgeClass: 'badge-count',  badgeText: '3',    badgeTooltip: '3 attendees' },
-      { date: dayOffset(7),  dayClass: 'holiday', badgeClass: 'badge-text',   badgeText: 'OFF',  badgeTooltip: 'Public holiday' },
-      { date: dayOffset(11), dayClass: 'event',   badgeClass: 'badge-number', badgeText: '7',    badgeTooltip: 'Slot 7' },
-    ];
-    ['classifier-default', 'classifier-corporate', 'classifier-festival'].forEach((id) => {
-      const picker = document.getElementById(id);
-      if (picker) picker.specialDates = CLASSIFIER_SPECIAL_DATES;
-    });
-
-    // switchTheme is referenced from inline onclick attrs, so it must live on window.
-    // Re-applying setupRichDemo after the class swap is cheap insurance — class changes
-    // re-flow CSS only (no rebuild), so the existing setup survives, but this keeps the
-    // function self-contained in case the dynamic picker is recreated.
-    window.switchTheme = (newTheme) => {
-      const picker = document.getElementById('dynamic-picker');
-      picker.className = newTheme;
-      setupRichDemo(picker);
-      console.log('Theme switched to:', newTheme);
     };
 
-    console.log('✅ Theming examples loaded — same rich demo applied to every themed picker');
-  </script>
+    // Rich HTML tooltip when an event date is hovered.
+    picker.getDayTooltipCallback = (data) => RICH_TOOLTIPS[data.dateString] || null;
+  }
 
-  <script>
-    // Interactive scale demo (from the Sizing page)
-    document.addEventListener('DOMContentLoaded', () => {
-      const slider = document.getElementById('remSlider');
-      const output = document.getElementById('remValue');
-      const codeValue = document.getElementById('codeRemValue');
-      const demoElement = document.getElementById('interactive-demo');
+  document.querySelectorAll('web-daterangepicker[data-rich-demo]').forEach(setupRichDemo);
 
-      if (slider && output && demoElement) {
-        slider.addEventListener('input', (e) => {
-          const value = e.target.value + 'px';
-          output.textContent = value;
-          codeValue.textContent = value;
-          // Set directly on the element (important for shadow DOM!)
-          demoElement.style.setProperty('--drp-rem', value);
-        });
-      }
-    });
-  </script>
+  // ----- Classifier retheming -----
+  // Same data, three pickers — only the host variable overrides differ.
+  // dayClass: 'holiday' / 'event' fires the shipped .drp__day.{holiday,event} rules
+  // (consume --drp-holiday-color / --drp-event-color).
+  // badgeClass: 'badge-number' / 'badge-count' / 'badge-text' fires the shipped
+  // .drp__badge-cell.badge-* rules (consume --drp-badge-*-bg / -color).
+  const CLASSIFIER_SPECIAL_DATES = [
+    { date: dayOffset(-7), dayClass: 'holiday', badgeClass: 'badge-text',   badgeText: 'OFF',  badgeTooltip: 'Office closed' },
+    { date: dayOffset(-3), dayClass: 'event',   badgeClass: 'badge-number', badgeText: '12',   badgeTooltip: 'Slot 12' },
+    { date: dayOffset(2),  dayClass: 'event',   badgeClass: 'badge-count',  badgeText: '3',    badgeTooltip: '3 attendees' },
+    { date: dayOffset(7),  dayClass: 'holiday', badgeClass: 'badge-text',   badgeText: 'OFF',  badgeTooltip: 'Public holiday' },
+    { date: dayOffset(11), dayClass: 'event',   badgeClass: 'badge-number', badgeText: '7',    badgeTooltip: 'Slot 7' },
+  ];
+  ['classifier-default', 'classifier-corporate', 'classifier-festival'].forEach((id) => {
+    const picker = document.getElementById(id);
+    if (picker) picker.specialDates = CLASSIFIER_SPECIAL_DATES;
+  });
 
-  <script type="module">
-    // Typography-controls panel (from the Base Variables page)
-    // Variable mappings
-    const variableMap = {
-      fontFamily: '--base-font-family',
-      fontSize2xs: '--base-font-size-2xs',
-      fontSizeXs: '--base-font-size-xs',
-      fontSizeSm: '--base-font-size-sm',
-      fontSizeBase: '--base-font-size-base',
-      fontSizeLg: '--base-font-size-lg',
-      fontSizeXl: '--base-font-size-xl',
-      fontSize2xl: '--base-font-size-2xl',
-      fontWeightNormal: '--base-font-weight-normal',
-      fontWeightMedium: '--base-font-weight-medium',
-      fontWeightSemibold: '--base-font-weight-semibold',
-      lineHeightTight: '--base-line-height-tight',
-      lineHeightNormal: '--base-line-height-normal',
-      lineHeightRelaxed: '--base-line-height-relaxed'
-    };
+  // switchTheme is referenced from inline onclick attrs, so it must live on window.
+  // Re-applying setupRichDemo after the class swap is cheap insurance — class changes
+  // re-flow CSS only (no rebuild), so the existing setup survives, but this keeps the
+  // function self-contained in case the dynamic picker is recreated.
+  window.switchTheme = (newTheme) => {
+    const picker = document.getElementById('dynamic-picker');
+    picker.className = newTheme;
+    setupRichDemo(picker);
+    console.log('Theme switched to:', newTheme);
+  };
 
-    // Track current values
-    const currentValues = {};
+  console.log('✅ Theming examples loaded — same rich demo applied to every themed picker');
+</script>
 
-    // Update CSS variable
-    function updateVariable(inputId, value) {
-      const varName = variableMap[inputId];
-      if (!varName) return;
+<script>
+  // Interactive scale demo (from the Sizing page)
+  document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('remSlider');
+    const output = document.getElementById('remValue');
+    const codeValue = document.getElementById('codeRemValue');
+    const demoElement = document.getElementById('interactive-demo');
 
-      if (value === '' || value === null || value === undefined) {
-        // Remove the variable
-        document.documentElement.style.removeProperty(varName);
-        delete currentValues[varName];
-      } else {
-        // Set the variable
-        let cssValue = value;
-
-        // Font sizes are unitless multipliers (component multiplies by --drp-rem)
-        // No unit conversion needed - just pass the number
-
-        document.documentElement.style.setProperty(varName, cssValue);
-        currentValues[varName] = cssValue;
-      }
-
-      updateDisplay();
-    }
-
-    // Update the display of current values
-    function updateDisplay() {
-      const display = document.getElementById('currentValues');
-      const keys = Object.keys(currentValues);
-
-      if (keys.length === 0) {
-        display.textContent = `:root {
-  /* No overrides set - using component defaults */
-}`;
-      } else {
-        const lines = keys.map(k => `  ${k}: ${currentValues[k]};`).join('\n');
-        display.textContent = `:root {\n${lines}\n}`;
-      }
-    }
-
-    // Reset all variables
-    function resetAll() {
-      // Clear all inputs
-      Object.keys(variableMap).forEach(inputId => {
-        const input = document.getElementById(inputId);
-        if (input) {
-          input.value = '';
-        }
-        const varName = variableMap[inputId];
-        document.documentElement.style.removeProperty(varName);
+    if (slider && output && demoElement) {
+      slider.addEventListener('input', (e) => {
+        const value = e.target.value + 'px';
+        output.textContent = value;
+        codeValue.textContent = value;
+        // Set directly on the element (important for shadow DOM!)
+        demoElement.style.setProperty('--drp-rem', value);
       });
+    }
+  });
+</script>
 
-      // Clear tracking
-      Object.keys(currentValues).forEach(k => delete currentValues[k]);
-      updateDisplay();
+<script type="module">
+  // Typography-controls panel (from the Base Variables page)
+  // Variable mappings
+  const variableMap = {
+    fontFamily: '--base-font-family',
+    fontSize2xs: '--base-font-size-2xs',
+    fontSizeXs: '--base-font-size-xs',
+    fontSizeSm: '--base-font-size-sm',
+    fontSizeBase: '--base-font-size-base',
+    fontSizeLg: '--base-font-size-lg',
+    fontSizeXl: '--base-font-size-xl',
+    fontSize2xl: '--base-font-size-2xl',
+    fontWeightNormal: '--base-font-weight-normal',
+    fontWeightMedium: '--base-font-weight-medium',
+    fontWeightSemibold: '--base-font-weight-semibold',
+    lineHeightTight: '--base-line-height-tight',
+    lineHeightNormal: '--base-line-height-normal',
+    lineHeightRelaxed: '--base-line-height-relaxed'
+  };
+
+  // Track current values
+  const currentValues = {};
+
+  // Update CSS variable
+  function updateVariable(inputId, value) {
+    const varName = variableMap[inputId];
+    if (!varName) return;
+
+    if (value === '' || value === null || value === undefined) {
+      // Remove the variable
+      document.documentElement.style.removeProperty(varName);
+      delete currentValues[varName];
+    } else {
+      // Set the variable
+      let cssValue = value;
+
+      // Font sizes are unitless multipliers (component multiplies by --drp-rem)
+      // No unit conversion needed - just pass the number
+
+      document.documentElement.style.setProperty(varName, cssValue);
+      currentValues[varName] = cssValue;
     }
 
-    // Set up event listeners
+    updateDisplay();
+  }
+
+  // Update the display of current values
+  function updateDisplay() {
+    const display = document.getElementById('currentValues');
+    const keys = Object.keys(currentValues);
+
+    if (keys.length === 0) {
+      display.textContent = `:root {
+/* No overrides set - using component defaults */
+}`;
+    } else {
+      const lines = keys.map(k => `  ${k}: ${currentValues[k]};`).join('\n');
+      display.textContent = `:root {\n${lines}\n}`;
+    }
+  }
+
+  // Reset all variables
+  function resetAll() {
+    // Clear all inputs
     Object.keys(variableMap).forEach(inputId => {
       const input = document.getElementById(inputId);
       if (input) {
-        input.addEventListener('input', (e) => {
-          updateVariable(inputId, e.target.value);
-        });
+        input.value = '';
       }
+      const varName = variableMap[inputId];
+      document.documentElement.style.removeProperty(varName);
     });
 
-    // Reset button
-    document.getElementById('resetBtn').addEventListener('click', resetAll);
+    // Clear tracking
+    Object.keys(currentValues).forEach(k => delete currentValues[k]);
+    updateDisplay();
+  }
 
-    // Load font button
-    document.getElementById('loadFontBtn').addEventListener('click', () => {
-      const input = document.getElementById('fontLink');
-      let value = input.value.trim();
+  // Set up event listeners
+  Object.keys(variableMap).forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.addEventListener('input', (e) => {
+        updateVariable(inputId, e.target.value);
+      });
+    }
+  });
 
-      if (!value) return;
+  // Reset button
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
 
-      // Extract URL if it's a full <link> tag
-      const hrefMatch = value.match(/href=["']([^"']+)["']/);
-      if (hrefMatch) {
-        value = hrefMatch[1];
-      }
+  // Load font button
+  document.getElementById('loadFontBtn').addEventListener('click', () => {
+    const input = document.getElementById('fontLink');
+    let value = input.value.trim();
 
-      // Remove existing font link if present
-      const existingLink = document.getElementById('customFontLink');
-      if (existingLink) {
-        existingLink.remove();
-      }
+    if (!value) return;
 
-      // Create and add new link
-      const link = document.createElement('link');
-      link.id = 'customFontLink';
-      link.rel = 'stylesheet';
-      link.href = value;
-      document.head.appendChild(link);
+    // Extract URL if it's a full <link> tag
+    const hrefMatch = value.match(/href=["']([^"']+)["']/);
+    if (hrefMatch) {
+      value = hrefMatch[1];
+    }
 
-      // Try to extract font family name from URL
-      const familyMatch = value.match(/family=([^:&]+)/);
-      if (familyMatch) {
-        const fontName = decodeURIComponent(familyMatch[1].replace(/\+/g, ' '));
-        const fontFamilyInput = document.getElementById('fontFamily');
-        fontFamilyInput.value = `'${fontName}', sans-serif`;
-        updateVariable('fontFamily', fontFamilyInput.value);
-      }
-    });
+    // Remove existing font link if present
+    const existingLink = document.getElementById('customFontLink');
+    if (existingLink) {
+      existingLink.remove();
+    }
 
-    // Apply initial values on page load
-    Object.keys(variableMap).forEach(inputId => {
-      const input = document.getElementById(inputId);
-      if (input && input.value) {
-        updateVariable(inputId, input.value);
-      }
-    });
+    // Create and add new link
+    const link = document.createElement('link');
+    link.id = 'customFontLink';
+    link.rel = 'stylesheet';
+    link.href = value;
+    document.head.appendChild(link);
 
-    // Set up special dates for both typography-panel pickers
-    const today = new Date();
-    const specialDates = [
-      { date: new Date(today.getFullYear(), today.getMonth(), 10), badgeText: '3', badgeClass: 'drp-badge--info' },
-      { date: new Date(today.getFullYear(), today.getMonth(), 15), badgeText: '!', badgeClass: 'drp-badge--warning' },
-      { date: new Date(today.getFullYear(), today.getMonth(), 20), badgeText: '5', badgeClass: 'drp-badge--success' },
-      { date: new Date(today.getFullYear(), today.getMonth(), 25), badgeText: '2', badgeClass: 'drp-badge--danger' },
-      { date: new Date(today.getFullYear(), today.getMonth() + 1, 5), badgeText: '1', badgeClass: 'drp-badge--info' },
-    ];
+    // Try to extract font family name from URL
+    const familyMatch = value.match(/family=([^:&]+)/);
+    if (familyMatch) {
+      const fontName = decodeURIComponent(familyMatch[1].replace(/\+/g, ' '));
+      const fontFamilyInput = document.getElementById('fontFamily');
+      fontFamilyInput.value = `'${fontName}', sans-serif`;
+      updateVariable('fontFamily', fontFamilyInput.value);
+    }
+  });
 
-    // Custom styles for badge classes (injected into shadow DOM)
-    const customStyles = () => `
-      .drp-badge--info { background-color: #3b82f6; color: white; }
-      .drp-badge--warning { background-color: #f59e0b; color: white; }
-      .drp-badge--success { background-color: #22c55e; color: white; }
-      .drp-badge--danger { background-color: #ef4444; color: white; }
-    `;
+  // Apply initial values on page load
+  Object.keys(variableMap).forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (input && input.value) {
+      updateVariable(inputId, input.value);
+    }
+  });
 
-    // Wait for custom elements to be defined
-    customElements.whenDefined('web-daterangepicker').then(() => {
-      const floatingPicker = document.getElementById('floatingPicker');
-      const inlinePicker = document.getElementById('inlinePicker');
+  // Set up special dates for both typography-panel pickers
+  const today = new Date();
+  const specialDates = [
+    { date: new Date(today.getFullYear(), today.getMonth(), 10), badgeText: '3', badgeClass: 'drp-badge--info' },
+    { date: new Date(today.getFullYear(), today.getMonth(), 15), badgeText: '!', badgeClass: 'drp-badge--warning' },
+    { date: new Date(today.getFullYear(), today.getMonth(), 20), badgeText: '5', badgeClass: 'drp-badge--success' },
+    { date: new Date(today.getFullYear(), today.getMonth(), 25), badgeText: '2', badgeClass: 'drp-badge--danger' },
+    { date: new Date(today.getFullYear(), today.getMonth() + 1, 5), badgeText: '1', badgeClass: 'drp-badge--info' },
+  ];
 
-      if (floatingPicker) {
-        floatingPicker.specialDates = specialDates;
-        floatingPicker.getCustomStylesCallback = customStyles;
-      }
-      if (inlinePicker) {
-        inlinePicker.specialDates = specialDates;
-        inlinePicker.getCustomStylesCallback = customStyles;
-      }
-    });
-  </script>
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+  // Custom styles for badge classes (injected into shadow DOM)
+  const customStyles = () => `
+    .drp-badge--info { background-color: #3b82f6; color: white; }
+    .drp-badge--warning { background-color: #f59e0b; color: white; }
+    .drp-badge--success { background-color: #22c55e; color: white; }
+    .drp-badge--danger { background-color: #ef4444; color: white; }
+  `;
+
+  // Wait for custom elements to be defined
+  customElements.whenDefined('web-daterangepicker').then(() => {
+    const floatingPicker = document.getElementById('floatingPicker');
+    const inlinePicker = document.getElementById('inlinePicker');
+
+    if (floatingPicker) {
+      floatingPicker.specialDates = specialDates;
+      floatingPicker.getCustomStylesCallback = customStyles;
+    }
+    if (inlinePicker) {
+      inlinePicker.specialDates = specialDates;
+      inlinePicker.getCustomStylesCallback = customStyles;
+    }
+  });
+</script>

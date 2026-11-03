@@ -1,165 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Action Buttons — Date Range Picker</title>
-  <link rel="stylesheet" href="dist/style.css">
-  <link rel="stylesheet" href="examples-shared.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    /* Page-specific bespoke widget only — the small red square "clear" icon button
-       sitting next to a picker. Layout/containers use shared classes
-       (.field-row, .controls, .code-block, …) from examples-shared.css. */
-    .clear-btn {
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      width: 32px;
-      height: 32px;
-      font-size: 1.25rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .clear-btn:hover {
-      background: #dc2626;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <a href="index.html" class="back-link">← Back to Examples</a>
-      <h1>🎯 Action Buttons</h1>
-      <p class="subtitle">Configure built-in and custom action buttons — visibility, commit modes, presets, dynamic callbacks, icons, the action event, and the full action-item API</p>
-    </header>
+<meta name="kmwc:title" content="🎯 Action Buttons">
+<meta name="kmwc:subtitle" content="Configure built-in and custom action buttons — visibility, commit modes, presets, dynamic callbacks, icons, the action event, and the full action-item API">
 
-  <!-- 1. Button & Summary Visibility Control -->
-  <div class="card">
-    <h2>AB01 · Button & Summary Visibility Control</h2>
-    <p>Use attributes to show/hide built-in buttons (Today, Clear, Apply) and the range-mode days/nights summary.</p>
+<link rel="stylesheet" href="examples-local.css">
 
-    <div class="grid">
-      <div class="form-group">
-        <label>No Buttons (stays open after a pick)</label>
-        <small>close-on-select="false" show-today-button="false" show-clear-button="false"</small>
-        <web-daterangepicker
-          selection-mode="range"
-          close-on-select="false"
-          show-today-button="false"
-          show-clear-button="false">
-        </web-daterangepicker>
-      </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  /* Page-specific bespoke widget only — the small red square "clear" icon button
+     sitting next to a picker. Layout/containers use shared classes
+     (.field-row, .controls, .code-block, …) from the devkit kit. */
+  .clear-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .clear-btn:hover {
+    background: #dc2626;
+  }
+</style>
 
-      <div class="form-group">
-        <label>Only Clear Button</label>
-        <small>show-today-button="false" (Apply is off by default in selection mode)</small>
-        <web-daterangepicker
-          selection-mode="range"
-          show-today-button="false">
-        </web-daterangepicker>
-      </div>
+<!-- 1. Button & Summary Visibility Control -->
+<div class="card">
+  <h2>AB01 · Button & Summary Visibility Control</h2>
+  <p>Use attributes to show/hide built-in buttons (Today, Clear, Apply) and the range-mode days/nights summary.</p>
 
-      <div class="form-group">
-        <label>Only Apply Button</label>
-        <small>commit-mode="apply" show-today-button="false" show-clear-button="false"</small>
-        <web-daterangepicker
-          selection-mode="range"
-          commit-mode="apply"
-          show-today-button="false"
-          show-clear-button="false">
-        </web-daterangepicker>
-      </div>
-
-      <div class="form-group">
-        <label>No Summary (Range Mode)</label>
-        <small>show-summary="false" — hides the days/nights count line entirely (no empty-div jump)</small>
-        <web-daterangepicker
-          selection-mode="range"
-          show-summary="false">
-        </web-daterangepicker>
-      </div>
+  <div class="grid">
+    <div class="form-group">
+      <label>No Buttons (stays open after a pick)</label>
+      <small>close-on-select="false" show-today-button="false" show-clear-button="false"</small>
+      <web-daterangepicker
+        selection-mode="range"
+        close-on-select="false"
+        show-today-button="false"
+        show-clear-button="false">
+      </web-daterangepicker>
     </div>
 
-    <div class="code-block"><code><span class="comment">// HTML attributes control built-in button visibility.</span>
+    <div class="form-group">
+      <label>Only Clear Button</label>
+      <small>show-today-button="false" (Apply is off by default in selection mode)</small>
+      <web-daterangepicker
+        selection-mode="range"
+        show-today-button="false">
+      </web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>Only Apply Button</label>
+      <small>commit-mode="apply" show-today-button="false" show-clear-button="false"</small>
+      <web-daterangepicker
+        selection-mode="range"
+        commit-mode="apply"
+        show-today-button="false"
+        show-clear-button="false">
+      </web-daterangepicker>
+    </div>
+
+    <div class="form-group">
+      <label>No Summary (Range Mode)</label>
+      <small>show-summary="false" — hides the days/nights count line entirely (no empty-div jump)</small>
+      <web-daterangepicker
+        selection-mode="range"
+        show-summary="false">
+      </web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="code-block"><code><span class="comment">// HTML attributes control built-in button visibility.</span>
 <span class="comment">// The Apply button is driven by commit-mode="apply" (not a separate flag).</span>
 <span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">show-today-button</span>=<span class="string">"false"</span>
-  <span class="property">show-clear-button</span>=<span class="string">"false"</span>
-  <span class="property">commit-mode</span>=<span class="string">"manual"</span><span class="keyword">&gt;</span>
+<span class="property">show-today-button</span>=<span class="string">"false"</span>
+<span class="property">show-clear-button</span>=<span class="string">"false"</span>
+<span class="property">commit-mode</span>=<span class="string">"manual"</span><span class="keyword">&gt;</span>
 <span class="keyword">&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Range mode: hide the days/nights summary block entirely</span>
 <span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">show-summary</span>=<span class="string">"false"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
-  </div>
+<span class="property">selection-mode</span>=<span class="string">"range"</span>
+<span class="property">show-summary</span>=<span class="string">"false"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+</div>
 
-  <!-- 1b. Modal Display Mode -->
-  <div class="card">
-    <h2>AB02 · Modal Presentation (centered overlay)</h2>
-    <p>Set <code>presentation="modal"</code> on a floating picker to render the calendar as a centered overlay with a backdrop scrim instead of anchoring to the input. Helpful on small screens where multi-month layouts horizontally overflow.</p>
+<!-- 1b. Modal Display Mode -->
+<div class="card">
+  <h2>AB02 · Modal Presentation (centered overlay)</h2>
+  <p>Set <code>presentation="modal"</code> on a floating picker to render the calendar as a centered overlay with a backdrop scrim instead of anchoring to the input. Helpful on small screens where multi-month layouts horizontally overflow.</p>
 
-    <div class="grid">
-      <div class="form-group">
-        <label>Single-month modal</label>
-        <small>presentation="modal" — click input or button to open</small>
-        <web-daterangepicker
-          id="modal-single"
-          selection-mode="range"
-          presentation="modal">
-        </web-daterangepicker>
-        <button class="mt-1" onclick="document.querySelector('#modal-single').isOpen = true">Open modal</button>
-      </div>
-
-      <div class="form-group">
-        <label>Multi-month modal (3 columns)</label>
-        <small>visible-month-count="3" — would overflow horizontally on mobile in floating mode; in modal it fits and scrolls vertically</small>
-        <web-daterangepicker
-          id="modal-multi"
-          selection-mode="range"
-          presentation="modal"
-          visible-month-count="3">
-        </web-daterangepicker>
-        <button class="mt-1" onclick="document.querySelector('#modal-multi').isOpen = true">Open modal</button>
-      </div>
-
-      <div class="form-group">
-        <label>Grid modal (2×3)</label>
-        <small>month-layout="grid" grid-rows="2" grid-columns="3" — six months in a centered grid</small>
-        <web-daterangepicker
-          id="modal-grid"
-          selection-mode="range"
-          presentation="modal"
-          visible-month-count="6"
-          month-layout="grid"
-          grid-rows="2"
-          grid-columns="3"
-          enable-unified-navigation="true">
-        </web-daterangepicker>
-        <button class="mt-1" onclick="document.querySelector('#modal-grid').isOpen = true">Open modal</button>
-      </div>
-
-      <div class="form-group">
-        <label>Modal on phones too (responsive rule)</label>
-        <small>responsive=&#39;{"device":{"mobile":{"presentation":"modal"}}}&#39; — the default <code>auto</code> ladder (desktop popover, tablet modal), but a modal instead of the full-screen sheet on phones</small>
-        <web-daterangepicker
-          id="modal-auto"
-          selection-mode="range"
-          responsive='{"device":{"mobile":{"presentation":"modal"}}}'
-          visible-month-count="2">
-        </web-daterangepicker>
-      </div>
+  <div class="grid">
+    <div class="form-group">
+      <label>Single-month modal</label>
+      <small>presentation="modal" — click input or button to open</small>
+      <web-daterangepicker
+        id="modal-single"
+        selection-mode="range"
+        presentation="modal">
+      </web-daterangepicker>
+      <button class="mt-1" onclick="document.querySelector('#modal-single').isOpen = true">Open modal</button>
     </div>
 
-    <div class="code-block"><code><span class="comment">// Centered overlay with backdrop — close via Apply, Escape, or backdrop click</span>
+    <div class="form-group">
+      <label>Multi-month modal (3 columns)</label>
+      <small>visible-month-count="3" — would overflow horizontally on mobile in floating mode; in modal it fits and scrolls vertically</small>
+      <web-daterangepicker
+        id="modal-multi"
+        selection-mode="range"
+        presentation="modal"
+        visible-month-count="3">
+      </web-daterangepicker>
+      <button class="mt-1" onclick="document.querySelector('#modal-multi').isOpen = true">Open modal</button>
+    </div>
+
+    <div class="form-group">
+      <label>Grid modal (2×3)</label>
+      <small>month-layout="grid" grid-rows="2" grid-columns="3" — six months in a centered grid</small>
+      <web-daterangepicker
+        id="modal-grid"
+        selection-mode="range"
+        presentation="modal"
+        visible-month-count="6"
+        month-layout="grid"
+        grid-rows="2"
+        grid-columns="3"
+        enable-unified-navigation="true">
+      </web-daterangepicker>
+      <button class="mt-1" onclick="document.querySelector('#modal-grid').isOpen = true">Open modal</button>
+    </div>
+
+    <div class="form-group">
+      <label>Modal on phones too (responsive rule)</label>
+      <small>responsive=&#39;{"device":{"mobile":{"presentation":"modal"}}}&#39; — the default <code>auto</code> ladder (desktop popover, tablet modal), but a modal instead of the full-screen sheet on phones</small>
+      <web-daterangepicker
+        id="modal-auto"
+        selection-mode="range"
+        responsive='{"device":{"mobile":{"presentation":"modal"}}}'
+        visible-month-count="2">
+      </web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="code-block"><code><span class="comment">// Centered overlay with backdrop — close via Apply, Escape, or backdrop click</span>
 <span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">selection-mode</span>=<span class="string">"range"</span>
-  <span class="property">presentation</span>=<span class="string">"modal"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+<span class="property">selection-mode</span>=<span class="string">"range"</span>
+<span class="property">presentation</span>=<span class="string">"modal"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Open programmatically</span>
 <span class="keyword">document.querySelector</span>(<span class="string">'#picker'</span>).<span class="property">isOpen</span> = <span class="property">true</span>;
@@ -168,191 +157,191 @@
 <span class="property">--drp-modal-gap</span>: <span class="string">16px</span>;                       <span class="comment">/* viewport-edge gap */</span>
 <span class="property">--drp-modal-backdrop-bg</span>: <span class="string">rgba(0, 0, 0, 0.45)</span>;   <span class="comment">/* scrim color */</span>
 <span class="property">--drp-modal-transition</span>: <span class="string">0.15s ease-out</span>;       <span class="comment">/* fade timing */</span></code></div>
-  </div>
+</div>
 
-  <!-- 2. Auto-Close Control -->
-  <div class="card">
-    <h2>AB03 · Commit Mode (when the pick commits &amp; the calendar closes)</h2>
-    <p>The <code>commit-mode</code> attribute governs how a selection is <strong>committed</strong> (written to the input, <code>select</code> / <code>change</code> fired). Closing is a separate axis: <code>close-on-select</code>, <code>close-on-outside-click</code> and <code>close-on-scroll</code>; Escape and <code>close()</code> always close, and closing discards a staged (not yet applied) pick.</p>
+<!-- 2. Auto-Close Control -->
+<div class="card">
+  <h2>AB03 · Commit Mode (when the pick commits &amp; the calendar closes)</h2>
+  <p>The <code>commit-mode</code> attribute governs how a selection is <strong>committed</strong> (written to the input, <code>select</code> / <code>change</code> fired). Closing is a separate axis: <code>close-on-select</code>, <code>close-on-outside-click</code> and <code>close-on-scroll</code>; Escape and <code>close()</code> always close, and closing discards a staged (not yet applied) pick.</p>
 
-    <div class="grid">
-      <div class="form-group">
-        <label>commit-mode="manual" (App-Driven)</label>
-        <small>Picks are only staged — nothing is written until the app calls <code>commit()</code> (here the custom "Done" button). No built-in Apply button; an outside click doesn't close (Escape does, discarding the staged pick)</small>
-        <div class="field-row">
-          <web-daterangepicker
-            class="field-grow"
-            id="commit-manual"
-            selection-mode="range"
-            commit-mode="manual"
-            show-today-button="false"
-            show-clear-button="false">
-          </web-daterangepicker>
-          <button class="clear-btn" onclick="clearPicker('commit-manual')" title="Clear selection">&times;</button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>commit-mode="selection" (Commit &amp; Close on Pick) - DEFAULT</label>
-        <small>Commits and closes when selection completes (click, drag-adjust). No Apply button. Multiple mode can't use this</small>
-        <div class="field-row">
-          <web-daterangepicker
-            class="field-grow"
-            id="commit-selection"
-            selection-mode="range"
-            commit-mode="selection">
-          </web-daterangepicker>
-          <button class="clear-btn" onclick="clearPicker('commit-selection')" title="Clear selection">&times;</button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>commit-mode="selection" close-on-select="false" (booking.com flow)</label>
-        <small>Every completed pick is written immediately (select / change fire), but the calendar stays open so the guest can adjust the dates. Escape / outside click closes, keeping the value.</small>
-        <div class="field-row">
-          <web-daterangepicker
-            class="field-grow"
-            id="commit-booking"
-            selection-mode="range"
-            visible-month-count="2"
-            commit-mode="selection"
-            close-on-select="false">
-          </web-daterangepicker>
-          <button class="clear-btn" onclick="clearPicker('commit-booking')" title="Clear selection">&times;</button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>commit-mode="apply" (Apply Button Commits)</label>
-        <small>Shows an Apply button; the selection is staged until Apply is clicked, which commits and closes</small>
-        <div class="field-row">
-          <web-daterangepicker
-            class="field-grow"
-            id="commit-apply"
-            selection-mode="range"
-            commit-mode="apply">
-          </web-daterangepicker>
-          <button class="clear-btn" onclick="clearPicker('commit-apply')" title="Clear selection">&times;</button>
-        </div>
+  <div class="grid">
+    <div class="form-group">
+      <label>commit-mode="manual" (App-Driven)</label>
+      <small>Picks are only staged — nothing is written until the app calls <code>commit()</code> (here the custom "Done" button). No built-in Apply button; an outside click doesn't close (Escape does, discarding the staged pick)</small>
+      <div class="field-row">
+        <web-daterangepicker
+          class="field-grow"
+          id="commit-manual"
+          selection-mode="range"
+          commit-mode="manual"
+          show-today-button="false"
+          show-clear-button="false">
+        </web-daterangepicker>
+        <button class="clear-btn" onclick="clearPicker('commit-manual')" title="Clear selection">&times;</button>
       </div>
     </div>
 
-    <div class="code-block"><code><span class="comment">// Commit modes: 'selection' (default), 'apply', 'manual'</span>
+    <div class="form-group">
+      <label>commit-mode="selection" (Commit &amp; Close on Pick) - DEFAULT</label>
+      <small>Commits and closes when selection completes (click, drag-adjust). No Apply button. Multiple mode can't use this</small>
+      <div class="field-row">
+        <web-daterangepicker
+          class="field-grow"
+          id="commit-selection"
+          selection-mode="range"
+          commit-mode="selection">
+        </web-daterangepicker>
+        <button class="clear-btn" onclick="clearPicker('commit-selection')" title="Clear selection">&times;</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>commit-mode="selection" close-on-select="false" (booking.com flow)</label>
+      <small>Every completed pick is written immediately (select / change fire), but the calendar stays open so the guest can adjust the dates. Escape / outside click closes, keeping the value.</small>
+      <div class="field-row">
+        <web-daterangepicker
+          class="field-grow"
+          id="commit-booking"
+          selection-mode="range"
+          visible-month-count="2"
+          commit-mode="selection"
+          close-on-select="false">
+        </web-daterangepicker>
+        <button class="clear-btn" onclick="clearPicker('commit-booking')" title="Clear selection">&times;</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>commit-mode="apply" (Apply Button Commits)</label>
+      <small>Shows an Apply button; the selection is staged until Apply is clicked, which commits and closes</small>
+      <div class="field-row">
+        <web-daterangepicker
+          class="field-grow"
+          id="commit-apply"
+          selection-mode="range"
+          commit-mode="apply">
+        </web-daterangepicker>
+        <button class="clear-btn" onclick="clearPicker('commit-apply')" title="Clear selection">&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-block"><code><span class="comment">// Commit modes: 'selection' (default), 'apply', 'manual'</span>
 <span class="keyword">&lt;web-daterangepicker</span> <span class="property">commit-mode</span>=<span class="string">"selection"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 <span class="keyword">&lt;web-daterangepicker</span> <span class="property">commit-mode</span>=<span class="string">"apply"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
 <span class="keyword">&lt;web-daterangepicker</span> <span class="property">commit-mode</span>=<span class="string">"manual"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+</div>
+
+<!-- 3. Custom Preset Buttons -->
+<div class="card">
+  <h2>AB04 · Custom Preset Buttons (JavaScript)</h2>
+  <p>Add custom buttons with preset date ranges using the JavaScript API.</p>
+
+  <div class="form-group">
+    <label>Date Picker with Preset Shortcuts</label>
+    <small>Buttons: Last Week, Next Week, Next Month</small>
+    <web-daterangepicker id="preset-picker" selection-mode="range"></web-daterangepicker>
   </div>
 
-  <!-- 3. Custom Preset Buttons -->
-  <div class="card">
-    <h2>AB04 · Custom Preset Buttons (JavaScript)</h2>
-    <p>Add custom buttons with preset date ranges using the JavaScript API.</p>
-
-    <div class="form-group">
-      <label>Date Picker with Preset Shortcuts</label>
-      <small>Buttons: Last Week, Next Week, Next Month</small>
-      <web-daterangepicker id="preset-picker" selection-mode="range"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#preset-picker'</span>);
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#preset-picker'</span>);
 
 <span class="comment">// Define custom action buttons with preset date ranges</span>
 picker.actionButtons = [
-  {
-    <span class="property">id</span>: <span class="string">'last-week'</span>,
-    <span class="property">text</span>: <span class="string">'Last Week'</span>,
-    <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> end = <span class="keyword">new</span> <span class="function">Date</span>();
-      <span class="keyword">const</span> start = <span class="keyword">new</span> <span class="function">Date</span>();
-      start.<span class="function">setDate</span>(end.<span class="function">getDate</span>() - <span class="property">7</span>);
-      <span class="comment">// element = the &lt;web-daterangepicker&gt; host</span>
-      element.selectedRanges = [{ start: start, end: end }];
-    }
-  },
-  {
-    <span class="property">id</span>: <span class="string">'next-week'</span>,
-    <span class="property">text</span>: <span class="string">'Next Week'</span>,
-    <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> start = <span class="keyword">new</span> <span class="function">Date</span>();
-      <span class="keyword">const</span> end = <span class="keyword">new</span> <span class="function">Date</span>();
-      end.<span class="function">setDate</span>(start.<span class="function">getDate</span>() + <span class="property">7</span>);
-      <span class="comment">// element = the &lt;web-daterangepicker&gt; host</span>
-      element.selectedRanges = [{ start: start, end: end }];
-    }
-  },
-  {
-    <span class="property">id</span>: <span class="string">'next-month'</span>,
-    <span class="property">text</span>: <span class="string">'Next Month'</span>,
-    <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> start = <span class="keyword">new</span> <span class="function">Date</span>();
-      <span class="keyword">const</span> end = <span class="keyword">new</span> <span class="function">Date</span>();
-      end.<span class="function">setMonth</span>(end.<span class="function">getMonth</span>() + <span class="property">1</span>);
-      <span class="comment">// element = the &lt;web-daterangepicker&gt; host</span>
-      element.selectedRanges = [{ start: start, end: end }];
-    }
-  },
-  { <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">text</span>: <span class="string">'Clear'</span> },
-  { <span class="property">action</span>: <span class="string">'apply'</span>, <span class="property">text</span>: <span class="string">'Apply'</span> }
+{
+  <span class="property">id</span>: <span class="string">'last-week'</span>,
+  <span class="property">text</span>: <span class="string">'Last Week'</span>,
+  <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> end = <span class="keyword">new</span> <span class="function">Date</span>();
+    <span class="keyword">const</span> start = <span class="keyword">new</span> <span class="function">Date</span>();
+    start.<span class="function">setDate</span>(end.<span class="function">getDate</span>() - <span class="property">7</span>);
+    <span class="comment">// element = the &lt;web-daterangepicker&gt; host</span>
+    element.selectedRanges = [{ start: start, end: end }];
+  }
+},
+{
+  <span class="property">id</span>: <span class="string">'next-week'</span>,
+  <span class="property">text</span>: <span class="string">'Next Week'</span>,
+  <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> start = <span class="keyword">new</span> <span class="function">Date</span>();
+    <span class="keyword">const</span> end = <span class="keyword">new</span> <span class="function">Date</span>();
+    end.<span class="function">setDate</span>(start.<span class="function">getDate</span>() + <span class="property">7</span>);
+    <span class="comment">// element = the &lt;web-daterangepicker&gt; host</span>
+    element.selectedRanges = [{ start: start, end: end }];
+  }
+},
+{
+  <span class="property">id</span>: <span class="string">'next-month'</span>,
+  <span class="property">text</span>: <span class="string">'Next Month'</span>,
+  <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> start = <span class="keyword">new</span> <span class="function">Date</span>();
+    <span class="keyword">const</span> end = <span class="keyword">new</span> <span class="function">Date</span>();
+    end.<span class="function">setMonth</span>(end.<span class="function">getMonth</span>() + <span class="property">1</span>);
+    <span class="comment">// element = the &lt;web-daterangepicker&gt; host</span>
+    element.selectedRanges = [{ start: start, end: end }];
+  }
+},
+{ <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">text</span>: <span class="string">'Clear'</span> },
+{ <span class="property">action</span>: <span class="string">'apply'</span>, <span class="property">text</span>: <span class="string">'Apply'</span> }
 ];</code></div>
+</div>
+
+<!-- 4. Multiple Selection Mode -->
+<div class="card">
+  <h2>AB05 · Multiple Selection Mode</h2>
+  <p>Allow selecting multiple individual dates or ranges programmatically.</p>
+
+  <div class="form-group">
+    <label>Multiple Date Selection</label>
+    <small>Click dates to toggle selection (selection-mode="multiple")</small>
+    <web-daterangepicker
+      id="multi-picker"
+      selection-mode="multiple"
+      positioning-mode="inline"
+      visible-month-count="2">
+    </web-daterangepicker>
+    <div class="log-panel mt-1" id="multi-output">No selections yet</div>
   </div>
 
-  <!-- 4. Multiple Selection Mode -->
-  <div class="card">
-    <h2>AB05 · Multiple Selection Mode</h2>
-    <p>Allow selecting multiple individual dates or ranges programmatically.</p>
-
-    <div class="form-group">
-      <label>Multiple Date Selection</label>
-      <small>Click dates to toggle selection (selection-mode="multiple")</small>
-      <web-daterangepicker
-        id="multi-picker"
-        selection-mode="multiple"
-        positioning-mode="inline"
-        visible-month-count="2">
-      </web-daterangepicker>
-      <div class="log-panel mt-1" id="multi-output">No selections yet</div>
-    </div>
-
-    <div class="code-block"><code><span class="comment">// Multiple mode: click dates to toggle selection</span>
+  <div class="code-block"><code><span class="comment">// Multiple mode: click dates to toggle selection</span>
 <span class="keyword">&lt;web-daterangepicker</span>
-  <span class="property">selection-mode</span>=<span class="string">"multiple"</span><span class="keyword">&gt;</span>
+<span class="property">selection-mode</span>=<span class="string">"multiple"</span><span class="keyword">&gt;</span>
 <span class="keyword">&lt;/web-daterangepicker&gt;</span>
 
 <span class="comment">// Get selected dates/ranges</span>
 <span class="keyword">const</span> dates = picker.selectedDates;    <span class="comment">// Individual dates</span>
 <span class="keyword">const</span> ranges = picker.selectedRanges;  <span class="comment">// Date ranges</span></code></div>
-  </div>
+</div>
 
-  <!-- 5. External Button Control -->
-  <div class="card">
-    <h2>AB06 · External Button Control (Programmatic API)</h2>
-    <p>Control the picker from external buttons using reactive properties.</p>
+<!-- 5. External Button Control -->
+<div class="card">
+  <h2>AB06 · External Button Control (Programmatic API)</h2>
+  <p>Control the picker from external buttons using reactive properties.</p>
 
-    <div class="form-group">
-      <label>Picker Controlled by External Buttons</label>
-      <small>Use the buttons below to set ranges programmatically</small>
+  <div class="form-group">
+    <label>Picker Controlled by External Buttons</label>
+    <small>Use the buttons below to set ranges programmatically</small>
 
-      <div class="controls">
-        <button onclick="setToday()">Today</button>
-        <button onclick="setYesterday()">Yesterday</button>
-        <button onclick="setLastWeek()">Last 7 Days</button>
-        <button onclick="setThisMonth()">This Month</button>
-        <button onclick="setLastMonth()">Last Month</button>
-        <button onclick="setQuarter()">This Quarter</button>
-        <button class="btn-secondary" onclick="clearExternal()">Clear</button>
-      </div>
-
-      <web-daterangepicker
-        id="external-picker"
-        selection-mode="range"
-        positioning-mode="inline"
-        visible-month-count="2">
-      </web-daterangepicker>
-
-      <div class="log-panel mt-1" id="external-output">No selection</div>
+    <div class="controls">
+      <button onclick="setToday()">Today</button>
+      <button onclick="setYesterday()">Yesterday</button>
+      <button onclick="setLastWeek()">Last 7 Days</button>
+      <button onclick="setThisMonth()">This Month</button>
+      <button onclick="setLastMonth()">Last Month</button>
+      <button onclick="setQuarter()">This Quarter</button>
+      <button class="btn-secondary" onclick="clearExternal()">Clear</button>
     </div>
 
-    <div class="code-block"><code><span class="comment">// Programmatic control via web component properties</span>
+    <web-daterangepicker
+      id="external-picker"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-month-count="2">
+    </web-daterangepicker>
+
+    <div class="log-panel mt-1" id="external-output">No selection</div>
+  </div>
+
+  <div class="code-block"><code><span class="comment">// Programmatic control via web component properties</span>
 <span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#external-picker'</span>);
 
 <span class="comment">// Set a single range programmatically</span>
@@ -362,536 +351,536 @@ picker.selectedRanges = [{ start, end }];
 
 <span class="comment">// Set multiple ranges (for multiple mode)</span>
 picker.selectedRanges = [
-  { start: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-01'</span>), end: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-07'</span>) },
-  { start: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-15'</span>), end: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-21'</span>) }
+{ start: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-01'</span>), end: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-07'</span>) },
+{ start: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-15'</span>), end: <span class="keyword">new</span> <span class="function">Date</span>(<span class="string">'2025-01-21'</span>) }
 ];
 
 <span class="comment">// Control calendar visibility</span>
 picker.isOpen = <span class="property">true</span>;  <span class="comment">// Open the calendar</span>
 picker.isOpen = <span class="property">false</span>; <span class="comment">// Close the calendar</span></code></div>
+</div>
+
+<!-- 6. Conditional Button Visibility -->
+<div class="card">
+  <h2>AB07 · Conditional Button Visibility (JavaScript)</h2>
+  <p>Show/hide buttons based on picker state using the <code>getIsVisibleCallback</code> function.</p>
+
+  <div class="form-group">
+    <label>Context-Aware Buttons</label>
+    <small>Apply button only shows when a range is selected (calendar stays open with commit-mode="apply")</small>
+    <web-daterangepicker
+      id="conditional-picker"
+      selection-mode="range"
+      commit-mode="apply"></web-daterangepicker>
   </div>
 
-  <!-- 6. Conditional Button Visibility -->
-  <div class="card">
-    <h2>AB07 · Conditional Button Visibility (JavaScript)</h2>
-    <p>Show/hide buttons based on picker state using the <code>getIsVisibleCallback</code> function.</p>
-
-    <div class="form-group">
-      <label>Context-Aware Buttons</label>
-      <small>Apply button only shows when a range is selected (calendar stays open with commit-mode="apply")</small>
-      <web-daterangepicker
-        id="conditional-picker"
-        selection-mode="range"
-        commit-mode="apply"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#conditional-picker'</span>);
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#conditional-picker'</span>);
 
 picker.actionButtons = [
-  { <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
-  { <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">text</span>: <span class="string">'Clear'</span> },
-  {
-    <span class="property">action</span>: <span class="string">'apply'</span>,
-    <span class="property">text</span>: <span class="string">'Apply'</span>,
-    <span class="comment">// Only show Apply when both dates are selected</span>
-    <span class="property">getIsVisibleCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> element.selectedStartDate && element.selectedEndDate
-  }
+{ <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
+{ <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">text</span>: <span class="string">'Clear'</span> },
+{
+  <span class="property">action</span>: <span class="string">'apply'</span>,
+  <span class="property">text</span>: <span class="string">'Apply'</span>,
+  <span class="comment">// Only show Apply when both dates are selected</span>
+  <span class="property">getIsVisibleCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> element.selectedStartDate && element.selectedEndDate
+}
 ];</code></div>
+</div>
+
+<!-- 7. Dynamic Disabled State -->
+<div class="card">
+  <h2>AB08 · Dynamic Disabled State (getIsDisabledCallback)</h2>
+  <p>Enable/disable buttons dynamically based on picker state.</p>
+
+  <div class="form-group">
+    <label>State-Aware Button Disabling</label>
+    <small>Apply disabled until both dates selected, Clear disabled when no selection</small>
+    <web-daterangepicker
+      id="disabled-picker"
+      selection-mode="range"
+      commit-mode="manual"></web-daterangepicker>
   </div>
 
-  <!-- 7. Dynamic Disabled State -->
-  <div class="card">
-    <h2>AB08 · Dynamic Disabled State (getIsDisabledCallback)</h2>
-    <p>Enable/disable buttons dynamically based on picker state.</p>
-
-    <div class="form-group">
-      <label>State-Aware Button Disabling</label>
-      <small>Apply disabled until both dates selected, Clear disabled when no selection</small>
-      <web-daterangepicker
-        id="disabled-picker"
-        selection-mode="range"
-        commit-mode="manual"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#disabled-picker'</span>);
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#disabled-picker'</span>);
 
 picker.actionButtons = [
-  { <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
-  {
-    <span class="property">action</span>: <span class="string">'clear'</span>,
-    <span class="property">text</span>: <span class="string">'Clear'</span>,
-    <span class="comment">// Disable Clear when nothing is selected</span>
-    <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> !element.selectedStartDate && !element.selectedEndDate
-  },
-  {
-    <span class="property">action</span>: <span class="string">'apply'</span>,
-    <span class="property">text</span>: <span class="string">'Apply'</span>,
-    <span class="comment">// Disable Apply until both dates are selected</span>
-    <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> !element.selectedStartDate || !element.selectedEndDate
-  }
+{ <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
+{
+  <span class="property">action</span>: <span class="string">'clear'</span>,
+  <span class="property">text</span>: <span class="string">'Clear'</span>,
+  <span class="comment">// Disable Clear when nothing is selected</span>
+  <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> !element.selectedStartDate && !element.selectedEndDate
+},
+{
+  <span class="property">action</span>: <span class="string">'apply'</span>,
+  <span class="property">text</span>: <span class="string">'Apply'</span>,
+  <span class="comment">// Disable Apply until both dates are selected</span>
+  <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> !element.selectedStartDate || !element.selectedEndDate
+}
 ];</code></div>
+</div>
+
+<!-- 8. Dynamic Button Text -->
+<div class="card">
+  <h2>AB09 · Dynamic Button Text (getTextCallback)</h2>
+  <p>Change button text dynamically based on picker state.</p>
+
+  <div class="form-group">
+    <label>Dynamic Text Updates</label>
+    <small>Apply button shows day count, Clear shows what will be cleared</small>
+    <web-daterangepicker
+      id="text-picker"
+      selection-mode="range"
+      commit-mode="manual"></web-daterangepicker>
   </div>
 
-  <!-- 8. Dynamic Button Text -->
-  <div class="card">
-    <h2>AB09 · Dynamic Button Text (getTextCallback)</h2>
-    <p>Change button text dynamically based on picker state.</p>
-
-    <div class="form-group">
-      <label>Dynamic Text Updates</label>
-      <small>Apply button shows day count, Clear shows what will be cleared</small>
-      <web-daterangepicker
-        id="text-picker"
-        selection-mode="range"
-        commit-mode="manual"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#text-picker'</span>);
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#text-picker'</span>);
 
 picker.actionButtons = [
-  { <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
-  {
-    <span class="property">action</span>: <span class="string">'clear'</span>,
-    <span class="property">text</span>: <span class="string">'Clear'</span>,
-    <span class="comment">// Show what will be cleared</span>
-    <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">if</span> (!element.selectedStartDate) <span class="keyword">return</span> <span class="string">'Clear'</span>;
-      <span class="keyword">return</span> <span class="string">'Clear Selection'</span>;
-    }
-  },
-  {
-    <span class="property">action</span>: <span class="string">'apply'</span>,
-    <span class="property">text</span>: <span class="string">'Apply'</span>,
-    <span class="comment">// Show day count when range is selected</span>
-    <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">if</span> (!element.selectedStartDate || !element.selectedEndDate) <span class="keyword">return</span> <span class="string">'Apply'</span>;
-      <span class="keyword">const</span> days = Math.<span class="function">floor</span>((element.selectedEndDate - element.selectedStartDate) / (<span class="property">1000</span>*<span class="property">60</span>*<span class="property">60</span>*<span class="property">24</span>)) + <span class="property">1</span>;
-      <span class="keyword">return</span> `Apply (<span class="keyword">${</span>days<span class="keyword">}</span> day<span class="keyword">${</span>days !== <span class="property">1</span> ? <span class="string">'s'</span> : <span class="string">''</span><span class="keyword">}</span>)`;
-    }
+{ <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
+{
+  <span class="property">action</span>: <span class="string">'clear'</span>,
+  <span class="property">text</span>: <span class="string">'Clear'</span>,
+  <span class="comment">// Show what will be cleared</span>
+  <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">if</span> (!element.selectedStartDate) <span class="keyword">return</span> <span class="string">'Clear'</span>;
+    <span class="keyword">return</span> <span class="string">'Clear Selection'</span>;
   }
+},
+{
+  <span class="property">action</span>: <span class="string">'apply'</span>,
+  <span class="property">text</span>: <span class="string">'Apply'</span>,
+  <span class="comment">// Show day count when range is selected</span>
+  <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">if</span> (!element.selectedStartDate || !element.selectedEndDate) <span class="keyword">return</span> <span class="string">'Apply'</span>;
+    <span class="keyword">const</span> days = Math.<span class="function">floor</span>((element.selectedEndDate - element.selectedStartDate) / (<span class="property">1000</span>*<span class="property">60</span>*<span class="property">60</span>*<span class="property">24</span>)) + <span class="property">1</span>;
+    <span class="keyword">return</span> `Apply (<span class="keyword">${</span>days<span class="keyword">}</span> day<span class="keyword">${</span>days !== <span class="property">1</span> ? <span class="string">'s'</span> : <span class="string">''</span><span class="keyword">}</span>)`;
+  }
+}
 ];</code></div>
+</div>
+
+<!-- 9. Dynamic CSS Classes -->
+<div class="card">
+  <h2>AB10 · Dynamic CSS Classes (getClassCallback)</h2>
+  <p>Apply dynamic CSS classes to buttons based on picker state. Callback can return a single string or array of strings.</p>
+
+  <div class="form-group">
+    <label>Dynamic Styling</label>
+    <small>Apply button changes color based on completion, Clear button becomes red when selection exists</small>
+    <web-daterangepicker
+      id="css-picker"
+      selection-mode="range"
+      commit-mode="apply"></web-daterangepicker>
   </div>
 
-  <!-- 9. Dynamic CSS Classes -->
-  <div class="card">
-    <h2>AB10 · Dynamic CSS Classes (getClassCallback)</h2>
-    <p>Apply dynamic CSS classes to buttons based on picker state. Callback can return a single string or array of strings.</p>
-
-    <div class="form-group">
-      <label>Dynamic Styling</label>
-      <small>Apply button changes color based on completion, Clear button becomes red when selection exists</small>
-      <web-daterangepicker
-        id="css-picker"
-        selection-mode="range"
-        commit-mode="apply"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="comment">// Define action buttons with dynamic classes</span>
+  <div class="code-block"><code><span class="comment">// Define action buttons with dynamic classes</span>
 <span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#css-picker'</span>);
 
 picker.actionButtons = [
-  { <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
-  {
-    <span class="property">action</span>: <span class="string">'clear'</span>,
-    <span class="property">text</span>: <span class="string">'Clear'</span>,
-    <span class="property">cssClass</span>: <span class="string">'clear-button'</span>,
-    <span class="comment">// Return array of classes</span>
-    <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> classes = [<span class="string">'clear-button'</span>];
-      <span class="keyword">if</span> (element.selectedStartDate || element.selectedEndDate) {
-        classes.<span class="function">push</span>(<span class="string">'danger'</span>);
-      }
-      <span class="keyword">return</span> classes;
+{ <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
+{
+  <span class="property">action</span>: <span class="string">'clear'</span>,
+  <span class="property">text</span>: <span class="string">'Clear'</span>,
+  <span class="property">cssClass</span>: <span class="string">'clear-button'</span>,
+  <span class="comment">// Return array of classes</span>
+  <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> classes = [<span class="string">'clear-button'</span>];
+    <span class="keyword">if</span> (element.selectedStartDate || element.selectedEndDate) {
+      classes.<span class="function">push</span>(<span class="string">'danger'</span>);
     }
-  },
-  {
-    <span class="property">action</span>: <span class="string">'apply'</span>,
-    <span class="property">text</span>: <span class="string">'Apply'</span>,
-    <span class="comment">// Return single string based on validation</span>
-    <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> hasComplete = element.selectedStartDate && element.selectedEndDate;
-      <span class="keyword">return</span> hasComplete ? <span class="string">'apply-ready'</span> : <span class="string">'apply-waiting'</span>;
-    }
+    <span class="keyword">return</span> classes;
   }
+},
+{
+  <span class="property">action</span>: <span class="string">'apply'</span>,
+  <span class="property">text</span>: <span class="string">'Apply'</span>,
+  <span class="comment">// Return single string based on validation</span>
+  <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> hasComplete = element.selectedStartDate && element.selectedEndDate;
+    <span class="keyword">return</span> hasComplete ? <span class="string">'apply-ready'</span> : <span class="string">'apply-waiting'</span>;
+  }
+}
 ];
 
 <span class="comment">// Inject custom styles into Shadow DOM</span>
 picker.getCustomStylesCallback = <span class="keyword">()</span> <span class="keyword">=></span> <span class="string">`
-  .apply-ready {
-    background: #10b981 !important;
-    color: white !important;
-    font-weight: 600 !important;
-  }
-  .apply-waiting {
-    background: #d1d5db !important;
-    color: #6b7280 !important;
-  }
-  .danger {
-    background: #ef4444 !important;
-    color: white !important;
-  }
+.apply-ready {
+  background: #10b981 !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+.apply-waiting {
+  background: #d1d5db !important;
+  color: #6b7280 !important;
+}
+.danger {
+  background: #ef4444 !important;
+  color: white !important;
+}
 `</span>;</code></div>
+</div>
+
+<!-- 10. Dynamic Tooltips -->
+<div class="card">
+  <h2>AB11 · Dynamic Tooltips (getTooltipCallback)</h2>
+  <p>Show contextual tooltips that change based on picker state. Hover over buttons to see dynamic tooltips.</p>
+
+  <div class="form-group">
+    <label>Context-Aware Tooltips</label>
+    <small>Tooltips update based on selection state and provide helpful context</small>
+    <web-daterangepicker
+      id="tooltip-picker"
+      selection-mode="range"
+      commit-mode="apply"></web-daterangepicker>
   </div>
 
-  <!-- 10. Dynamic Tooltips -->
-  <div class="card">
-    <h2>AB11 · Dynamic Tooltips (getTooltipCallback)</h2>
-    <p>Show contextual tooltips that change based on picker state. Hover over buttons to see dynamic tooltips.</p>
-
-    <div class="form-group">
-      <label>Context-Aware Tooltips</label>
-      <small>Tooltips update based on selection state and provide helpful context</small>
-      <web-daterangepicker
-        id="tooltip-picker"
-        selection-mode="range"
-        commit-mode="apply"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#tooltip-picker'</span>);
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#tooltip-picker'</span>);
 
 picker.actionButtons = [
-  {
-    <span class="property">action</span>: <span class="string">'today'</span>,
-    <span class="property">text</span>: <span class="string">'Today'</span>,
-    <span class="property">tooltip</span>: <span class="string">'Jump to today'</span>,
-    <span class="comment">// Dynamic tooltip shows actual date</span>
-    <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> today = <span class="keyword">new</span> Date();
-      <span class="keyword">return</span> `Set to <span class="keyword">${</span>today.<span class="function">toLocaleDateString</span>()<span class="keyword">}</span>`;
-    }
-  },
-  {
-    <span class="property">action</span>: <span class="string">'clear'</span>,
-    <span class="property">text</span>: <span class="string">'Clear'</span>,
-    <span class="property">tooltip</span>: <span class="string">'Clear selection'</span>,
-    <span class="comment">// Show different message when nothing to clear</span>
-    <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">if</span> (!element.selectedStartDate && !element.selectedEndDate) {
-        <span class="keyword">return</span> <span class="string">'No selection to clear'</span>;
-      }
-      <span class="keyword">return</span> <span class="string">'Clear the current date range'</span>;
-    }
-  },
-  {
-    <span class="property">action</span>: <span class="string">'apply'</span>,
-    <span class="property">text</span>: <span class="string">'Apply'</span>,
-    <span class="comment">// Show validation help or day count</span>
-    <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">if</span> (!element.selectedStartDate || !element.selectedEndDate) {
-        <span class="keyword">return</span> <span class="string">'Select both start and end dates'</span>;
-      }
-      <span class="keyword">const</span> days = Math.<span class="function">floor</span>((element.selectedEndDate - element.selectedStartDate) / (<span class="property">1000</span>*<span class="property">60</span>*<span class="property">60</span>*<span class="property">24</span>)) + <span class="property">1</span>;
-      <span class="keyword">return</span> `Apply <span class="keyword">${</span>days<span class="keyword">}</span>-day range`;
-    }
+{
+  <span class="property">action</span>: <span class="string">'today'</span>,
+  <span class="property">text</span>: <span class="string">'Today'</span>,
+  <span class="property">tooltip</span>: <span class="string">'Jump to today'</span>,
+  <span class="comment">// Dynamic tooltip shows actual date</span>
+  <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> today = <span class="keyword">new</span> Date();
+    <span class="keyword">return</span> `Set to <span class="keyword">${</span>today.<span class="function">toLocaleDateString</span>()<span class="keyword">}</span>`;
   }
+},
+{
+  <span class="property">action</span>: <span class="string">'clear'</span>,
+  <span class="property">text</span>: <span class="string">'Clear'</span>,
+  <span class="property">tooltip</span>: <span class="string">'Clear selection'</span>,
+  <span class="comment">// Show different message when nothing to clear</span>
+  <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">if</span> (!element.selectedStartDate && !element.selectedEndDate) {
+      <span class="keyword">return</span> <span class="string">'No selection to clear'</span>;
+    }
+    <span class="keyword">return</span> <span class="string">'Clear the current date range'</span>;
+  }
+},
+{
+  <span class="property">action</span>: <span class="string">'apply'</span>,
+  <span class="property">text</span>: <span class="string">'Apply'</span>,
+  <span class="comment">// Show validation help or day count</span>
+  <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">if</span> (!element.selectedStartDate || !element.selectedEndDate) {
+      <span class="keyword">return</span> <span class="string">'Select both start and end dates'</span>;
+    }
+    <span class="keyword">const</span> days = Math.<span class="function">floor</span>((element.selectedEndDate - element.selectedStartDate) / (<span class="property">1000</span>*<span class="property">60</span>*<span class="property">60</span>*<span class="property">24</span>)) + <span class="property">1</span>;
+    <span class="keyword">return</span> `Apply <span class="keyword">${</span>days<span class="keyword">}</span>-day range`;
+  }
+}
 ];</code></div>
+</div>
+
+<!-- 11. Combined Features & Priority -->
+<div class="card">
+  <h2>AB12 · Combined Features & Priority System</h2>
+  <p>Demonstrates callback priority: <code>*Callback</code> functions override static properties when both are present.</p>
+
+  <div class="note info">
+    <strong>Priority Chain:</strong><br>
+    • Visibility: <code>getIsVisibleCallback → isVisible → true</code><br>
+    • Disabled: <code>getIsDisabledCallback → isDisabled → false</code><br>
+    • Text: <code>getTextCallback → text → action</code><br>
+    • Class: <code>getClassCallback → cssClass → ''</code><br>
+    • Tooltip: <code>getTooltipCallback → tooltip → ''</code>
   </div>
 
-  <!-- 11. Combined Features & Priority -->
-  <div class="card">
-    <h2>AB12 · Combined Features & Priority System</h2>
-    <p>Demonstrates callback priority: <code>*Callback</code> functions override static properties when both are present.</p>
+  <div class="form-group">
+    <label>All Features Combined</label>
+    <small>Clear button uses all callbacks simultaneously, demonstrating callback priority</small>
+    <web-daterangepicker
+      id="priority-picker"
+      selection-mode="range"
+      commit-mode="apply"></web-daterangepicker>
+  </div>
 
-    <div class="note info">
-      <strong>Priority Chain:</strong><br>
-      • Visibility: <code>getIsVisibleCallback → isVisible → true</code><br>
-      • Disabled: <code>getIsDisabledCallback → isDisabled → false</code><br>
-      • Text: <code>getTextCallback → text → action</code><br>
-      • Class: <code>getClassCallback → cssClass → ''</code><br>
-      • Tooltip: <code>getTooltipCallback → tooltip → ''</code>
-    </div>
-
-    <div class="form-group">
-      <label>All Features Combined</label>
-      <small>Clear button uses all callbacks simultaneously, demonstrating callback priority</small>
-      <web-daterangepicker
-        id="priority-picker"
-        selection-mode="range"
-        commit-mode="apply"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#priority-picker'</span>);
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#priority-picker'</span>);
 
 picker.actionButtons = [
-  { <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
-  {
-    <span class="property">action</span>: <span class="string">'clear'</span>,
-    <span class="property">text</span>: <span class="string">'Clear All'</span>,           <span class="comment">// Overridden by getTextCallback</span>
-    <span class="property">cssClass</span>: <span class="string">'base-clear'</span>,      <span class="comment">// Overridden by getClassCallback</span>
-    <span class="property">tooltip</span>: <span class="string">'Static tooltip'</span>,  <span class="comment">// Overridden by getTooltipCallback</span>
-    <span class="property">isVisible</span>: <span class="keyword">true</span>,            <span class="comment">// Overridden by getIsVisibleCallback</span>
-    <span class="property">isDisabled</span>: <span class="keyword">false</span>,          <span class="comment">// Overridden by getIsDisabledCallback</span>
+{ <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span> },
+{
+  <span class="property">action</span>: <span class="string">'clear'</span>,
+  <span class="property">text</span>: <span class="string">'Clear All'</span>,           <span class="comment">// Overridden by getTextCallback</span>
+  <span class="property">cssClass</span>: <span class="string">'base-clear'</span>,      <span class="comment">// Overridden by getClassCallback</span>
+  <span class="property">tooltip</span>: <span class="string">'Static tooltip'</span>,  <span class="comment">// Overridden by getTooltipCallback</span>
+  <span class="property">isVisible</span>: <span class="keyword">true</span>,            <span class="comment">// Overridden by getIsVisibleCallback</span>
+  <span class="property">isDisabled</span>: <span class="keyword">false</span>,          <span class="comment">// Overridden by getIsDisabledCallback</span>
 
-    <span class="comment">// Callbacks take priority over static properties</span>
-    <span class="property">getIsVisibleCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span>
-      element.selectedStartDate || element.selectedEndDate,
-    <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span>
-      !element.selectedStartDate && !element.selectedEndDate,
-    <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> hasSelection = element.selectedStartDate || element.selectedEndDate;
-      <span class="keyword">return</span> hasSelection ? <span class="string">'Clear Selection'</span> : <span class="string">'Clear All'</span>;
-    },
-    <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span>
-      (element.selectedStartDate || element.selectedEndDate) ? <span class="string">'danger'</span> : <span class="string">'base-clear'</span>,
-    <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">if</span> (!element.selectedStartDate && !element.selectedEndDate) {
-        <span class="keyword">return</span> <span class="string">'Nothing to clear'</span>;
-      }
-      <span class="keyword">return</span> <span class="string">'Remove current selection'</span>;
+  <span class="comment">// Callbacks take priority over static properties</span>
+  <span class="property">getIsVisibleCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span>
+    element.selectedStartDate || element.selectedEndDate,
+  <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span>
+    !element.selectedStartDate && !element.selectedEndDate,
+  <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> hasSelection = element.selectedStartDate || element.selectedEndDate;
+    <span class="keyword">return</span> hasSelection ? <span class="string">'Clear Selection'</span> : <span class="string">'Clear All'</span>;
+  },
+  <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span>
+    (element.selectedStartDate || element.selectedEndDate) ? <span class="string">'danger'</span> : <span class="string">'base-clear'</span>,
+  <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">if</span> (!element.selectedStartDate && !element.selectedEndDate) {
+      <span class="keyword">return</span> <span class="string">'Nothing to clear'</span>;
     }
+    <span class="keyword">return</span> <span class="string">'Remove current selection'</span>;
   }
+}
 ];</code></div>
+</div>
+
+<!-- 12. Advanced Custom Actions -->
+<div class="card">
+  <h2>AB13 · Advanced Custom Actions (Business Use Cases)</h2>
+  <p>Real-world examples of custom buttons for common business scenarios.</p>
+
+  <div class="form-group">
+    <label>Business Period Presets</label>
+    <small>Quick access to fiscal quarters, business weeks, and rolling periods</small>
+    <web-daterangepicker
+      id="advanced-picker"
+      selection-mode="range"
+      commit-mode="manual"></web-daterangepicker>
   </div>
 
-  <!-- 12. Advanced Custom Actions -->
-  <div class="card">
-    <h2>AB13 · Advanced Custom Actions (Business Use Cases)</h2>
-    <p>Real-world examples of custom buttons for common business scenarios.</p>
-
-    <div class="form-group">
-      <label>Business Period Presets</label>
-      <small>Quick access to fiscal quarters, business weeks, and rolling periods</small>
-      <web-daterangepicker
-        id="advanced-picker"
-        selection-mode="range"
-        commit-mode="manual"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#advanced-picker'</span>);
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#advanced-picker'</span>);
 
 picker.actionButtons = [
-  {
-    <span class="property">id</span>: <span class="string">'last-business-week'</span>,
-    <span class="property">text</span>: <span class="string">'Last Business Week'</span>,
-    <span class="property">tooltip</span>: <span class="string">'Select Monday-Friday of last week'</span>,
-    <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> today = <span class="keyword">new</span> Date();
-      <span class="keyword">const</span> dayOfWeek = today.<span class="function">getDay</span>();
-      <span class="keyword">const</span> daysToLastMonday = dayOfWeek === <span class="property">0</span> ? <span class="property">6</span> : dayOfWeek + <span class="property">6</span>;
-      <span class="keyword">const</span> lastMonday = <span class="keyword">new</span> Date(today);
-      lastMonday.<span class="function">setDate</span>(today.<span class="function">getDate</span>() - daysToLastMonday);
-      <span class="keyword">const</span> lastFriday = <span class="keyword">new</span> Date(lastMonday);
-      lastFriday.<span class="function">setDate</span>(lastMonday.<span class="function">getDate</span>() + <span class="property">4</span>);
+{
+  <span class="property">id</span>: <span class="string">'last-business-week'</span>,
+  <span class="property">text</span>: <span class="string">'Last Business Week'</span>,
+  <span class="property">tooltip</span>: <span class="string">'Select Monday-Friday of last week'</span>,
+  <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> today = <span class="keyword">new</span> Date();
+    <span class="keyword">const</span> dayOfWeek = today.<span class="function">getDay</span>();
+    <span class="keyword">const</span> daysToLastMonday = dayOfWeek === <span class="property">0</span> ? <span class="property">6</span> : dayOfWeek + <span class="property">6</span>;
+    <span class="keyword">const</span> lastMonday = <span class="keyword">new</span> Date(today);
+    lastMonday.<span class="function">setDate</span>(today.<span class="function">getDate</span>() - daysToLastMonday);
+    <span class="keyword">const</span> lastFriday = <span class="keyword">new</span> Date(lastMonday);
+    lastFriday.<span class="function">setDate</span>(lastMonday.<span class="function">getDate</span>() + <span class="property">4</span>);
 
-      element.selectedRanges = [{ start: lastMonday, end: lastFriday }];
-    }
-  },
-  {
-    <span class="property">id</span>: <span class="string">'this-quarter'</span>,
-    <span class="property">text</span>: <span class="string">'This Quarter'</span>,
-    <span class="property">tooltip</span>: <span class="string">'Select current fiscal quarter'</span>,
-    <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> now = <span class="keyword">new</span> Date();
-      <span class="keyword">const</span> quarter = Math.<span class="function">floor</span>(now.<span class="function">getMonth</span>() / <span class="property">3</span>);
-      <span class="keyword">const</span> start = <span class="keyword">new</span> Date(now.<span class="function">getFullYear</span>(), quarter * <span class="property">3</span>, <span class="property">1</span>);
-      <span class="keyword">const</span> end = <span class="keyword">new</span> Date(now.<span class="function">getFullYear</span>(), quarter * <span class="property">3</span> + <span class="property">3</span>, <span class="property">0</span>);
-
-      element.selectedRanges = [{ start: start, end: end }];
-    }
-  },
-  {
-    <span class="property">id</span>: <span class="string">'year-to-date'</span>,
-    <span class="property">text</span>: <span class="string">'Year to Date'</span>,
-    <span class="property">tooltip</span>: <span class="string">'From Jan 1 to today'</span>,
-    <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> today = <span class="keyword">new</span> Date();
-      <span class="keyword">const</span> start = <span class="keyword">new</span> Date(today.<span class="function">getFullYear</span>(), <span class="property">0</span>, <span class="property">1</span>);
-
-      element.selectedRanges = [{ start: start, end: today }];
-    }
-  },
-  {
-    <span class="property">id</span>: <span class="string">'rolling-90-days'</span>,
-    <span class="property">text</span>: <span class="string">'Rolling 90 Days'</span>,
-    <span class="property">cssClass</span>: <span class="string">'rolling-period'</span>,
-    <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
-      <span class="keyword">const</span> end = <span class="keyword">new</span> Date();
-      <span class="keyword">const</span> start = <span class="keyword">new</span> Date();
-      start.<span class="function">setDate</span>(end.<span class="function">getDate</span>() - <span class="property">89</span>);
-
-      element.selectedRanges = [{ start: start, end: end }];
-    }
+    element.selectedRanges = [{ start: lastMonday, end: lastFriday }];
   }
+},
+{
+  <span class="property">id</span>: <span class="string">'this-quarter'</span>,
+  <span class="property">text</span>: <span class="string">'This Quarter'</span>,
+  <span class="property">tooltip</span>: <span class="string">'Select current fiscal quarter'</span>,
+  <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> now = <span class="keyword">new</span> Date();
+    <span class="keyword">const</span> quarter = Math.<span class="function">floor</span>(now.<span class="function">getMonth</span>() / <span class="property">3</span>);
+    <span class="keyword">const</span> start = <span class="keyword">new</span> Date(now.<span class="function">getFullYear</span>(), quarter * <span class="property">3</span>, <span class="property">1</span>);
+    <span class="keyword">const</span> end = <span class="keyword">new</span> Date(now.<span class="function">getFullYear</span>(), quarter * <span class="property">3</span> + <span class="property">3</span>, <span class="property">0</span>);
+
+    element.selectedRanges = [{ start: start, end: end }];
+  }
+},
+{
+  <span class="property">id</span>: <span class="string">'year-to-date'</span>,
+  <span class="property">text</span>: <span class="string">'Year to Date'</span>,
+  <span class="property">tooltip</span>: <span class="string">'From Jan 1 to today'</span>,
+  <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> today = <span class="keyword">new</span> Date();
+    <span class="keyword">const</span> start = <span class="keyword">new</span> Date(today.<span class="function">getFullYear</span>(), <span class="property">0</span>, <span class="property">1</span>);
+
+    element.selectedRanges = [{ start: start, end: today }];
+  }
+},
+{
+  <span class="property">id</span>: <span class="string">'rolling-90-days'</span>,
+  <span class="property">text</span>: <span class="string">'Rolling 90 Days'</span>,
+  <span class="property">cssClass</span>: <span class="string">'rolling-period'</span>,
+  <span class="property">onClick</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> {
+    <span class="keyword">const</span> end = <span class="keyword">new</span> Date();
+    <span class="keyword">const</span> start = <span class="keyword">new</span> Date();
+    start.<span class="function">setDate</span>(end.<span class="function">getDate</span>() - <span class="property">89</span>);
+
+    element.selectedRanges = [{ start: start, end: end }];
+  }
+}
 ];</code></div>
+</div>
+
+<!-- 13. Icons in Buttons -->
+<div class="card">
+  <h2>AB14 · Icons in Buttons (Font Awesome)</h2>
+  <p>Button <code>text</code> is plain text (it is never parsed as HTML), so icon-font icons come from CSS: give the button a class with <code>cssClass</code> and draw the glyph in a <code>::before</code> pseudo-element. Works with Font Awesome or any icon font. For a plain glyph or emoji, set <code>icon: '★'</code> instead — it renders as <code>.drp__button-icon</code> before the label.</p>
+
+  <div class="note info">
+    <strong>Note:</strong> The calendar lives in Shadow DOM, so the icon rules go in through <code>getCustomStylesCallback</code> (or the <code>custom-styles</code> attribute). Load the icon font's stylesheet in the page <code>&lt;head&gt;</code> too: <code>@font-face</code> rules only take effect at document level.
   </div>
 
-  <!-- 13. Icons in Buttons -->
-  <div class="card">
-    <h2>AB14 · Icons in Buttons (Font Awesome)</h2>
-    <p>Button <code>text</code> is plain text (it is never parsed as HTML), so icon-font icons come from CSS: give the button a class with <code>cssClass</code> and draw the glyph in a <code>::before</code> pseudo-element. Works with Font Awesome or any icon font. For a plain glyph or emoji, set <code>icon: '★'</code> instead — it renders as <code>.drp__button-icon</code> before the label.</p>
+  <div class="form-group">
+    <label>Buttons with Icons</label>
+    <small>Visual enhancement using Font Awesome icons</small>
+    <web-daterangepicker
+      id="icon-picker"
+      selection-mode="range"
+      commit-mode="manual"></web-daterangepicker>
+  </div>
 
-    <div class="note info">
-      <strong>Note:</strong> The calendar lives in Shadow DOM, so the icon rules go in through <code>getCustomStylesCallback</code> (or the <code>custom-styles</code> attribute). Load the icon font's stylesheet in the page <code>&lt;head&gt;</code> too: <code>@font-face</code> rules only take effect at document level.
-    </div>
-
-    <div class="form-group">
-      <label>Buttons with Icons</label>
-      <small>Visual enhancement using Font Awesome icons</small>
-      <web-daterangepicker
-        id="icon-picker"
-        selection-mode="range"
-        commit-mode="manual"></web-daterangepicker>
-    </div>
-
-    <div class="code-block"><code><span class="comment">// Font Awesome is loaded in the page &lt;head&gt; (the @font-face must be document-level)</span>
+  <div class="code-block"><code><span class="comment">// Font Awesome is loaded in the page &lt;head&gt; (the @font-face must be document-level)</span>
 
 <span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'#icon-picker'</span>);
 
 picker.actionButtons = [
-  { <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span>, <span class="property">cssClass</span>: <span class="string">'icon-today'</span>, <span class="property">tooltip</span>: <span class="string">'Jump to today'</span> },
-  { <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">text</span>: <span class="string">'Clear'</span>, <span class="property">cssClass</span>: <span class="string">'icon-clear danger-icon'</span> },
-  { <span class="property">action</span>: <span class="string">'apply'</span>, <span class="property">text</span>: <span class="string">'Apply'</span>, <span class="property">cssClass</span>: <span class="string">'icon-apply success-icon'</span> }
+{ <span class="property">action</span>: <span class="string">'today'</span>, <span class="property">text</span>: <span class="string">'Today'</span>, <span class="property">cssClass</span>: <span class="string">'icon-today'</span>, <span class="property">tooltip</span>: <span class="string">'Jump to today'</span> },
+{ <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">text</span>: <span class="string">'Clear'</span>, <span class="property">cssClass</span>: <span class="string">'icon-clear danger-icon'</span> },
+{ <span class="property">action</span>: <span class="string">'apply'</span>, <span class="property">text</span>: <span class="string">'Apply'</span>, <span class="property">cssClass</span>: <span class="string">'icon-apply success-icon'</span> }
 ];
 
 <span class="comment">// Draw the glyphs inside the Shadow DOM</span>
 picker.getCustomStylesCallback = <span class="keyword">()</span> <span class="keyword">=></span> <span class="string">`
-  .drp__button { display: inline-flex; align-items: center; gap: 0.375rem; }
-  .icon-today::before, .icon-clear::before, .icon-apply::before {
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
-  }
-  .icon-today::before { content: '\\f783'; } /* calendar-day */
-  .icon-clear::before { content: '\\f057'; } /* circle-xmark */
-  .icon-apply::before { content: '\\f058'; } /* circle-check */
-  .success-icon { background: #10b981 !important; color: white !important; }
-  .danger-icon { background: #ef4444 !important; color: white !important; }
+.drp__button { display: inline-flex; align-items: center; gap: 0.375rem; }
+.icon-today::before, .icon-clear::before, .icon-apply::before {
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+}
+.icon-today::before { content: '\\f783'; } /* calendar-day */
+.icon-clear::before { content: '\\f057'; } /* circle-xmark */
+.icon-apply::before { content: '\\f058'; } /* circle-check */
+.success-icon { background: #10b981 !important; color: white !important; }
+.danger-icon { background: #ef4444 !important; color: white !important; }
 `</span>;</code></div>
-  </div>
+</div>
 
-  <!-- 14. API Summary & Reference -->
-  <div class="card">
-    <h2>AB15 · Action Item API Reference</h2>
-    <p><code>actionButtons</code> takes an array of action items (<code>DateRangePickerActionItem</code>, the shared KeenMate <code>ActionItem</code>) or built-in name strings (<code>['today', 'clear']</code>). The render-time <code>get*Callback</code>s receive the picker context <code>ctx</code>: <code>controller</code> (the picker facade, also <code>el.controller</code>), <code>element</code> (the <code>&lt;web-daterangepicker&gt;</code> host) and the presentation flags. <code>onClick</code> receives the action detail: the same context plus <code>action</code>, <code>id</code>, <code>item</code>, <code>source</code>, <code>sourceEvent</code>, <code>triggerElement</code> and <code>dataset</code>.</p>
+<!-- 14. API Summary & Reference -->
+<div class="card">
+  <h2>AB15 · Action Item API Reference</h2>
+  <p><code>actionButtons</code> takes an array of action items (<code>DateRangePickerActionItem</code>, the shared KeenMate <code>ActionItem</code>) or built-in name strings (<code>['today', 'clear']</code>). The render-time <code>get*Callback</code>s receive the picker context <code>ctx</code>: <code>controller</code> (the picker facade, also <code>el.controller</code>), <code>element</code> (the <code>&lt;web-daterangepicker&gt;</code> host) and the presentation flags. <code>onClick</code> receives the action detail: the same context plus <code>action</code>, <code>id</code>, <code>item</code>, <code>source</code>, <code>sourceEvent</code>, <code>triggerElement</code> and <code>dataset</code>.</p>
 
-    <h3>Core Properties</h3>
-    <table class="reference-table">
-      <thead>
-        <tr>
-          <th>Property</th>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>action</code></td>
-          <td><code>'today' | 'now' | 'clear' | 'apply'</code></td>
-          <td>A built-in button. Omit it for a custom button.</td>
-        </tr>
-        <tr>
-          <td><code>id</code></td>
-          <td><code>string</code></td>
-          <td>Identifies a custom button; reported as <code>detail.id</code> in the <code>action</code> event.</td>
-        </tr>
-        <tr>
-          <td><code>text</code></td>
-          <td><code>string</code></td>
-          <td>Button label, plain text. Built-ins default to the localized label.</td>
-        </tr>
-        <tr>
-          <td><code>onClick</code></td>
-          <td><code>(detail) =&gt; void | Promise&lt;void&gt;</code></td>
-          <td>Click handler, for custom and built-in buttons. Runs before the <code>action</code> event and the built-in behaviour; awaited.</td>
-        </tr>
-      </tbody>
-    </table>
+  <h3>Core Properties</h3>
+  <table class="reference-table">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>action</code></td>
+        <td><code>'today' | 'now' | 'clear' | 'apply'</code></td>
+        <td>A built-in button. Omit it for a custom button.</td>
+      </tr>
+      <tr>
+        <td><code>id</code></td>
+        <td><code>string</code></td>
+        <td>Identifies a custom button; reported as <code>detail.id</code> in the <code>action</code> event.</td>
+      </tr>
+      <tr>
+        <td><code>text</code></td>
+        <td><code>string</code></td>
+        <td>Button label, plain text. Built-ins default to the localized label.</td>
+      </tr>
+      <tr>
+        <td><code>onClick</code></td>
+        <td><code>(detail) =&gt; void | Promise&lt;void&gt;</code></td>
+        <td>Click handler, for custom and built-in buttons. Runs before the <code>action</code> event and the built-in behaviour; awaited.</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <h3>Static Properties</h3>
-    <table class="reference-table">
-      <thead>
-        <tr>
-          <th>Property</th>
-          <th>Type</th>
-          <th>Default</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>cssClass</code></td>
-          <td><code>string</code></td>
-          <td><code>''</code></td>
-          <td>CSS class name(s) to apply to button.</td>
-        </tr>
-        <tr>
-          <td><code>tooltip</code></td>
-          <td><code>string</code></td>
-          <td><code>''</code></td>
-          <td>Tooltip text shown on hover.</td>
-        </tr>
-        <tr>
-          <td><code>isVisible</code></td>
-          <td><code>boolean</code></td>
-          <td><code>true</code></td>
-          <td>Whether button is visible.</td>
-        </tr>
-        <tr>
-          <td><code>isDisabled</code></td>
-          <td><code>boolean</code></td>
-          <td><code>false</code></td>
-          <td>Whether button is disabled.</td>
-        </tr>
-        <tr>
-          <td><code>isDanger</code></td>
-          <td><code>boolean</code></td>
-          <td><code>false</code></td>
-          <td>Destructive action; adds the <code>drp__button--danger</code> class.</td>
-        </tr>
-        <tr>
-          <td><code>isToggled</code></td>
-          <td><code>boolean</code></td>
-          <td><code>false</code></td>
-          <td>Toggle state is on; adds <code>drp__button--toggled</code> and <code>aria-pressed="true"</code>. Still clickable.</td>
-        </tr>
-      </tbody>
-    </table>
+  <h3>Static Properties</h3>
+  <table class="reference-table">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>cssClass</code></td>
+        <td><code>string</code></td>
+        <td><code>''</code></td>
+        <td>CSS class name(s) to apply to button.</td>
+      </tr>
+      <tr>
+        <td><code>tooltip</code></td>
+        <td><code>string</code></td>
+        <td><code>''</code></td>
+        <td>Tooltip text shown on hover.</td>
+      </tr>
+      <tr>
+        <td><code>isVisible</code></td>
+        <td><code>boolean</code></td>
+        <td><code>true</code></td>
+        <td>Whether button is visible.</td>
+      </tr>
+      <tr>
+        <td><code>isDisabled</code></td>
+        <td><code>boolean</code></td>
+        <td><code>false</code></td>
+        <td>Whether button is disabled.</td>
+      </tr>
+      <tr>
+        <td><code>isDanger</code></td>
+        <td><code>boolean</code></td>
+        <td><code>false</code></td>
+        <td>Destructive action; adds the <code>drp__button--danger</code> class.</td>
+      </tr>
+      <tr>
+        <td><code>isToggled</code></td>
+        <td><code>boolean</code></td>
+        <td><code>false</code></td>
+        <td>Toggle state is on; adds <code>drp__button--toggled</code> and <code>aria-pressed="true"</code>. Still clickable.</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <h3>Dynamic Callbacks (Override Static Properties)</h3>
-    <table class="reference-table">
-      <thead>
-        <tr>
-          <th>Property</th>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>getIsVisibleCallback</code></td>
-          <td><code>(ctx) =&gt; boolean</code></td>
-          <td>Dynamic visibility control based on picker state.</td>
-        </tr>
-        <tr>
-          <td><code>getIsDisabledCallback</code></td>
-          <td><code>(ctx) =&gt; boolean</code></td>
-          <td>Dynamic disabled state based on picker state.</td>
-        </tr>
-        <tr>
-          <td><code>getIsToggledCallback</code></td>
-          <td><code>(ctx) =&gt; boolean</code></td>
-          <td>Dynamic toggle state.</td>
-        </tr>
-        <tr>
-          <td><code>getTextCallback</code></td>
-          <td><code>(ctx) =&gt; string</code></td>
-          <td>Dynamic button text based on picker state.</td>
-        </tr>
-        <tr>
-          <td><code>getClassCallback</code></td>
-          <td><code>(ctx) =&gt; string | string[]</code></td>
-          <td>Dynamic CSS classes (single string or array).</td>
-        </tr>
-        <tr>
-          <td><code>getTooltipCallback</code></td>
-          <td><code>(ctx) =&gt; string</code></td>
-          <td>Dynamic tooltip text based on picker state.</td>
-        </tr>
-      </tbody>
-    </table>
+  <h3>Dynamic Callbacks (Override Static Properties)</h3>
+  <table class="reference-table">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>getIsVisibleCallback</code></td>
+        <td><code>(ctx) =&gt; boolean</code></td>
+        <td>Dynamic visibility control based on picker state.</td>
+      </tr>
+      <tr>
+        <td><code>getIsDisabledCallback</code></td>
+        <td><code>(ctx) =&gt; boolean</code></td>
+        <td>Dynamic disabled state based on picker state.</td>
+      </tr>
+      <tr>
+        <td><code>getIsToggledCallback</code></td>
+        <td><code>(ctx) =&gt; boolean</code></td>
+        <td>Dynamic toggle state.</td>
+      </tr>
+      <tr>
+        <td><code>getTextCallback</code></td>
+        <td><code>(ctx) =&gt; string</code></td>
+        <td>Dynamic button text based on picker state.</td>
+      </tr>
+      <tr>
+        <td><code>getClassCallback</code></td>
+        <td><code>(ctx) =&gt; string | string[]</code></td>
+        <td>Dynamic CSS classes (single string or array).</td>
+      </tr>
+      <tr>
+        <td><code>getTooltipCallback</code></td>
+        <td><code>(ctx) =&gt; string</code></td>
+        <td>Dynamic tooltip text based on picker state.</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <h3>Priority System</h3>
-    <p>When both static properties and callbacks are defined, callbacks take priority:</p>
-    <div class="code-block"><code><span class="comment">// Callback priority chain:</span>
+  <h3>Priority System</h3>
+  <p>When both static properties and callbacks are defined, callbacks take priority:</p>
+  <div class="code-block"><code><span class="comment">// Callback priority chain:</span>
 getIsVisibleCallback → isVisible → <span class="keyword">true</span>
 getIsDisabledCallback → isDisabled → <span class="keyword">false</span>
 getIsToggledCallback → isToggled → <span class="keyword">false</span>
@@ -899,83 +888,83 @@ getTextCallback → text → localized built-in label
 getClassCallback → cssClass → <span class="string">''</span>
 getTooltipCallback → tooltip → <span class="string">''</span></code></div>
 
-    <h3>Click Order</h3>
-    <div class="code-block"><code>el.beforeActionCallback(detail)  <span class="comment">// return false to cancel everything below</span>
-  → item.onClick(detail)
-  → 'action' event / el.onAction(detail)
-  → built-in behaviour (today / now / clear / apply)</code></div>
+  <h3>Click Order</h3>
+  <div class="code-block"><code>el.beforeActionCallback(detail)  <span class="comment">// return false to cancel everything below</span>
+→ item.onClick(detail)
+→ 'action' event / el.onAction(detail)
+→ built-in behaviour (today / now / clear / apply)</code></div>
 
-    <h3>What callbacks can use</h3>
-    <table class="reference-table">
-      <thead>
-        <tr>
-          <th>Method/Property</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>ctx.controller.selectedDate</code> / <code>selectedRanges</code> / <code>selectedDates</code> / <code>selectedStartDate</code> / <code>selectedEndDate</code></td>
-          <td>Read the current selection (<code>selectedRanges</code> is empty until both ends are picked; read-only properties).</td>
-        </tr>
-        <tr>
-          <td><code>ctx.controller.selectToday()</code> / <code>clearSelection()</code> / <code>commit()</code> / <code>close()</code></td>
-          <td>Drive the picker.</td>
-        </tr>
-        <tr>
-          <td><code>ctx.controller.showMessage(text, { type, autoHideMs })</code></td>
-          <td>Show feedback in the calendar.</td>
-        </tr>
-        <tr>
-          <td><code>ctx.element.selectedRanges = [{ start, end }]</code></td>
-          <td>Set the selection (also <code>selectedDate</code>, <code>selectedDates</code>, <code>selectedDatetime</code>).</td>
-        </tr>
-        <tr>
-          <td><code>ctx.element.selectedStartDate</code> / <code>selectedEndDate</code></td>
-          <td>Read the range endpoints, including a half-picked range.</td>
-        </tr>
-      </tbody>
-    </table>
+  <h3>What callbacks can use</h3>
+  <table class="reference-table">
+    <thead>
+      <tr>
+        <th>Method/Property</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>ctx.controller.selectedDate</code> / <code>selectedRanges</code> / <code>selectedDates</code> / <code>selectedStartDate</code> / <code>selectedEndDate</code></td>
+        <td>Read the current selection (<code>selectedRanges</code> is empty until both ends are picked; read-only properties).</td>
+      </tr>
+      <tr>
+        <td><code>ctx.controller.selectToday()</code> / <code>clearSelection()</code> / <code>commit()</code> / <code>close()</code></td>
+        <td>Drive the picker.</td>
+      </tr>
+      <tr>
+        <td><code>ctx.controller.showMessage(text, { type, autoHideMs })</code></td>
+        <td>Show feedback in the calendar.</td>
+      </tr>
+      <tr>
+        <td><code>ctx.element.selectedRanges = [{ start, end }]</code></td>
+        <td>Set the selection (also <code>selectedDate</code>, <code>selectedDates</code>, <code>selectedDatetime</code>).</td>
+      </tr>
+      <tr>
+        <td><code>ctx.element.selectedStartDate</code> / <code>selectedEndDate</code></td>
+        <td>Read the range endpoints, including a half-picked range.</td>
+      </tr>
+    </tbody>
+  </table>
 
-    <h3>Usage Example - All Features</h3>
-    <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'web-daterangepicker'</span>);
+  <h3>Usage Example - All Features</h3>
+  <div class="code-block"><code><span class="keyword">const</span> picker = <span class="function">document.querySelector</span>(<span class="string">'web-daterangepicker'</span>);
 
 picker.actionButtons = [{
-  <span class="property">id</span>: <span class="string">'confirm'</span>,
-  <span class="property">text</span>: <span class="string">'Confirm'</span>,
-  <span class="property">cssClass</span>: <span class="string">'base-apply'</span>,
-  <span class="property">tooltip</span>: <span class="string">'Static tooltip'</span>,
-  <span class="property">isVisible</span>: <span class="keyword">true</span>,
-  <span class="property">isDisabled</span>: <span class="keyword">false</span>,
+<span class="property">id</span>: <span class="string">'confirm'</span>,
+<span class="property">text</span>: <span class="string">'Confirm'</span>,
+<span class="property">cssClass</span>: <span class="string">'base-apply'</span>,
+<span class="property">tooltip</span>: <span class="string">'Static tooltip'</span>,
+<span class="property">isVisible</span>: <span class="keyword">true</span>,
+<span class="property">isDisabled</span>: <span class="keyword">false</span>,
 
-  <span class="comment">// Callbacks override static properties</span>
-  <span class="property">getIsVisibleCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> !!element.selectedStartDate,
-  <span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> !controller.selectedRanges[0],
-  <span class="property">getTextCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> {
-    <span class="keyword">const</span> range = controller.selectedRanges[0];
-    <span class="keyword">return</span> range ? `Confirm (${<span class="function">calculateDays</span>(range.start, range.end)} days)` : <span class="string">'Confirm'</span>;
-  },
-  <span class="property">getClassCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> [<span class="string">'base-apply'</span>, controller.selectedRanges[0] ? <span class="string">'ready'</span> : <span class="string">'waiting'</span>],
-  <span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span>
-    controller.selectedRanges[0] ? <span class="string">'Confirm selection'</span> : <span class="string">'Select dates first'</span>,
+<span class="comment">// Callbacks override static properties</span>
+<span class="property">getIsVisibleCallback</span>: <span class="keyword">(</span>{ element }<span class="keyword">)</span> <span class="keyword">=></span> !!element.selectedStartDate,
+<span class="property">getIsDisabledCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> !controller.selectedRanges[0],
+<span class="property">getTextCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> {
+  <span class="keyword">const</span> range = controller.selectedRanges[0];
+  <span class="keyword">return</span> range ? `Confirm (${<span class="function">calculateDays</span>(range.start, range.end)} days)` : <span class="string">'Confirm'</span>;
+},
+<span class="property">getClassCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span> [<span class="string">'base-apply'</span>, controller.selectedRanges[0] ? <span class="string">'ready'</span> : <span class="string">'waiting'</span>],
+<span class="property">getTooltipCallback</span>: <span class="keyword">(</span>{ controller }<span class="keyword">)</span> <span class="keyword">=></span>
+  controller.selectedRanges[0] ? <span class="string">'Confirm selection'</span> : <span class="string">'Select dates first'</span>,
 
-  <span class="property">onClick</span>: <span class="keyword">(</span>detail<span class="keyword">)</span> <span class="keyword">=></span> {
-    <span class="comment">// detail: { action: 'custom', id: 'confirm', item, source, controller, element, ... }</span>
-    detail.controller.<span class="function">close</span>();
-  }
+<span class="property">onClick</span>: <span class="keyword">(</span>detail<span class="keyword">)</span> <span class="keyword">=></span> {
+  <span class="comment">// detail: { action: 'custom', id: 'confirm', item, source, controller, element, ... }</span>
+  detail.controller.<span class="function">close</span>();
+}
 }];</code></div>
-  </div>
+</div>
 
-  <!-- 15. Device-adaptive toolbar -->
-  <div class="card">
-    <h2>AB16 · Device-Adaptive Toolbar (rich on desktop, subset on phone)</h2>
-    <p>
-      A real consumer often wants a <strong>rich</strong> action bar on desktop but only the
-      <strong>essentials</strong> on a phone. Drive <code>actionButtons</code> from the <em>same</em>
-      environment signal the calendar itself reacts to — re-exported from the component package, so
-      it's one import and no direct <code>@keenmate/web-components-core</code> dependency:
-    </p>
-    <div class="code-block"><code><span class="keyword">import</span> { observeViewport, classifyDevice } <span class="keyword">from</span> <span class="string">'@keenmate/web-daterangepicker'</span>;
+<!-- 15. Device-adaptive toolbar -->
+<div class="card">
+  <h2>AB16 · Device-Adaptive Toolbar (rich on desktop, subset on phone)</h2>
+  <p>
+    A real consumer often wants a <strong>rich</strong> action bar on desktop but only the
+    <strong>essentials</strong> on a phone. Drive <code>actionButtons</code> from the <em>same</em>
+    environment signal the calendar itself reacts to — re-exported from the component package, so
+    it's one import and no direct <code>@keenmate/web-components-core</code> dependency:
+  </p>
+  <div class="code-block"><code><span class="keyword">import</span> { observeViewport, classifyDevice } <span class="keyword">from</span> <span class="string">'@keenmate/web-daterangepicker'</span>;
 
 <span class="keyword">const</span> desktopActions = [ <span class="comment">/* Today, Yesterday, Last 7 Days, This/Last Month, This Quarter, Clear, Apply */</span> ];
 <span class="keyword">const</span> mobileActions  = [ { action: <span class="string">'today'</span>, text: <span class="string">'Today'</span> }, { action: <span class="string">'clear'</span>, text: <span class="string">'Clear'</span> }, { action: <span class="string">'apply'</span>, text: <span class="string">'Apply'</span> } ];
@@ -985,623 +974,618 @@ picker.actionButtons = [{
 // then on throttled resize. Reassign only when the resolved set changes —
 // actionButtons is an update input, so identical re-assigns re-render needlessly.</span>
 observeViewport((env) => {
-  el.actionButtons = classifyDevice(env) === <span class="string">'mobile'</span> ? mobileActions : desktopActions;
+el.actionButtons = classifyDevice(env) === <span class="string">'mobile'</span> ? mobileActions : desktopActions;
 });</code></div>
 
-    <div class="form-group">
-      <label>Inline picker — resize the window (or open dev-tools device mode) to watch the bar adapt</label>
-      <web-daterangepicker
-        id="adaptive-toolbar"
-        selection-mode="range"
-        positioning-mode="inline"
-        visible-month-count="1"></web-daterangepicker>
-      <small id="adaptive-readout" style="font-family: monospace;">detecting…</small>
-    </div>
-
-    <div class="note info">
-      <strong>Capability, not width.</strong> The phone subset is keyed off <code>classifyDevice</code>
-      (coarse pointer + no hover, shorter side &lt; 600px) — not a raw width breakpoint — so a wide
-      landscape phone still gets the subset. Use <code>env.viewportWidth</code> only for genuine
-      "does it fit one row" layout questions.
-    </div>
+  <div class="form-group">
+    <label>Inline picker — resize the window (or open dev-tools device mode) to watch the bar adapt</label>
+    <web-daterangepicker
+      id="adaptive-toolbar"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-month-count="1"></web-daterangepicker>
+    <small id="adaptive-readout" style="font-family: monospace;">detecting…</small>
   </div>
 
-  <!-- 16. action event, beforeActionCallback, isDanger / isToggled, data-action in messages -->
-  <div class="card">
-    <h2>AB17 · The <code>action</code> Event, <code>beforeActionCallback</code> &amp; Toggle Buttons</h2>
-    <p>Every button click (built-ins too) fires the <code>action</code> event; <code>detail.action</code> is the built-in name or <code>'custom'</code>, <code>detail.id</code> names a custom button. <code>beforeActionCallback</code> can veto a click (return <code>false</code>). <code>isToggled</code> / <code>getIsToggledCallback</code> render a toggle (<code>aria-pressed</code>), <code>isDanger</code> marks a destructive button. A button inside <code>showMessage()</code> HTML with <code>data-action="custom" data-id="…"</code> fires the same event with <code>source: 'message'</code> and its other <code>data-*</code> in <code>detail.dataset</code>.</p>
+  <div class="note info">
+    <strong>Capability, not width.</strong> The phone subset is keyed off <code>classifyDevice</code>
+    (coarse pointer + no hover, shorter side &lt; 600px) — not a raw width breakpoint — so a wide
+    landscape phone still gets the subset. Use <code>env.viewportWidth</code> only for genuine
+    "does it fit one row" layout questions.
+  </div>
+</div>
 
-    <div class="form-group">
-      <label>Weekends toggle, guarded Clear, message button</label>
-      <small>Toggle "Weekends", try "Clear" (asks for confirmation), then use "Ask" and click the button in the message</small>
-      <web-daterangepicker
-        id="action-event-picker"
-        selection-mode="range"
-        positioning-mode="inline"
-        visible-month-count="1"></web-daterangepicker>
-      <div class="log-panel mt-1" id="action-event-log">Click a button…</div>
-    </div>
+<!-- 16. action event, beforeActionCallback, isDanger / isToggled, data-action in messages -->
+<div class="card">
+  <h2>AB17 · The <code>action</code> Event, <code>beforeActionCallback</code> &amp; Toggle Buttons</h2>
+  <p>Every button click (built-ins too) fires the <code>action</code> event; <code>detail.action</code> is the built-in name or <code>'custom'</code>, <code>detail.id</code> names a custom button. <code>beforeActionCallback</code> can veto a click (return <code>false</code>). <code>isToggled</code> / <code>getIsToggledCallback</code> render a toggle (<code>aria-pressed</code>), <code>isDanger</code> marks a destructive button. A button inside <code>showMessage()</code> HTML with <code>data-action="custom" data-id="…"</code> fires the same event with <code>source: 'message'</code> and its other <code>data-*</code> in <code>detail.dataset</code>.</p>
 
-    <div class="code-block"><code><span class="keyword">let</span> weekendsOff = <span class="keyword">false</span>;
+  <div class="form-group">
+    <label>Weekends toggle, guarded Clear, message button</label>
+    <small>Toggle "Weekends", try "Clear" (asks for confirmation), then use "Ask" and click the button in the message</small>
+    <web-daterangepicker
+      id="action-event-picker"
+      selection-mode="range"
+      positioning-mode="inline"
+      visible-month-count="1"></web-daterangepicker>
+    <div class="log-panel mt-1" id="action-event-log">Click a button…</div>
+  </div>
+
+  <div class="code-block"><code><span class="keyword">let</span> weekendsOff = <span class="keyword">false</span>;
 
 picker.actionButtons = [
-  <span class="string">'today'</span>,
-  { <span class="property">id</span>: <span class="string">'weekends'</span>, <span class="property">text</span>: <span class="string">'Weekends'</span>,
-    <span class="property">getIsToggledCallback</span>: () <span class="keyword">=></span> !weekendsOff,
-    <span class="property">onClick</span>: ({ element }) <span class="keyword">=></span> {
-      weekendsOff = !weekendsOff;
-      element.disabledWeekdays = weekendsOff ? [0, 6] : [];
-    } },
-  { <span class="property">id</span>: <span class="string">'ask'</span>, <span class="property">text</span>: <span class="string">'Ask'</span>,
-    <span class="property">onClick</span>: ({ controller }) <span class="keyword">=></span> controller.showMessage(
-      <span class="string">'Keep this range? &lt;button data-action="custom" data-id="keep" data-answer="yes"&gt;Yes&lt;/button&gt;'</span>,
-      { <span class="property">type</span>: <span class="string">'info'</span> }) },
-  { <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">isDanger</span>: <span class="keyword">true</span> }
+<span class="string">'today'</span>,
+{ <span class="property">id</span>: <span class="string">'weekends'</span>, <span class="property">text</span>: <span class="string">'Weekends'</span>,
+  <span class="property">getIsToggledCallback</span>: () <span class="keyword">=></span> !weekendsOff,
+  <span class="property">onClick</span>: ({ element }) <span class="keyword">=></span> {
+    weekendsOff = !weekendsOff;
+    element.disabledWeekdays = weekendsOff ? [0, 6] : [];
+  } },
+{ <span class="property">id</span>: <span class="string">'ask'</span>, <span class="property">text</span>: <span class="string">'Ask'</span>,
+  <span class="property">onClick</span>: ({ controller }) <span class="keyword">=></span> controller.showMessage(
+    <span class="string">'Keep this range? &lt;button data-action="custom" data-id="keep" data-answer="yes"&gt;Yes&lt;/button&gt;'</span>,
+    { <span class="property">type</span>: <span class="string">'info'</span> }) },
+{ <span class="property">action</span>: <span class="string">'clear'</span>, <span class="property">isDanger</span>: <span class="keyword">true</span> }
 ];
 
 <span class="comment">// Runs before onClick / the action event / the built-in. false cancels.</span>
 picker.beforeActionCallback = (detail) <span class="keyword">=></span> {
-  <span class="keyword">if</span> (detail.action === <span class="string">'clear'</span> &amp;&amp; !confirm(<span class="string">'Clear the selection?'</span>)) <span class="keyword">return false</span>;
+<span class="keyword">if</span> (detail.action === <span class="string">'clear'</span> &amp;&amp; !confirm(<span class="string">'Clear the selection?'</span>)) <span class="keyword">return false</span>;
 };
 
 picker.addEventListener(<span class="string">'action'</span>, (e) <span class="keyword">=></span> {
-  <span class="keyword">const</span> { action, id, source, dataset } = e.detail;
-  console.log(action, id, source, dataset); <span class="comment">// e.g. 'custom' 'keep' 'message' { answer: 'yes' }</span>
-  <span class="keyword">if</span> (id === <span class="string">'keep'</span>) e.detail.controller.hideMessage();
+<span class="keyword">const</span> { action, id, source, dataset } = e.detail;
+console.log(action, id, source, dataset); <span class="comment">// e.g. 'custom' 'keep' 'message' { answer: 'yes' }</span>
+<span class="keyword">if</span> (id === <span class="string">'keep'</span>) e.detail.controller.hideMessage();
 });</code></div>
-  </div>
+</div>
 
-  <script type="module" src="/src/index.ts"></script>
+<script type="module">
+  // AB16 — device-adaptive toolbar. Consume the environment signal from the
+  // component's own export surface (the core re-export "tunnel").
+  import { observeViewport, classifyDevice } from '/src/index.ts';
+  await customElements.whenDefined('web-daterangepicker');
 
-  <script type="module">
-    // AB16 — device-adaptive toolbar. Consume the environment signal from the
-    // component's own export surface (the core re-export "tunnel").
-    import { observeViewport, classifyDevice } from '/src/index.ts';
-    await customElements.whenDefined('web-daterangepicker');
-
-    const el = document.querySelector('#adaptive-toolbar');
-    const readout = document.querySelector('#adaptive-readout');
-    if (el) {
-      const range = (start, end) => { el.selectedRanges = [{ start, end }]; };
-      const desktopActions = [
-        { action: 'today', text: 'Today' },
-        { id: 'yesterday', text: 'Yesterday', onClick: ({ element }) => {
-          const d = new Date(); d.setDate(d.getDate() - 1); element.selectedRanges = [{ start: d, end: d }];
-        } },
-        { id: 'last-7-days', text: 'Last 7 Days', onClick: ({ element }) => {
-          const end = new Date(); const start = new Date(); start.setDate(end.getDate() - 6);
-          element.selectedRanges = [{ start, end }];
-        } },
-        { id: 'this-month', text: 'This Month', onClick: ({ element }) => {
-          const n = new Date(); element.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth(), 1), end: new Date(n.getFullYear(), n.getMonth() + 1, 0) }];
-        } },
-        { id: 'last-month', text: 'Last Month', onClick: ({ element }) => {
-          const n = new Date(); element.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth() - 1, 1), end: new Date(n.getFullYear(), n.getMonth(), 0) }];
-        } },
-        { id: 'this-quarter', text: 'This Quarter', onClick: ({ element }) => {
-          const n = new Date(); const q = Math.floor(n.getMonth() / 3);
-          element.selectedRanges = [{ start: new Date(n.getFullYear(), q * 3, 1), end: new Date(n.getFullYear(), q * 3 + 3, 0) }];
-        } },
-        { action: 'clear', text: 'Clear' },
-        { action: 'apply', text: 'Apply' },
-      ];
-      const mobileActions = [
-        { action: 'today', text: 'Today' },
-        { action: 'clear', text: 'Clear' },
-        { action: 'apply', text: 'Apply' },
-      ];
-
-      let last = '';
-      observeViewport((env) => {
-        const device = classifyDevice(env);
-        const actions = device === 'mobile' ? mobileActions : desktopActions;
-        const key = `${device}|${actions.length}`;
-        if (key !== last) {
-          last = key;
-          el.actionButtons = actions;
-        }
-        if (readout) {
-          readout.textContent = `${device} · ${Math.round(env.viewportWidth)}px · ${actions.length} buttons`;
-        }
-      });
-    }
-  </script>
-
-  <script type="module">
-
-    // Wait for components to be ready
-    await customElements.whenDefined('web-daterangepicker');
-
-    // Clear picker function for commit-mode examples
-    document.querySelector('#commit-manual').actionButtons = [
-      { id: 'done', text: 'Done', onClick: ({ controller }) => controller.commit() }
-    ];
-
-    window.clearPicker = (id) => {
-      document.querySelector(`#${id}`)?.clearSelection();
-    };
-
-    // 3. Custom Preset Buttons
-    const presetPicker = document.querySelector('#preset-picker');
-    presetPicker.actionButtons = [
-      {
-        id: 'last-week',
-        text: 'Last Week',
-        onClick: ({ element }) => {
-          const today = new Date();
-          const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ...
-          // Find last Monday (go back to this Monday, then back 7 more days)
-          const daysToLastMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-          const lastMonday = new Date(today);
-          lastMonday.setDate(today.getDate() - daysToLastMonday - 7);
-          const lastSunday = new Date(lastMonday);
-          lastSunday.setDate(lastMonday.getDate() + 6);
-
-          element.selectedRanges = [{ start: lastMonday, end: lastSunday }];
-        }
-      },
-      {
-        id: 'next-week',
-        text: 'Next Week',
-        onClick: ({ element }) => {
-          const today = new Date();
-          const dayOfWeek = today.getDay();
-          // Find next Monday
-          const daysToNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-          const nextMonday = new Date(today);
-          nextMonday.setDate(today.getDate() + daysToNextMonday);
-          const nextSunday = new Date(nextMonday);
-          nextSunday.setDate(nextMonday.getDate() + 6);
-
-          element.selectedRanges = [{ start: nextMonday, end: nextSunday }];
-        }
-      },
-      {
-        id: 'next-month',
-        text: 'Next Month',
-        onClick: ({ element }) => {
-          const today = new Date();
-          const start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-          const end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
-
-          element.selectedRanges = [{ start: start, end: end }];
-        }
-      },
+  const el = document.querySelector('#adaptive-toolbar');
+  const readout = document.querySelector('#adaptive-readout');
+  if (el) {
+    const range = (start, end) => { el.selectedRanges = [{ start, end }]; };
+    const desktopActions = [
+      { action: 'today', text: 'Today' },
+      { id: 'yesterday', text: 'Yesterday', onClick: ({ element }) => {
+        const d = new Date(); d.setDate(d.getDate() - 1); element.selectedRanges = [{ start: d, end: d }];
+      } },
+      { id: 'last-7-days', text: 'Last 7 Days', onClick: ({ element }) => {
+        const end = new Date(); const start = new Date(); start.setDate(end.getDate() - 6);
+        element.selectedRanges = [{ start, end }];
+      } },
+      { id: 'this-month', text: 'This Month', onClick: ({ element }) => {
+        const n = new Date(); element.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth(), 1), end: new Date(n.getFullYear(), n.getMonth() + 1, 0) }];
+      } },
+      { id: 'last-month', text: 'Last Month', onClick: ({ element }) => {
+        const n = new Date(); element.selectedRanges = [{ start: new Date(n.getFullYear(), n.getMonth() - 1, 1), end: new Date(n.getFullYear(), n.getMonth(), 0) }];
+      } },
+      { id: 'this-quarter', text: 'This Quarter', onClick: ({ element }) => {
+        const n = new Date(); const q = Math.floor(n.getMonth() / 3);
+        element.selectedRanges = [{ start: new Date(n.getFullYear(), q * 3, 1), end: new Date(n.getFullYear(), q * 3 + 3, 0) }];
+      } },
       { action: 'clear', text: 'Clear' },
-      { action: 'apply', text: 'Apply' }
+      { action: 'apply', text: 'Apply' },
     ];
-
-    // 4. Multiple Selection Mode - Show output
-    const multiPicker = document.querySelector('#multi-picker');
-    const multiOutput = document.querySelector('#multi-output');
-
-    function updateMultiOutput() {
-      const dates = multiPicker.selectedDates;
-      const ranges = multiPicker.selectedRanges;
-
-      if (dates.length === 0 && ranges.length === 0) {
-        multiOutput.textContent = 'No selections yet';
-        return;
-      }
-
-      let output = '';
-      if (dates.length > 0) {
-        output += `Selected Dates: ${dates.map(d => d.toLocaleDateString()).join(', ')}\n`;
-      }
-      if (ranges.length > 0) {
-        output += `Selected Ranges: ${ranges.map(r =>
-          `${r.start.toLocaleDateString()} - ${r.end.toLocaleDateString()}`
-        ).join(', ')}`;
-      }
-
-      multiOutput.textContent = output;
-    }
-
-    multiPicker.addEventListener('change', updateMultiOutput);
-    multiPicker.addEventListener('change', updateMultiOutput);
-
-    // 5. External Button Control
-    const externalPicker = document.querySelector('#external-picker');
-    const externalOutput = document.querySelector('#external-output');
-
-    function updateExternalOutput() {
-      const start = externalPicker.selectedStartDate;
-      const end = externalPicker.selectedEndDate;
-
-      if (start && end) {
-        const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-        externalOutput.textContent = `Selected: ${start.toLocaleDateString()} - ${end.toLocaleDateString()} (${days} days)`;
-      } else if (start) {
-        externalOutput.textContent = `Start: ${start.toLocaleDateString()} (select end date)`;
-      } else {
-        externalOutput.textContent = 'No selection';
-      }
-    }
-
-    externalPicker.addEventListener('change', updateExternalOutput);
-    externalPicker.addEventListener('change', updateExternalOutput);
-
-    // External button functions (global scope)
-    window.setToday = () => {
-      const today = new Date();
-      externalPicker.selectedRanges = [{ start: today, end: today }];
-    };
-
-    window.setYesterday = () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      externalPicker.selectedRanges = [{ start: yesterday, end: yesterday }];
-    };
-
-    window.setLastWeek = () => {
-      const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - 6);
-      externalPicker.selectedRanges = [{ start, end }];
-    };
-
-    window.setThisMonth = () => {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      externalPicker.selectedRanges = [{ start, end }];
-    };
-
-    window.setLastMonth = () => {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 0);
-      externalPicker.selectedRanges = [{ start, end }];
-    };
-
-    window.setQuarter = () => {
-      const now = new Date();
-      const quarter = Math.floor(now.getMonth() / 3);
-      const start = new Date(now.getFullYear(), quarter * 3, 1);
-      const end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
-      externalPicker.selectedRanges = [{ start, end }];
-    };
-
-    window.clearExternal = () => {
-      externalPicker.clearSelection();
-    };
-
-    // 6. Conditional Button Visibility
-    const conditionalPicker = document.querySelector('#conditional-picker');
-    conditionalPicker.actionButtons = [
+    const mobileActions = [
       { action: 'today', text: 'Today' },
       { action: 'clear', text: 'Clear' },
-      {
-        action: 'apply',
-        text: 'Apply',
-        getIsVisibleCallback: ({ element }) => element.selectedStartDate && element.selectedEndDate
-      }
+      { action: 'apply', text: 'Apply' },
     ];
 
-    // 7. Dynamic Disabled State
-    const disabledPicker = document.querySelector('#disabled-picker');
-    disabledPicker.actionButtons = [
-      { action: 'today', text: 'Today' },
-      {
-        action: 'clear',
-        text: 'Clear',
-        getIsDisabledCallback: ({ element }) => !element.selectedStartDate && !element.selectedEndDate
-      },
-      {
-        action: 'apply',
-        text: 'Apply',
-        getIsDisabledCallback: ({ element }) => !element.selectedStartDate || !element.selectedEndDate
+    let last = '';
+    observeViewport((env) => {
+      const device = classifyDevice(env);
+      const actions = device === 'mobile' ? mobileActions : desktopActions;
+      const key = `${device}|${actions.length}`;
+      if (key !== last) {
+        last = key;
+        el.actionButtons = actions;
       }
-    ];
-
-    // 8. Dynamic Button Text
-    const textPicker = document.querySelector('#text-picker');
-    textPicker.actionButtons = [
-      { action: 'today', text: 'Today' },
-      {
-        action: 'clear',
-        text: 'Clear',
-        getTextCallback: ({ element }) => {
-          if (!element.selectedStartDate) return 'Clear';
-          return 'Clear Selection';
-        }
-      },
-      {
-        action: 'apply',
-        text: 'Apply',
-        getTextCallback: ({ element }) => {
-          if (!element.selectedStartDate || !element.selectedEndDate) return 'Apply';
-          const days = Math.floor((element.selectedEndDate - element.selectedStartDate) / (1000*60*60*24)) + 1;
-          return `Apply (${days} day${days !== 1 ? 's' : ''})`;
-        }
+      if (readout) {
+        readout.textContent = `${device} · ${Math.round(env.viewportWidth)}px · ${actions.length} buttons`;
       }
-    ];
-
-    // 9. Dynamic CSS Classes
-    const cssPicker = document.querySelector('#css-picker');
-    cssPicker.actionButtons = [
-      { action: 'today', text: 'Today' },
-      {
-        action: 'clear',
-        text: 'Clear',
-        cssClass: 'clear-button',
-        getClassCallback: ({ element }) => {
-          // Return array of classes
-          const classes = ['clear-button'];
-          if (element.selectedStartDate || element.selectedEndDate) {
-            classes.push('danger');
-          }
-          return classes;
-        }
-      },
-      {
-        action: 'apply',
-        text: 'Apply',
-        getClassCallback: ({ element }) => {
-          // Return single string based on validation
-          const hasComplete = element.selectedStartDate && element.selectedEndDate;
-          return hasComplete ? 'apply-ready' : 'apply-waiting';
-        }
-      }
-    ];
-
-    // Inject custom styles into Shadow DOM
-    cssPicker.getCustomStylesCallback = () => `
-      .apply-ready {
-        background: #10b981 !important;
-        color: white !important;
-        font-weight: 600 !important;
-      }
-      .apply-waiting {
-        background: #d1d5db !important;
-        color: #6b7280 !important;
-      }
-      .danger {
-        background: #ef4444 !important;
-        color: white !important;
-      }
-    `;
-
-    // 10. Dynamic Tooltips
-    const tooltipPicker = document.querySelector('#tooltip-picker');
-    tooltipPicker.actionButtons = [
-      {
-        action: 'today',
-        text: 'Today',
-        tooltip: 'Jump to today',
-        getTooltipCallback: ({ element }) => {
-          const today = new Date();
-          return `Set to ${today.toLocaleDateString()}`;
-        }
-      },
-      {
-        action: 'clear',
-        text: 'Clear',
-        tooltip: 'Clear selection',
-        getTooltipCallback: ({ element }) => {
-          if (!element.selectedStartDate && !element.selectedEndDate) {
-            return 'No selection to clear';
-          }
-          return 'Clear the current date range';
-        }
-      },
-      {
-        action: 'apply',
-        text: 'Apply',
-        getTooltipCallback: ({ element }) => {
-          if (!element.selectedStartDate || !element.selectedEndDate) {
-            return 'Select both start and end dates';
-          }
-          const days = Math.floor((element.selectedEndDate - element.selectedStartDate) / (1000*60*60*24)) + 1;
-          return `Apply ${days}-day range`;
-        }
-      }
-    ];
-
-    // 11. Combined Features & Priority
-    const priorityPicker = document.querySelector('#priority-picker');
-    priorityPicker.actionButtons = [
-      { action: 'today', text: 'Today' },
-      {
-        action: 'clear',
-        text: 'Clear All',
-        cssClass: 'base-clear',
-        tooltip: 'Static tooltip',
-        isVisible: true,
-        isDisabled: false,
-        // Callbacks take priority over static properties
-        getIsVisibleCallback: ({ element }) => element.selectedStartDate || element.selectedEndDate,
-        getIsDisabledCallback: ({ element }) => !element.selectedStartDate && !element.selectedEndDate,
-        getTextCallback: ({ element }) => {
-          const hasSelection = element.selectedStartDate || element.selectedEndDate;
-          return hasSelection ? 'Clear Selection' : 'Clear All';
-        },
-        getClassCallback: ({ element }) => {
-          return (element.selectedStartDate || element.selectedEndDate) ? 'danger' : 'base-clear';
-        },
-        getTooltipCallback: ({ element }) => {
-          if (!element.selectedStartDate && !element.selectedEndDate) {
-            return 'Nothing to clear';
-          }
-          return 'Remove current selection';
-        }
-      },
-      {
-        action: 'apply',
-        text: 'Apply',
-        getTextCallback: ({ element }) => {
-          if (!element.selectedStartDate || !element.selectedEndDate) return 'Apply';
-          const days = Math.floor((element.selectedEndDate - element.selectedStartDate) / (1000*60*60*24)) + 1;
-          return `Confirm ${days} Days`;
-        },
-        getClassCallback: ({ element }) => {
-          return (element.selectedStartDate && element.selectedEndDate) ? 'apply-ready' : 'apply-waiting';
-        },
-        getTooltipCallback: ({ element }) => {
-          if (!element.selectedStartDate || !element.selectedEndDate) {
-            return 'Complete the date range first';
-          }
-          return 'Confirm and close calendar';
-        },
-        getIsDisabledCallback: ({ element }) => !element.selectedStartDate || !element.selectedEndDate
-      }
-    ];
-
-    // Inject styles for priority picker
-    priorityPicker.getCustomStylesCallback = () => `
-      .apply-ready {
-        background: #10b981 !important;
-        color: white !important;
-        font-weight: 600 !important;
-      }
-      .apply-waiting {
-        background: #d1d5db !important;
-        color: #6b7280 !important;
-      }
-      .danger {
-        background: #ef4444 !important;
-        color: white !important;
-      }
-    `;
-
-    // 12. Advanced Custom Actions
-    const advancedPicker = document.querySelector('#advanced-picker');
-    advancedPicker.actionButtons = [
-      {
-        id: 'last-business-week',
-        text: 'Last Business Week',
-        tooltip: 'Select Monday-Friday of last week',
-        onClick: ({ element }) => {
-          const today = new Date();
-          const dayOfWeek = today.getDay();
-          const daysToLastMonday = dayOfWeek === 0 ? 6 : dayOfWeek + 6;
-          const lastMonday = new Date(today);
-          lastMonday.setDate(today.getDate() - daysToLastMonday);
-          const lastFriday = new Date(lastMonday);
-          lastFriday.setDate(lastMonday.getDate() + 4);
-
-          element.selectedRanges = [{ start: lastMonday, end: lastFriday }];
-        }
-      },
-      {
-        id: 'this-quarter',
-        text: 'This Quarter',
-        tooltip: 'Select current fiscal quarter',
-        onClick: ({ element }) => {
-          const now = new Date();
-          const quarter = Math.floor(now.getMonth() / 3);
-          const start = new Date(now.getFullYear(), quarter * 3, 1);
-          const end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
-
-          element.selectedRanges = [{ start: start, end: end }];
-        }
-      },
-      {
-        id: 'year-to-date',
-        text: 'Year to Date',
-        tooltip: 'From Jan 1 to today',
-        onClick: ({ element }) => {
-          const today = new Date();
-          const start = new Date(today.getFullYear(), 0, 1);
-
-          element.selectedRanges = [{ start: start, end: today }];
-        }
-      },
-      {
-        id: 'rolling-90-days',
-        text: 'Rolling 90 Days',
-        cssClass: 'rolling-period',
-        onClick: ({ element }) => {
-          const end = new Date();
-          const start = new Date();
-          start.setDate(end.getDate() - 89);
-
-          element.selectedRanges = [{ start: start, end: end }];
-        }
-      },
-      { action: 'clear', text: 'Clear' },
-      { action: 'apply', text: 'Apply' }
-    ];
-
-    advancedPicker.getCustomStylesCallback = () => `
-      .rolling-period {
-        background: #8b5cf6 !important;
-        color: white !important;
-      }
-    `;
-
-    // 13. Icons in Buttons
-    const iconPicker = document.querySelector('#icon-picker');
-    iconPicker.actionButtons = [
-      { action: 'today', text: 'Today', cssClass: 'icon-today', tooltip: 'Jump to today' },
-      { action: 'clear', text: 'Clear', cssClass: 'icon-clear danger-icon' },
-      { action: 'apply', text: 'Apply', cssClass: 'icon-apply success-icon' }
-    ];
-
-    // Button text is plain text: draw the Font Awesome glyphs with ::before.
-    // (The FA stylesheet is also linked in <head> so its @font-face is registered.)
-    iconPicker.getCustomStylesCallback = () => `
-      .drp__button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-      }
-      .icon-today::before, .icon-clear::before, .icon-apply::before {
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
-      }
-      .icon-today::before { content: '\\f783'; }
-      .icon-clear::before { content: '\\f057'; }
-      .icon-apply::before { content: '\\f058'; }
-      .success-icon {
-        background: #10b981 !important;
-        color: white !important;
-      }
-      .danger-icon {
-        background: #ef4444 !important;
-        color: white !important;
-      }
-    `;
-
-    // 16. action event, beforeActionCallback, isToggled / isDanger, data-action in messages
-    const actionEventPicker = document.querySelector('#action-event-picker');
-    const actionEventLog = document.querySelector('#action-event-log');
-    let weekendsOff = false;
-    actionEventPicker.actionButtons = [
-      'today',
-      {
-        id: 'weekends',
-        text: 'Weekends',
-        tooltip: 'Toggle whether weekends can be picked',
-        getIsToggledCallback: () => !weekendsOff,
-        onClick: ({ element }) => {
-          weekendsOff = !weekendsOff;
-          element.disabledWeekdays = weekendsOff ? [0, 6] : [];
-        }
-      },
-      {
-        id: 'ask',
-        text: 'Ask',
-        onClick: ({ controller }) => controller.showMessage(
-          'Keep this range? <button data-action="custom" data-id="keep" data-answer="yes">Yes</button>',
-          { type: 'info' })
-      },
-      { action: 'clear', isDanger: true }
-    ];
-    actionEventPicker.beforeActionCallback = (detail) => {
-      if (detail.action === 'clear' && !confirm('Clear the selection?')) return false;
-    };
-    actionEventPicker.addEventListener('action', (e) => {
-      const { action, id, source, dataset } = e.detail;
-      actionEventLog.textContent =
-        `action: ${action}  id: ${id ?? '-'}  source: ${source}  dataset: ${JSON.stringify(dataset)}`;
-      if (id === 'keep') e.detail.controller.hideMessage();
     });
-    actionEventPicker.getCustomStylesCallback = () => `
-      .drp__button--toggled { background: #2563eb !important; color: white !important; }
-      .drp__button--danger { color: #dc2626 !important; border-color: #dc2626 !important; }
-    `;
-  </script>
-  <script type="module" src="examples-chapter-nav.js"></script>
-</body>
-</html>
+  }
+</script>
+
+<script type="module">
+
+  // Wait for components to be ready
+  await customElements.whenDefined('web-daterangepicker');
+
+  // Clear picker function for commit-mode examples
+  document.querySelector('#commit-manual').actionButtons = [
+    { id: 'done', text: 'Done', onClick: ({ controller }) => controller.commit() }
+  ];
+
+  window.clearPicker = (id) => {
+    document.querySelector(`#${id}`)?.clearSelection();
+  };
+
+  // 3. Custom Preset Buttons
+  const presetPicker = document.querySelector('#preset-picker');
+  presetPicker.actionButtons = [
+    {
+      id: 'last-week',
+      text: 'Last Week',
+      onClick: ({ element }) => {
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ...
+        // Find last Monday (go back to this Monday, then back 7 more days)
+        const daysToLastMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const lastMonday = new Date(today);
+        lastMonday.setDate(today.getDate() - daysToLastMonday - 7);
+        const lastSunday = new Date(lastMonday);
+        lastSunday.setDate(lastMonday.getDate() + 6);
+
+        element.selectedRanges = [{ start: lastMonday, end: lastSunday }];
+      }
+    },
+    {
+      id: 'next-week',
+      text: 'Next Week',
+      onClick: ({ element }) => {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        // Find next Monday
+        const daysToNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+        const nextMonday = new Date(today);
+        nextMonday.setDate(today.getDate() + daysToNextMonday);
+        const nextSunday = new Date(nextMonday);
+        nextSunday.setDate(nextMonday.getDate() + 6);
+
+        element.selectedRanges = [{ start: nextMonday, end: nextSunday }];
+      }
+    },
+    {
+      id: 'next-month',
+      text: 'Next Month',
+      onClick: ({ element }) => {
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        const end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+
+        element.selectedRanges = [{ start: start, end: end }];
+      }
+    },
+    { action: 'clear', text: 'Clear' },
+    { action: 'apply', text: 'Apply' }
+  ];
+
+  // 4. Multiple Selection Mode - Show output
+  const multiPicker = document.querySelector('#multi-picker');
+  const multiOutput = document.querySelector('#multi-output');
+
+  function updateMultiOutput() {
+    const dates = multiPicker.selectedDates;
+    const ranges = multiPicker.selectedRanges;
+
+    if (dates.length === 0 && ranges.length === 0) {
+      multiOutput.textContent = 'No selections yet';
+      return;
+    }
+
+    let output = '';
+    if (dates.length > 0) {
+      output += `Selected Dates: ${dates.map(d => d.toLocaleDateString()).join(', ')}\n`;
+    }
+    if (ranges.length > 0) {
+      output += `Selected Ranges: ${ranges.map(r =>
+        `${r.start.toLocaleDateString()} - ${r.end.toLocaleDateString()}`
+      ).join(', ')}`;
+    }
+
+    multiOutput.textContent = output;
+  }
+
+  multiPicker.addEventListener('change', updateMultiOutput);
+  multiPicker.addEventListener('change', updateMultiOutput);
+
+  // 5. External Button Control
+  const externalPicker = document.querySelector('#external-picker');
+  const externalOutput = document.querySelector('#external-output');
+
+  function updateExternalOutput() {
+    const start = externalPicker.selectedStartDate;
+    const end = externalPicker.selectedEndDate;
+
+    if (start && end) {
+      const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      externalOutput.textContent = `Selected: ${start.toLocaleDateString()} - ${end.toLocaleDateString()} (${days} days)`;
+    } else if (start) {
+      externalOutput.textContent = `Start: ${start.toLocaleDateString()} (select end date)`;
+    } else {
+      externalOutput.textContent = 'No selection';
+    }
+  }
+
+  externalPicker.addEventListener('change', updateExternalOutput);
+  externalPicker.addEventListener('change', updateExternalOutput);
+
+  // External button functions (global scope)
+  window.setToday = () => {
+    const today = new Date();
+    externalPicker.selectedRanges = [{ start: today, end: today }];
+  };
+
+  window.setYesterday = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    externalPicker.selectedRanges = [{ start: yesterday, end: yesterday }];
+  };
+
+  window.setLastWeek = () => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 6);
+    externalPicker.selectedRanges = [{ start, end }];
+  };
+
+  window.setThisMonth = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    externalPicker.selectedRanges = [{ start, end }];
+  };
+
+  window.setLastMonth = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 0);
+    externalPicker.selectedRanges = [{ start, end }];
+  };
+
+  window.setQuarter = () => {
+    const now = new Date();
+    const quarter = Math.floor(now.getMonth() / 3);
+    const start = new Date(now.getFullYear(), quarter * 3, 1);
+    const end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
+    externalPicker.selectedRanges = [{ start, end }];
+  };
+
+  window.clearExternal = () => {
+    externalPicker.clearSelection();
+  };
+
+  // 6. Conditional Button Visibility
+  const conditionalPicker = document.querySelector('#conditional-picker');
+  conditionalPicker.actionButtons = [
+    { action: 'today', text: 'Today' },
+    { action: 'clear', text: 'Clear' },
+    {
+      action: 'apply',
+      text: 'Apply',
+      getIsVisibleCallback: ({ element }) => element.selectedStartDate && element.selectedEndDate
+    }
+  ];
+
+  // 7. Dynamic Disabled State
+  const disabledPicker = document.querySelector('#disabled-picker');
+  disabledPicker.actionButtons = [
+    { action: 'today', text: 'Today' },
+    {
+      action: 'clear',
+      text: 'Clear',
+      getIsDisabledCallback: ({ element }) => !element.selectedStartDate && !element.selectedEndDate
+    },
+    {
+      action: 'apply',
+      text: 'Apply',
+      getIsDisabledCallback: ({ element }) => !element.selectedStartDate || !element.selectedEndDate
+    }
+  ];
+
+  // 8. Dynamic Button Text
+  const textPicker = document.querySelector('#text-picker');
+  textPicker.actionButtons = [
+    { action: 'today', text: 'Today' },
+    {
+      action: 'clear',
+      text: 'Clear',
+      getTextCallback: ({ element }) => {
+        if (!element.selectedStartDate) return 'Clear';
+        return 'Clear Selection';
+      }
+    },
+    {
+      action: 'apply',
+      text: 'Apply',
+      getTextCallback: ({ element }) => {
+        if (!element.selectedStartDate || !element.selectedEndDate) return 'Apply';
+        const days = Math.floor((element.selectedEndDate - element.selectedStartDate) / (1000*60*60*24)) + 1;
+        return `Apply (${days} day${days !== 1 ? 's' : ''})`;
+      }
+    }
+  ];
+
+  // 9. Dynamic CSS Classes
+  const cssPicker = document.querySelector('#css-picker');
+  cssPicker.actionButtons = [
+    { action: 'today', text: 'Today' },
+    {
+      action: 'clear',
+      text: 'Clear',
+      cssClass: 'clear-button',
+      getClassCallback: ({ element }) => {
+        // Return array of classes
+        const classes = ['clear-button'];
+        if (element.selectedStartDate || element.selectedEndDate) {
+          classes.push('danger');
+        }
+        return classes;
+      }
+    },
+    {
+      action: 'apply',
+      text: 'Apply',
+      getClassCallback: ({ element }) => {
+        // Return single string based on validation
+        const hasComplete = element.selectedStartDate && element.selectedEndDate;
+        return hasComplete ? 'apply-ready' : 'apply-waiting';
+      }
+    }
+  ];
+
+  // Inject custom styles into Shadow DOM
+  cssPicker.getCustomStylesCallback = () => `
+    .apply-ready {
+      background: #10b981 !important;
+      color: white !important;
+      font-weight: 600 !important;
+    }
+    .apply-waiting {
+      background: #d1d5db !important;
+      color: #6b7280 !important;
+    }
+    .danger {
+      background: #ef4444 !important;
+      color: white !important;
+    }
+  `;
+
+  // 10. Dynamic Tooltips
+  const tooltipPicker = document.querySelector('#tooltip-picker');
+  tooltipPicker.actionButtons = [
+    {
+      action: 'today',
+      text: 'Today',
+      tooltip: 'Jump to today',
+      getTooltipCallback: ({ element }) => {
+        const today = new Date();
+        return `Set to ${today.toLocaleDateString()}`;
+      }
+    },
+    {
+      action: 'clear',
+      text: 'Clear',
+      tooltip: 'Clear selection',
+      getTooltipCallback: ({ element }) => {
+        if (!element.selectedStartDate && !element.selectedEndDate) {
+          return 'No selection to clear';
+        }
+        return 'Clear the current date range';
+      }
+    },
+    {
+      action: 'apply',
+      text: 'Apply',
+      getTooltipCallback: ({ element }) => {
+        if (!element.selectedStartDate || !element.selectedEndDate) {
+          return 'Select both start and end dates';
+        }
+        const days = Math.floor((element.selectedEndDate - element.selectedStartDate) / (1000*60*60*24)) + 1;
+        return `Apply ${days}-day range`;
+      }
+    }
+  ];
+
+  // 11. Combined Features & Priority
+  const priorityPicker = document.querySelector('#priority-picker');
+  priorityPicker.actionButtons = [
+    { action: 'today', text: 'Today' },
+    {
+      action: 'clear',
+      text: 'Clear All',
+      cssClass: 'base-clear',
+      tooltip: 'Static tooltip',
+      isVisible: true,
+      isDisabled: false,
+      // Callbacks take priority over static properties
+      getIsVisibleCallback: ({ element }) => element.selectedStartDate || element.selectedEndDate,
+      getIsDisabledCallback: ({ element }) => !element.selectedStartDate && !element.selectedEndDate,
+      getTextCallback: ({ element }) => {
+        const hasSelection = element.selectedStartDate || element.selectedEndDate;
+        return hasSelection ? 'Clear Selection' : 'Clear All';
+      },
+      getClassCallback: ({ element }) => {
+        return (element.selectedStartDate || element.selectedEndDate) ? 'danger' : 'base-clear';
+      },
+      getTooltipCallback: ({ element }) => {
+        if (!element.selectedStartDate && !element.selectedEndDate) {
+          return 'Nothing to clear';
+        }
+        return 'Remove current selection';
+      }
+    },
+    {
+      action: 'apply',
+      text: 'Apply',
+      getTextCallback: ({ element }) => {
+        if (!element.selectedStartDate || !element.selectedEndDate) return 'Apply';
+        const days = Math.floor((element.selectedEndDate - element.selectedStartDate) / (1000*60*60*24)) + 1;
+        return `Confirm ${days} Days`;
+      },
+      getClassCallback: ({ element }) => {
+        return (element.selectedStartDate && element.selectedEndDate) ? 'apply-ready' : 'apply-waiting';
+      },
+      getTooltipCallback: ({ element }) => {
+        if (!element.selectedStartDate || !element.selectedEndDate) {
+          return 'Complete the date range first';
+        }
+        return 'Confirm and close calendar';
+      },
+      getIsDisabledCallback: ({ element }) => !element.selectedStartDate || !element.selectedEndDate
+    }
+  ];
+
+  // Inject styles for priority picker
+  priorityPicker.getCustomStylesCallback = () => `
+    .apply-ready {
+      background: #10b981 !important;
+      color: white !important;
+      font-weight: 600 !important;
+    }
+    .apply-waiting {
+      background: #d1d5db !important;
+      color: #6b7280 !important;
+    }
+    .danger {
+      background: #ef4444 !important;
+      color: white !important;
+    }
+  `;
+
+  // 12. Advanced Custom Actions
+  const advancedPicker = document.querySelector('#advanced-picker');
+  advancedPicker.actionButtons = [
+    {
+      id: 'last-business-week',
+      text: 'Last Business Week',
+      tooltip: 'Select Monday-Friday of last week',
+      onClick: ({ element }) => {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const daysToLastMonday = dayOfWeek === 0 ? 6 : dayOfWeek + 6;
+        const lastMonday = new Date(today);
+        lastMonday.setDate(today.getDate() - daysToLastMonday);
+        const lastFriday = new Date(lastMonday);
+        lastFriday.setDate(lastMonday.getDate() + 4);
+
+        element.selectedRanges = [{ start: lastMonday, end: lastFriday }];
+      }
+    },
+    {
+      id: 'this-quarter',
+      text: 'This Quarter',
+      tooltip: 'Select current fiscal quarter',
+      onClick: ({ element }) => {
+        const now = new Date();
+        const quarter = Math.floor(now.getMonth() / 3);
+        const start = new Date(now.getFullYear(), quarter * 3, 1);
+        const end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
+
+        element.selectedRanges = [{ start: start, end: end }];
+      }
+    },
+    {
+      id: 'year-to-date',
+      text: 'Year to Date',
+      tooltip: 'From Jan 1 to today',
+      onClick: ({ element }) => {
+        const today = new Date();
+        const start = new Date(today.getFullYear(), 0, 1);
+
+        element.selectedRanges = [{ start: start, end: today }];
+      }
+    },
+    {
+      id: 'rolling-90-days',
+      text: 'Rolling 90 Days',
+      cssClass: 'rolling-period',
+      onClick: ({ element }) => {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 89);
+
+        element.selectedRanges = [{ start: start, end: end }];
+      }
+    },
+    { action: 'clear', text: 'Clear' },
+    { action: 'apply', text: 'Apply' }
+  ];
+
+  advancedPicker.getCustomStylesCallback = () => `
+    .rolling-period {
+      background: #8b5cf6 !important;
+      color: white !important;
+    }
+  `;
+
+  // 13. Icons in Buttons
+  const iconPicker = document.querySelector('#icon-picker');
+  iconPicker.actionButtons = [
+    { action: 'today', text: 'Today', cssClass: 'icon-today', tooltip: 'Jump to today' },
+    { action: 'clear', text: 'Clear', cssClass: 'icon-clear danger-icon' },
+    { action: 'apply', text: 'Apply', cssClass: 'icon-apply success-icon' }
+  ];
+
+  // Button text is plain text: draw the Font Awesome glyphs with ::before.
+  // (The FA stylesheet is also linked in <head> so its @font-face is registered.)
+  iconPicker.getCustomStylesCallback = () => `
+    .drp__button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+    .icon-today::before, .icon-clear::before, .icon-apply::before {
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+    }
+    .icon-today::before { content: '\\f783'; }
+    .icon-clear::before { content: '\\f057'; }
+    .icon-apply::before { content: '\\f058'; }
+    .success-icon {
+      background: #10b981 !important;
+      color: white !important;
+    }
+    .danger-icon {
+      background: #ef4444 !important;
+      color: white !important;
+    }
+  `;
+
+  // 16. action event, beforeActionCallback, isToggled / isDanger, data-action in messages
+  const actionEventPicker = document.querySelector('#action-event-picker');
+  const actionEventLog = document.querySelector('#action-event-log');
+  let weekendsOff = false;
+  actionEventPicker.actionButtons = [
+    'today',
+    {
+      id: 'weekends',
+      text: 'Weekends',
+      tooltip: 'Toggle whether weekends can be picked',
+      getIsToggledCallback: () => !weekendsOff,
+      onClick: ({ element }) => {
+        weekendsOff = !weekendsOff;
+        element.disabledWeekdays = weekendsOff ? [0, 6] : [];
+      }
+    },
+    {
+      id: 'ask',
+      text: 'Ask',
+      onClick: ({ controller }) => controller.showMessage(
+        'Keep this range? <button data-action="custom" data-id="keep" data-answer="yes">Yes</button>',
+        { type: 'info' })
+    },
+    { action: 'clear', isDanger: true }
+  ];
+  actionEventPicker.beforeActionCallback = (detail) => {
+    if (detail.action === 'clear' && !confirm('Clear the selection?')) return false;
+  };
+  actionEventPicker.addEventListener('action', (e) => {
+    const { action, id, source, dataset } = e.detail;
+    actionEventLog.textContent =
+      `action: ${action}  id: ${id ?? '-'}  source: ${source}  dataset: ${JSON.stringify(dataset)}`;
+    if (id === 'keep') e.detail.controller.hideMessage();
+  });
+  actionEventPicker.getCustomStylesCallback = () => `
+    .drp__button--toggled { background: #2563eb !important; color: white !important; }
+    .drp__button--danger { color: #dc2626 !important; border-color: #dc2626 !important; }
+  `;
+</script>
