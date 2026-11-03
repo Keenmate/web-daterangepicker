@@ -29,32 +29,7 @@ make publish
 make help
 ```
 
-### Option 2: Using Batch Script (Windows CMD/PowerShell)
-
-```cmd
-REM Install dependencies
-make.bat setup
-
-REM Start development server
-make.bat dev
-
-REM Build for production
-make.bat build
-
-REM Create npm package
-make.bat package
-
-REM Publish (dry-run)
-make.bat publish-dry
-
-REM Publish to npm
-make.bat publish
-
-REM See all available commands
-make.bat help
-```
-
-### Option 3: Using npm scripts directly
+### Option 2: Using npm scripts directly
 
 ```bash
 # Install dependencies
@@ -174,7 +149,6 @@ web-daterangepicker/
 ├── tsconfig.json             # TypeScript configuration
 ├── vite.config.ts            # Vite build configuration
 ├── Makefile                  # Build automation (Unix)
-├── make.bat                  # Build automation (Windows)
 └── README.md                 # Documentation
 ```
 
@@ -193,12 +167,7 @@ dist/
 
 ### Make command not found (Windows)
 
-Use `make.bat` instead:
-```cmd
-make.bat dev
-```
-
-Or use npm scripts:
+Run `make` from Git Bash (it ships with Git for Windows), or use npm scripts:
 ```bash
 npm run dev
 ```

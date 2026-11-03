@@ -1,0 +1,11 @@
+# Repo-specific Make targets (included by the devkit-generated Makefile).
+.PHONY: test-e2e-all update-deps install-dev
+
+test-e2e-all: ## Run e2e on chromium, firefox and webkit
+	npm run test:e2e:all
+
+update-deps: ## Update dependencies
+	npm update
+
+install-dev: ## Pack a tarball to install into another project (npm install <tgz>)
+	npm pack

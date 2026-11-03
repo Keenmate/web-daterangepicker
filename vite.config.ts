@@ -1,36 +1,11 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
-import { readFileSync } from 'fs';
+import { defineComponentConfig } from '@keenmate/web-components-devkit/vite';
 
-// Read package.json for build-time constants
-const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
-
-export default defineConfig({
-  server: {
-    port: 12200
+// Ports, lib output (dist/web-daterangepicker.js + .umd.js + style.css), build-time
+// constants and the examples site come from package.json#kmwc. Types are emitted by
+// `tsc` (npm run build), not the preset. Floating UI and core are bundled.
+export default defineComponentConfig({
+  overrides: {
+    // Dev dep-scan only the real pages and the e2e fixtures — not test-results/ etc.
+    optimizeDeps: { entries: ['index.html', 'examples-*.html', 'test/*.html'] },
   },
-  define: {
-    // Inject package.json data as build-time constants
-    '__VERSION__': JSON.stringify(pkg.version),
-    '__PACKAGE_NAME__': JSON.stringify(pkg.name),
-    '__AUTHOR__': JSON.stringify(pkg.author),
-    '__LICENSE__': JSON.stringify(pkg.license),
-    '__REPOSITORY__': JSON.stringify(pkg.repository.url),
-    '__HOMEPAGE__': JSON.stringify(pkg.homepage)
-  },
-  build: {
-    lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'WebDaterangepicker',  // UMD global name
-      formats: ['es', 'umd'],
-      fileName: (format) => `web-daterangepicker.${format === 'es' ? 'js' : 'umd.js'}`
-    },
-    rollupOptions: {
-      // Floating UI will be bundled into the component
-      external: [],
-      output: {
-        globals: {}
-      }
-    }
-  }
 });
