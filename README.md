@@ -237,6 +237,17 @@ Modern browsers with Web Components and CSS `color-mix()` support:
 - Firefox 113+
 - Safari 16.2+
 
+## About
+
+Authored and maintained by [Keenmate s.r.o.](https://keenmate.com/).
+The component ships standalone with sensible light/dark defaults;
+when mounted inside [Pure Admin](https://pureadmin.io/) — or any
+host that publishes the `--base-*` taxonomy via
+[`@keenmate/theme-designer`](https://www.npmjs.com/package/@keenmate/theme-designer) — it adopts the host's colors,
+typography, and sizing automatically. There is no runtime
+dependency on Pure Admin; the integration is opt-in via CSS
+variables.
+
 ## Built with BlissFramework
 
 Follows the [BlissFramework component guidelines](https://blissframework.dev/)
@@ -316,8 +327,3 @@ guides.
 
 MIT — see [LICENSE](./LICENSE) if present, otherwise the MIT terms
 apply by default per `package.json`.
-
-## Credits
-
-Extracted from the [Pure Admin](https://github.com/keenmate/pure-admin)
-design system.
