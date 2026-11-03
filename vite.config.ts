@@ -7,7 +7,7 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 export default defineConfig({
   server: {
-    port: 12300
+    port: 12200
   },
   define: {
     // Inject package.json data as build-time constants

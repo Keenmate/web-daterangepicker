@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Playwright config for end-to-end tests.
  *
  * Specs live in e2e/ and target dedicated fixture pages under test/*.html
- * (served by the vite dev server on port 12300). The fixture pages are
+ * (served by the vite dev server on port 12200). The fixture pages are
  * intentionally separate from the examples-*.html development pages so they
  * stay minimal and focused on the feature under test.
  *
@@ -27,7 +27,7 @@ export default defineConfig({
     reporter: process.env.CI ? 'github' : 'list',
 
     use: {
-        baseURL: 'http://localhost:12300',
+        baseURL: 'http://localhost:12200',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure'
@@ -62,7 +62,7 @@ export default defineConfig({
     // already-running `npm run dev` is fine.
     webServer: {
         command: 'npm run dev',
-        url: 'http://localhost:12300',
+        url: 'http://localhost:12200',
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,
         stdout: 'ignore',
