@@ -209,3 +209,45 @@ input heights across every KeenMate component on the page.
 No action required on subsequent validation runs unless the
 upstream taxonomy table changes; revisit if the BlissFramework
 guidelines drop these rows or the Theme Designer stops emitting them.
+
+---
+
+## C-TC-1 — `:host, :root` dual declaration (D-TC-7 = C)
+
+`src/css/variables.css` declares the `--drp-*` set on `:host, :root`, and its
+`prefers-reduced-motion` block (the one the auto-script flags) mirrors that
+selector. The `:root` half is for the **standalone engine path**:
+`DateRangePickerEngine` is a documented public entry (`docs/usage.md` →
+"JavaScript instantiation") that renders into light DOM with
+`dist/style.css` / `injectGlobalStyles()`. There is no shadow host there, so
+`:host` matches nothing; without `:root` every `--drp-*` read falls to its
+literal fallback, and the reduced-motion block would stop zeroing the
+transitions for those pickers. Its document-body fallback for tooltips
+(C-CS-10 above) is the same D-TC-7 = C portal case.
+
+The web-component path is unaffected by the `:root` copy: each picker's
+`:host` declaration is nearer than `:root`, so a `--base-*` wrapper around
+one picker still re-themes only that picker (C-TC-12). The script only flags the
+reduced-motion block because the main block's first declaration sits more than
+30 lines below its selector (header comment).
+
+---
+
+## C-RO-2 — the phone presentation is not a media query (D-RO-5 = B)
+
+The floating → modal → full-screen switch is core's `resolvePresentation`
+(`src/web-component.ts`, `resolvePresentation(mode, env, { tablet: 'modal' })`):
+device class from touch-primary + the shorter viewport side, so it is
+orientation-robust and driven from JS, not from a CSS breakpoint. There is no
+`@media (max-width: <phone>)` that decides the presentation, so there is no
+phone literal that could drift.
+
+The `max-width` queries the script finds are layout tiers inside a
+presentation, each written once per file:
+
+- `base.css` 1200 / 768 / 480 — grid month columns (3 → 2 → 1);
+- `modal.css` 1200 / 768 / 480 — the modal width per tier, the same
+  boundaries in the same desktop-first cascade (media queries can't read
+  variables, so the literals repeat; both files name each other);
+- `time-picker.css` 600 — stacking the calendar above the time picker in a
+  non-inline datetime popover.

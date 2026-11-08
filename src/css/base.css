@@ -144,7 +144,8 @@ web-daterangepicker:not(:defined) {
   width: 100%;
 }
 
-/* Responsive breakpoints for grid */
+/* Responsive breakpoints for grid — the same 1200 / 768 / 480 tiers as the modal
+   widths in modal.css (media queries can't read variables; keep the two in step). */
 @media (max-width: 1200px) {
   .drp__months--grid {
     grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 3), minmax(0, 1fr));

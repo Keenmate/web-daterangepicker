@@ -11,8 +11,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: calc(100vw - 2 * var(--drp-modal-gap));
-  max-height: calc(100vh - 2 * var(--drp-modal-gap));
+  max-width: calc(100dvw - 2 * var(--drp-modal-gap));
+  max-height: calc(100dvh - 2 * var(--drp-modal-gap));
   /* width: auto + the per-breakpoint @media widths below force a generous width so
      a multi-month grid has room (and `container-type: inline-size` — needed for the
      @container month-collapse queries — prevents content-based sizing, so an
@@ -62,31 +62,32 @@
    `base.css` and the Responsive Sizing demo. See `variables.css` for the defaults.
    NOTE: a single-month picker overrides all of these — see the rule below. */
 
-/* xs — small phones (≤ 480px) */
-@media (max-width: 480px) {
-  .drp__picker--modal {
-    width: var(--drp-modal-width-xs);
-  }
-}
+/* Desktop-first cascade, like the grid tiers in base.css: each narrower tier
+   overrides the wider one, so every boundary is written once. */
 
-/* sm — large phones / small tablets (481–768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .drp__picker--modal {
-    width: var(--drp-modal-width-sm);
-  }
+/* lg — desktops (≥ 1201px) */
+.drp__picker--modal {
+  width: var(--drp-modal-width-lg);
 }
 
 /* md — tablets / small desktops (769–1200px) */
-@media (min-width: 769px) and (max-width: 1200px) {
+@media (max-width: 1200px) {
   .drp__picker--modal {
     width: var(--drp-modal-width-md);
   }
 }
 
-/* lg — desktops (≥ 1201px) */
-@media (min-width: 1201px) {
+/* sm — large phones / small tablets (481–768px) */
+@media (max-width: 768px) {
   .drp__picker--modal {
-    width: var(--drp-modal-width-lg);
+    width: var(--drp-modal-width-sm);
+  }
+}
+
+/* xs — small phones (≤ 480px) */
+@media (max-width: 480px) {
+  .drp__picker--modal {
+    width: var(--drp-modal-width-xs);
   }
 }
 

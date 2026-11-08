@@ -783,7 +783,7 @@ picker.beforeMonthChangeCallback = (ctx) => {
 };
 ```
 
-**`getMonthDataCallback` result (`MonthData`):**
+**`getMonthDataCallback` result (`MonthDataResult`):**
 
 | Property | Type | Description |
 |---|---|---|

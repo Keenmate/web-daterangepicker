@@ -18,8 +18,8 @@
      height governs and the keyboard reflow works. */
   top: 0;
   inset-inline-start: 0;
-  width: 100vw;
-  max-width: 100vw;
+  width: 100dvw;
+  max-width: 100dvw;
   height: 100dvh;
   max-height: 100dvh;
   margin: 0;
@@ -31,9 +31,9 @@
 
   /* Keep the sheet's CONTENT inside the display's safe area. The axis that bites is
      LANDSCAPE: the Android nav bar sits on one side and a camera cutout / rounded corner
-     on the other, so a plain `width: 100vw` sheet runs its header, day grid, and summary
+     on the other, so a plain full-width (`100dvw`) sheet runs its header, day grid, and summary
      UNDER those system bars (edges clipped). `box-sizing: border-box` keeps the outer box
-     a full-bleed 100vw × 100dvh (BACKGROUND still edge-to-edge), while the safe-area
+     a full-bleed 100dvw × 100dvh (BACKGROUND still edge-to-edge), while the safe-area
      padding pulls the flex column into the visible region. `env(safe-area-inset-*)` is 0
      unless the host page sets `<meta name="viewport" content="… viewport-fit=cover">`, so
      this is a no-op on non-cutout / letterboxed pages — a fix where needed, never a
@@ -112,11 +112,7 @@
    class (set in JS when there is no title) floats the ✕ into the top-trailing corner,
    out of flow, so it sits in the month-navigation row right after the › button; the
    month header reserves trailing space so › clears it. When a title IS set, the
-   header keeps its own full-width row (no class). `--drp-fullscreen-close-slot` is the
-   horizontal space reserved for the ✕. */
-.drp__picker--fs-merged-header {
-  --drp-fullscreen-close-slot: calc(var(--drp-fullscreen-close-size) + 2 * var(--drp-fullscreen-header-gap));
-}
+   header keeps its own full-width row (no class). */
 
 /* Merged (title-less) mode has no header bar, so the nav row would otherwise hug
    the sheet's top edge. Add top padding on the SHEET (not the months area): the
@@ -155,10 +151,11 @@
 }
 
 /* Reserve room at the trailing edge of the month header(s) so the › nav button
-   doesn't collide with the floated ✕ (per-month header + unified-navigation header). */
+   doesn't collide with the floated ✕ (per-month header + unified-navigation header):
+   the ✕ chip plus the header gap on both sides of it. */
 .drp__picker--fs-merged-header .drp__header,
 .drp__picker--fs-merged-header .drp__unified-header {
-  padding-inline-end: var(--drp-fullscreen-close-slot);
+  padding-inline-end: calc(var(--drp-fullscreen-close-size) + 2 * var(--drp-fullscreen-header-gap));
 }
 
 /* The visible ✕ is a fixed-size chip. The defaults keep a bare round glyph, but the

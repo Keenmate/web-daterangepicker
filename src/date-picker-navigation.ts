@@ -6,7 +6,7 @@
  */
 
 import { runBeforeCallback } from '@keenmate/web-components-core';
-import type { MonthChangeContext, MonthData } from './types';
+import type { MonthChangeContext, MonthDataResult } from './types';
 import { navigationLogger } from './logger';
 import { showLoader, hideLoader } from './date-picker-ui';
 
@@ -90,7 +90,7 @@ function withLoader<A, R>(picker: any, fn: (arg: A) => R, state: { isLoading: bo
 }
 
 /** Run `getMonthDataCallback(ctx)` (sync or async); a throw is logged and yields no data. */
-async function loadMonthData(picker: any, ctx: MonthChangeContext, state: { isLoading: boolean }): Promise<MonthData | null> {
+async function loadMonthData(picker: any, ctx: MonthChangeContext, state: { isLoading: boolean }): Promise<MonthDataResult | null> {
     const fn = picker.options.getMonthDataCallback;
     if (!fn) return null;
     try {
@@ -123,7 +123,7 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
 
         const combinedMetadata = new Map<string, any>();
         const combinedMonthHeaders = new Map<string, string>();
-        const merge = (data: MonthData | null) => {
+        const merge = (data: MonthDataResult | null) => {
             data?.metadata?.forEach((value, key) => combinedMetadata.set(key, value));
             data?.monthHeaders?.forEach((value, key) => combinedMonthHeaders.set(key, value));
         };

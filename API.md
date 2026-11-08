@@ -291,7 +291,7 @@ When instantiating the engine (`DateRangePickerEngine`) directly (not using web 
 | `renderSummaryCallback` | `(ctx: SummaryContext) => string` | `undefined` | Render the summary display (receives all selection data + picker context, returns HTML string) |
 | `beforeSelectCallback` | `(ctx: BeforeSelectContext) => BeforeSelectResult \| Promise<…>` | `undefined` | Intercept a selection: nothing = accept, `false` = reject, `Date` / `DateRange` / `DateRange[]` = adjust, `null` = clear |
 | `beforeMonthChangeCallback` | `(ctx: MonthChangeContext) => void \| false \| Promise<…>` | `undefined` | `false` blocks the navigation |
-| `getMonthDataCallback` | `(ctx: MonthChangeContext) => MonthData \| null \| Promise<…>` | `undefined` | Bulk-load `metadata` / `monthHeaders` for the visible range |
+| `getMonthDataCallback` | `(ctx: MonthChangeContext) => MonthDataResult \| null \| Promise<…>` | `undefined` | Bulk-load `metadata` / `monthHeaders` for the visible range |
 | `actionButtons` | `(DateRangePickerActionItem \| 'today' \| 'now' \| 'clear' \| 'apply')[]` | built-ins | Footer action buttons (see [Action Buttons](#action-buttons)) |
 | `beforeActionCallback` | `(detail: DateRangePickerActionEventDetail) => void \| false \| Promise<…>` | `undefined` | `false` cancels an action click |
 
@@ -1274,7 +1274,7 @@ interface DatePickerOptions {
   // Interceptors
   beforeSelectCallback?: (ctx: BeforeSelectContext) => BeforeSelectResult | Promise<BeforeSelectResult>;
   beforeMonthChangeCallback?: (ctx: MonthChangeContext) => void | false | Promise<void | false>;
-  getMonthDataCallback?: (ctx: MonthChangeContext) => MonthData | null | void | Promise<MonthData | null | void>;
+  getMonthDataCallback?: (ctx: MonthChangeContext) => MonthDataResult | null | void | Promise<MonthDataResult | null | void>;
 
   // Action buttons
   actionButtons?: (DateRangePickerActionItem | 'today' | 'now' | 'clear' | 'apply')[];
@@ -1363,7 +1363,7 @@ interface BeforeSelectContext extends PickerContext {
 type BeforeSelectResult = void | false | null | Date | DateRange | DateRange[];
 ```
 
-### MonthChangeContext / MonthData
+### MonthChangeContext / MonthDataResult
 
 ```typescript
 interface MonthChangeContext extends PickerContext {
@@ -1374,7 +1374,7 @@ interface MonthChangeContext extends PickerContext {
   lastVisibleDate: Date;
 }
 
-interface MonthData {
+interface MonthDataResult {
   metadata?: Map<string, DayMetadata>;   // keyed 'YYYY-MM-DD'
   monthHeaders?: Map<string, string>;    // keyed 'YYYY-MM'
 }
@@ -1691,7 +1691,7 @@ The web component provides convenient property accessors for JavaScript:
 | `customStyles` | `string \| null` | Read/Write | Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `getCustomStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `getCustomStylesCallback` wins when both are set. |
 | `beforeSelectCallback` | `(ctx: BeforeSelectContext) => void \| false \| null \| Date \| DateRange \| DateRange[] \| Promise<…>` | Read/Write | Runs before a selection is committed. Return nothing to accept, `false` to reject (explain via `ctx.controller.showMessage`; `ctx.markRangeInvalid()` keeps a rejected range visible), a `Date` / `DateRange` / `DateRange[]` to adjust, or `null` to clear. May be async. |
 | `beforeMonthChangeCallback` | `(ctx: MonthChangeContext) => void \| false \| Promise<void \| false>` | Read/Write | Runs before month navigation; return `false` to block it. May be async. |
-| `getMonthDataCallback` | `(ctx: MonthChangeContext) => MonthData \| null \| Promise<MonthData \| null>` | Read/Write | Load data for the visible range (`metadata` per `YYYY-MM-DD`, `monthHeaders` per `YYYY-MM`) on the initial open and after each month navigation. May be async (a loader shows meanwhile). |
+| `getMonthDataCallback` | `(ctx: MonthChangeContext) => MonthDataResult \| null \| Promise<MonthDataResult \| null>` | Read/Write | Load data for the visible range (`metadata` per `YYYY-MM-DD`, `monthHeaders` per `YYYY-MM`) on the initial open and after each month navigation. May be async (a loader shows meanwhile). |
 | `beforeActionCallback` | `(detail: DateRangePickerActionEventDetail) => void \| false \| Promise<void \| false>` | Read/Write | Runs before any action button / `data-action` trigger; return `false` to cancel it entirely (no `onClick`, no `action` event, no built-in). May be async. |
 | `shouldDefer` | `boolean` | Read/Write | Hold the first build (core, SPEC §6.3): while set when the element first connects, nothing is built and every input, callback and listener assigned meanwhile accumulates; `release()` (or removing the attribute) then builds once. Latched after the first build. |
 | `themeSource` | `string \| Element \| null` | Read/Write | Where this element reads its theme from instead of the page (core, SPEC §12.10): a CSS selector (nearest matching ancestor, else the first match), `'closest'` (the nearest ancestor carrying a theme signal), or (property only) an `Element`. Unset = the page. |

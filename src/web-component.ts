@@ -52,7 +52,7 @@ import {
 import type {
   DatePickerOptions, DateRange, DecoratedDate, DayContext, DayMetadata, BeforeSelectResult,
   DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, DateRangePickerLabels,
-  BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthData, MonthChangeEventDetail,
+  BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthDataResult, MonthChangeEventDetail,
   ReadyEventDetail, OpenEventDetail, CloseEventDetail, SummaryContext, UnifiedHeaderContext, MonthHeaderContext, LoaderTarget, LockAspect,
   ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext, ShowMessageOptions, ValueFormatErrorEventDetail,
 } from './types';
@@ -189,7 +189,7 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   // ── Callbacks: before-hooks (behavior-shaping → update) ───────────────────
   { configKey: 'beforeSelectCallback',         converter: cb(), on: 'update', type: '(ctx: BeforeSelectContext) => void | false | null | Date | DateRange | DateRange[] | Promise<…>', description: 'Runs before a selection is committed. Return nothing to accept, `false` to reject (explain via `ctx.controller.showMessage`; `ctx.markRangeInvalid()` keeps a rejected range visible), a `Date` / `DateRange` / `DateRange[]` to adjust, or `null` to clear. May be async.' },
   { configKey: 'beforeMonthChangeCallback',    converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => void | false | Promise<void | false>', description: 'Runs before month navigation; return `false` to block it. May be async.' },
-  { configKey: 'getMonthDataCallback',         converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => MonthData | null | Promise<MonthData | null>', description: 'Load data for the visible range (`metadata` per `YYYY-MM-DD`, `monthHeaders` per `YYYY-MM`) on the initial open and after each month navigation. May be async (a loader shows meanwhile).' },
+  { configKey: 'getMonthDataCallback',         converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => MonthDataResult | null | Promise<MonthDataResult | null>', description: 'Load data for the visible range (`metadata` per `YYYY-MM-DD`, `monthHeaders` per `YYYY-MM`) on the initial open and after each month navigation. May be async (a loader shows meanwhile).' },
   { configKey: 'beforeActionCallback',         converter: cb(), on: 'update', type: '(detail: DateRangePickerActionEventDetail) => void | false | Promise<void | false>', description: 'Runs before any action button / `data-action` trigger; return `false` to cancel it entirely (no `onClick`, no `action` event, no built-in). May be async.' },
 ];
 

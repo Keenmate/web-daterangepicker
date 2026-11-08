@@ -219,8 +219,8 @@
        sm: 481px ≤ viewport ≤ 768px   (large phones / small tablets)
        md: 769px ≤ viewport ≤ 1200px  (tablets / small desktops)
        lg: viewport ≥ 1201px          (desktops) */
-  --drp-modal-width-xs: calc(100vw - 2 * var(--drp-modal-gap));   /* fill the viewport minus gap */
-  --drp-modal-width-sm: calc(100vw - 2 * var(--drp-modal-gap));   /* same — small screens want the room */
+  --drp-modal-width-xs: calc(100dvw - 2 * var(--drp-modal-gap));   /* fill the viewport minus gap */
+  --drp-modal-width-sm: calc(100dvw - 2 * var(--drp-modal-gap));   /* same — small screens want the room */
   --drp-modal-width-md: 900px;                                    /* desktop-ish: 2 columns comfortably, grid wraps to 2-col */
   --drp-modal-width-lg: 1100px;                                   /* wide desktop: 3 month columns, 2×3 grid renders as configured */
   --drp-modal-width-single: 360px;                                /* a lone single-month modal — natural width, normal-sized day cells */
@@ -730,7 +730,7 @@
      ========================================================================== */
   --drp-month-min-width: 280px;
   --drp-month-min-width-inline: 250px;
-  --drp-calendar-max-width: calc(100vw - 2rem);
+  --drp-calendar-max-width: calc(100dvw - 2rem);
 }
 
 /* Reduced motion: no transitions. The loader keeps turning, slower — the contract's

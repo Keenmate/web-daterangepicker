@@ -14,12 +14,12 @@ export type { PresentationContext, Presentation };
 export interface PickerContext extends ComponentContext<DateRangePickerController>, PresentationContext {}
 
 /** Feedback message severity. */
-export type MessageType = 'error' | 'warning' | 'info' | 'success';
+export type MessageSeverity = 'error' | 'warning' | 'info' | 'success';
 
 /** Options for {@link DateRangePickerController.showMessage}. */
 export interface ShowMessageOptions {
   /** Severity styling; omit for raw-HTML content (custom message). */
-  type?: MessageType;
+  type?: MessageSeverity;
   /** Auto-hide after this many ms; omit / 0 to keep it until dismissed. */
   autoHideMs?: number;
 }
@@ -178,7 +178,7 @@ export type BeforeMonthChangeResult = void | false;
  * Data `getMonthDataCallback` loads for the visible range (sync or async — a
  * loader shows while a Promise is pending).
  */
-export interface MonthData {
+export interface MonthDataResult {
   /**
    * Metadata for dates in the visible range, keyed `YYYY-MM-DD`. Cached and used
    * instead of calling `getDateMetadataCallback` per date.
@@ -685,7 +685,7 @@ export interface DatePickerOptions {
    *   return { metadata: new Map(days.map(d => [d.date, { isDisabled: d.available === 0, badgeText: `$${d.price}` }])) };
    * }
    */
-  getMonthDataCallback?: (ctx: MonthChangeContext) => MonthData | null | void | Promise<MonthData | null | void>;
+  getMonthDataCallback?: (ctx: MonthChangeContext) => MonthDataResult | null | void | Promise<MonthDataResult | null | void>;
 }
 
 /**

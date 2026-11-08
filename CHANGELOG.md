@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — two exported type names (**BREAKING**, type-only, 2026-11-04)
+- `MessageType` → `MessageSeverity` (`ShowMessageOptions.type`), `MonthData` → `MonthDataResult` (the
+  `getMonthDataCallback` result). The shapes are unchanged; only TypeScript imports need the new names. No
+  aliases are kept: the rulebook's closed suffix set forbids `*Type` / `*Data` export names.
+
+### Fixed — modal and calendar sizing use dynamic viewport units (2026-11-04)
+- The modal's `max-height` was `100vh - gap`. On mobile, `vh` includes the area behind the URL bar, so a tall
+  modal's Apply row could sit under it. It is now `100dvh`. The full-screen sheet's width, the modal
+  `max-width` / xs–sm widths and `--drp-calendar-max-width` use `dvw` too.
+- `--drp-fullscreen-close-slot` is gone. It was set on an internal class, so a value on the host never
+  reached it. The title-less full-screen header now reserves `--drp-fullscreen-close-size` + 2 ×
+  `--drp-fullscreen-header-gap` directly (same result). The modal width tiers are a desktop-first
+  `max-width` cascade (same widths at every viewport).
+
 ### Internal — examples site on @keenmate/web-components-devkit (2026-11-03)
 - The 11 example pages are devkit fragment pages and `index.html` renders from the page registry
   (`renderExamplesIndex`); the devkit adds the header, chapter nav, copy-links, theme switch (light / dark /

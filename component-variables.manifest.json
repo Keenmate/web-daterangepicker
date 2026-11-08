@@ -446,7 +446,6 @@
     { "name": "drp-fullscreen-close-bg-hover", "category": "fullscreen", "usage": "Full-screen close button hover background" },
     { "name": "drp-fullscreen-close-border", "category": "fullscreen", "usage": "Full-screen close button border" },
     { "name": "drp-fullscreen-close-border-radius", "category": "fullscreen", "usage": "Full-screen close button border radius" },
-    { "name": "drp-fullscreen-close-edge-nudge", "category": "fullscreen", "usage": "Negative margin nudging the close button toward the overlay edge" },
-    { "name": "drp-fullscreen-close-slot", "category": "fullscreen", "usage": "Reserved space for the close button, keeping the title centered (composed from close size + header gap)" }
+    { "name": "drp-fullscreen-close-edge-nudge", "category": "fullscreen", "usage": "Negative margin nudging the close button toward the overlay edge" }
   ]
 }

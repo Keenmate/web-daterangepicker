@@ -48,9 +48,9 @@ export type {
     // Element config + responsive rules (core SPEC §6.7)
     DateRangePickerConfig, DateRangePickerResponsiveMap, DateRangePickerResponsiveCallback, Presentation,
     // Shared callback/event context vocabulary
-    PickerContext, DateRangePickerController, ShowMessageOptions, MessageType, PresentationContext,
+    PickerContext, DateRangePickerController, ShowMessageOptions, MessageSeverity, PresentationContext,
     DayContext, MonthHeaderContext, UnifiedHeaderContext, SummaryContext,
-    BeforeSelectContext, BeforeSelectResult, MonthChangeContext, BeforeMonthChangeResult, MonthData,
+    BeforeSelectContext, BeforeSelectResult, MonthChangeContext, BeforeMonthChangeResult, MonthDataResult,
     // Action buttons (core ActionItem)
     DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail,
     // Event details
