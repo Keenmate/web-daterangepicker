@@ -31,13 +31,13 @@ import {
   toObjectArray,
   toValue,
   adoptStyles,
-  createStyleSlot,
+  createCustomStyles,
   extractConsumedCssVars,
   lintCssVars,
   getEnvironment,
   resolvePresentation,
   type InputDef,
-  type StyleSlot,
+  type CustomStylesHandle,
   type EnvironmentSnapshot,
   type ElementSize,
   type Presentation,
@@ -50,6 +50,7 @@ import {
   type FormValueFormat, type FormValueSelection, type FormValueItem, type FormValueWriteOptions,
 } from './form-value';
 import type {
+  DateRangePickerConfig,
   DatePickerOptions, DateRange, DecoratedDate, DayContext, DayMetadata, BeforeSelectResult,
   DateRangePickerActionItem, DateRangePickerActionEventDetail, DateRangePickerController, DateRangePickerLabels,
   BeforeSelectContext, MonthChangeContext, BeforeMonthChangeResult, MonthDataResult, MonthChangeEventDetail,
@@ -82,6 +83,11 @@ const PICKER_MODES = ['date', 'time', 'datetime'] as const;
 const HOUR_CYCLES = ['h12', 'h24'] as const;
 const TIME_DISPLAYS = ['rolls', 'clock', 'wheel', 'compact'] as const;
 const VALUE_FORMATS = ['text', 'json', 'array'] as const;
+const INPUT_SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
+const PLACEMENTS = [
+  'top', 'top-start', 'top-end', 'right', 'right-start', 'right-end',
+  'bottom', 'bottom-start', 'bottom-end', 'left', 'left-start', 'left-end',
+] as const;
 
 /** Any callback input. */
 const cb = (): ReturnType<typeof toFunction> => toFunction();
@@ -110,7 +116,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ default: 'YYYY-MM-DD' }), on: 'update', description: 'The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any separators). Not the submitted value — see `value-format` / `value-format-mask`. Not the placeholder hint — see `placeholder-format-mask`.' },
   { configKey: 'placeholderFormatMask',        attribute: 'placeholder-format-mask',       converter: toText({ isNullable: true }), on: 'update', description: 'The date part of the input PLACEHOLDER hint (when no explicit `placeholder`) — a localized form of the mask, e.g. `dd.mm.rrrr`; unset falls back to `date-format-mask`. Only the hint: the shown text follows `date-format-mask`, the submitted value `value-format`. `range` mode doubles it around " - " (`dd.mm.rrrr - dd.mm.rrrr`); `datetime` appends the time hint (`placeholder-time-format-mask`).' },
   { configKey: 'isUnifiedHeaderInteractive',   attribute: 'unified-header-interactive',    converter: toBool('default-false'), on: 'update', description: 'Make the unified grid header clickable (opens the rolling selector).' },
-  { configKey: 'calendarPlacement',            attribute: 'calendar-placement',            converter: toText({ isNullable: true }), on: 'update', description: 'Floating-UI placement for the popover (default `bottom-start`).' },
+  { configKey: 'calendarPlacement',            attribute: 'calendar-placement',            converter: toEnum(PLACEMENTS, { isNullable: true }), on: 'update', description: 'Where the floating calendar opens next to the input: `top` | `right` | `bottom` | `left`, each optionally `-start` / `-end` (flips when it doesn\'t fit). Unset = `bottom-start`. Read at each open.' },
   { configKey: 'weekStartDay',                 attribute: 'week-start-day',                converter: toWeekStartDay(), on: 'update', type: "'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6", description: 'First column of the week: `auto` (locale) or a weekday index 0 (Sunday)–6 (Saturday).' },
   { configKey: 'minDate',                      attribute: 'min-date',                      converter: toText({ isNullable: true }), on: 'update', description: 'Earliest selectable date (ISO string).' },
   { configKey: 'maxDate',                      attribute: 'max-date',                      converter: toText({ isNullable: true }), on: 'update', description: 'Latest selectable date (ISO string).' },
@@ -163,7 +169,7 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
   { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks.' },
-  { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toText({ default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating only).' },
+  { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toEnum(INPUT_SIZES, { default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating only).' },
   { configKey: 'presentation',                 attribute: 'presentation',                  converter: toEnum(PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker opens (SPEC §12.9, via web-components-core). `auto` (default) follows the device: the floating popover on desktop, a centered `modal` on tablets, a full-screen sheet on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating` / `modal` / `fullscreen` force that presentation on any device. Ignored when `positioning-mode` is `inline`. Resolved reactively from the device/viewport environment; tune it per device class with the core `responsive` rules.' },
   { configKey: 'shouldFullscreenAutofocus',    attribute: 'fullscreen-autofocus',          converter: toBool('default-false'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
   { configKey: 'isFullscreenInputShown',       attribute: 'show-fullscreen-input',         converter: toBool('default-false'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
@@ -183,8 +189,8 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   { configKey: 'renderLoadingCallback',        converter: cb(), on: 'update', type: '(ctx: LoaderRenderContext) => void | (() => void)', description: 'Draw every loader (`showLoader()` targets, the one around async callbacks): fill `ctx.containerElement` (`ctx.context` = `calendar` | `message` | `summary`), optionally return a cleanup. Beats the page-wide `window.components.renderLoadingCallback`; unset = that, else the default `.drp__loader` (the shared `--base-loader-*` contract). Property-only.' },
   { configKey: 'getUnifiedHeaderCallback',     converter: cb(), on: 'update', type: '(ctx: UnifiedHeaderContext) => string', description: 'Render the unified grid header label.' },
   { configKey: 'getMonthHeaderCallback',       converter: cb(), on: 'update', type: '(ctx: MonthHeaderContext) => string', description: 'Render a per-column month header label.' },
-  { configKey: 'getCustomStylesCallback',      converter: cb(), on: 'update', type: '(ctx: PickerContext) => string | null', description: 'Return a CSS string injected into the component via a replaceable style slot (§12.8). Takes precedence over the `custom-styles` attribute when both are set.' },
-  { configKey: 'customStyles',                 attribute: 'custom-styles',                 converter: toText({ isNullable: true }), on: 'update', description: 'Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `getCustomStylesCallback`. The value is a full stylesheet (selectors and all), dropped verbatim into the same replaceable style slot. `getCustomStylesCallback` wins when both are set.' },
+  { configKey: 'getCustomStylesCallback',      converter: cb(), on: 'update', type: '(ctx: PickerContext) => string | null', description: 'Return a CSS string injected into the Shadow DOM (core `createCustomStyles`, after the page-wide `window.components[\'web-daterangepicker\'].customStyles` layer, so it overrides it). Wins over `custom-styles` when both are set. An `@import` is also linked in the document head (fonts). Raw CSS: never pass untrusted input. Property-only.' },
+  { configKey: 'customStyles',                 attribute: 'custom-styles',                 converter: toText({ isNullable: true }), on: 'update', description: 'Raw CSS injected into the Shadow DOM — the declarative, no-JS alternative to `getCustomStylesCallback` (a full stylesheet, selectors and all, inserted verbatim after the page-wide layer). `getCustomStylesCallback` wins when both are set. Never pass untrusted input.' },
 
   // ── Callbacks: before-hooks (behavior-shaping → update) ───────────────────
   { configKey: 'beforeSelectCallback',         converter: cb(), on: 'update', type: '(ctx: BeforeSelectContext) => void | false | null | Date | DateRange | DateRange[] | Promise<…>', description: 'Runs before a selection is committed. Return nothing to accept, `false` to reject (explain via `ctx.controller.showMessage`; `ctx.markRangeInvalid()` keeps a rejected range visible), a `Date` / `DateRange` / `DateRange[]` to adjust, or `null` to clear. May be async.' },
@@ -283,7 +289,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   // Positioned wrapper around the visible input + its inline ✕ clear button.
   #inputWrapper?: HTMLDivElement;
   #inputClearButton?: HTMLButtonElement;
-  #customStyles: StyleSlot | null = null;
+  #customStyles: CustomStylesHandle | null = null;
   // Dev-mode custom-styles lint: `--drp-*` names already warned about, so a
   // re-apply (or a reactive update) doesn't re-spam the console.
   #customStyleVarsWarned = new Set<string>();
@@ -312,8 +318,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#shadow = this.attachShadow({ mode: 'open' });
     // §12.8: static shell CSS via one shared, cached CSSStyleSheet (per string).
     adoptStyles(this.#shadow, styles);
-    // Per-instance replaceable slot for getCustomStylesCallback CSS.
-    this.#customStyles = createStyleSlot(this.#shadow, { cssClass: 'drp-custom-styles' });
   }
 
   // ── core lifecycle hooks ──────────────────────────────────────────────────
@@ -350,7 +354,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // The masks feed the derived placeholder hint (no-op for an explicit placeholder).
     if ('placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
       || 'dateFormatMask' in partial || 'timeFormatMask' in partial) this.#applyPlaceholder();
-    if ('getCustomStylesCallback' in partial || 'customStyles' in partial) this.#applyCustomStyles();
+    if ('getCustomStylesCallback' in partial || 'customStyles' in partial) this.#customStyles?.refresh();
     if ('presentation' in partial && this.#picker) {
       // Presentation policy changed at runtime — the environment observable won't
       // re-fire on its own, so re-resolve against the current environment now.
@@ -408,6 +412,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    */
   protected override disabledChanged(isDisabled: boolean): void {
     if (this.#inputElement && this.#inputElement.type !== 'hidden') this.#inputElement.disabled = isDisabled;
+    // Native semantics (core SPEC §6.4): a disabled control's value is not submitted.
+    for (const input of this.#hiddenInputs) input.disabled = isDisabled;
     this.#updateInputClear();
   }
 
@@ -421,6 +427,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#picker = undefined;
     for (const el of this.#hiddenInputs) el.remove();
     this.#hiddenInputs = [];
+    this.#customStyles?.destroy();
+    this.#customStyles = null;
   }
 
   /**
@@ -787,6 +795,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * submission. Children of the host so they sit inside the `<form>`. `array`
    * format emits one `name[]` input per value; the others emit a single `name`
    * input (empty string when nothing is selected). No `name` → no participation.
+   * The inputs are `disabled` while the control is (not submitted, like a native one).
    */
   #renderHiddenInputs(format: FormValueFormat, values: string[]): void {
     for (const el of this.#hiddenInputs) el.remove();
@@ -801,6 +810,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       input.type = 'hidden';
       input.name = inputName;
       input.value = value;
+      // A disabled control (own `disabled` or a disabled <fieldset>) submits nothing.
+      input.disabled = this.isEffectivelyDisabled;
       this.appendChild(input);
       this.#hiddenInputs.push(input);
     }
@@ -840,26 +851,23 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if (size && size !== 'md') input.classList.add(`drp__input--${size}`);
   }
 
+  /**
+   * Custom CSS, the canonical core adoption (rulebook C-CA-15): the page layer
+   * (`window.components['web-daterangepicker'].customStyles` / `.getCustomStylesCallback`)
+   * then the instance layer (`custom-styles` / `getCustomStylesCallback`, the callback
+   * wins). Created on the first build (writes both layers), refreshed per build.
+   */
   #applyCustomStyles(): void {
-    const slot = this.#customStyles;
-    if (!slot) return;
-    // The JS callback wins when both are set; the `custom-styles` attribute is the
-    // declarative, no-JS fallback. Either resolves to a CSS string for the slot.
-    const callback = this.config.getCustomStylesCallback as ((ctx: PickerContext) => string | null | undefined) | null | undefined;
-    const staticCss = (this.config.customStyles as string | null | undefined) ?? null;
-    if (typeof callback !== 'function') {
-      slot.set(staticCss);
-      if (import.meta.env?.DEV && staticCss) this.#checkCustomStyleVars(staticCss);
-      return;
-    }
-    try {
-      const css = callback(this.withContext({}) as unknown as PickerContext);
-      slot.set(css);
-      if (import.meta.env?.DEV && css) this.#checkCustomStyleVars(css);
-    } catch (e) {
-      this.log.UI.warn('getCustomStylesCallback threw', e);
-      slot.clear();
-    }
+    if (this.#customStyles) return this.#customStyles.refresh();
+    this.#customStyles = createCustomStyles<PickerContext>(this, this.#shadow, { // writes both layers now
+      cssClass: 'drp-custom-styles',
+      getContext: () => this.withContext({}) as unknown as PickerContext,
+      getInstanceStyles: () => ({
+        css: this.config.customStyles as string | null | undefined,
+        callback: this.config.getCustomStylesCallback as ((ctx: PickerContext) => string | null | undefined) | null | undefined,
+      }),
+      onApply: (css) => { if (import.meta.env?.DEV) this.#checkCustomStyleVars(css); },
+    });
   }
 
   /**
@@ -1261,9 +1269,10 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   }
 }
 
-// Importing this module registers the element (back-compat contract). The full
-// global-API publish + logger-bundle wiring happens in index.ts via
-// registerComponent(); both defines are idempotent, so importing either works.
-if (typeof customElements !== 'undefined' && !customElements.get('web-daterangepicker')) {
-  customElements.define('web-daterangepicker', WebDaterangepickerElement);
-}
+// Every input row as a typed property (`el.selectionMode`, `el.isDisabled`, …): core
+// installs them at runtime, this declaration merge types them (rulebook C-CA-16).
+// `DateRangePickerConfig` lists exactly the input rows.
+export interface WebDaterangepickerElement extends DateRangePickerConfig {}
+
+// The tag is defined by `registerComponent()` in the package entry (index.ts), which
+// also publishes `window.components['web-daterangepicker']` and the logging bundle.

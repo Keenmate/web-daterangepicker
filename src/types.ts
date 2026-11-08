@@ -2,6 +2,7 @@ import type {
   ComponentContext, PresentationContext, RenderLoaderCallback, Presentation, ResponsiveMap, ResponsiveCallback,
 } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
+import type { Placement } from '@keenmate/web-components-core/positioning';
 import type { FormValueSelection } from './form-value';
 
 export type { PresentationContext, Presentation };
@@ -211,11 +212,19 @@ export type DateRangePickerActionItem = ActionItem<PickerContext, DateRangePicke
 export type DateRangePickerActionEventDetail = ActionEventDetail<PickerContext, DateRangePickerAction>;
 
 /**
- * The `<web-daterangepicker>` element's configuration (`el.config`): the engine
- * options plus the element-level inputs (form value, input shell, presentation,
- * custom styles). Keys are the inputs' configKeys.
+ * Engine options the element wires itself (event bridges, host, controller, writing
+ * direction, mount container) — not element inputs.
  */
-export interface DateRangePickerConfig extends DatePickerOptions {
+type EngineOnlyOption = 'onChange' | 'onAction' | 'onMonthChange' | 'onOpen' | 'onClose'
+  | 'hostElement' | 'controller' | 'isRtl' | 'container';
+
+/**
+ * The `<web-daterangepicker>` element's configuration (`el.config`, and every input
+ * as a typed property on the element): exactly the input rows — the engine options
+ * minus the engine-only wiring, plus the element-level inputs (form value, input
+ * shell, presentation, custom styles). Keys are the inputs' configKeys.
+ */
+export interface DateRangePickerConfig extends Omit<DatePickerOptions, EngineOnlyOption> {
   /** How a `floating` picker opens: `auto` (device ladder) | `floating` | `modal` | `fullscreen`. */
   presentation?: Presentation;
   /** The initial / default value (the `value` attribute). */
@@ -224,7 +233,7 @@ export interface DateRangePickerConfig extends DatePickerOptions {
   isDisabled?: boolean;
   isReadonly?: boolean;
   /** `xs` | `sm` | `md` | `lg` | `xl`. */
-  inputSize?: string;
+  inputSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   compactBelow?: number | null;
   name?: string | null;
   valueFormat?: 'text' | 'json' | 'array';
@@ -301,7 +310,7 @@ export interface DatePickerOptions {
    */
   timeDisplay?: TimeDisplay;
   /** Floating-UI placement for the popover (e.g. 'bottom-start', 'top-end'). Default: 'bottom-start', flipping/shifting on viewport overflow. */
-  calendarPlacement?: string;
+  calendarPlacement?: Placement | null;
   /** Number of month columns shown side by side. Default: 1. */
   visibleMonthCount?: number;
   /**
