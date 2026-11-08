@@ -7,6 +7,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — core 1.0.0-rc20 alignment (**BREAKING**, 2026-11-09)
+- **Depends on `@keenmate/web-components-core@^1.0.0-rc20`** (was `^1.0.0-rc15`).
+- **`showMessage(content, { variant })`** — the message kind is `variant` with the
+  `--base-*` contract's role names (`info` | `success` | `warning` | `danger`; rulebook
+  C-NC-13, the same as web-multiselect): `{ type: 'error' }` → `{ variant: 'danger' }`,
+  `ShowMessageOptions.type` → `variant`, the exported type `MessageSeverity` →
+  `MessageVariant`, the class `.drp__message--error` → `.drp__message--danger` and the
+  tokens `--drp-message-error-bg` / `-color` / `-border` → `--drp-message-danger-*`.
+  No aliases.
+- **The default loader is `.drp__loader`** (core rc18 renamed its default
+  `<prefix>-loader` class). The component's CSS still styled `.drp-loader`, so the
+  default loader had been an empty, unstyled span since the core upgrade; page CSS
+  that targets `.drp-loader` must follow. The `--drp-loader-*` tokens and the
+  `drp-loader-spin` keyframes keep their names. The page-wide hook is
+  `window.components.renderLoadingCallback` (the docs still said `renderLoaderCallback`).
+- **`input-size` and `calendar-placement` are closed sets** (`toEnum`): an unknown
+  value is refused (warns, `input-rejected`, keeps the previous one) instead of
+  adding a `drp__input--<anything>` class / reaching the positioning engine.
+  `calendar-placement` stays nullable (unset = `bottom-start`).
+- **Malformed `week-start-day`, `disabled-weekdays`, `month-names`, `weekday-names`
+  are refused through core** (warn + `input-rejected`, the previous value stays). They
+  were dropped silently or warned on the component's own logger; `disabled-weekdays`
+  with one bad segment (`"1,9"`) used to keep the good ones and is now refused whole.
+- **Close on scroll follows core's popover rule:** only a scroll that moves the input
+  (the page, or a scroll container around the picker) closes the floating calendar —
+  a scroll of an unrelated panel elsewhere on the page no longer does. Escape closes
+  one level per press: while a compact time field is being edited, Escape reverts the
+  edit and keeps the calendar open (it used to close it too).
+- **`DateRangePickerConfig` lists exactly the element's inputs** (type-only): the
+  engine wiring (`onChange` / `onAction` / `onMonthChange` / `onOpen` / `onClose`,
+  `hostElement`, `controller`, `isRtl`, `container`) is no longer part of it — those
+  stay on `DatePickerOptions` for the standalone engine. `calendarPlacement` is typed
+  as core's `Placement`, `inputSize` as `'xs' | 'sm' | 'md' | 'lg' | 'xl'`.
+- **The tag is defined by `registerComponent()` in the package entry only**; importing
+  `web-component.ts` on its own no longer defines it (the package exports only the entry).
+
+### Added — core 1.0.0-rc20 alignment (2026-11-09)
+- **Page-wide custom CSS.** `window.components['web-daterangepicker'].customStyles`
+  (a CSS string; an `@import url(…)` works — one file for every picker) or
+  `.getCustomStylesCallback(ctx)` (per picker, from its context) styles every picker on
+  the page; a picker's own `custom-styles` / `getCustomStylesCallback` comes after it
+  and wins. Assigning it updates every live picker. An `@import`ed font is also linked
+  in the document head, so icon fonts work inside the shadow root. Demo: theming TH27.
+- **Typed input properties:** every input is a typed property on
+  `WebDaterangepickerElement` (`el.selectionMode`, `el.isDisabled`, `el.inputSize`, …;
+  a wrong enum value or an unknown property is a TypeScript error).
+
+### Fixed — core 1.0.0-rc20 alignment (2026-11-09)
+- **A disabled picker no longer submits its value.** The light-DOM hidden form inputs
+  are `disabled` while the picker is (its own `disabled` or a disabled `<fieldset>`),
+  like a native control; enabled again, it submits.
+- **`week-start-day="auto"` follows the `locale` input.** It read the browser language
+  even with `locale` set (`locale="de"` started the week on Sunday in an en-US browser);
+  a live `locale` change moves it too.
+- **The page scroll lock is core's `lockBodyScroll()`** (modal / full-screen sheet):
+  shared with every KeenMate component on the page, it pins the body (iOS touch scroll
+  included) and clamps `<html>` `overflow-x`, so a page wider than the phone no longer
+  zooms out and shrinks the sheet.
+- **The resize close no longer leaks.** A module-level resize handler was shared by
+  every picker, so a second floating picker could leave the first one's listener behind.
+- **Keyboard navigation scrolls only the calendar.** The focused day is brought into
+  view with core `scrollIntoContainer()` (the one scroll container around it) instead of
+  `scrollIntoView()`, which also scrolled the page behind a floating calendar.
+- **Safari:** `-webkit-user-select` next to `user-select`, so the calendar's text
+  selection suppression (drag across days) and the summary's opt-in apply there too.
+- A page control that calls `el.open()` while the calendar is open keeps it open
+  through its click (core decides the outside click when the click ends).
+
+### Internal — core 1.0.0-rc20 alignment (2026-11-09)
+- The calendar is a core `createPopover()` (kept mounted, anchored only when floating):
+  the overlay tree (group exclusivity, nested overlays, Escape, outside click), the
+  scroll / resize close and the anchoring are core's. Removed the own scroll-event
+  manager, outside-click close, Escape handler, `clearFloatingGeometry`, the
+  `registerOverlay` wiring and the own body-overflow lock. `driftCallback` → `onDrift`,
+  `PointerType` → `PointerAccuracy` (core renames).
+- Custom CSS is the canonical core adoption (`createCustomStyles`, rulebook C-CA-15);
+  the dev-only `--drp-*` typo lint runs through its `onApply`.
+- `DateRangePickerEngine.injectGlobalStyles()` adopts the stylesheet with core
+  `adoptStyles(document)` (idempotent; `force` is ignored); hover detection reads
+  core `getEnvironment().canHover`.
+- e2e: Chromium + Firefox + WebKit. Engine-conditioned skips: the phone action-buttons
+  spec needs Chromium's `--blink-settings`; the overscroll-behavior check is skipped
+  where the engine lacks it (Playwright WebKit on Windows). WebKit fires `focus` before
+  it scrolls the input into view, so its "close-on-scroll ignores the opening scroll"
+  test is an expected failure until core settles it (reported to core).
+- `VALIDATION-NOTES.md`: C-BV-6 (`--drp-fullscreen-input-font-size` is an input variable).
+
 ### Changed — two exported type names (**BREAKING**, type-only, 2026-11-04)
 - `MessageType` → `MessageSeverity` (`ShowMessageOptions.type`), `MonthData` → `MonthDataResult` (the
   `getMonthDataCallback` result). The shapes are unchanged; only TypeScript imports need the new names. No

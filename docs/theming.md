@@ -351,6 +351,28 @@ single-colour mask shape in `--drp-loader-color` (the accent).
 
 Set `--base-loader-*` on `:root` to change every KeenMate component at once; anything
 richer than one colour → `window.components.renderLoadingCallback` / `renderLoadingCallback`.
+The default loader element is `<span class="drp__loader">`.
+
+## Custom CSS (shadow root)
+
+Rules that reach inside the shadow root (a `dayClass`, a badge, a footer button) go in as
+raw CSS, in two layers (core `createCustomStyles()`):
+
+1. the **page layer**, for every picker on the page —
+   `window.components['web-daterangepicker'].customStyles` (a CSS string; an
+   `@import url('/css/drp-days.css')` works: one file for all pickers) or
+   `window.components['web-daterangepicker'].getCustomStylesCallback(ctx)` (per picker,
+   from its context; wins over `customStyles`);
+2. the picker's **own** layer — the `custom-styles` attribute / `customStyles` property or
+   `getCustomStylesCallback(ctx)` (wins over the attribute). It comes after the page layer,
+   so it overrides it.
+
+Assigning either layer updates the live pickers. An `@import` is also linked once in the
+document `<head>` (Chromium ignores `@font-face` inside a shadow root, so an icon font would
+not load otherwise); `window.components.shouldHoistImports = false` turns that off for a page
+that loads its fonts itself. The component's own CSS sits in `@layer component`, so any custom
+rule wins without `!important`. The CSS is inserted verbatim — never pass untrusted input.
+Demo: theming page, TH27.
 
 ## See also
 

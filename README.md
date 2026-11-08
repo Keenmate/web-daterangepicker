@@ -11,6 +11,12 @@ mode out of the box.
 > you must sanitize it yourself. See [HTML Injection (XSS) Notice](#html-injection-xss-notice)
 > for the complete list of affected callbacks and methods.
 
+## What's New in v2.0.0-rc07
+
+- **Aligned with `@keenmate/web-components-core` 1.0.0-rc20** — the floating calendar is a core popover (the shared overlay tree: one open overlay per group, Escape one level per press, outside click decided when the click ends; only a scroll that moves the input closes it), the modal / full-screen sheet uses the shared page scroll lock (it also stops a wide page from zooming the phone sheet out), and keyboard navigation scrolls only the calendar, never the page.
+- **Page-wide custom CSS** — `window.components['web-daterangepicker'].customStyles` (or `.getCustomStylesCallback(ctx)`) styles every picker on the page, an `@import` included; a picker's own `custom-styles` / `getCustomStylesCallback` overrides it. Every input is now a typed property on the element.
+- **Fixes** — a disabled picker no longer submits its value; `week-start-day="auto"` follows the `locale` input; the default loader is styled again (`.drp__loader`); malformed attributes are refused through core's `input-rejected`. **BREAKING:** `showMessage(content, { variant: 'danger' })` replaces `{ type: 'error' }` (`info` | `success` | `warning` | `danger`), and `input-size` / `calendar-placement` refuse unknown values — see the CHANGELOG.
+
 ## What's New in v2.0.0-rc06
 
 - **One loader for every KeenMate component** — every loading state (`showLoader('calendar' | 'message' | 'summary')`, async callbacks) now draws through the shared core loader: the new `renderLoadingCallback` property, else the page-wide `window.components.renderLoadingCallback`, else the default shape from the `--base-loader-*` tokens (`--drp-loader-icon` / `-rotate` / `-duration` / `-size`). The loader is `role="status"` with `labels.loading` as its accessible label. **BREAKING:** the border-ring spinner tokens are gone — see the CHANGELOG.
@@ -18,14 +24,6 @@ mode out of the box.
 - **Form integration — submit selections in a `<form>` with just a `name`, like a native control** — `<web-daterangepicker>` now participates in forms the way `<web-multiselect>` does: give it a `name` and it renders a light-DOM hidden `<input>` inside the form carrying the selection, clears on `form.reset()`, and exposes `el.form` / `event.target.form` so frameworks that delegate form changes by reading `target.form` (Phoenix LiveView's `phx-change`) resolve the parent form. It replaces the earlier `ElementInternals.setFormValue` approach, which silently submitted nothing for inline pickers (they have no visible input); the hidden-input model works uniformly across `inline`, `floating`, and `modal`. The submitted value is stable ISO-8601, independent of `date-format-mask` / `display-format-mask`, so a locale display mask never leaks into your form data. Requires `@keenmate/web-components-core` ≥ 1.0.0-rc02 (the `el.form` getter).
 
 - **Definable submission format — `value-format`, `getValueFormatCallback`, and disabled-day awareness** — a new `value-format` attribute (`iso` | `json` | `array`) chooses how the selection serializes: one field (`2026-06-15`, or a `start/end` interval for a range), `JSON.stringify` of the selection, or multiple `name[]` inputs (a range flattens to `start`, `end`). The `getValueFormatCallback` property takes full control, receiving a normalized ISO snapshot and returning the field value. Crucially the value reflects the *real* selection under `disabled-dates-handling`: a range split across disabled days (`split`) submits each sub-range rather than the whole envelope, and `individual` / `block` submit the enabled days — so disabled days in a gap are never submitted.
-
-## What's New in v2.0.0-rc04
-
-- **Editor autocomplete — full IntelliSense for `<web-daterangepicker>` in VS Code and JetBrains** — the package now generates and publishes a Custom-Elements-Manifest (`custom-elements.json`) plus editor-integration artifacts (`web-types.json`, `vscode.html-custom-data.json`), so dropping the element into an HTML file gives you tag completion, all 56 attributes, enum value completion (typing `selection-mode="` offers `single` / `range` / `multiple`), and hover documentation. VS Code picks it up via `html.customData`; JetBrains IDEs auto-discover it through the `web-types` package.json field. Generation is wired into `npm run build`, so the manifest tracks the source and can't go stale.
-
-- **Zero-drift manifest — attributes derived straight from the runtime attribute table** — the element's entire attribute surface lives in one place (`ATTRIBUTE_TABLE`), which the stock analyzer can't read because it's consumed through a dynamic `.map()` spread. A custom analyzer plugin reads that table (and `NON_PICKER_ATTRIBUTES`) directly from the AST, resolves each enum's allowed values from the source union types, and pulls descriptions from the `DatePickerOptions` JSDoc — so the manifest is built from the same single source of truth the component uses at runtime and can never disagree with it.
-
-- **Richer type docs — every option now has an editor hover** — the `DatePickerOptions` interface got a JSDoc pass: inline comments became proper doc comments, and every enum option (selection mode, picker mode, positioning, time display, and more) is documented with its allowed values and defaults in a consistent, readable format. It surfaces both in the new HTML autocomplete and when hovering `DatePickerOptions` fields in TypeScript.
 
 ## What is it
 
@@ -272,7 +270,7 @@ over rendering but requires sanitizing untrusted data:
 | `labels` content keys: `preview`, `day` / `days`, `night` / `nights`, `time`, `hours`, `minutes`, `seconds`, `am` / `pm` | Summary and time-picker headers / buttons (innerHTML) | HTML injection — developer-supplied strings; `{count}` values are escaped |
 | `getMonthHeaderCallback` | Month headers (innerHTML) | HTML injection |
 | `getUnifiedHeaderCallback` | Unified header (innerHTML) | HTML injection |
-| `getCustomStylesCallback` / `custom-styles` | Style tag (textContent) | CSS injection |
+| `getCustomStylesCallback` / `custom-styles`, page-wide `window.components['web-daterangepicker'].customStyles` / `.getCustomStylesCallback` | Style tag (textContent) | CSS injection |
 
 **Safe callbacks** (output is escaped or used as data):
 

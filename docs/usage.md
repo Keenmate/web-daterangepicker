@@ -598,7 +598,10 @@ picker.getDateMetadataCallback = (ctx) => {
 
 Since the component uses Shadow DOM, inject custom styles via
 `getCustomStylesCallback` (receives the picker context) or the declarative
-`custom-styles` attribute:
+`custom-styles` attribute — or once for every picker on the page with
+`window.components['web-daterangepicker'].customStyles` / `.getCustomStylesCallback`
+(the picker's own layer comes after it and wins; see
+[theming → Custom CSS](theming.md#custom-css-shadow-root)):
 
 ```js
 picker.getCustomStylesCallback = (ctx) => `
