@@ -138,6 +138,17 @@ test.describe('time-display variants', () => {
         expect(await p.evaluate((el: any) => el.selectedTime)).toMatchObject({ hour: 7, minute: 42 });
     });
 
+    test('compact: Escape while editing a pill reverts the edit and keeps the calendar open; the next Escape closes it', async ({ page }) => {
+        const p = await open(page, 'compact');
+        const hours = p.locator('[data-compact-field="hours"]');
+        await hours.click();
+        await page.keyboard.type('0');
+        await page.keyboard.press('Escape');
+        await expect(calendarOf(p)).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(calendarOf(p)).toBeHidden();
+    });
+
     for (const display of ['clock', 'wheel', 'compact'] as const) {
         test(`switching time-display rolls → ${display} at runtime keeps the selection and renders the new UI`, async ({ page }) => {
             const p = await open(page, 'switch');

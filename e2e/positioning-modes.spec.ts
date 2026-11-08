@@ -102,20 +102,25 @@ test.describe('modal presentation', () => {
         await expect(calendarOf(p)).toBeHidden();
     });
 
-    test('body scroll is locked while modal is open, restored on close', async ({ page }) => {
+    test('page scroll is locked while modal is open (core lockBodyScroll), restored on close', async ({ page }) => {
         const p = pickerById(page, 'modal');
 
-        const before = await page.evaluate(() => document.body.style.overflow);
+        const read = () => page.evaluate(() => ({
+            body: document.body.style.overflow,
+            htmlX: document.documentElement.style.overflowX,
+        }));
+        const before = await read();
 
         await p.locator('input').click();
-        const duringOpen = await page.evaluate(() => document.body.style.overflow);
-        expect(duringOpen).toBe('hidden');
+        const duringOpen = await read();
+        expect(duringOpen.body).toBe('hidden');
+        // Core's lock also clamps <html> sideways, so a wide page can't zoom the sheet out.
+        expect(duringOpen.htmlX).toBe('hidden');
 
         // Close via backdrop.
         await p.locator('.drp__backdrop').click({ position: { x: 5, y: 5 } });
         await expect(calendarOf(p)).toBeHidden();
-        const afterClose = await page.evaluate(() => document.body.style.overflow);
-        expect(afterClose).toBe(before);
+        expect(await read()).toEqual(before);
     });
 
     test('calendar uses position: fixed (centered via CSS, not Floating UI)', async ({ page }) => {

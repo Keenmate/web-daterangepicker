@@ -90,6 +90,17 @@
             initial-date="2026-06-15" locale="auto" week-start-day="auto"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">locale="de" week-start-day unset (auto) — the week starts on Monday whatever the browser language</div>
+        <web-daterangepicker id="de-auto-week" selection-mode="single"
+            initial-date="2026-06-15" locale="de"></web-daterangepicker>
+    </div>
+    <div class="fixture">
+        <div class="fixture-label">locale="en-US" week-start-day unset (auto) — Sunday</div>
+        <web-daterangepicker id="us-auto-week" selection-mode="single"
+            initial-date="2026-06-15" locale="en-US"></web-daterangepicker>
+    </div>
+
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — custom styles (page + instance layers)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>custom styles</h1>
+    <p>Targeted by <code>e2e/custom-styles.spec.ts</code>. Core <code>createCustomStyles()</code>:
+       the page layer <code>window.components['web-daterangepicker'].customStyles</code> /
+       <code>.getCustomStylesCallback</code>, then each picker's own <code>custom-styles</code> /
+       <code>getCustomStylesCallback</code> (later wins).</p>
+
+    <div class="fixture">
+        <div class="fixture-label">inline A — page layer only</div>
+        <web-daterangepicker id="a" positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+    <div class="fixture">
+        <div class="fixture-label">inline B — page layer only</div>
+        <web-daterangepicker id="b" positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+    <div class="fixture">
+        <div class="fixture-label">inline C — its own custom-styles attribute overrides the page layer</div>
+        <web-daterangepicker id="c" positioning-mode="inline" initial-date="2026-06-15"
+            custom-styles=".drp__picker { outline-color: rgb(0, 128, 0); }"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -105,6 +105,26 @@ test('week-start-day="1": first weekday header column is Monday', async ({ page 
     await expect(firstWeekday).toContainText(/Mon|Mon\.|Monday|Mo/i);
 });
 
+test('week-start-day auto follows the locale input, not the browser language', async ({ page }) => {
+    // Pin the browser to a Sunday-first language so the locale input is what decides.
+    await page.addInitScript(() => Object.defineProperty(navigator, 'language', { get: () => 'en-US' }));
+    await page.goto(PAGE);
+    const de = await open(page, 'de-auto-week');
+    await expect(de.locator('.drp__weekdays > *').first()).toContainText(/^\s*Mo/i);
+    await page.keyboard.press('Escape');
+    const us = await open(page, 'us-auto-week');
+    await expect(us.locator('.drp__weekdays > *').first()).toContainText(/^\s*Su/i);
+});
+
+test('a live locale change moves an auto week start', async ({ page }) => {
+    await page.addInitScript(() => Object.defineProperty(navigator, 'language', { get: () => 'en-US' }));
+    await page.goto(PAGE);
+    const p = pickerById(page, 'us-auto-week');
+    await p.evaluate(async (el: any) => { el.locale = 'de'; await el.whenSettled(); });
+    await open(page, 'us-auto-week');
+    await expect(p.locator('.drp__weekdays > *').first()).toContainText(/^\s*Mo/i);
+});
+
 // =============================================================================
 // month-names attribute (pipe-delimited)
 // =============================================================================

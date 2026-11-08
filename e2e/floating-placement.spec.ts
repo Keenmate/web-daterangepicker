@@ -90,3 +90,52 @@ test('close-on-scroll ignores the scroll that opening causes (focus scrolls the 
     await page.evaluate(() => window.scrollBy(0, 50));
     await expect(calendarOf(p)).toBeHidden();
 });
+
+// =============================================================================
+// the calendar is a core createPopover (overlay tree, scroll / resize close)
+// =============================================================================
+
+test('a window resize closes the open floating calendar; a later picker still closes on resize (no leaked handler)', async ({ page }) => {
+    const below = await open(page, 'below');
+    await page.setViewportSize({ width: 1300, height: 1000 });
+    await expect(calendarOf(below)).toBeHidden();
+
+    const top = await open(page, 'top');
+    await page.setViewportSize({ width: 1440, height: 1024 });
+    await expect(calendarOf(top)).toBeHidden();
+    // The first picker stays closed (its resize close was released with it).
+    await expect(calendarOf(below)).toBeHidden();
+});
+
+test('a page button that calls open() keeps the open calendar open through its click', async ({ page }) => {
+    const p = await open(page, 'below');
+    await page.evaluate(() => {
+        const btn = document.createElement('button');
+        btn.id = 'page-open';
+        btn.textContent = 'open';
+        btn.style.cssText = 'position: fixed; right: 8px; bottom: 8px;';
+        btn.addEventListener('click', () => (document.getElementById('below') as any).open());
+        document.body.appendChild(btn);
+    });
+    await page.locator('#page-open').click();
+    await page.waitForTimeout(100);
+    await expect(calendarOf(p)).toBeVisible();
+    // A plain outside click still closes it.
+    await page.mouse.click(5, 5);
+    await expect(calendarOf(p)).toBeHidden();
+});
+
+test('a scroll of an unrelated scroller does not close the calendar; a page scroll that moves the input does', async ({ page }) => {
+    await page.evaluate(() => {
+        const spacer = document.createElement('div');
+        spacer.style.height = '3000px';
+        document.body.append(spacer);
+    });
+    const p = await open(page, 'below');
+    // #scrollbox-stay is elsewhere on the page — scrolling it doesn't move this input.
+    await page.locator('#scrollbox-stay').evaluate((el) => { el.scrollTop = 80; });
+    await page.waitForTimeout(150);
+    await expect(calendarOf(p)).toBeVisible();
+    await page.evaluate(() => window.scrollBy(0, 60));
+    await expect(calendarOf(p)).toBeHidden();
+});

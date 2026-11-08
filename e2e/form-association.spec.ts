@@ -72,6 +72,36 @@ test('a programmatic value is reflected into the form submission', async ({ page
     expect(await formValue(page, 'f')).toBe('2026-07-04');
 });
 
+test('a disabled picker submits nothing (native semantics); enabled again it submits its value', async ({ page }) => {
+    const p = page.locator('#picker');
+    await p.evaluate(async (el: any) => { el.value = '2026-07-04'; await el.whenSettled(); });
+    expect(await formValue(page, 'f')).toBe('2026-07-04');
+
+    await p.evaluate(async (el: any) => { el.setAttribute('disabled', ''); await el.whenSettled(); });
+    expect(await formValue(page, 'f')).toBeNull();
+    // A selection written while disabled re-renders the field — still not submitted.
+    await p.evaluate(async (el: any) => { el.value = '2026-07-05'; await el.whenSettled(); });
+    expect(await formValue(page, 'f')).toBeNull();
+
+    await p.evaluate(async (el: any) => { el.isDisabled = false; await el.whenSettled(); });
+    expect(await formValue(page, 'f')).toBe('2026-07-05');
+});
+
+test('a picker created disabled submits nothing from its first build', async ({ page }) => {
+    const value = await page.evaluate(async () => {
+        const form = document.getElementById('f') as HTMLFormElement;
+        const el = document.createElement('web-daterangepicker') as any;
+        el.setAttribute('name', 'late');
+        el.setAttribute('value', '2026-06-01');
+        el.setAttribute('disabled', '');
+        form.appendChild(el);
+        await el.whenReady();
+        return { submitted: new FormData(form).get('late'), value: el.value };
+    });
+    expect(value.submitted).toBeNull();
+    expect(value.value).toBe('2026-06-01');
+});
+
 test('form.reset() clears the selection and the submitted value', async ({ page }) => {
     const p = page.locator('#picker');
 
