@@ -9,48 +9,52 @@
  *
  * All four share the dual-path shape: an HTML-attribute string form (CSV, pipe
  * list, `'auto'|0..6`) parsed by `fromAttribute`, and a richer JS property form
- * (`string[]`, `(Date|string)[]`) guarded by `validate`. Absent / malformed →
- * `undefined`, so the picker falls back to its own default (its options read
- * `x !== undefined ? x : default`).
+ * (`string[]`, `(Date|string)[]`) guarded by `validate`. Absent → `undefined`,
+ * so the picker falls back to its own default (its options read
+ * `x !== undefined ? x : default`). A malformed attribute is reported through
+ * `reportInvalid` — core warns, keeps the previous value and fires `input-rejected`
+ * (the same rule as the property path).
  */
 import { toCustom } from '@keenmate/web-components-core';
 import type { Converter } from '@keenmate/web-components-core';
-import { drpLogger } from './logger';
 import { parseYearRangeSpec } from './date-picker-validation';
 
 type WeekStart = 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-/** `'auto'` or a weekday index 0..6 (Sunday..Saturday). Anything else → undefined. */
+/** `'auto'` or a weekday index 0..6 (Sunday..Saturday). Anything else is invalid. */
 export function toWeekStartDay(): Converter<WeekStart | undefined> {
   const isValid = (v: unknown): v is WeekStart =>
     v === 'auto' || (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 6);
   return toCustom<WeekStart | undefined>(
-    (raw) => {
-      if (raw === null || raw === '') return undefined;
-      if (raw === 'auto') return 'auto';
-      const day = Number.parseInt(raw, 10);
-      return !Number.isNaN(day) && day >= 0 && day <= 6 ? (day as WeekStart) : undefined;
+    (raw, reportInvalid) => {
+      if (raw === null || raw.trim() === '') return undefined;
+      const value = raw.trim();
+      if (value === 'auto') return 'auto';
+      if (/^[0-6]$/.test(value)) return Number(value) as WeekStart;
+      reportInvalid?.('expected "auto" or a weekday index 0 (Sunday) – 6 (Saturday)');
+      return undefined;
     },
     { validate: (v): v is WeekStart | undefined => v === undefined || isValid(v), toAttribute: (v) => (v == null ? null : String(v)) },
   );
 }
 
 /**
- * CSV of weekday indices, each `0..6`. Out-of-range / non-numeric segments are
- * dropped silently; an empty result → undefined (attribute ignored). Property
- * form is a `number[]`.
+ * CSV of weekday indices, each `0..6`. An out-of-range / non-numeric segment makes
+ * the whole value invalid (reported; the previous value stays). Property form is a
+ * `number[]`.
  */
 export function toDisabledWeekdays(): Converter<number[] | undefined> {
   const isValid = (v: unknown): v is number[] =>
     Array.isArray(v) && v.every((d) => typeof d === 'number' && Number.isInteger(d) && d >= 0 && d <= 6);
   return toCustom<number[] | undefined>(
-    (raw) => {
-      if (!raw) return undefined;
-      const parsed = raw
-        .split(',')
-        .map((d) => Number.parseInt(d.trim(), 10))
-        .filter((d) => !Number.isNaN(d) && d >= 0 && d <= 6);
-      return parsed.length ? parsed : undefined;
+    (raw, reportInvalid) => {
+      if (raw === null || raw.trim() === '') return undefined;
+      const segments = raw.split(',').map((d) => d.trim()).filter(Boolean);
+      if (!segments.every((d) => /^[0-6]$/.test(d))) {
+        reportInvalid?.('expected a comma-separated list of weekday indices 0 (Sunday) – 6 (Saturday)');
+        return undefined;
+      }
+      return segments.length ? segments.map(Number) : undefined;
     },
     { validate: (v): v is number[] | undefined => v === undefined || isValid(v), toAttribute: (v) => (Array.isArray(v) ? v.join(',') : null) },
   );
@@ -102,23 +106,23 @@ export function toYearRange(): Converter<string | null> {
  *   month-names="Leden|Únor|…"  → [0]=January … [11]=December (12 items)
  *   weekday-names="Ne|Po|…"      → [0]=Sunday   … [6]=Saturday  (7 items)
  * The index is a fixed month/day number — week-start-day only rotates the
- * on-screen order, never this mapping. A wrong count or any empty segment
- * yields undefined (attribute ignored, locale names used). Property form is a
- * `string[]`.
+ * on-screen order, never this mapping. A wrong count or any empty segment is
+ * invalid (reported; the previous value stays — the locale names when there was
+ * none). Property form is a `string[]`.
  */
 export function toPipeList(count: number): Converter<string[] | undefined> {
   const isValid = (v: unknown): v is string[] =>
     Array.isArray(v) && v.length === count && v.every((s) => typeof s === 'string' && s !== '');
   return toCustom<string[] | undefined>(
-    (raw) => {
-      if (!raw) return undefined;
+    (raw, reportInvalid) => {
+      if (raw === null || raw.trim() === '') return undefined;
       const parts = raw.split('|').map((s) => s.trim());
       if (parts.length !== count) {
-        drpLogger.warn(`list ignored: expected exactly ${count} pipe-delimited segments, got ${parts.length}. Falling back to locale names.`);
+        reportInvalid?.(`expected exactly ${count} pipe-delimited names, got ${parts.length}`);
         return undefined;
       }
       if (!parts.every(Boolean)) {
-        drpLogger.warn('list ignored: one or more segments are empty. Falling back to locale names.');
+        reportInvalid?.('a pipe-delimited name is empty');
         return undefined;
       }
       return parts;

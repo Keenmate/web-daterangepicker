@@ -165,6 +165,23 @@ test('weekday-names with wrong segment count is ignored (falls back to locale na
     await expect(firstWeekday).not.toHaveText('Po');
 });
 
+test('malformed weekday-names / month-names / week-start-day / disabled-weekdays are refused through core (input-rejected), previous value kept', async ({ page }) => {
+    const p = pickerById(page, 'monday');
+    const result = await p.evaluate(async (el: any) => {
+        const rejected: string[] = [];
+        el.addEventListener('input-rejected', (e: any) => rejected.push(e.detail.configKey));
+        el.setAttribute('weekday-names', 'Po|Út|St');
+        el.setAttribute('month-names', 'A|B');
+        el.setAttribute('week-start-day', '9');
+        el.setAttribute('disabled-weekdays', '1,9');
+        await el.whenSettled();
+        return { rejected, weekStartDay: el.weekStartDay, disabledWeekdays: el.disabledWeekdays ?? null };
+    });
+    expect(result.rejected).toEqual(['weekdayNames', 'monthNames', 'weekStartDay', 'disabledWeekdays']);
+    expect(result.weekStartDay).toBe(1);
+    expect(result.disabledWeekdays).toBeNull();
+});
+
 // =============================================================================
 // locale="auto" / week-start-day="auto" follow the browser locale
 // =============================================================================
