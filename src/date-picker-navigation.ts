@@ -8,7 +8,7 @@
 import { runBeforeCallback } from '@keenmate/web-components-core';
 import type { MonthChangeContext, MonthDataResult } from './types';
 import { navigationLogger } from './logger';
-import { showLoader, hideLoader } from './date-picker-ui';
+import { showLoader, hideLoader, revealDay } from './date-picker-ui';
 
 /**
  * Check if a given month has any enabled (non-disabled) days
@@ -453,7 +453,7 @@ export function moveFocus(picker: any, offset: number) {
                 if (result.index !== null) {
                     picker.focusedDayIndex = result.index;
                     newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                    newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                    revealDay(newDays[picker.focusedDayIndex]);
                 }
             }, 0);
         } else {
@@ -483,7 +483,7 @@ export function moveFocus(picker: any, offset: number) {
 
                         navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - last day weekday ${lastWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
                         newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                        newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                        revealDay(newDays[picker.focusedDayIndex]);
                     }
                 }, 0);
             }
@@ -507,7 +507,7 @@ export function moveFocus(picker: any, offset: number) {
                 if (result.index !== null) {
                     picker.focusedDayIndex = result.index;
                     newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                    newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                    revealDay(newDays[picker.focusedDayIndex]);
                 }
             }, 0);
         } else {
@@ -537,7 +537,7 @@ export function moveFocus(picker: any, offset: number) {
 
                         navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - first day weekday ${firstWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
                         newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                        newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                        revealDay(newDays[picker.focusedDayIndex]);
                     }
                 }, 0);
             }
@@ -575,7 +575,7 @@ export function moveFocus(picker: any, offset: number) {
             if (searchResult.index !== null) {
                 picker.focusedDayIndex = searchResult.index;
                 newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                newDays[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                revealDay(newDays[picker.focusedDayIndex]);
             }
         }, 0);
         return;
@@ -584,7 +584,7 @@ export function moveFocus(picker: any, offset: number) {
     if (result.index !== null) {
         picker.focusedDayIndex = result.index;
         days[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-        days[picker.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+        revealDay(days[picker.focusedDayIndex]);
     } else {
         // No enabled day found, don't move
         navigationLogger.debug('moveFocus() - no enabled day found in search range');

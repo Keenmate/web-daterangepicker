@@ -24,7 +24,7 @@ import * as Lock from './date-picker-lock';
 import { resolveLocale, resolveLabels, formatLabel, escapeHtml, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { createPresentationContext, withComponentContext, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createPresentationContext, getEnvironment, withComponentContext, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
@@ -32,8 +32,6 @@ import styles from './css/main.css?inline';
 
 
 class DateRangePickerEngine {
-    // Static flag to track if styles have been injected
-    private static stylesInjected: boolean = false;
     input: HTMLInputElement | null;
     options: Required<DatePickerOptions>;
     formatInfo: FormatOptions;
@@ -365,13 +363,12 @@ class DateRangePickerEngine {
             }
         }
 
-        // Detect/set week start day
-        this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay);
-        drpLogger.debug('Week starts on day:', this.weekStartDay);
-        drpLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
-
         // Initialize internationalization
         this.locale = resolveLocale(this.options.locale);
+        // Week start day — `auto` follows the resolved locale (not the browser language)
+        this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay, this.locale);
+        drpLogger.debug('Week starts on day:', this.weekStartDay);
+        drpLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
         this.labels = resolveLabels(this.options.labels);
         this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
         this.monthNames = this.options.monthNames || getMonthNames(this.locale);
@@ -687,14 +684,15 @@ class DateRangePickerEngine {
         }
 
         // Refresh derived state where touched.
-        if (has('weekStartDay')) {
-            this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay);
-        }
         if (has('locale') || has('labels') || has('monthNames') || has('weekdayNames')) {
             this.locale = resolveLocale(this.options.locale);
             this.labels = resolveLabels(this.options.labels);
             this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
             this.monthNames = this.options.monthNames || getMonthNames(this.locale);
+        }
+        // `auto` follows the locale, so a locale change moves the week start too.
+        if (has('weekStartDay') || has('locale')) {
+            this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay, this.locale);
         }
         if (has('dateFormatMask')) {
             this.formatInfo = this.parseFormat(this.options.dateFormatMask);
@@ -1879,7 +1877,7 @@ class DateRangePickerEngine {
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                            newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                            UI.revealDay(newDays[this.focusedDayIndex]);
                         }
                     }, 0);
                 } else {
@@ -1901,7 +1899,7 @@ class DateRangePickerEngine {
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                            newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                            UI.revealDay(newDays[this.focusedDayIndex]);
                         }
                     }, 0);
                 } else {
@@ -1969,7 +1967,7 @@ class DateRangePickerEngine {
                             this.focusedDayIndex = todayIndex;
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             days[todayIndex].classList.add('drp__day--focused');
-                            days[todayIndex].scrollIntoView({ block: 'nearest' });
+                            UI.revealDay(days[todayIndex]);
                         }
                     }
                 }, 0);
@@ -1987,7 +1985,7 @@ class DateRangePickerEngine {
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                         this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                         newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                        newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                        UI.revealDay(newDays[this.focusedDayIndex]);
                     }
                 }, 0);
                 e.preventDefault();
@@ -2004,7 +2002,7 @@ class DateRangePickerEngine {
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                         this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                         newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                        newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                        UI.revealDay(newDays[this.focusedDayIndex]);
                     }
                 }, 0);
                 e.preventDefault();
@@ -2051,7 +2049,7 @@ class DateRangePickerEngine {
                                 this.focusedDayIndex = 0;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 days[0]?.classList.add('drp__day--focused');
-                                days[0]?.scrollIntoView({ block: 'nearest' });
+                                UI.revealDay(days[0]);
                             }
                         }, 0);
                     }
@@ -2072,7 +2070,7 @@ class DateRangePickerEngine {
                                 this.focusedDayIndex = 0;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 days[0]?.classList.add('drp__day--focused');
-                                days[0]?.scrollIntoView({ block: 'nearest' });
+                                UI.revealDay(days[0]);
                             }
                         }, 0);
                     } else {
@@ -2083,7 +2081,7 @@ class DateRangePickerEngine {
                         if (days) {
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             days[0]?.classList.add('drp__day--focused');
-                            days[0]?.scrollIntoView({ block: 'nearest' });
+                            UI.revealDay(days[0]);
                         }
                     }
                 }
@@ -2136,7 +2134,7 @@ class DateRangePickerEngine {
                                 this.focusedDayIndex = newDays.length - 1;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                                newDays[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                                UI.revealDay(newDays[this.focusedDayIndex]);
                             }
                         }, 0);
                     }
@@ -2161,7 +2159,7 @@ class DateRangePickerEngine {
                                 this.focusedDayIndex = days.length - 1;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 days[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                                days[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                                UI.revealDay(days[this.focusedDayIndex]);
                             }
                         }, 0);
                     } else {
@@ -2169,7 +2167,7 @@ class DateRangePickerEngine {
                         this.focusedDayIndex = days.length - 1;
                         this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                         days[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                        days[this.focusedDayIndex]?.scrollIntoView({ block: 'nearest' });
+                        UI.revealDay(days[this.focusedDayIndex]);
                     }
                 }
                 e.preventDefault();
@@ -2960,13 +2958,11 @@ class DateRangePickerEngine {
      * True on pointing devices that can hover (desktop mouse). Touch-primary
      * devices — phones in the full-screen sheet, tablets — report `(hover: none)`;
      * there day/badge tooltips can't appear on mouseenter, so they toggle on tap
-     * instead (see the badge branch in `attachCalendarListeners`). Guarded for
-     * non-DOM/SSR environments where `matchMedia` is absent.
+     * instead (see the badge branch in `attachCalendarListeners`). Core's environment
+     * snapshot (`canHover`), the same signal the presentation ladder reads.
      */
     supportsHover(): boolean {
-        return typeof window !== 'undefined'
-            && typeof window.matchMedia === 'function'
-            && window.matchMedia('(hover: hover)').matches;
+        return getEnvironment().canHover;
     }
     toggle() { return UI.toggle(this); }
     position() { return UI.position(this); }
@@ -3143,7 +3139,7 @@ class DateRangePickerEngine {
      * Call this once before creating any DateRangePicker instances if you want to
      * inject styles programmatically instead of importing the CSS file.
      *
-     * @param force - Force re-injection even if styles were already injected
+     * @param _force - Ignored (kept for the signature): adopting is idempotent
      *
      * @example
      * ```typescript
@@ -3156,23 +3152,11 @@ class DateRangePickerEngine {
      * const picker = new DateRangePicker(inputElement, options);
      * ```
      */
-    static injectGlobalStyles(force: boolean = false): void {
-        // Only inject once unless forced
-        if (DateRangePickerEngine.stylesInjected && !force) {
-            drpLogger.debug('Styles already injected, skipping');
-            return;
-        }
-
-        // Create a style element
-        const styleElement = document.createElement('style');
-        styleElement.setAttribute('data-source', 'web-daterangepicker');
-        styleElement.textContent = styles;
-
-        // Inject into document head
-        document.head.appendChild(styleElement);
-
-        DateRangePickerEngine.stylesInjected = true;
-        drpLogger.info('Global styles injected successfully');
+    static injectGlobalStyles(_force: boolean = false): void {
+        // Core adoptStyles(): one cached, shared constructable sheet on the document
+        // (a <style> fallback where unsupported); idempotent, so `force` is moot.
+        adoptStyles(document, styles);
+        drpLogger.info('Global styles adopted');
     }
 
     /**

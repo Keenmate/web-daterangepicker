@@ -13,7 +13,7 @@
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
 import { anchor, createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
-import { lockBodyScroll, observeKeyboardInset, renderLoader } from '@keenmate/web-components-core';
+import { lockBodyScroll, observeKeyboardInset, renderLoader, scrollIntoContainer } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -54,6 +54,17 @@ export function cleanupPositioning(picker: any): void {
     const popover = picker.calendarPopover;
     picker.calendarPopover = null;
     popover?.destroy();
+}
+
+/**
+ * Bring a (keyboard-)focused day into view: core `scrollIntoContainer` scrolls only the
+ * one container around it (the calendar's months area, a scrolling page section) —
+ * `scrollIntoView` also scrolled every ancestor and the page, which can close a
+ * floating calendar. Only with no scroll container at all does the page scroll.
+ * Nearest, instant.
+ */
+export function revealDay(day: Element | null | undefined): void {
+    if (day instanceof HTMLElement) scrollIntoContainer(day);
 }
 
 /** Body scroll lock for the modal / full-screen sheet (core `lockBodyScroll`, shared and ref-counted page-wide). */
