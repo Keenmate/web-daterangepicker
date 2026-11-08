@@ -23,10 +23,10 @@ import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
 import { resolveLocale, resolveLabels, formatLabel, escapeHtml, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger } from './logger';
-import { createTooltip, type TooltipHandle } from '@keenmate/web-components-core/positioning';
-import { createPresentationContext, registerOverlay, withComponentContext, type PresentationContext, type OverlayHandle } from '@keenmate/web-components-core';
+import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
+import { createPresentationContext, withComponentContext, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
-import { createScrollEventManager, createClickEventManager, type ScrollEventManager, type ClickEventManager, type ScrollSubscription, type ClickSubscription } from './modules';
+import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
 
@@ -117,17 +117,19 @@ class DateRangePickerEngine {
     private calendarContentHeight?: number; // Store calendar height for rolling selector
     private calendarContentWidth?: number; // Store calendar width for rolling selector
     isCalendarActive: boolean = false; // Track if this calendar is the keyboard-active one
-    // Cross-component "one overlay open at a time" coordination (core). activate() on
-    // open() dismisses every OTHER participating overlay (other datepickers, multiselects,
-    // external popovers); our onDismiss closes this popover when another opens. This
-    // supersedes the popover-closing that `drp-picker-activated` used to do — that event
-    // now only carries the inline keyboard-active tracking below. Torn down in destroy().
-    private overlayCoord: OverlayHandle | null = null;
+    // The open calendar as a core popover (date-picker-ui.ts createCalendarPopover):
+    // anchoring, the cross-component overlay tree ("one overlay open at a time" per
+    // overlay group — other datepickers, multiselects, external popovers — Escape and
+    // the outside click) and the scroll / resize close. Exists only while open (non-
+    // inline); torn down by close() / deactivate() / destroy().
+    calendarPopover: PopoverHandle | null = null;
+    // Release of the core page-scroll lock held by an open modal / full-screen sheet.
+    releaseScrollLock: (() => void) | null = null;
     private readonly onAnotherPickerActivated = (e: Event) => {
         if ((e as CustomEvent).detail === this) return;
         // Inline keyboard-active tracking only: exactly one inline picker responds to
-        // arrow keys at a time. Popover dismissal is handled by the core coordination
-        // (see overlayCoord), which also crosses component types.
+        // arrow keys at a time. Popover dismissal is the core overlay tree's (see
+        // calendarPopover), which also crosses component types.
         this.isCalendarActive = false;
     };
 
@@ -172,12 +174,10 @@ class DateRangePickerEngine {
     /** Rendered footer button → the item it was built from (click + tooltip lookup). */
     private actionButtonItems = new WeakMap<HTMLElement, DateRangePickerActionItem>();
 
-    // Event managers (Pub/Sub pattern)
-    scrollEvents: ScrollEventManager;
-    /** Set by open() until the opening's own scrolls have been dispatched (close-on-scroll ignores them). */
-    openScrollGuard: object | null = null;
+    // Click event manager (Pub/Sub): the calendar-click active tracking and the
+    // rolling selectors' outside close. Closing the floating calendar on an outside
+    // click is the core popover's (calendarPopover).
     clickEvents: ClickEventManager;
-    private scrollSubscriptions: ScrollSubscription[] = [];
     private clickSubscriptions: ClickSubscription[] = [];
     /**
      * The concrete presentation of the OPEN calendar chrome (non-inline pickers):
@@ -495,8 +495,7 @@ class DateRangePickerEngine {
         this.invalidRangeEnd = null;
         this.autoScrollInterval = null;
 
-        // Initialize event managers
-        this.scrollEvents = createScrollEventManager();
+        // Initialize the click event manager
         this.clickEvents = createClickEventManager();
 
         this.init();
@@ -506,8 +505,7 @@ class DateRangePickerEngine {
         drpLogger.debug('Init called');
         this.createCalendar();
 
-        // Initialize event managers
-        this.scrollEvents.init();
+        // Initialize the click event manager
         this.clickEvents.init(this.calendar, this.input);
 
         // Subscribe to events
@@ -517,11 +515,6 @@ class DateRangePickerEngine {
         // (The keydown listener lives on document, so without this, every picker
         // on the page would respond to arrow keys at once.)
         document.addEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
-
-        // Join the single-active-overlay group (scoped by `overlay-group`, default ungrouped):
-        // when another KM overlay in the same group (or an external popover) opens, close this
-        // calendar. open() broadcasts the reverse.
-        this.overlayCoord = registerOverlay(() => this.close(), this.options.overlayGroup || undefined);
 
         // Only attach input listeners if we have an input element
         if (this.input) {
@@ -556,44 +549,6 @@ class DateRangePickerEngine {
      * Set up event subscriptions using the pub/sub event managers
      */
     private setupEventSubscriptions() {
-        // Subscribe to window scroll - close calendar when scrolling the page (floating mode only)
-        const windowScrollSub = this.scrollEvents.subscribe('window', () => {
-            if (this.presentation === 'floating' && this.isOpen) {
-                // Check if scroll close is disabled globally
-                if (this.options.shouldCloseOnScroll === false) {
-                    return;
-                }
-
-                // Scroll caused by opening (focus scroll-into-view, first frame) — ignore.
-                if (this.openScrollGuard) {
-                    drpLogger.debug('Window scroll detected - NOT closing (caused by opening)');
-                    return;
-                }
-
-                // Time/datetime modes have internal scroll inside the time rolls;
-                // scrolling there must not slam the popover shut.
-                if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') {
-                    return;
-                }
-
-                // Don't close if Apply button is required (user needs to explicitly apply/cancel)
-                if (this.stagesSelection()) {
-                    drpLogger.debug('Window scroll detected - NOT closing (Apply button required)');
-                    return;
-                }
-
-                // Don't close if a message is visible (user needs to see it)
-                if (this.messageElement?.classList.contains('drp__message--visible')) {
-                    drpLogger.debug('Window scroll detected - NOT closing (message visible)');
-                    return;
-                }
-
-                drpLogger.debug('Window scroll detected - closing calendar');
-                this.close();
-            }
-        });
-        this.scrollSubscriptions.push(windowScrollSub);
-
         // Subscribe to outside clicks - close calendar or rolling selectors
         const outsideClickSub = this.clickEvents.subscribe('outsideClick', (ctx) => {
             drpLogger.debug('Outside click detected', ctx.target);
@@ -605,11 +560,12 @@ class DateRangePickerEngine {
                 return;
             }
 
-            if (this.presentation === 'floating' && this.closesOnOutsideClick()) {
-                // Floating mode: close entire calendar
-                this.close();
+            if (this.options.positioningMode !== 'inline' && this.closesOnOutsideClick()) {
+                // A floating calendar that closes on an outside click: the core popover
+                // closes it once the click has ended (calendarPopover).
+                return;
             } else {
-                // Inline/fixed/absolute mode: close only rolling selectors
+                // Inline mode (or close-on-outside-click off): close only rolling selectors
                 let needsRender = false;
 
                 // Close any open individual selectors
@@ -1240,6 +1196,23 @@ class DateRangePickerEngine {
      */
     closesOnOutsideClick(): boolean {
         return this.options.shouldCloseOnOutsideClick ?? this.options.commitMode !== 'manual';
+    }
+
+    /**
+     * Whether a scroll that moves the input closes the open floating calendar (asked by
+     * the core popover per scroll; scrolls inside the calendar never count):
+     * `shouldCloseOnScroll` (default true), except while a pick is staged for Apply /
+     * `commit()` (the user must apply or cancel), a message is shown (the user needs to
+     * see it), and in time / datetime modes (the rolls are scroll widgets).
+     */
+    closesOnScroll(): boolean {
+        if (this.presentation !== 'floating' || !this.isOpen) return false;
+        if (this.options.shouldCloseOnScroll === false) return false;
+        if (this.options.pickerMode === 'time' || this.options.pickerMode === 'datetime') return false;
+        if (this.stagesSelection()) return false;
+        if (this.messageElement?.classList.contains('drp__message--visible')) return false;
+        drpLogger.debug('Scroll moved the input - closing calendar');
+        return true;
     }
 
     createCalendar() {
@@ -1883,11 +1856,8 @@ class DateRangePickerEngine {
                 key = key === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
             }
 
-            if (e.key === 'Escape') {
-                this.close();
-                e.preventDefault();
-            }
-            else if (e.key === 'ArrowUp') {
+            // Escape is the core overlay tree's (calendarPopover: one level per press).
+            if (e.key === 'ArrowUp') {
                 this.moveFocus(-7);
                 e.preventDefault();
             }
@@ -2846,11 +2816,8 @@ class DateRangePickerEngine {
         this.isSuspended = true;
 
         this.clickEvents.suspend();
-        this.scrollEvents.suspend();
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
         if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
-        this.overlayCoord?.destroy();
-        this.overlayCoord = null;
         this.hideTooltip();
 
         // Park the Back trap WITHOUT popping history (a move must not navigate), then
@@ -2879,10 +2846,8 @@ class DateRangePickerEngine {
         this.isSuspended = false;
 
         this.clickEvents.resume();
-        this.scrollEvents.resume();
         document.addEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
         if (this.onDocumentKeydown) document.addEventListener('keydown', this.onDocumentKeydown);
-        this.overlayCoord = registerOverlay(() => this.close(), this.options.overlayGroup || undefined);
 
         const isOpen = this.options.positioningMode !== 'inline' &&
             this.calendar.classList.contains('drp__picker--visible');
@@ -2892,9 +2857,10 @@ class DateRangePickerEngine {
                 this.overlayHistoryActive = true;
                 window.addEventListener('popstate', this.onOverlayPopstate);
             }
+            // Re-opens the calendar popover too (anchor, overlay tree — dismissing the
+            // group's other overlays — and the scroll / resize close).
             UI.applyPresentationChrome(this);
             (this as any).modalRestoreFocus = this.suspendedModalRestoreFocus;
-            this.overlayCoord?.activate();
         } else if (this.suspendedOverlayHistory) {
             // Parked trap but no longer open — drop it (the entry is harmless).
             this.overlayHistoryActive = false;
@@ -2905,26 +2871,19 @@ class DateRangePickerEngine {
 
     destroy() {
         // Unsubscribe from all event subscriptions
-        this.scrollSubscriptions.forEach(sub => sub.unsubscribe());
-        this.scrollSubscriptions = [];
         this.clickSubscriptions.forEach(sub => sub.unsubscribe());
         this.clickSubscriptions = [];
 
         // Remove active loaders (runs a render hook's cleanup)
         for (const target of Object.keys(this.loaders) as LoaderTarget[]) UI.hideLoader(this, target);
 
-        // Destroy event managers
-        this.scrollEvents.destroy();
+        // Destroy the click event manager
         this.clickEvents.destroy();
 
         // Stop listening for cross-picker activation broadcasts + keyboard navigation
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
         if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
         this.onDocumentKeydown = null;
-
-        // Leave the single-active-overlay group.
-        this.overlayCoord?.destroy();
-        this.overlayCoord = null;
 
         // Drop every input-element listener at once. The input is reused across a
         // rebuild, so leaving these attached would let a destroyed picker's open()

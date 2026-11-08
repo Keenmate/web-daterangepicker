@@ -6,13 +6,14 @@
  */
 
 // All positioning goes through core `@keenmate/web-components-core/positioning`:
-// `anchor()` (the calendar popover + day/badge tooltips) with its first-class
-// `shouldUseFixedContainingBlock` (the narrowed containing-block heuristic) + `driftCallback` (the
-// drift diagnostic) options — core owns both. This file keeps only the
-// daterangepicker-branded warning copy (see warnDrift). daterangepicker no longer
-// depends on `@floating-ui/dom` directly.
-import { anchor, type DriftReport } from '@keenmate/web-components-core/positioning';
-import { observeKeyboardInset, renderLoader } from '@keenmate/web-components-core';
+// the calendar is a core `createPopover()` (anchoring, the overlay tree — group
+// exclusivity, Escape, outside click — and the scroll / resize close), the day/badge
+// tooltips a bare `anchor()`. Both use the first-class `shouldUseFixedContainingBlock`
+// (the narrowed containing-block heuristic); the calendar adds `onDrift` (the drift
+// diagnostic). This file keeps only the daterangepicker-branded warning copy (see
+// warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
+import { anchor, createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
+import { lockBodyScroll, observeKeyboardInset, renderLoader } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -21,7 +22,7 @@ import type { LoaderTarget } from './types';
 
 /**
  * Surface a daterangepicker-branded, once-per-instance warning when core's drift
- * check (`anchor`'s `driftCallback`) reports the calendar didn't land where it was
+ * check (`onDrift`) reports the calendar didn't land where it was
  * positioned — an ancestor establishes a fixed containing block the heuristic
  * doesn't recognize (typically `contain` / `container-type`). Core owns the drift
  * measurement + culprit identification (`detectFixedDrift`, SPEC §12.2); this keeps
@@ -41,54 +42,30 @@ function warnDrift(picker: any, report: DriftReport): void {
     );
 }
 
-// The calendar's core anchor() handle is stored per-instance on the picker
-// (`picker.calendarAnchor`) — see open()/close()/position(). (The former
-// module-level autoUpdate cleanup was shared across instances, a latent bug.)
-
-// Window resize handler — registered in floating mode so we can close on
-// viewport changes (since elementResize is disabled on autoUpdate, the picker
-// wouldn't otherwise adapt to a smaller/larger viewport).
-let viewportResizeHandler: (() => void) | null = null;
-
 /**
- * Tear down floating-mode positioning: destroy the calendar's autoUpdate anchor
- * and drop the viewport resize handler. Safe to call unconditionally (no-op in
- * modal/inline, which register neither). Called by both close() and destroy() —
- * the latter matters because a positioning-mode flip rebuilds an OPEN picker, and
- * without this the autoUpdate loop keeps firing on the removed calendar and
- * reports a bogus drift (measuring a detached, zero-rect element).
+ * Stop the calendar popover (anchoring, overlay-tree membership, scroll / resize
+ * close). Safe to call unconditionally (no-op when none is open). Called by close(),
+ * deactivate() and destroy() — the latter matters because a positioning-mode flip
+ * rebuilds an OPEN picker, and without this the autoUpdate loop keeps firing on the
+ * removed calendar and reports a bogus drift (measuring a detached, zero-rect element).
+ * The popover reports this close as `'api'`, which onPopoverClose ignores.
  */
 export function cleanupPositioning(picker: any): void {
-    if (picker.calendarAnchor) {
-        picker.calendarAnchor.destroy();
-        picker.calendarAnchor = null;
-    }
-    if (viewportResizeHandler) {
-        window.removeEventListener('resize', viewportResizeHandler);
-        viewportResizeHandler = null;
-    }
+    const popover = picker.calendarPopover;
+    picker.calendarPopover = null;
+    popover?.destroy();
 }
 
-// Tracks the prior body overflow value so multiple modal pickers don't fight
-// over restoring it. We only set the body to hidden when the count goes 0→1
-// and only restore when it goes back to 0.
-let modalLockCount = 0;
-let modalPriorBodyOverflow: string | null = null;
-
-function lockBodyScroll() {
-    if (modalLockCount === 0) {
-        modalPriorBodyOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-    }
-    modalLockCount++;
+/** Body scroll lock for the modal / full-screen sheet (core `lockBodyScroll`, shared and ref-counted page-wide). */
+function lockPageScroll(picker: any) {
+    if (picker.releaseScrollLock) return;
+    picker.releaseScrollLock = lockBodyScroll();
 }
 
-function unlockBodyScroll() {
-    modalLockCount = Math.max(0, modalLockCount - 1);
-    if (modalLockCount === 0) {
-        document.body.style.overflow = modalPriorBodyOverflow ?? '';
-        modalPriorBodyOverflow = null;
-    }
+function unlockPageScroll(picker: any) {
+    const release = picker.releaseScrollLock;
+    picker.releaseScrollLock = null;
+    release?.();
 }
 
 function ensureModalBackdrop(picker: any): HTMLElement {
@@ -139,6 +116,9 @@ export function open(picker: any) {
         // pointerdown already opened + armed; clear it so it can't linger to a later
         // programmatic open().
         picker.openViaPointer = false;
+        // A page control outside the calendar calling open() keeps it open through
+        // that click (core decides the outside click when the click ends).
+        picker.calendarPopover?.claimCurrentClick();
         return;
     }
 
@@ -193,64 +173,98 @@ export function open(picker: any) {
     }
 
     picker.calendar.classList.add('drp__picker--visible');
-    // close-on-scroll must not react to the scroll that OPENING causes — focus()
-    // scrolling the input into view, the anchor settling in its first frame. Those
-    // scroll events are dispatched at the next frame's scroll steps, so ignore
-    // scrolls until two animation frames after open (a timer covers no-rAF / hidden
-    // tabs). The token keeps a stale release from an earlier open from cutting in.
-    const openScrollToken = {};
-    picker.openScrollGuard = openScrollToken;
-    const releaseScrollGuard = () => { if (picker.openScrollGuard === openScrollToken) picker.openScrollGuard = null; };
-    if (typeof requestAnimationFrame === 'function') {
-        requestAnimationFrame(() => requestAnimationFrame(releaseScrollGuard));
-    }
-    setTimeout(releaseScrollGuard, 250);
     picker.setCalendarActive(); // Make calendar active and deactivate other pickers (inline keyboard tracking)
-    picker.overlayCoord?.activate(); // Dismiss every other participating overlay (pickers, multiselects, …)
     uiLogger.debug('open() - calendar classes:', picker.calendar.className);
 
-    // Set up the chrome for the current runtime presentation (floating anchor,
-    // centered modal, or phone full-screen overlay).
+    // Set up the chrome for the current runtime presentation (centered modal, phone
+    // full-screen overlay) and open the calendar's core popover: it joins the overlay
+    // tree (dismissing every other overlay of the group — pickers, multiselects, …),
+    // anchors the floating presentation and watches the scroll / resize close.
     applyPresentationChrome(picker);
-
-    // Note: Outside click handling is now managed by the clickEvents manager
 
     picker.options.onOpen?.(picker.ctx({}));
 }
 
 /**
- * Stand up the chrome for the picker's current runtime `presentation`. Called by
- * open() and by setPresentation() when the environment flips while open.
+ * Stand up the chrome for the picker's current runtime `presentation`, then open the
+ * calendar popover (anchored only when `floating`) or switch its anchoring. Called by
+ * open(), by activate() (a moved, open picker) and by setPresentation() when the
+ * environment flips while open.
  */
 export function applyPresentationChrome(picker: any) {
-    switch (picker.presentation) {
-        case 'modal':      enterModal(picker); break;
-        case 'fullscreen': enterFullscreen(picker); break;
-        default:           setupFloatingAnchor(picker); break;
+    if (picker.presentation === 'modal') enterModal(picker);
+    else if (picker.presentation === 'fullscreen') enterFullscreen(picker);
+    const isAnchored = picker.presentation === 'floating';
+    if (picker.calendarPopover) {
+        // Un-anchoring puts back the inline geometry the anchor wrote (CSS places a sheet).
+        picker.calendarPopover.setAnchored(isAnchored);
+    } else {
+        picker.calendarPopover = createCalendarPopover(picker, isAnchored);
+        picker.calendarPopover.open();
     }
 }
 
-/**
- * Tear down whatever chrome the current `presentation` stood up. Called by close()
- * and by setPresentation() before switching. cleanupPositioning() is safe in every
- * presentation (no-op when there is no floating anchor / resize handler).
- */
-export function teardownPresentationChrome(picker: any) {
-    cleanupPositioning(picker);
+/** Reverse the modal / full-screen chrome (the popover stays open). */
+function exitPresentationChrome(picker: any) {
     if (picker.presentation === 'modal') exitModal(picker);
     else if (picker.presentation === 'fullscreen') exitFullscreen(picker);
 }
 
 /**
- * Floating mode: anchor positioning + auto-reposition on scroll/resize.
- * elementResize disabled so the calendar's *own* size changes (e.g. a custom
- * renderSummaryCallback rendering 2 vs 3 lines on hover) don't re-run position().
- * With a flipped placement the new top would be inputTop − newHeight − offset,
- * sliding the calendar upward and the hovered day with it — which lands the cursor
- * on a different day, re-fires hover, and loops. Anchor once, let it grow downward.
+ * Tear down the popover and whatever chrome the current `presentation` stood up.
+ * Called by close(), deactivate() and destroy().
  */
-function setupFloatingAnchor(picker: any) {
-    picker.calendarAnchor = anchor(picker.calendar, picker.input, {
+export function teardownPresentationChrome(picker: any) {
+    cleanupPositioning(picker);
+    exitPresentationChrome(picker);
+}
+
+/**
+ * The open calendar as a core popover (`createPopover`, kept mounted where it was
+ * built — the calendar is built once and only shown / hidden by `drp__picker--visible`).
+ * Core owns: the overlay tree (one open overlay per `overlay-group`, nested overlays,
+ * Escape — one level per press — and the outside click, decided when the click ends),
+ * the scroll close (a scroll that moves the input: the page or a scroller around it,
+ * never one inside the calendar) and the resize close. Anchoring: `elementResize` is
+ * off so the calendar's *own* size changes (e.g. a custom renderSummaryCallback
+ * rendering 2 vs 3 lines on hover) don't re-run the position. With a flipped placement
+ * the new top would be inputTop − newHeight − offset, sliding the calendar upward and
+ * the hovered day with it — which lands the cursor on a different day, re-fires hover,
+ * and loops. Anchor once, let it grow downward. Created per open, so the current
+ * `calendar-placement` / `overlay-group` apply.
+ */
+function createCalendarPopover(picker: any, isAnchored: boolean) {
+    return createPopover({
+        reference: picker.input,
+        panel: picker.calendar,
+        shouldKeepMounted: true,
+        // A marker only: the calendar's own `drp__picker--visible` shows it.
+        visibleClass: 'drp__picker--open',
+        isAnchored,
+        inheritThemeFrom: false, // the calendar lives in our shadow root (or the page for the engine)
+        overlayGroup: picker.options.overlayGroup || undefined,
+        // Escape closes the calendar — except while a compact time field is being edited
+        // (its own Escape reverts the edit first: one level per press).
+        shouldCloseOnEscape: () => !isEditingInCalendar(picker),
+        // The input is the reference: focusing it opens the calendar again, so Escape
+        // returns focus nowhere.
+        returnFocusTo: null,
+        // Floating only: the modal closes on its backdrop, the full-screen sheet has no outside.
+        shouldCloseOnOutsideClick: () => picker.presentation === 'floating' && picker.closesOnOutsideClick(),
+        // External trigger buttons and the day / badge tooltip don't count as outside.
+        getInsideElements: () => [
+            picker.tooltip,
+            ...(typeof document !== 'undefined' ? Array.from(document.querySelectorAll('[data-calendar-button]')) : []),
+        ],
+        shouldCloseOnScroll: () => picker.closesOnScroll(),
+        // With elementResize off the calendar can't adapt to a smaller / larger window:
+        // dismiss it and let the user reopen it in the new viewport.
+        shouldCloseOnResize: () => picker.presentation === 'floating',
+        // A close by the overlay tree, a scroll or a resize: run the picker's own close
+        // (discard a staged pick, `close` event). 'api' is our own close — already running.
+        onClose: (reason: PopoverCloseReason) => {
+            if (reason !== 'api') close(picker);
+        },
         placement: (picker.options.calendarPlacement || 'bottom-start'),
         strategy: 'fixed',
         offset: 8,
@@ -271,14 +285,15 @@ function setupFloatingAnchor(picker: any) {
         // (resize→reposition→re-hover loop); reposition only on scroll/ancestor moves.
         autoUpdateOptions: { elementResize: false },
         // One-shot drift warning if an unrecognized ancestor CB still shifts the panel.
-        driftCallback: (report: DriftReport) => warnDrift(picker, report),
+        onDrift: (report: DriftReport) => warnDrift(picker, report),
     });
+}
 
-    // Close on viewport resize (in either direction). With elementResize off, we
-    // can't gracefully adapt to a smaller/larger window, so just dismiss the picker
-    // and let the user reopen it in the new viewport.
-    viewportResizeHandler = () => close(picker);
-    window.addEventListener('resize', viewportResizeHandler);
+/** A compact time field (contentEditable pill) inside the calendar has focus. */
+function isEditingInCalendar(picker: any): boolean {
+    const root = picker.calendar?.getRootNode?.() as Document | ShadowRoot | undefined;
+    const active = root?.activeElement as HTMLElement | null | undefined;
+    return !!active && active.isContentEditable && picker.calendar.contains(active);
 }
 
 /**
@@ -312,12 +327,11 @@ function armGhostClickGuard(picker: any) {
 
 /** Modal mode: backdrop, body scroll lock, blur input to suppress mobile keyboard. */
 function enterModal(picker: any) {
-    clearFloatingGeometry(picker);
     // Read before armGhostClickGuard() consumes it.
     const isPointerOpen = !!picker.openViaPointer;
     armGhostClickGuard(picker);
     ensureModalBackdrop(picker).classList.add('drp__backdrop--visible');
-    lockBodyScroll();
+    lockPageScroll(picker);
     // Trap the phone Back gesture / browser Back button so it dismisses the modal
     // instead of navigating away (same as full-screen).
     pushOverlayHistory(picker);
@@ -362,7 +376,7 @@ function exitModal(picker: any) {
     if (picker.modalBackdrop) {
         picker.modalBackdrop.classList.remove('drp__backdrop--visible');
     }
-    unlockBodyScroll();
+    unlockPageScroll(picker);
     picker.calendar.classList.remove('drp__picker--modal');
     // Restore focus to the input if it was focused before opening — the user is
     // back in the input flow and may want to type or Tab away.
@@ -379,7 +393,6 @@ function exitModal(picker: any) {
  * the other non-inline presentations and lives in base.css / fullscreen.css.
  */
 function enterFullscreen(picker: any) {
-    clearFloatingGeometry(picker);
     armGhostClickGuard(picker);
     picker.calendar.classList.add('drp__picker--fullscreen');
     // Rescale every size token to the touch scale by overriding --drp-rem on the
@@ -392,7 +405,7 @@ function enterFullscreen(picker: any) {
     picker.fullscreenScaleHost = (picker.calendar.getRootNode() as ShadowRoot)?.host ?? document.documentElement;
     picker.fullscreenScaleHost?.setAttribute('data-drp-fullscreen', '');
     buildFullscreenHeader(picker);
-    lockBodyScroll();
+    lockPageScroll(picker);
     // Shrink the fixed sheet above the soft keyboard (writes inline height/top —
     // see fullscreen.css for why the sheet pins only top, not bottom).
     picker.keyboardInsetCleanup = observeKeyboardInset(picker.calendar);
@@ -423,7 +436,7 @@ function exitFullscreen(picker: any) {
         picker.fullscreenHeader.remove();
         picker.fullscreenHeader = null;
     }
-    unlockBodyScroll();
+    unlockPageScroll(picker);
 }
 
 /** Build the full-screen header (optional title + ✕ close) as the calendar's first child. */
@@ -505,26 +518,6 @@ function restoreRelocatedInput(picker: any) {
 }
 
 /**
- * Clear the inline geometry floating-ui writes on the calendar (position/top/left/
- * transform/size). Modal and full-screen position via CSS, so leftover inline
- * styles from a prior floating presentation would override the stylesheet and
- * mis-place the sheet. Safe to call unconditionally.
- */
-function clearFloatingGeometry(picker: any) {
-    const s = picker.calendar.style;
-    s.position = '';
-    s.top = '';
-    s.left = '';
-    s.right = '';
-    s.bottom = '';
-    s.transform = '';
-    s.maxHeight = '';
-    s.maxWidth = '';
-    s.width = '';
-    s.overflowY = '';
-}
-
-/**
  * Back-gesture handling for the full-screen sheet. On open we push a history entry
  * (same URL) and listen for `popstate`; the phone Back gesture/button then pops that
  * entry — which we treat as "close the sheet" — instead of navigating away from the
@@ -580,7 +573,8 @@ export function setPresentation(picker: any, next: 'floating' | 'modal' | 'fulls
     const isOpen = picker.calendar.classList.contains('drp__picker--visible');
     if (!isOpen) { picker.presentation = next; return; }
 
-    teardownPresentationChrome(picker);
+    // The popover stays open (and in the overlay tree); only its anchoring switches.
+    exitPresentationChrome(picker);
     picker.presentation = next;
     applyPresentationChrome(picker);
     // Re-render so month/day sizing reflects the new presentation (e.g. the
@@ -598,11 +592,11 @@ export function close(picker: any) {
         return;
     }
 
-    // Tear down the chrome for the active presentation (floating anchor + resize
-    // handler, modal backdrop/scroll-lock, or full-screen overlay/keyboard/Back
-    // trap). teardownPresentationChrome() also runs cleanupPositioning(), which is
-    // what destroy() relies on so a rebuild while open can't leak the autoUpdate
-    // loop onto a detached calendar.
+    // Tear down the calendar popover (anchor, overlay tree, scroll / resize close)
+    // and the chrome for the active presentation (modal backdrop / scroll lock, or
+    // the full-screen overlay / keyboard / Back trap). teardownPresentationChrome()
+    // runs cleanupPositioning(), which is what destroy() relies on so a rebuild while
+    // open can't leak the autoUpdate loop onto a detached calendar.
     teardownPresentationChrome(picker);
 
     // Dismiss any open day/badge tooltip. On touch these are tap-opened (no hover to
@@ -610,11 +604,8 @@ export function close(picker: any) {
     // screen after the overlay is torn down until some later interaction clears it.
     hideTooltip(picker);
 
-    // Note: Outside click handling is now managed by the clickEvents manager
-
     picker.calendar.classList.remove('drp__picker--visible');
     picker.isCalendarActive = false; // Deactivate calendar when hidden
-    picker.overlayCoord?.deactivate(); // Release the active-overlay marker (no broadcast on close)
     picker.hoverPreviewEnd = null;
 
     // Restore original input value and selection state if closed without Apply
@@ -656,10 +647,6 @@ export function close(picker: any) {
         picker.renderCalendar();
     }
 
-    // Clear the size-middleware constraints so the next open starts fresh.
-    picker.calendar.style.maxHeight = '';
-    picker.calendar.style.overflowY = '';
-
     picker.options.onClose?.(picker.ctx({}));
 }
 
@@ -673,15 +660,15 @@ export function toggle(picker: any) {
 
 /**
  * Recompute the calendar's floating position now. The placement / middleware /
- * platform / drift-check all live on the core `anchor()` handle created in
- * open() (`picker.calendarAnchor`); this just asks it to update. No-op in modal
+ * platform / drift-check all live on the core popover created in open()
+ * (`picker.calendarPopover`); this just asks it to update. No-op in modal
  * mode (CSS-centered, no anchor) or before the calendar is shown.
  */
 export function position(picker: any) {
     if (!picker.input) return;
     // Only the floating presentation is anchored; modal + full-screen are CSS-placed.
     if (picker.presentation !== 'floating') return;
-    picker.calendarAnchor?.update();
+    picker.calendarPopover?.update();
 }
 
 /**
@@ -757,7 +744,7 @@ function summaryBlock(picker: any): HTMLElement | null {
  *
  * The container (overlay / `.drp__inline-loader`, `role="status"` + `labels.loading`)
  * is filled by core renderLoader(): the instance `renderLoadingCallback`, else the
- * page-wide `window.components.renderLoaderCallback`, else the default `.drp-loader`.
+ * page-wide `window.components.renderLoadingCallback`, else the default `.drp__loader`.
  * `target` is the hook's `context`.
  *
  * Single-instance per target: a second call for the same target is a no-op, so a manual
