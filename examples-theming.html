@@ -1624,6 +1624,47 @@ picker.className = newTheme;
 }</div>
 </div>
 
+<div class="card">
+  <h2>TH27 · Custom CSS: page-wide and per picker</h2>
+  <p>
+    Raw CSS goes into each picker's shadow root in two layers (core <code>createCustomStyles()</code>):
+    first the <strong>page layer</strong> for every picker on the page —
+    <code>window.components['web-daterangepicker'].customStyles</code> (an <code>@import url(…)</code>
+    works: one file for all pickers) or <code>.getCustomStylesCallback(ctx)</code> per picker —
+    then the picker's <strong>own</strong> <code>custom-styles</code> attribute /
+    <code>getCustomStylesCallback</code>, which comes later and wins. Never pass untrusted CSS.
+  </p>
+
+  <div class="card-grid mt-1" style="--grid-min: 300px; --grid-gap: 1.5rem;">
+    <div class="form-group">
+      <label>Page layer only</label>
+      <web-daterangepicker id="th27-a" positioning-mode="inline" visible-month-count="1"
+        initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+    <div class="form-group">
+      <label>Page layer + its own <code>custom-styles</code> (wins)</label>
+      <web-daterangepicker id="th27-b" positioning-mode="inline" visible-month-count="1"
+        initial-date="2026-06-15"
+        custom-styles=".drp__day--weekend { background: color-mix(in srgb, var(--drp-accent-color) 18%, transparent); }"></web-daterangepicker>
+    </div>
+  </div>
+
+  <div class="controls mt-1">
+    <button type="button" class="btn-outline" id="th27-page-on">Set the page layer (weekends red, today outlined)</button>
+    <button type="button" class="btn-secondary" id="th27-page-off">Clear the page layer</button>
+  </div>
+
+  <div class="code-block"><span class="comment">// Every picker on the page — set it before or after the pickers exist.</span>
+window.components[<span class="string">'web-daterangepicker'</span>].customStyles = <span class="string">`
+  .drp__day--weekend { color: var(--base-danger-color, #dc2626); }
+  .drp__day--today { outline: 2px solid var(--drp-accent-color); outline-offset: -2px; }
+`</span>;
+<span class="comment">// or one file for all of them:  "@import url('/css/drp-days.css');"</span>
+
+<span class="comment">// One picker: the attribute (or el.getCustomStylesCallback = (ctx) =&gt; css) comes after it.</span>
+&lt;web-daterangepicker custom-styles=".drp__day--weekend { background: …; }"&gt;</div>
+</div>
+
 <script type="module">
   // Wait for the web component to be registered before assigning properties.
   await customElements.whenDefined('web-daterangepicker');
@@ -1943,5 +1984,20 @@ picker.className = newTheme;
       inlinePicker.specialDates = specialDates;
       inlinePicker.getCustomStylesCallback = customStyles;
     }
+  });
+</script>
+
+<script type="module">
+  // TH27 — page-wide custom CSS (core createCustomStyles page layer)
+  await customElements.whenDefined('web-daterangepicker');
+  const TH27_CSS = `
+    .drp__day--weekend { color: var(--base-danger-color, #dc2626); }
+    .drp__day--today { outline: 2px solid var(--drp-accent-color); outline-offset: -2px; }
+  `;
+  document.getElementById('th27-page-on').addEventListener('click', () => {
+    window.components['web-daterangepicker'].customStyles = TH27_CSS;
+  });
+  document.getElementById('th27-page-off').addEventListener('click', () => {
+    window.components['web-daterangepicker'].customStyles = null;
   });
 </script>
