@@ -539,15 +539,15 @@ LOADERS
 -------
 el.showLoader('calendar' | 'message' | 'summary') / el.hideLoader(t) — also shown
 automatically while an async callback is pending. Drawn by the shared core loader:
-el.renderLoadingCallback (instance) > window.components.renderLoaderCallback (page)
-> default <span class="drp-loader"> (--drp-loader-icon/-rotate/-duration/-size →
+el.renderLoadingCallback (instance) > window.components.renderLoadingCallback (page)
+> default <span class="drp__loader"> (--drp-loader-icon/-rotate/-duration/-size →
 --base-loader-*). Container: role="status", aria-label = labels.loading.
 el.renderLoadingCallback = ({ context, containerElement }) => {
   containerElement.innerHTML = '<span class="my-dots"></span>';
   return () => {}; // optional cleanup on hide
 };
 ❌ --drp-loader-spin-duration / -inline-size / -border-width / -accent, .drp__loader
-→ ✅ --drp-loader-duration / -size / -overlay-size, .drp-loader
+→ ✅ --drp-loader-duration / -size / -overlay-size, .drp__loader
 
 LIFECYCLE
 ---------

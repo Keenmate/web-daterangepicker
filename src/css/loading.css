@@ -3,12 +3,12 @@
    ==============================================================================
    Each loader is drawn by core renderLoader() into a container (the overlay or the
    in-block `.drp__inline-loader`, both role="status"): the instance
-   renderLoadingCallback, else window.components.renderLoaderCallback, else the
-   default `.drp-loader` below — the shared loader contract (--base-loader-*).
+   renderLoadingCallback, else window.components.renderLoadingCallback, else the
+   default `.drp__loader` below — the shared loader contract (--base-loader-*).
    Keyframe `drp-loader-spin` lives in `animations.css`. */
 
 /* The default loader: the contract's drawing rule, verbatim. */
-.drp-loader {
+.drp__loader {
   display: inline-block;
   inline-size: var(--drp-loader-size);
   block-size: var(--drp-loader-size);
@@ -33,7 +33,7 @@
 }
 
 /* The overlay loader is the bigger one. */
-.drp__loader-overlay .drp-loader {
+.drp__loader-overlay .drp__loader {
   inline-size: var(--drp-loader-overlay-size);
   block-size: var(--drp-loader-overlay-size);
 }

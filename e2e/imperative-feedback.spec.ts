@@ -77,7 +77,7 @@ test("showLoader() mounts the full-calendar overlay; hideLoader() removes it", a
 
     await p.evaluate((el: any) => el.showLoader());
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveCount(1);
-    await expect(calendarOf(p).locator('.drp__loader-overlay .drp-loader')).toHaveCount(1);
+    await expect(calendarOf(p).locator('.drp__loader-overlay .drp__loader')).toHaveCount(1);
 
     await p.evaluate((el: any) => el.hideLoader());
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveCount(0);
@@ -158,14 +158,14 @@ test('showLoader() is single-instance per target — a second call does not stac
 // Shared loader (core renderLoader): default look, a11y, page + instance hooks
 // =============================================================================
 
-test('the default loader is the contract .drp-loader; the container is role=status + labels.loading', async ({ page }) => {
+test('the default loader is the contract .drp__loader; the container is role=status + labels.loading', async ({ page }) => {
     const p = pickerById(page, 'feedback');
 
     await p.evaluate((el: any) => el.showLoader('summary'));
     const container = summaryOf(p).locator('.drp__inline-loader');
     await expect(container).toHaveAttribute('role', 'status');
     await expect(container).toHaveAttribute('aria-label', 'Loading…');
-    const spin = container.locator('.drp-loader');
+    const spin = container.locator('.drp__loader');
     await expect(spin).toHaveCount(1);
     await expect(spin).toHaveAttribute('aria-hidden', 'true');
     const style = await spin.evaluate((s) => {
@@ -182,11 +182,11 @@ test('the default loader is the contract .drp-loader; the container is role=stat
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveAttribute('aria-label', 'Lädt…');
 });
 
-test('window.components.renderLoaderCallback replaces the default loader', async ({ page }) => {
+test('window.components.renderLoadingCallback replaces the default loader', async ({ page }) => {
     const p = pickerById(page, 'feedback');
 
     await page.evaluate(() => {
-        (window as any).components.renderLoaderCallback = ({ component, context, containerElement, label }: any) => {
+        (window as any).components.renderLoadingCallback = ({ component, context, containerElement, label }: any) => {
             containerElement.innerHTML = `<i class="page-dots" data-component="${component}" data-context="${context}" data-label="${label}"></i>`;
         };
     });
@@ -196,7 +196,7 @@ test('window.components.renderLoaderCallback replaces the default loader', async
     await expect(dots).toHaveAttribute('data-component', 'web-daterangepicker');
     await expect(dots).toHaveAttribute('data-context', 'summary');
     await expect(dots).toHaveAttribute('data-label', 'Loading…');
-    await expect(summaryOf(p).locator('.drp-loader')).toHaveCount(0);
+    await expect(summaryOf(p).locator('.drp__loader')).toHaveCount(0);
     await expect(summaryOf(p).locator('.drp__inline-loader')).toHaveAttribute('role', 'status');
 });
 
@@ -204,7 +204,7 @@ test('the instance renderLoadingCallback beats the page hook; hideLoader runs it
     const p = pickerById(page, 'feedback');
 
     await page.evaluate(() => {
-        (window as any).components.renderLoaderCallback = ({ containerElement }: any) => {
+        (window as any).components.renderLoadingCallback = ({ containerElement }: any) => {
             containerElement.innerHTML = '<i class="page-dots"></i>';
         };
     });
@@ -223,7 +223,7 @@ test('the instance renderLoadingCallback beats the page hook; hideLoader runs it
     const overlay = calendarOf(p).locator('.drp__loader-overlay');
     await expect(overlay.locator('.own-loader')).toHaveAttribute('data-context', 'calendar');
     await expect(overlay.locator('.page-dots')).toHaveCount(0);
-    await expect(overlay.locator('.drp-loader')).toHaveCount(0);
+    await expect(overlay.locator('.drp__loader')).toHaveCount(0);
 
     await p.evaluate((el: any) => el.hideLoader());
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveCount(0);

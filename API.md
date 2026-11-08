@@ -1126,9 +1126,9 @@ page-wide). `prefers-reduced-motion: reduce` does that automatically.
 
 ### Loader
 
-The shared loader contract (`--base-loader-*`); the default loader is `<span class="drp-loader">`
+The shared loader contract (`--base-loader-*`); the default loader is `<span class="drp__loader">`
 inside a `role="status"` container (`.drp__loader-overlay` / `.drp__inline-loader`). Replace the
-drawing with `renderLoadingCallback` or `window.components.renderLoaderCallback`.
+drawing with `renderLoadingCallback` or `window.components.renderLoadingCallback`.
 
 | Property | Default | Description |
 |----------|---------|-------------|
@@ -1684,7 +1684,7 @@ The web component provides convenient property accessors for JavaScript:
 | `renderDayCallback` | `(ctx: DayContext) => HTMLElement \| string \| null` | Read/Write | Fully custom-render a day cell. |
 | `renderDayContentCallback` | `(ctx: DayContext) => HTMLElement \| string \| null` | Read/Write | Custom-render the content inside a day cell. |
 | `renderSummaryCallback` | `(ctx: SummaryContext) => string` | Read/Write | Render the range summary (HTML). |
-| `renderLoadingCallback` | `(ctx: LoaderRenderContext) => void \| (() => void)` | Read/Write | Draw every loader (`showLoader()` targets, the one around async callbacks): fill `ctx.containerElement` (`ctx.context` = `calendar` \| `message` \| `summary`), optionally return a cleanup. Beats the page-wide `window.components.renderLoaderCallback`; unset = that, else the default `.drp-loader` (the shared `--base-loader-*` contract). Property-only. |
+| `renderLoadingCallback` | `(ctx: LoaderRenderContext) => void \| (() => void)` | Read/Write | Draw every loader (`showLoader()` targets, the one around async callbacks): fill `ctx.containerElement` (`ctx.context` = `calendar` \| `message` \| `summary`), optionally return a cleanup. Beats the page-wide `window.components.renderLoadingCallback`; unset = that, else the default `.drp__loader` (the shared `--base-loader-*` contract). Property-only. |
 | `getUnifiedHeaderCallback` | `(ctx: UnifiedHeaderContext) => string` | Read/Write | Render the unified grid header label. |
 | `getMonthHeaderCallback` | `(ctx: MonthHeaderContext) => string` | Read/Write | Render a per-column month header label. |
 | `getCustomStylesCallback` | `(ctx: PickerContext) => string \| null` | Read/Write | Return a CSS string injected into the component via a replaceable style slot (§12.8). Takes precedence over the `custom-styles` attribute when both are set. |

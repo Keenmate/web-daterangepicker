@@ -207,7 +207,7 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 | `showSummary(html: string)` | Write custom HTML into the summary block; pins it (survives hover preview) until the next selection change |
 | `hideSummary()` | Drop the summary override and re-derive from selection |
 | `refreshSummary()` | Re-run summary derivation now (e.g. after async data arrives) |
-| `showLoader(target?)` | Show a loader — `target`: `'calendar'` (default, overlay) \| `'message'` \| `'summary'` (in-block). Drawn by the shared loader: `renderLoadingCallback`, else `window.components.renderLoaderCallback`, else the default `.drp-loader`; see [Loaders](#loaders) |
+| `showLoader(target?)` | Show a loader — `target`: `'calendar'` (default, overlay) \| `'message'` \| `'summary'` (in-block). Drawn by the shared loader: `renderLoadingCallback`, else `window.components.renderLoadingCallback`, else the default `.drp__loader`; see [Loaders](#loaders) |
 | `hideLoader(target?)` | Hide the loader for a target |
 | `lock(aspects?)` | Freeze user interaction. No argument = full lock; pass a `LockAspect` or array to lock a subset. See [Locking](#locking-read-only) |
 | `unlock(aspects?)` | Release the given aspect(s), or the whole lock when called with no argument |
@@ -236,14 +236,14 @@ automatically while an async callback (`beforeSelectCallback`, `beforeMonthChang
 `aria-label` = `labels.loading`. Precedence:
 
 1. the instance **`renderLoadingCallback`** property;
-2. the page-wide **`window.components.renderLoaderCallback`** (one place for every KeenMate component);
-3. the default `<span class="drp-loader">` — a single-colour mask shape from the
+2. the page-wide **`window.components.renderLoadingCallback`** (one place for every KeenMate component);
+3. the default `<span class="drp__loader">` — a single-colour mask shape from the
    `--drp-loader-icon` / `-rotate` / `-duration` / `-size` tokens (chained to `--base-loader-*`),
    coloured by `--drp-loader-color`.
 
 ```js
 // Page-wide: every component's loaders
-window.components.renderLoaderCallback = ({ component, context, containerElement }) => {
+window.components.renderLoadingCallback = ({ component, context, containerElement }) => {
   containerElement.innerHTML = '<span class="my-dots"><i></i><i></i><i></i></span>';
 };
 // This picker only; ctx.context = 'calendar' | 'message' | 'summary'

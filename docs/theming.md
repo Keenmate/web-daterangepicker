@@ -350,7 +350,7 @@ single-colour mask shape in `--drp-loader-color` (the accent).
 | `--drp-loader-overlay-bg` | translucent scrim |
 
 Set `--base-loader-*` on `:root` to change every KeenMate component at once; anything
-richer than one colour → `window.components.renderLoaderCallback` / `renderLoadingCallback`.
+richer than one colour → `window.components.renderLoadingCallback` / `renderLoadingCallback`.
 
 ## See also
 

@@ -597,9 +597,9 @@ export interface DatePickerOptions {
   /**
    * Draw every loader of this picker (`showLoader()` targets and the automatic one
    * around async callbacks) — beats the page-wide
-   * `window.components.renderLoaderCallback`. Fill `ctx.containerElement`
+   * `window.components.renderLoadingCallback`. Fill `ctx.containerElement`
    * (`ctx.context` = `'calendar' | 'message' | 'summary'`); optionally return a
-   * cleanup. Unset = the page hook, else the default `.drp-loader` (SPEC §12.14 of core).
+   * cleanup. Unset = the page hook, else the default `.drp__loader` (SPEC §12.14 of core).
    */
   renderLoadingCallback?: RenderLoaderCallback | null;
 
