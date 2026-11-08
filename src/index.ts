@@ -33,11 +33,11 @@ export type {
     EnvironmentSnapshot,
     DeviceClass,
     Orientation,
-    PointerType,
+    PointerAccuracy,
     OS,
     BreakpointMap,
 } from '@keenmate/web-components-core';
-// Shared loader (renderLoadingCallback / window.components.renderLoaderCallback)
+// Shared loader (renderLoadingCallback / window.components.renderLoadingCallback)
 export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
 // Responsive rules context (the map / callback aliases are typed below)
 export type { ResponsiveContext } from '@keenmate/web-components-core';
