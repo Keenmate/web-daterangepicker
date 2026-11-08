@@ -251,3 +251,17 @@ presentation, each written once per file:
   variables, so the literals repeat; both files name each other);
 - `time-picker.css` 600 — stacking the calendar above the time picker in a
   non-inline datetime popover.
+
+---
+
+## C-BV-6 — `--drp-fullscreen-input-font-size` is an input variable
+
+`--drp-fullscreen-input-font-size` is listed in the manifest but never declared
+in CSS, by design: it is an **input** — `fullscreen.css` reads it with a fallback,
+`var(--drp-fullscreen-input-font-size, var(--drp-fullscreen-title-font-size))`, so
+an unset knob follows the full-screen header title size. Declaring it on `:host`
+would pin a value and cut that chain; dropping it from the manifest would hide a
+documented theming knob. The check only accepts declared variables — rulebook gap
+"C-BV-3 / C-BV-6 — input variables" (`_agent-progress/rulebook-gaps-from-devkit.md`
+item 1, same case as web-treeview's context-menu inputs). Drop this note when the
+rulebook accepts read-with-fallback input variables.
