@@ -368,7 +368,7 @@ Reject invalid selections BEFORE they commit:
 
 picker.beforeSelectCallback = (ctx) => {
   if (!isAvailable(ctx.date)) {
-    ctx.controller.showMessage('Please select an available date', { type: 'error' });
+    ctx.controller.showMessage('Please select an available date', { variant: 'danger' });
     return false;   // previous selection restored
   }
 };

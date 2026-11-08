@@ -80,7 +80,7 @@
 
         document.getElementById('before-select').beforeSelectCallback = (ctx) => {
             if (ctx.date instanceof Date && ctx.date.getDate() === 13) {
-                ctx.controller.showMessage('Unlucky day', { type: 'error' });
+                ctx.controller.showMessage('Unlucky day', { variant: 'danger' });
                 return false;
             }
         };
@@ -105,7 +105,7 @@
             const { start, end } = ctx.range;
             const hole = new Date(2026, 5, 15);
             if (start <= hole && end >= hole) {
-                ctx.controller.showMessage('Split around Jun 15', { type: 'info' });
+                ctx.controller.showMessage('Split around Jun 15', { variant: 'info' });
                 return [
                     { start, end: new Date(2026, 5, 14) },
                     { start: new Date(2026, 5, 16), end }

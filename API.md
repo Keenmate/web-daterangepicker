@@ -346,7 +346,7 @@ Available on `<web-daterangepicker>` element:
 | `toggle()` | `() => void` | Toggle the calendar open/closed. |
 | `clearSelection()` | `() => void` | Clear the current selection and reset the input. |
 | `commit()` | `() => void` | Commit the staged selection — what the Apply button does, and the app's call in `commit-mode="manual"`. Writes the value, fires `change`, closes the popover. |
-| `showMessage()` | `(content: string, opts?: ShowMessageOptions) => void` | Show a message in the calendar. `content` is HTML; `opts.type` (`info` \| `warning` \| `error` \| `success`) styles it (omit for raw-HTML content), `opts.autoHideMs` hides it after that many ms. |
+| `showMessage()` | `(content: string, opts?: ShowMessageOptions) => void` | Show a message in the calendar. `content` is HTML; `opts.variant` (`info` \| `success` \| `warning` \| `danger`) styles it (omit for raw-HTML content), `opts.autoHideMs` hides it after that many ms. |
 | `hideMessage()` | `() => void` | Hide the current message. |
 | `showSummary()` | `(content: string) => void` | Write custom HTML into the summary block (pins until the next selection change). |
 | `hideSummary()` | `() => void` | Drop any summary override and re-derive from selection state. |
@@ -393,20 +393,20 @@ reachable from the element; `el.picker` was removed.)
 | `setPresentation(next)` | `('floating' \| 'modal' \| 'fullscreen') => void` | Swap the presentation in place (selection preserved) |
 | `prevMonth(monthIndex?)` / `nextMonth(monthIndex?)` | `(monthIndex?: number) => void` | Step a month column (default: the active one) |
 | `lock(aspects?)` / `unlock(aspects?)` | `(aspects?: LockAspect \| LockAspect[]) => void` | Scoped read-only lock |
-| `showMessage(content, opts?)` | `(content: string, opts?: { type?: 'error' \| 'warning' \| 'info' \| 'success'; autoHideMs?: number }) => void` | Show an (HTML) message in the calendar |
+| `showMessage(content, opts?)` | `(content: string, opts?: { variant?: 'info' \| 'success' \| 'warning' \| 'danger'; autoHideMs?: number }) => void` | Show an (HTML) message in the calendar |
 | `hideMessage()` | `() => void` | Hide the message |
 | `showSummary(content)` / `hideSummary()` | | Pin / drop a custom summary |
 | `showLoader(target?)` / `hideLoader(target?)` | `(target?: LoaderTarget) => void` | Spinner on `calendar` (default) / `message` / `summary` |
 
-> `controller.showMessage` takes an **options object**; the element's own
-> `el.showMessage(content, type?, autoHide?)` keeps positional arguments.
+> `controller.showMessage` and the element's own `el.showMessage` take the same
+> **options object** (`{ variant?, autoHideMs? }`).
 
 ```javascript
 const el = document.querySelector('web-daterangepicker');
 const { controller } = el;
 
 if (!controller.getSelectedRange()) controller.selectToday();
-controller.showMessage('Pick a check-out date', { type: 'info', autoHideMs: 3000 });
+controller.showMessage('Pick a check-out date', { variant: 'info', autoHideMs: 3000 });
 ```
 
 ### Advanced: `DateRangePickerEngine`
@@ -681,7 +681,7 @@ picker.beforeSelectCallback = async (ctx) => {
               data-end="${ctx.range.end.toISOString()}">
         Confirm
       </button>
-    `, { type: 'warning' });
+    `, { variant: 'warning' });
     return false; // don't commit yet — wait for the confirm click
   }
   // return nothing → accept
@@ -2303,7 +2303,7 @@ model. No aliases — rename on upgrade. The full table is in
 | `ctx.picker`, `el.picker` | `ctx.controller` / `ctx.element`, `el.controller` |
 | `{ action: 'custom', text, onClick }` | `{ id: 'my-id', text, onClick(detail) }` |
 | `isVisibleCallback` / `isDisabledCallback` | `getIsVisibleCallback` / `getIsDisabledCallback` |
-| `beforeDateSelectCallback` → `{ action: 'accept' \| 'adjust' \| 'restore' \| 'clear', … }` | `beforeSelectCallback(ctx)` → nothing / `false` / `Date` / `DateRange` / `DateRange[]` / `null`; messages via `ctx.controller.showMessage(text, { type })`; `ctx.markRangeInvalid()` |
+| `beforeDateSelectCallback` → `{ action: 'accept' \| 'adjust' \| 'restore' \| 'clear', … }` | `beforeSelectCallback(ctx)` → nothing / `false` / `Date` / `DateRange` / `DateRange[]` / `null`; messages via `ctx.controller.showMessage(text, { variant })`; `ctx.markRangeInvalid()` |
 | `beforeMonthChangedCallback` → `{ action, metadata, monthHeaders }` | `beforeMonthChangeCallback(ctx)` → `false` blocks; data via `getMonthDataCallback(ctx)` → `{ metadata?, monthHeaders? }` |
 | `badgeTooltipCallback` / `dayTooltipCallback` | `getBadgeTooltipCallback` / `getDayTooltipCallback` |
 | `formatSummaryCallback` | `renderSummaryCallback` |

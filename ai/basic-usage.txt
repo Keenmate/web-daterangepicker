@@ -114,7 +114,7 @@ Callbacks CANNOT be set via HTML attributes. Set them as JavaScript properties:
   picker.beforeSelectCallback = async (ctx) => {
     const isAvailable = await checkAvailability(ctx.range ?? ctx.date);
     if (!isAvailable) {
-      ctx.controller.showMessage('Dates not available', { type: 'error' });
+      ctx.controller.showMessage('Dates not available', { variant: 'danger' });
       return false;
     }
   };
@@ -310,7 +310,7 @@ const endDate = el.selectedEndDate;
 // Controller facade
 const range = el.controller.selectedRanges[0];
 el.controller.clearSelection();
-el.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
+el.controller.showMessage('Saved', { variant: 'success', autoHideMs: 2000 });
 </script>
 
 SETTING PROPERTIES PROGRAMMATICALLY

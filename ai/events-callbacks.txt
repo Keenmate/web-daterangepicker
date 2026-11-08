@@ -153,7 +153,7 @@ el.controller.showMessage(`
           data-nights="3">
     Jan 14 - Jan 17 (3 nights)
   </button>
-`, { type: 'info' });
+`, { variant: 'info' });
 
 el.addEventListener('action', (e) => {
   if (e.detail.id !== 'alt-dates') return;       // e.detail.source === 'message'
@@ -196,7 +196,7 @@ el.beforeSelectCallback = async (ctx) => {
           ${alt.label}
         </button>
       `).join('')}
-    `, { type: 'warning' });
+    `, { variant: 'warning' });
     return false;
   }
 };
@@ -232,7 +232,7 @@ RETURN CONTRACT
   DateRange[]         - replace with these N independent ranges
   null                - clear the selection entirely
 
-Messages: ctx.controller.showMessage(text, { type: 'error' | 'warning' | 'info' | 'success', autoHideMs })
+Messages: ctx.controller.showMessage(text, { variant: 'danger' | 'warning' | 'info' | 'success', autoHideMs })
 
 SINGLE MODE VALIDATION
 ----------------------
@@ -241,7 +241,7 @@ Block weekends:
 el.beforeSelectCallback = (ctx) => {
   const day = ctx.date.getDay();
   if (day === 0 || day === 6) {
-    ctx.controller.showMessage('Weekends not allowed', { type: 'error' });
+    ctx.controller.showMessage('Weekends not allowed', { variant: 'danger' });
     return false;
   }
 };
@@ -253,7 +253,7 @@ el.beforeSelectCallback = (ctx) => {
   if (day === 0 || day === 6) {
     const adjusted = new Date(ctx.date);
     adjusted.setDate(ctx.date.getDate() + (day === 0 ? 1 : 2));
-    ctx.controller.showMessage('Adjusted to Monday', { type: 'info', autoHideMs: 3000 });
+    ctx.controller.showMessage('Adjusted to Monday', { variant: 'info', autoHideMs: 3000 });
     return adjusted;
   }
 };
@@ -264,7 +264,7 @@ el.beforeSelectCallback = (ctx) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   if (ctx.date < today) {
-    ctx.controller.showMessage('Past dates not allowed', { type: 'error' });
+    ctx.controller.showMessage('Past dates not allowed', { variant: 'danger' });
     return false;
   }
 };
@@ -277,7 +277,7 @@ el.beforeSelectCallback = (ctx) => {
   const nights = Math.floor((ctx.range.end - ctx.range.start) / 864e5);
   if (nights < 2) {
     ctx.markRangeInvalid();
-    ctx.controller.showMessage('Minimum 2 nights required', { type: 'error' });
+    ctx.controller.showMessage('Minimum 2 nights required', { variant: 'danger' });
     return false;
   }
 };
@@ -289,7 +289,7 @@ el.beforeSelectCallback = (ctx) => {
   if (endDay !== 0) {
     const end = new Date(ctx.range.end);
     end.setDate(end.getDate() + (7 - endDay));
-    ctx.controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
+    ctx.controller.showMessage('Adjusted to Sunday checkout', { variant: 'info' });
     return { start: ctx.range.start, end };
   }
 };
@@ -320,17 +320,17 @@ el.beforeSelectCallback = async (ctx) => {
 
   if (data.available) return;                     // accept
   if (data.suggestedEnd) {
-    ctx.controller.showMessage('Adjusted to available dates', { type: 'info' });
+    ctx.controller.showMessage('Adjusted to available dates', { variant: 'info' });
     return { start: ctx.range.start, end: new Date(data.suggestedEnd) };
   }
-  ctx.controller.showMessage('Dates not available', { type: 'error' });
+  ctx.controller.showMessage('Dates not available', { variant: 'danger' });
   return false;
 };
 
 COMBINING VALIDATIONS
 ---------------------
 el.beforeSelectCallback = async (ctx) => {
-  const reject = (msg) => { ctx.controller.showMessage(msg, { type: 'error' }); return false; };
+  const reject = (msg) => { ctx.controller.showMessage(msg, { variant: 'danger' }); return false; };
   const nights = Math.floor((ctx.range.end - ctx.range.start) / 864e5);
 
   if (nights < 2) return reject('Min 2 nights');
@@ -353,12 +353,12 @@ ERROR HANDLING
 el.beforeSelectCallback = async (ctx) => {
   try {
     if (!(await checkAvailability(ctx.range))) {
-      ctx.controller.showMessage('Not available', { type: 'error' });
+      ctx.controller.showMessage('Not available', { variant: 'danger' });
       return false;
     }
   } catch (error) {
     console.error('Validation error:', error);
-    ctx.controller.showMessage('Unable to validate dates', { type: 'error' });
+    ctx.controller.showMessage('Unable to validate dates', { variant: 'danger' });
     return false;
   }
 };
@@ -475,12 +475,12 @@ el.beforeMonthChangeCallback = async (ctx) => {
     const response = await fetch(`/api/check-period/${ctx.year}/${ctx.month + 1}`);
     const { dataReady } = await response.json();
     if (!dataReady) {
-      ctx.controller.showMessage('Data not yet available for this period', { type: 'warning' });
+      ctx.controller.showMessage('Data not yet available for this period', { variant: 'warning' });
       return false;
     }
   } catch (error) {
     console.error('Failed to check period:', error);
-    ctx.controller.showMessage('Unable to load data for this period', { type: 'error' });
+    ctx.controller.showMessage('Unable to load data for this period', { variant: 'danger' });
     return false;
   }
 };

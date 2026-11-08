@@ -54,7 +54,7 @@
         document.getElementById('invalid-range').beforeSelectCallback = (ctx) => {
             if (ctx.range && 'start' in ctx.range) {
                 ctx.markRangeInvalid();
-                ctx.controller.showMessage('Reject', { type: 'error' });
+                ctx.controller.showMessage('Reject', { variant: 'danger' });
                 return false;
             }
         };

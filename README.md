@@ -142,7 +142,7 @@ picker.close();
 picker.toggle();
 picker.clearSelection();
 picker.value = '2025-11-15';   // el.value = exactly what the form submits (value-format / value-format-mask)
-picker.showMessage('Pick a weekend', { type: 'info', autoHideMs: 3000 });
+picker.showMessage('Pick a weekend', { variant: 'info', autoHideMs: 3000 });
 
 // The popover opened / closed
 picker.addEventListener('open', () => console.log('opened'));

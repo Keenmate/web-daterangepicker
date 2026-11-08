@@ -55,14 +55,14 @@
    ========================================================================== */
 
 /* Error - red */
-.drp__message--error {
-  background-color: var(--drp-message-error-bg);
-  color: var(--drp-message-error-color);
-  border: 1px solid var(--drp-message-error-border);
+.drp__message--danger {
+  background-color: var(--drp-message-danger-bg);
+  color: var(--drp-message-danger-color);
+  border: 1px solid var(--drp-message-danger-border);
 }
 
-.drp__message--error .drp__message-close {
-  color: var(--drp-message-error-color);
+.drp__message--danger .drp__message-close {
+  color: var(--drp-message-danger-color);
 }
 
 /* Warning - orange/amber */

@@ -254,7 +254,7 @@
    Used when beforeDateSelectCallback returns { action: 'restore', showInvalidRange: true }
    -------------------------------------- */
 .drp__day--invalid-range {
-  background-color: color-mix(in srgb, var(--drp-message-error-border) 20%, transparent);
+  background-color: color-mix(in srgb, var(--drp-message-danger-border) 20%, transparent);
 }
 
 .drp__day--invalid-range-start,

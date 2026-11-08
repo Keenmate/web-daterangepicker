@@ -18,7 +18,7 @@ import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
 import { updateSummary } from './date-picker-rendering';
-import type { LoaderTarget } from './types';
+import type { LoaderTarget, MessageVariant } from './types';
 
 /**
  * Surface a daterangepicker-branded, once-per-instance warning when core's drift
@@ -817,14 +817,14 @@ export function hideLoader(picker: any, target: LoaderTarget = 'calendar'): void
 /**
  * Show a message in the message area
  * @param picker - The date picker instance
- * @param content - Message content (plain text when type is provided, or full HTML for custom styling)
- * @param type - Optional message type. If provided, uses built-in styled alert. If omitted, content is treated as raw HTML.
+ * @param content - Message content (plain text when a variant is given, or full HTML for custom styling)
+ * @param variant - Optional `info` | `success` | `warning` | `danger`: the built-in styled alert. Omitted, content is raw HTML.
  * @param autoHide - Optional auto-hide timeout in milliseconds
  */
 export function showMessage(
     picker: any,
     content: string,
-    type?: 'error' | 'warning' | 'info' | 'success',
+    variant?: MessageVariant,
     autoHide?: number
 ): void {
     if (!picker.messageElement) {
@@ -838,9 +838,9 @@ export function showMessage(
         picker.messageAutoHideTimeout = undefined;
     }
 
-    // Remove all type classes
+    // Remove all variant classes
     picker.messageElement.classList.remove(
-        'drp__message--error',
+        'drp__message--danger',
         'drp__message--warning',
         'drp__message--info',
         'drp__message--success',
@@ -852,11 +852,11 @@ export function showMessage(
         textElement.innerHTML = content;
     }
 
-    if (type) {
-        // Type provided: use built-in styled alert box
-        picker.messageElement.classList.add(`drp__message--${type}`);
+    if (variant) {
+        // Variant given: use the built-in styled alert box
+        picker.messageElement.classList.add(`drp__message--${variant}`);
     } else {
-        // No type: raw HTML with full user control (minimal wrapper styling)
+        // No variant: raw HTML with full user control (minimal wrapper styling)
         picker.messageElement.classList.add('drp__message--custom');
     }
 

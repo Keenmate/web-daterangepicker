@@ -400,9 +400,9 @@
     { "name": "drp-compact-ampm-color", "category": "compact", "usage": "Compact AM/PM toggle text color" },
     { "name": "drp-compact-ampm-color-selected", "category": "compact", "usage": "Compact AM/PM toggle text color (selected)" },
 
-    { "name": "drp-message-error-bg", "category": "message", "usage": "Error message background" },
-    { "name": "drp-message-error-color", "category": "message", "usage": "Error message text color" },
-    { "name": "drp-message-error-border", "category": "message", "usage": "Error message border color" },
+    { "name": "drp-message-danger-bg", "category": "message", "usage": "Error message background" },
+    { "name": "drp-message-danger-color", "category": "message", "usage": "Error message text color" },
+    { "name": "drp-message-danger-border", "category": "message", "usage": "Error message border color" },
     { "name": "drp-message-warning-bg", "category": "message", "usage": "Warning message background" },
     { "name": "drp-message-warning-color", "category": "message", "usage": "Warning message text color" },
     { "name": "drp-message-warning-border", "category": "message", "usage": "Warning message border color" },

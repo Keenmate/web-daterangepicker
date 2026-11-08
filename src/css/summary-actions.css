@@ -90,12 +90,12 @@
 
 /* `isDanger` — destructive action */
 .drp__button--danger {
-  color: var(--drp-message-error-color);
-  border-color: var(--drp-message-error-border);
+  color: var(--drp-message-danger-color);
+  border-color: var(--drp-message-danger-border);
 }
 
 .drp__button--danger:hover {
-  background-color: var(--drp-message-error-bg);
+  background-color: var(--drp-message-danger-bg);
 }
 
 /* `isToggled` — toggle state ("pressed"), rendered with aria-pressed="true" */

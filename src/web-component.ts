@@ -1095,8 +1095,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   commit(): void { this.flush(); this.#picker?.commit(); }
 
   /**
-   * Show a message in the calendar. `content` is HTML; `opts.type`
-   * (`info` | `warning` | `error` | `success`) styles it (omit for raw-HTML content),
+   * Show a message in the calendar. `content` is HTML; `opts.variant`
+   * (`info` | `success` | `warning` | `danger`) styles it (omit for raw-HTML content),
    * `opts.autoHideMs` hides it after that many ms.
    */
   showMessage(content: string, opts?: ShowMessageOptions): void {

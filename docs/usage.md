@@ -202,7 +202,7 @@ Reflect what's currently on screen; change what's shown via navigation, not by a
 | `toggle()` | Toggle calendar visibility |
 | `clearSelection()` | Clear the current selection |
 | `commit()` | Commit the staged selection (what Apply does; the app's call in `commit-mode="manual"`) |
-| `showMessage(html, { type?, autoHideMs? })` | Display a message in the calendar (`type`: `info` \| `warning` \| `error` \| `success`; omit for raw HTML) |
+| `showMessage(html, { variant?, autoHideMs? })` | Display a message in the calendar (`variant`: `info` \| `success` \| `warning` \| `danger`; omit for raw HTML) |
 | `hideMessage()` | Hide the currently displayed message |
 | `showSummary(html: string)` | Write custom HTML into the summary block; pins it (survives hover preview) until the next selection change |
 | `hideSummary()` | Drop the summary override and re-derive from selection |
@@ -222,7 +222,7 @@ context and event detail carries as `controller`: the read-only selection state 
 `selectedDates`, `selectedRanges`, `selectedStartDate`, `selectedEndDate`, `selectedTime`, `selectedDatetime`,
 `isOpen`, `selectToday()`, `selectNow()`, `clearSelection()`, `commit()`, `open()` / `close()` / `toggle()`,
 `setPresentation()`, `prevMonth()` / `nextMonth()`, `lock()` / `unlock()`,
-`showMessage(content, { type, autoHideMs })`, `hideMessage()`, `showSummary()` / `hideSummary()`,
+`showMessage(content, { variant, autoHideMs })`, `hideMessage()`, `showSummary()` / `hideSummary()`,
 `showLoader()` / `hideLoader()`, `reloadMonthData()`.
 
 Locking state: `lockedAspects` (`LockAspect[]` getter); `isReadonly` / the `readonly` attribute is the declarative full lock.
@@ -277,7 +277,7 @@ CustomEvent), right before the event is dispatched:
 ```ts
 picker.onChange = (detail) => console.log(detail.formattedValue, detail.date);
 picker.onAction = (detail) => {
-  if (detail.id === 'next-week') detail.controller.showMessage('Next week!', { type: 'info', autoHideMs: 2000 });
+  if (detail.id === 'next-week') detail.controller.showMessage('Next week!', { variant: 'info', autoHideMs: 2000 });
 };
 picker.addEventListener('month-change', (e) => console.log(e.detail.year, e.detail.month));
 ```
@@ -646,7 +646,7 @@ picker.beforeSelectCallback = async (ctx) => {
 
   if (!available) {
     ctx.markRangeInvalid();                                   // keep the attempt visible with error styling
-    ctx.controller.showMessage(message, { type: 'error' });
+    ctx.controller.showMessage(message, { variant: 'danger' });
     return false;                                             // reject → previous selection restored
   }
   // return nothing → accept
@@ -665,7 +665,7 @@ picker.beforeSelectCallback = async (ctx) => {
 | `null` | Clear the selection entirely |
 
 Messages are not part of the return value — show them through the
-facade: `ctx.controller.showMessage(text, { type: 'error' | 'warning' | 'info' | 'success', autoHideMs })`.
+facade: `ctx.controller.showMessage(text, { variant: 'danger' | 'warning' | 'info' | 'success', autoHideMs })`.
 A new selection attempt hides the previous message automatically.
 
 **Split-aware validation (`ctx.subRanges` / `ctx.enabledDates`):**
@@ -680,7 +680,7 @@ picker.beforeSelectCallback = (ctx) => {
   // Reject if any enabled-only segment exceeds 7 nights
   if (ctx.subRanges?.some(r => (r.end - r.start) / 86400000 > 7)) {
     ctx.markRangeInvalid();
-    ctx.controller.showMessage('No segment may exceed 7 nights', { type: 'error' });
+    ctx.controller.showMessage('No segment may exceed 7 nights', { variant: 'danger' });
     return false;
   }
 };
@@ -694,7 +694,7 @@ A range-mode callback can commit **N independent ranges** instead of the single 
 picker.beforeSelectCallback = (ctx) => {
   // Turn a range straddling disabled days into its enabled-only segments
   if (ctx.subRanges && ctx.subRanges.length > 1) {
-    ctx.controller.showMessage('Selection split around unavailable days', { type: 'info' });
+    ctx.controller.showMessage('Selection split around unavailable days', { variant: 'info' });
     return ctx.subRanges;
   }
 };
@@ -720,7 +720,7 @@ picker.beforeSelectCallback = (ctx) => {
     ctx.markRangeInvalid();
     ctx.controller.showMessage(
       nights < 2 ? 'Minimum 2 nights required' : 'Maximum 14 nights allowed',
-      { type: 'error' }
+      { variant: 'danger' }
     );
     return false;
   }
@@ -777,7 +777,7 @@ picker.getMonthDataCallback = async (ctx) => {
 // Block navigation past the booking horizon
 picker.beforeMonthChangeCallback = (ctx) => {
   if (ctx.year > 2027) {
-    ctx.controller.showMessage('Bookings open up to 2027', { type: 'warning', autoHideMs: 2000 });
+    ctx.controller.showMessage('Bookings open up to 2027', { variant: 'warning', autoHideMs: 2000 });
     return false;
   }
 };
@@ -807,10 +807,10 @@ const picker = document.querySelector('web-daterangepicker');
 
 // Simple message: raw HTML, or a typed message that auto-hides
 picker.showMessage('<p>Please select a check-in date</p>');
-picker.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
+picker.showMessage('Saved', { variant: 'success', autoHideMs: 2000 });
 
 // Same via the controller facade — e.g. from a callback
-picker.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
+picker.controller.showMessage('Saved', { variant: 'success', autoHideMs: 2000 });
 
 // Message with custom action buttons — data-id identifies the action,
 // every other data-* attribute arrives in detail.dataset (camelCase)

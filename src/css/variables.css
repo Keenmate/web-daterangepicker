@@ -612,7 +612,7 @@
   );
 
   /* Invalid Range (showInvalidRange callback) */
-  --drp-day-invalid-range-bg: var(--drp-message-error-border);
+  --drp-day-invalid-range-bg: var(--drp-message-danger-border);
   --drp-day-invalid-range-color: var(--drp-text-color-on-accent);
 
   /* Day Disabled Pattern */
@@ -706,9 +706,9 @@
      attention. Text picks the lighter tone of its hue so it still reads. */
 
   /* Error - red */
-  --drp-message-error-bg: light-dark(#fef2f2, #3f1a1a);
-  --drp-message-error-color: light-dark(#991b1b, #fecaca);
-  --drp-message-error-border: light-dark(#fecaca, #7f2a2a);
+  --drp-message-danger-bg: light-dark(#fef2f2, #3f1a1a);
+  --drp-message-danger-color: light-dark(#991b1b, #fecaca);
+  --drp-message-danger-border: light-dark(#fecaca, #7f2a2a);
 
   /* Warning - orange/amber */
   --drp-message-warning-bg: light-dark(#fffbeb, #3a2a10);

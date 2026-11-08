@@ -109,7 +109,7 @@ ctx.controller   - public facade (same object as el.controller):
                    selectToday(), selectNow(), clearSelection(), commit(),
                    open(), close(), toggle(), setPresentation(p),
                    prevMonth(i?), nextMonth(i?), lock(a?), unlock(a?),
-                   showMessage(content, { type, autoHideMs }), hideMessage(),
+                   showMessage(content, { variant, autoHideMs }), hideMessage(),
                    showSummary(html), hideSummary(), showLoader(t?), hideLoader(t?)
 ctx.element      - the <web-daterangepicker> host (selectedStartDate,
                    selectedEndDate, selectedRanges = [...], etc.)
@@ -412,7 +412,7 @@ onClick: (d) => {
   d.controller.clearSelection();
   d.controller.commit();
   d.controller.close();
-  d.controller.showMessage('Saved', { type: 'success', autoHideMs: 2000 });
+  d.controller.showMessage('Saved', { variant: 'success', autoHideMs: 2000 });
 
   // Or the host element (full element API)
   d.element.selectedRanges = [{ start, end }];
@@ -471,7 +471,7 @@ pipeline. Custom triggers need data-id; other data-* go to detail.dataset:
 
 el.controller.showMessage(
   'Unsaved changes. <button data-action="custom" data-id="discard" data-reason="user">Discard</button>',
-  { type: 'warning' }
+  { variant: 'warning' }
 );
 el.addEventListener('action', (e) => {
   if (e.detail.id === 'discard') {      // e.detail.source === 'message'

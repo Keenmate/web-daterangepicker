@@ -912,7 +912,7 @@ getTooltipCallback → tooltip → <span class="string">''</span></code></div>
         <td>Drive the picker.</td>
       </tr>
       <tr>
-        <td><code>ctx.controller.showMessage(text, { type, autoHideMs })</code></td>
+        <td><code>ctx.controller.showMessage(text, { variant, autoHideMs })</code></td>
         <td>Show feedback in the calendar.</td>
       </tr>
       <tr>
@@ -1571,7 +1571,7 @@ console.log(action, id, source, dataset); <span class="comment">// e.g. 'custom'
       text: 'Ask',
       onClick: ({ controller }) => controller.showMessage(
         'Keep this range? <button data-action="custom" data-id="keep" data-answer="yes">Yes</button>',
-        { type: 'info' })
+        { variant: 'info' })
     },
     { action: 'clear', isDanger: true }
   ];

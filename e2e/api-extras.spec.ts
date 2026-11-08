@@ -48,13 +48,13 @@ test('selectedRanges setter populates a range and applies range-start / range-en
 // showMessage / hideMessage
 // =============================================================================
 
-test('showMessage renders the message element with the configured type class', async ({ page }) => {
+test('showMessage renders the message element with the configured variant class', async ({ page }) => {
     const p = pickerById(page, 'messages');
 
     await inputOf(p).click();
     await expect(calendarOf(p)).toBeVisible();
 
-    await p.evaluate((el: any) => el.showMessage('Heads up', { type: 'warning' }));
+    await p.evaluate((el: any) => el.showMessage('Heads up', { variant: 'warning' }));
 
     const msg = p.locator('.drp__message');
     await expect(msg).toHaveClass(/drp__message--visible/);
@@ -62,11 +62,25 @@ test('showMessage renders the message element with the configured type class', a
     await expect(msg).toContainText('Heads up');
 });
 
+test("variant 'danger' is the error style (the contract's role name), styled by --drp-message-danger-*", async ({ page }) => {
+    const p = pickerById(page, 'messages');
+    await inputOf(p).click();
+    await p.evaluate((el: any) => el.showMessage('Nope', { variant: 'danger' }));
+    const msg = p.locator('.drp__message');
+    await expect(msg).toHaveClass(/drp__message--danger/);
+    const colors = await msg.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return { bg: cs.backgroundColor, token: cs.getPropertyValue('--drp-message-danger-bg').trim() };
+    });
+    expect(colors.token).not.toBe('');
+    expect(colors.bg).not.toBe('rgba(0, 0, 0, 0)');
+});
+
 test('hideMessage removes the --visible modifier', async ({ page }) => {
     const p = pickerById(page, 'messages');
 
     await inputOf(p).click();
-    await p.evaluate((el: any) => el.showMessage('Heads up', { type: 'info' }));
+    await p.evaluate((el: any) => el.showMessage('Heads up', { variant: 'info' }));
     const msg = p.locator('.drp__message');
     await expect(msg).toHaveClass(/drp__message--visible/);
 
@@ -78,7 +92,7 @@ test('showMessage auto-hides after the supplied timeout', async ({ page }) => {
     const p = pickerById(page, 'messages');
 
     await inputOf(p).click();
-    await p.evaluate((el: any) => el.showMessage('Brief', { type: 'info', autoHideMs: 200 }));
+    await p.evaluate((el: any) => el.showMessage('Brief', { variant: 'info', autoHideMs: 200 }));
 
     const msg = p.locator('.drp__message');
     await expect(msg).toHaveClass(/drp__message--visible/);

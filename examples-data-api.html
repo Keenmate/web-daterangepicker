@@ -1142,7 +1142,7 @@ console.log('Open:', controller.isOpen);
 // Drive the picker
 controller.open();
 controller.nextMonth();
-controller.showMessage('Pick your stay', { type: 'info', autoHideMs: 2000 });
+controller.showMessage('Pick your stay', { variant: 'info', autoHideMs: 2000 });
 controller.lock('navigation');   // scoped read-only lock
 controller.unlock();
 
@@ -1398,13 +1398,13 @@ picker.actionButtons = [
 
             // 1) nothing / half a range → warn, stay open
             if (!start || !end) {
-                controller.showMessage('Please select a full date range first.', { type: 'error' });
+                controller.showMessage('Please select a full date range first.', { variant: 'danger' });
                 return;
             }
             // 2) business rule → warn, stay open
             const nights = Math.round((end - start) / 86400000);
             if (nights &lt; MIN_NIGHTS) {
-                controller.showMessage(`Minimum ${MIN_NIGHTS} nights — you picked ${nights}.`, { type: 'warning' });
+                controller.showMessage(`Minimum ${MIN_NIGHTS} nights — you picked ${nights}.`, { variant: 'warning' });
                 return;
             }
             // 3) valid → commit AND close
@@ -1416,7 +1416,7 @@ picker.actionButtons = [
     </div>
 
     <div class="method-signature">
-      <div><span class="return-type">void</span> controller.showMessage(html: string, { type?: 'error' | 'warning' | 'info' | 'success', autoHideMs?: number })</div>
+      <div><span class="return-type">void</span> controller.showMessage(html: string, { variant?: 'info' | 'success' | 'warning' | 'danger', autoHideMs?: number })</div>
       <div><span class="return-type">void</span> hideMessage()</div>
       <div><span class="return-type">void</span> commit()</div>
       <div><span class="return-type">void</span> close()</div>
@@ -1686,7 +1686,7 @@ const picker = new DateRangePickerEngine(inputElement, {
     // Validate before the selection is finalized (ctx.date / ctx.range).
     // Return nothing = accept, false = reject, a Date / DateRange = adjust,
     // a DateRange[] = N ranges, null = clear.
-    // Explain a rejection with ctx.controller.showMessage(text, { type: 'error' }).
+    // Explain a rejection with ctx.controller.showMessage(text, { variant: 'danger' }).
   },
 
   beforeMonthChangeCallback: (ctx) => {
@@ -1802,7 +1802,7 @@ const picker = new DateRangePickerEngine(inputElement, {
           <td>Commit the staged selection (what Apply does; the app's call in <code>commit-mode="manual"</code>)</td>
         </tr>
         <tr>
-          <td><code>showMessage(content, { type?, autoHideMs? })</code></td>
+          <td><code>showMessage(content, { variant?, autoHideMs? })</code></td>
           <td><code>void</code></td>
           <td>Show an inline message; <code>type</code> ∈ error/warning/info/success, <code>autoHideMs</code> auto-dismisses</td>
         </tr>
@@ -2403,8 +2403,8 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
     document.getElementById('btn-get-internal-state').addEventListener('click', () => {
       const controller = picker6.controller;
       controller.open();
-      controller.showMessage('Opened and messaged via <code>el.controller</code>', { type: 'info', autoHideMs: 2500 });
-      output6.innerHTML = '<div>Called <code>controller.open()</code> + <code>controller.showMessage(…, { type: "info", autoHideMs: 2500 })</code></div>';
+      controller.showMessage('Opened and messaged via <code>el.controller</code>', { variant: 'info', autoHideMs: 2500 });
+      output6.innerHTML = '<div>Called <code>controller.open()</code> + <code>controller.showMessage(…, { variant: "info", autoHideMs: 2500 })</code></div>';
     });
 
     // Section 9: Booking desk — confirm & lock (scoped read-only)
@@ -2494,7 +2494,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
       // selectedRanges only carries multi-range (beforeSelectCallback DateRange[]) results.
       const start = picker9.selectedStartDate, end = picker9.selectedEndDate;
       if (!start || !end) {
-        picker9.showMessage('Pick a range first, then hit Book.', { type: 'warning', autoHideMs: 2500 });
+        picker9.showMessage('Pick a range first, then hit Book.', { variant: 'warning', autoHideMs: 2500 });
         return;
       }
       const range = { start, end };
@@ -2564,13 +2564,13 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
 
           // 1) nothing / half a range → warn, stay open
           if (!start || !end) {
-            controller.showMessage('Please select a full date range first.', { type: 'error' });
+            controller.showMessage('Please select a full date range first.', { variant: 'danger' });
             return;
           }
           // 2) business rule (min nights) → warn, stay open
           const nights = Math.round((end - start) / 86400000);
           if (nights < CONFIRM_MIN_NIGHTS) {
-            controller.showMessage(`Minimum ${CONFIRM_MIN_NIGHTS} nights — you picked ${nights}.`, { type: 'warning' });
+            controller.showMessage(`Minimum ${CONFIRM_MIN_NIGHTS} nights — you picked ${nights}.`, { variant: 'warning' });
             return;
           }
           // 3) valid → reflect it, then commit AND close
@@ -2772,12 +2772,12 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
 
           if (weeks.length === 0) {
             // No week qualified — nothing gets selected (null clears).
-            ctx.controller.showMessage('Fewer than 2 work days in every week — nothing selected', { type: 'warning' });
+            ctx.controller.showMessage('Fewer than 2 work days in every week — nothing selected', { variant: 'warning' });
             return null;
           }
 
           // A DateRange[] replaces the proposal with these N ranges.
-          ctx.controller.showMessage(`${weeks.length} full week${weeks.length !== 1 ? 's' : ''} selected`, { type: 'info' });
+          ctx.controller.showMessage(`${weeks.length} full week${weeks.length !== 1 ? 's' : ''} selected`, { variant: 'info' });
           return weeks.map(w => ({ start: w.start, end: w.end }));
         };
 

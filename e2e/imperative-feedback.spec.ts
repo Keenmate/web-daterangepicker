@@ -242,7 +242,7 @@ test('showMessage with raw HTML shows it; the built-in close button hides it', a
     await expect(messageOf(p)).toHaveClass(/drp__message--visible/);
     await expect(messageOf(p).locator('.msg')).toHaveText('hi');
 
-    await p.evaluate((el: any) => el.showMessage('Typed', { type: 'info' }));
+    await p.evaluate((el: any) => el.showMessage('Typed', { variant: 'info' }));
     await messageOf(p).locator('[data-drp-action="hide-message"]').click();
     await expect(messageOf(p)).not.toHaveClass(/drp__message--visible/);
 });

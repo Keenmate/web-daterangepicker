@@ -2970,8 +2970,8 @@ class DateRangePickerEngine {
     hideTooltip() { return UI.hideTooltip(this); }
     /** Bumped by every public showMessage — lets beforeSelectCallback detect a message the consumer showed. */
     messageSeq = 0;
-    /** Show a message; `opts.type` styles it (omit for raw-HTML content), `opts.autoHideMs` hides it after that many ms. */
-    showMessage(content: string, opts?: ShowMessageOptions) { this.messageSeq++; return UI.showMessage(this, content, opts?.type, opts?.autoHideMs); }
+    /** Show a message; `opts.variant` styles it (omit for raw-HTML content), `opts.autoHideMs` hides it after that many ms. */
+    showMessage(content: string, opts?: ShowMessageOptions) { this.messageSeq++; return UI.showMessage(this, content, opts?.variant, opts?.autoHideMs); }
     hideMessage() { return UI.hideMessage(this); }
     showSummary(content: string) { return UI.showSummary(this, content); }
     hideSummary() { return UI.hideSummary(this); }

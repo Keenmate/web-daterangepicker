@@ -14,13 +14,16 @@ export type { PresentationContext, Presentation };
  */
 export interface PickerContext extends ComponentContext<DateRangePickerController>, PresentationContext {}
 
-/** Feedback message severity. */
-export type MessageSeverity = 'error' | 'warning' | 'info' | 'success';
+/**
+ * A message's variant — the status roles of the `--base-*` contract (rulebook C-NC-13);
+ * each maps to a `.drp__message--{variant}` theming hook.
+ */
+export type MessageVariant = 'info' | 'success' | 'warning' | 'danger';
 
 /** Options for {@link DateRangePickerController.showMessage}. */
 export interface ShowMessageOptions {
-  /** Severity styling; omit for raw-HTML content (custom message). */
-  type?: MessageSeverity;
+  /** Variant styling; omit for raw-HTML content (custom message). */
+  variant?: MessageVariant;
   /** Auto-hide after this many ms; omit / 0 to keep it until dismissed. */
   autoHideMs?: number;
 }
@@ -662,7 +665,7 @@ export interface DatePickerOptions {
    * @example Reject with a message
    * beforeSelectCallback: async (ctx) => {
    *   const { available } = await (await fetch(`/api/check/${ctx.date.toISOString()}`)).json();
-   *   if (!available) { ctx.controller.showMessage('Date unavailable', { type: 'error' }); return false; }
+   *   if (!available) { ctx.controller.showMessage('Date unavailable', { variant: 'danger' }); return false; }
    * }
    *
    * @example Range — max 7 nights, keep the attempt visible
@@ -670,7 +673,7 @@ export interface DatePickerOptions {
    *   const nights = Math.round((ctx.range.end - ctx.range.start) / 864e5);
    *   if (nights > 7) {
    *     ctx.markRangeInvalid();
-   *     ctx.controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
+   *     ctx.controller.showMessage('Maximum 7 nights allowed', { variant: 'danger' });
    *     return false;
    *   }
    * }

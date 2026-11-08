@@ -123,7 +123,7 @@ picker.addEventListener('month-change', (event) => {
       <li>Works for both <strong>single</strong> and <strong>range</strong> modes</li>
       <li>Supports <strong>synchronous</strong> and <strong>asynchronous</strong> validation</li>
       <li>Can <strong>reject</strong>, <strong>adjust</strong>, or <strong>clear</strong> selections</li>
-      <li>Explain a decision with <code>ctx.controller.showMessage(text, { type })</code></li>
+      <li>Explain a decision with <code>ctx.controller.showMessage(text, { variant })</code></li>
       <li>Shows loading overlay during async operations</li>
       <li>Called AFTER local validation (disabled dates, min/max) passes</li>
     </ul>
@@ -231,7 +231,7 @@ picker.addEventListener('month-change', (event) => {
 picker.beforeSelectCallback = ({ date, controller }) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   if (isWeekend) {
-    controller.showMessage('Weekends not allowed', { type: 'error' });
+    controller.showMessage('Weekends not allowed', { variant: 'danger' });
     return false; // reject, keep the previous selection
   }
   // returning nothing accepts
@@ -243,7 +243,7 @@ picker.beforeSelectCallback = ({ date, controller }) => {
   if (day === 0 || day === 6) { // Sunday / Saturday → Monday
     const adjusted = new Date(date);
     adjusted.setDate(date.getDate() + (day === 0 ? 1 : 2));
-    controller.showMessage('Adjusted to Monday', { type: 'info' });
+    controller.showMessage('Adjusted to Monday', { variant: 'info' });
     return adjusted; // accept this date instead
   }
 };
@@ -256,7 +256,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
   });
   const { available } = await response.json();
   if (!available) {
-    controller.showMessage('Date not available', { type: 'error' });
+    controller.showMessage('Date not available', { variant: 'danger' });
     return false;
   }
 };</code></pre>
@@ -325,7 +325,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
 picker.beforeSelectCallback = ({ range, controller }) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
   if (nights &lt; 2) {
-    controller.showMessage('Minimum 2 nights required', { type: 'error' });
+    controller.showMessage('Minimum 2 nights required', { variant: 'danger' });
     return false;
   }
 };
@@ -336,7 +336,7 @@ picker.beforeSelectCallback = ({ range, controller }) => {
   if (endDay !== 0) { // Not Sunday
     const adjusted = new Date(range.end);
     adjusted.setDate(range.end.getDate() + (7 - endDay));
-    controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
+    controller.showMessage('Adjusted to Sunday checkout', { variant: 'info' });
     return { start: range.start, end: adjusted }; // accept this range instead
   }
 };
@@ -354,10 +354,10 @@ picker.beforeSelectCallback = async ({ range, controller }) => {
 
   if (data.available) return; // accept
   if (data.suggestedEnd) {
-    controller.showMessage('Adjusted to available dates', { type: 'info' });
+    controller.showMessage('Adjusted to available dates', { variant: 'info' });
     return { start: range.start, end: new Date(data.suggestedEnd) };
   }
-  controller.showMessage('Dates not available', { type: 'error' });
+  controller.showMessage('Dates not available', { variant: 'danger' });
   return false;
 };
 
@@ -367,7 +367,7 @@ picker.beforeSelectCallback = (ctx) => {
   const nights = Math.floor((ctx.range.end - ctx.range.start) / (1000 * 60 * 60 * 24));
   if (nights > 7) {
     ctx.markRangeInvalid();
-    ctx.controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
+    ctx.controller.showMessage('Maximum 7 nights allowed', { variant: 'danger' });
     return false;
   }
 };
@@ -686,7 +686,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     );
 
     if (isWeekend) {
-      controller.showMessage('Weekends not allowed', { type: 'error' });
+      controller.showMessage('Weekends not allowed', { variant: 'danger' });
       return false; // reject
     }
     // nothing returned = accept
@@ -706,7 +706,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     );
 
     if (isPast) {
-      controller.showMessage('Past dates not allowed', { type: 'error' });
+      controller.showMessage('Past dates not allowed', { variant: 'danger' });
       return false;
     }
   };
@@ -739,7 +739,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     );
 
     if (adjusted) {
-      controller.showMessage(message, { type: 'info' });
+      controller.showMessage(message, { variant: 'info' });
       return adjusted; // accept this date instead
     }
   };
@@ -762,7 +762,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     );
 
     if (isBlocked) {
-      controller.showMessage('Date unavailable per API', { type: 'error' });
+      controller.showMessage('Date unavailable per API', { variant: 'danger' });
       return false;
     }
   };
@@ -788,7 +788,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     );
 
     if (!isValid) {
-      controller.showMessage('Minimum 2 nights required', { type: 'error' });
+      controller.showMessage('Minimum 2 nights required', { variant: 'danger' });
       return false;
     }
   };
@@ -812,7 +812,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     if (!isValid) {
       // Keep the rejected range visible with error styling, explain, reject
       markRangeInvalid();
-      controller.showMessage('Maximum 7 nights allowed', { type: 'error' });
+      controller.showMessage('Maximum 7 nights allowed', { variant: 'danger' });
       return false;
     }
   };
@@ -836,7 +836,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
         'warning'
       );
 
-      controller.showMessage('Adjusted to Sunday checkout', { type: 'info' });
+      controller.showMessage('Adjusted to Sunday checkout', { variant: 'info' });
       return { start: range.start, end: adjusted }; // accept this range instead
     }
 
