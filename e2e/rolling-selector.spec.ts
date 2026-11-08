@@ -45,9 +45,13 @@ test('rolling-list has box-sizing: border-box (so 100% + border does not overflo
 
 test('rolling-list applies overscroll-behavior to prevent page-scroll chaining', async ({ page }) => {
     await openCalendarAndRollingSelector(page);
+    // Playwright's WebKit build on Windows doesn't implement overscroll-behavior at all
+    // (the declaration is dropped), so there is nothing to read there.
+    const isSupported = await page.evaluate(() => CSS.supports('overscroll-behavior', 'contain'));
+    test.skip(!isSupported, 'this engine build has no overscroll-behavior (Playwright WebKit on Windows)');
 
     // contain or none both prevent chaining; the fix specifically sets contain.
-    const overscroll = await rollingLists(page).first().evaluate(el => getComputedStyle(el).overscrollBehaviorY);
+    const overscroll = await rollingLists(page).first().evaluate(el => getComputedStyle(el).getPropertyValue('overscroll-behavior-y'));
     expect(['contain', 'none']).toContain(overscroll);
 });
 

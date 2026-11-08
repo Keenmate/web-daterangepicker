@@ -22,6 +22,7 @@
      selects text). The summary, though, is informational text — day counts,
      prices, booking reference codes written via showSummary() — that users
      legitimately want to copy. Opt it back in. */
+  -webkit-user-select: text; /* Safari still needs the prefix */
   user-select: text;
 }
 

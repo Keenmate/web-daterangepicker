@@ -69,7 +69,7 @@ test('each custom button gets its OWN tooltip (not the first custom one)', async
 // action event — order, detail, built-ins, veto
 // =============================================================================
 
-test('order: beforeActionCallback → onClick → built-in → onAction → action event; one detail object', async ({ page }) => {
+test('order: beforeActionCallback → onClick → built-in → onAction → action event; one detail per side of emit()', async ({ page }) => {
     const p = pickerById(page, 'ctx-events');
     const result = await p.evaluate(async (el: any) => {
         const log: string[] = [];
@@ -87,7 +87,9 @@ test('order: beforeActionCallback → onClick → built-in → onAction → acti
         const d = seen[0];
         return {
             log,
-            isSameObject: seen.every((x) => x === d),
+            // Core emit() shallow-copies a plain-object detail (core rc18, I-03): the
+            // before-hook and onClick share one object, the twin and the event the copy.
+            isSameObject: seen[1] === d && seen[3] === seen[2] && seen[2] !== d,
             action: d.action,
             source: d.source,
             hasController: typeof d.controller?.selectToday === 'function',

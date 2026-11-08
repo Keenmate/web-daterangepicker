@@ -164,6 +164,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--drp-wheel-item-color);
   cursor: pointer;
+  -webkit-user-select: none; /* Safari still needs the prefix */
   user-select: none;
   /* Smooth color transition as items roll past the center band — feels closer
      to the iOS curved-barrel effect than hard color jumps. */

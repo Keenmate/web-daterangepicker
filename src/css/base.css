@@ -46,6 +46,7 @@ web-daterangepicker:not(:defined) {
   min-width: var(--drp-month-min-width);
   max-width: var(--drp-calendar-max-width);
   box-sizing: border-box;
+  -webkit-user-select: none; /* Safari still needs the prefix */
   user-select: none;
 }
 

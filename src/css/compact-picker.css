@@ -102,6 +102,7 @@
   font-size: var(--drp-compact-pill-font-size);
   font-weight: var(--drp-font-weight-semibold);
   line-height: 1;
+  -webkit-user-select: none; /* Safari still needs the prefix */
   user-select: none;
 }
 

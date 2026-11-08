@@ -24,6 +24,10 @@ test.use({
     viewport: { width: 390, height: 844 }, // shorter side 390 < TABLET_MIN_SHORT_SIDE (600)
 });
 
+// `--blink-settings` is a Chromium launch flag: Firefox and WebKit ignore it, keep a fine,
+// hovering pointer, and so classify the page as `desktop`.
+test.skip(({ browserName }) => browserName !== 'chromium', 'coarse-pointer emulation needs the Chromium-only --blink-settings flag');
+
 const PAGE = '/test/adaptive-actions.html';
 const buttons = '#adaptive .drp__actions .drp__button';
 

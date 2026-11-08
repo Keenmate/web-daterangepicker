@@ -180,6 +180,7 @@
   color: var(--drp-day-range-color);
   font-weight: var(--drp-font-weight-semibold);
   cursor: grab;
+  -webkit-user-select: none; /* Safari still needs the prefix */
   user-select: none;
   /* These are the drag handles for adjusting a range with a finger. Opting them
      out of the browser's touch scrolling lets a drag that STARTS on an endpoint

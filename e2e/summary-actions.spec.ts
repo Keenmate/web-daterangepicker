@@ -89,11 +89,11 @@ test('summary text is selectable even though the calendar root suppresses select
     await expect(summaryOf(p)).toHaveClass(/drp__summary--visible/);
 
     // The root opts OUT of selection (so drag-selecting a range never grabs text)…
-    const rootSelect = await calendarOf(p).evaluate(el => getComputedStyle(el).userSelect);
+    const rootSelect = await calendarOf(p).evaluate(el => { const cs = getComputedStyle(el) as CSSStyleDeclaration & { webkitUserSelect?: string }; return cs.userSelect || cs.webkitUserSelect; });
     expect(rootSelect).toBe('none');
 
     // …but the summary opts back IN, so day counts / prices / booking Ref codes
     // written via showSummary() can be selected and copied.
-    const summarySelect = await summaryOf(p).evaluate(el => getComputedStyle(el).userSelect);
+    const summarySelect = await summaryOf(p).evaluate(el => { const cs = getComputedStyle(el) as CSSStyleDeclaration & { webkitUserSelect?: string }; return cs.userSelect || cs.webkitUserSelect; });
     expect(summarySelect).toBe('text');
 });
