@@ -31,7 +31,11 @@ locally — every local fork is how they drifted apart.
   element out. Log lines take the kit tones (`.log-line--ok|info|warn|err|muted`,
   `--action`, timeline cells `.log-line__time` …) — don't colour them per page.
   `<kbd>`, `<mark>`, field widths (`.w-xs` … `.w-lg`) and `.push-end` are kit
-  too — no inline styles for them.
+  too — no inline styles for them. Page colours come from the kit's `--kmwc-*`
+  tokens or `light-dark()` — a literal doesn't follow dark mode (doctor warns);
+  a demo that shows fixed colours on purpose goes in `<style data-kmwc-fixed-colors>`
+  (one rule: a `/* kmwc-fixed-colors: why */` comment before it; an element's own
+  `style="…"`: the attribute on the element).
   If a second component needs a pattern, it belongs in the devkit.
 - **Example pages are fragments:** no `<html>`/`<head>`/`<header>` — start with
   `<meta name="kmwc:title" content="…">`, the devkit layout adds the rest. Shared text
@@ -54,7 +58,9 @@ locally — every local fork is how they drifted apart.
   `*.checks.sh` suites. A rulebook failure that is a real architectural decision
   goes into `VALIDATION-NOTES.md` under a `## C-XX-N — …` heading (deferrals
   don't count). After changing a page, `npx kmwc check-pages` loads every page at
-  desktop and phone widths and reports errors and horizontal overflow.
+  desktop and phone widths and reports errors, horizontal overflow and page CSS
+  that only matches inside a shadow root (markup a render callback draws there is
+  out of page CSS's reach — style it through the component's styles hook).
 <!-- kmwc:devkit:end -->
 
 
