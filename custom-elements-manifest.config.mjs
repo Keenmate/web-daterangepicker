@@ -21,7 +21,7 @@ import { customElementJetBrainsPlugin } from 'custom-element-jet-brains-integrat
  */
 export default blissAnalyzerConfig({
     globs: ['src/**/*.ts'],
-    exclude: ['src/**/*.spec.ts', 'src/**/*.test.ts', 'src/**/*.d.ts', 'src/index.ts'],
+    // exclude: core's default (tests + declarations); src/index.ts is analyzed — registerComponent() defines the tag there.
     outdir: '.',
     plugins: [
         cssVariablesFromManifestPlugin(),
