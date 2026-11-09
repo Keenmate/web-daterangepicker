@@ -74,6 +74,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   selection suppression (drag across days) and the summary's opt-in apply there too.
 - A page control that calls `el.open()` while the calendar is open keeps it open
   through its click (core decides the outside click when the click ends).
+- **Safari: the compact time pills are editable.** WebKit doesn't focus a
+  contentEditable `<button>` and can't select inside a shadow root, so a tapped pill got
+  no caret (typing went nowhere, Escape closed the calendar). The pills are focusable
+  `<span role="button" tabindex="0">` now (page CSS that targeted `button.drp__compact-pill`
+  must drop the element name); where select-all can't land, editing starts from an empty
+  pill (typing replaces the value, Escape restores it).
 
 ### Internal — core 1.0.0-rc20 alignment (2026-11-09)
 - The calendar is a core `createPopover()` (kept mounted, anchored only when floating):
