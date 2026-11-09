@@ -3,24 +3,6 @@
 
 <link rel="stylesheet" href="examples-local.css">
 
-<style>
-  /* Page-specific: the divider between stacked entries and the JSON payload the
-     logEvent() script writes into each `.log-panel--dark` box. The timestamp and
-     event name (.event-time / .event-name) take the kit's log tones. All layout /
-     cards / notes / tables / status dots come from the devkit kit. */
-  .event-log-item {
-    border-bottom: 1px solid var(--kmwc-log-rule-color);
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .event-log-item:last-child {
-    border-bottom: none;
-  }
-
-  .event-data { color: #fbbf24; margin-top: 0.25rem; }
-</style>
-
 <!-- Events Overview -->
 <div class="card">
   <h2>EV01 · Events Fired by the Component</h2>
@@ -63,17 +45,13 @@
     <div class="form-group">
       <label>Single Mode Event Demo</label>
       <web-daterangepicker id="event-single"></web-daterangepicker>
-      <div id="event-log-single" class="log-panel log-panel--dark" style="--log-max-height: 300px">
-        <div class="muted">Select a date to see events...</div>
-      </div>
+      <div id="event-log-single" class="log-panel log-panel--dark" style="--log-max-height: 300px" data-empty="Select a date to see events..."></div>
     </div>
 
     <div class="form-group">
       <label>Range Mode Event Demo</label>
       <web-daterangepicker id="event-range" selection-mode="range" visible-month-count="2"></web-daterangepicker>
-      <div id="event-log-range" class="log-panel log-panel--dark" style="--log-max-height: 300px">
-        <div class="muted">Select a range to see events...</div>
-      </div>
+      <div id="event-log-range" class="log-panel log-panel--dark" style="--log-max-height: 300px" data-empty="Select a range to see events..."></div>
     </div>
   </div>
 
@@ -181,9 +159,7 @@ picker.addEventListener('month-change', (event) => {
       </label>
       <web-daterangepicker id="single-block-weekends"></web-daterangepicker>
       <small>Try selecting Saturday or Sunday</small>
-      <div id="log-single-weekends" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-single-weekends" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
 
     <!-- Example 2: Block Past Dates -->
@@ -194,9 +170,7 @@ picker.addEventListener('month-change', (event) => {
       </label>
       <web-daterangepicker id="single-block-past"></web-daterangepicker>
       <small>Only future dates allowed</small>
-      <div id="log-single-past" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-single-past" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
 
     <!-- Example 3: Adjust to Next Business Day -->
@@ -207,9 +181,7 @@ picker.addEventListener('month-change', (event) => {
       </label>
       <web-daterangepicker id="single-adjust-business"></web-daterangepicker>
       <small>Weekends auto-adjust to Monday</small>
-      <div id="log-single-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-single-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
 
     <!-- Example 4: Async API Validation -->
@@ -220,9 +192,7 @@ picker.addEventListener('month-change', (event) => {
       </label>
       <web-daterangepicker id="single-async"></web-daterangepicker>
       <small>Simulates API call (500ms delay)</small>
-      <div id="log-single-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-single-async" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
   </div>
 
@@ -275,9 +245,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
       </label>
       <web-daterangepicker id="range-min-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
       <small>Requires at least 2 nights</small>
-      <div id="log-range-min" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-range-min" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
 
     <!-- Example 6: Maximum Nights (with markRangeInvalid) -->
@@ -288,9 +256,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
       </label>
       <web-daterangepicker id="range-max-nights" selection-mode="range" visible-month-count="2"></web-daterangepicker>
       <small>Cannot exceed 7 nights. Calls <code>ctx.markRangeInvalid()</code> before returning <code>false</code> to keep the invalid range visible with error styling.</small>
-      <div id="log-range-max" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-range-max" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
 
     <!-- Example 7: Adjust End Date -->
@@ -301,9 +267,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
       </label>
       <web-daterangepicker id="range-adjust-checkout" selection-mode="range" visible-month-count="2"></web-daterangepicker>
       <small>End date must be Sunday (checkout day)</small>
-      <div id="log-range-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-range-adjust" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
 
     <!-- Example 8: Async Availability with Custom Message -->
@@ -314,9 +278,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
       </label>
       <web-daterangepicker id="range-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
       <small>Select more than 5 nights to see custom HTML error with alternatives. Uses <code>ctx.controller.showMessage(html)</code> for full control; its buttons fire the <code>action</code> event.</small>
-      <div id="log-range-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Waiting for selection...</div>
-      </div>
+      <div id="log-range-async" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Waiting for selection..."></div>
     </div>
   </div>
 
@@ -456,9 +418,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
       </label>
       <web-daterangepicker id="month-bulk-pricing" selection-mode="range" visible-month-count="2"></web-daterangepicker>
       <small>Navigate months to see bulk metadata loading in action. Check console for logs.</small>
-      <div id="log-month-bulk" class="log-panel log-panel--dark" style="--log-max-height: 200px">
-        <div class="muted">Navigate to a month to see bulk loading...</div>
-      </div>
+      <div id="log-month-bulk" class="log-panel log-panel--dark" style="--log-max-height: 200px" data-empty="Navigate to a month to see bulk loading..."></div>
     </div>
 
     <!-- Example 10: Block Navigation -->
@@ -469,9 +429,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
       </label>
       <web-daterangepicker id="month-block-future" selection-mode="single"></web-daterangepicker>
       <small>Try navigating more than 2 months into the future - navigation will be blocked</small>
-      <div id="log-month-block" class="log-panel log-panel--dark" style="--log-max-height: 200px">
-        <div class="muted">Try navigating to future months...</div>
-      </div>
+      <div id="log-month-block" class="log-panel log-panel--dark" style="--log-max-height: 200px" data-empty="Try navigating to future months..."></div>
     </div>
   </div>
 
@@ -495,9 +453,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
         unified-header-interactive="true">
       </web-daterangepicker>
       <small>Anchor month at index 2 (top-right). Navigation loads all 6 months at once. Try navigating beyond ±3 months to see blocking.</small>
-      <div id="log-unified-grid" class="log-panel log-panel--dark" style="--log-max-height: 200px">
-        <div class="muted">Navigate to see unified loading...</div>
-      </div>
+      <div id="log-unified-grid" class="log-panel log-panel--dark" style="--log-max-height: 200px" data-empty="Navigate to see unified loading..."></div>
     </div>
   </div>
 </div>
@@ -525,9 +481,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
       <label>Working Days in Headers</label>
       <web-daterangepicker id="header-callback" selection-mode="range" visible-month-count="2"></web-daterangepicker>
       <small>Headers show working day counts (excludes weekends &amp; holidays)</small>
-      <div id="log-header-callback" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Headers will update as you navigate...</div>
-      </div>
+      <div id="log-header-callback" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Headers will update as you navigate..."></div>
     </div>
 
     <!-- Example: monthHeaders from getMonthDataCallback -->
@@ -535,9 +489,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
       <label>Headers from Async Data</label>
       <web-daterangepicker id="header-async" selection-mode="range" visible-month-count="2"></web-daterangepicker>
       <small>Headers loaded with pricing data</small>
-      <div id="log-header-async" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Navigate to load headers with data...</div>
-      </div>
+      <div id="log-header-async" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Navigate to load headers with data..."></div>
     </div>
   </div>
 
@@ -549,9 +501,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
       </label>
       <web-daterangepicker id="header-block" selection-mode="range" visible-month-count="1"></web-daterangepicker>
       <small>Cannot navigate more than 3 months ahead</small>
-      <div id="log-header-block" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Try navigating past 3 months...</div>
-      </div>
+      <div id="log-header-block" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Try navigating past 3 months..."></div>
     </div>
 
     <div class="form-group">
@@ -563,9 +513,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
         enable-unified-navigation="true"
       ></web-daterangepicker>
       <small>Headers show occupancy rates with icons</small>
-      <div id="log-header-grid" class="log-panel log-panel--dark" style="--log-max-height: 150px">
-        <div class="muted">Headers show occupancy percentage...</div>
-      </div>
+      <div id="log-header-grid" class="log-panel log-panel--dark" style="--log-max-height: 150px" data-empty="Headers show occupancy percentage..."></div>
     </div>
   </div>
 
@@ -618,15 +566,14 @@ picker.getMonthDataCallback = async ({ year, month }) => {
       <label>Date + time &mdash; open it, pick a time</label>
       <web-daterangepicker id="before-scroll" picker-mode="datetime"></web-daterangepicker>
       <small>The rolls centre on open; after a pick, the re-centring is skipped.</small>
-      <div id="log-before-scroll" class="log-panel log-panel--dark" style="--log-max-height: 200px">
-        <div class="muted">Open the picker to see its scrolls...</div>
-      </div>
+      <div id="log-before-scroll" class="log-panel log-panel--dark" style="--log-max-height: 200px" data-empty="Open the picker to see its scrolls..."></div>
     </div>
   </div>
 </div>
 
 <script type="module">
   import { WebDaterangepickerElement } from './src/index.ts';
+  import { appendLogLine } from '@keenmate/web-components-devkit/examples';
 
   if (!customElements.get('web-daterangepicker')) {
     customElements.define('web-daterangepicker', WebDaterangepickerElement);
@@ -638,26 +585,10 @@ picker.getMonthDataCallback = async ({ year, month }) => {
   const toLocalISO = (d) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  // Helper to log events
-  function logEvent(logId, eventName, data, status = 'info') {
-    const log = document.getElementById(logId);
-    const time = new Date().toLocaleTimeString();
-    const statusColors = {
-      info: '#3b82f6',
-      success: '#10b981',
-      warning: '#f59e0b',
-      error: '#ef4444'
-    };
-
-    log.innerHTML = `
-      <div class="event-log-item">
-        <div>
-          <span class="event-time">${time}</span>
-          <span class="event-name" style="color: ${statusColors[status]}">${eventName}</span>
-        </div>
-        <div class="event-data">${JSON.stringify(data, null, 2)}</div>
-      </div>
-    ` + log.innerHTML;
+  // One line per event in the kit's log format: time, name, the payload as JSON.
+  // variant: 'info' | 'success' | 'warning' | 'danger' (none = the default colour).
+  function logEvent(logId, eventName, data, variant) {
+    appendLogLine(document.getElementById(logId), { name: eventName, detail: data, variant });
   }
 
   // =================================================================
@@ -1124,7 +1055,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
       logEvent('log-unified-grid', `🚫 BLOCKED: ${anchorMonthName}`, {
         reason: 'Cannot navigate beyond ±3 months from today',
         monthsFromNow: targetMonthsFromNow
-      }, 'error');
+      }, 'danger');
 
       console.warn(`[Unified Grid] Navigation blocked: ${targetMonthsFromNow} months from now (limit: ±3)`);
 
@@ -1358,7 +1289,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     if (targetDate > maxMonthForBlock) {
-      logEvent('log-header-block', `BLOCKED: ${monthNames[month]} ${year}`, { reason: 'Too far ahead' }, 'error');
+      logEvent('log-header-block', `BLOCKED: ${monthNames[month]} ${year}`, { reason: 'Too far ahead' }, 'danger');
       return false; // block
     }
 
@@ -1386,7 +1317,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
   beforeScroll.beforeScrollCallback = (ctx) => {
     const what = ctx.target === 'day' ? ctx.date.toDateString() : `${ctx.timeField} ${ctx.timeValue}`;
     if (ctx.source === 'select') {
-      logEvent('log-before-scroll', `skipped (${ctx.source})`, { what }, 'error');
+      logEvent('log-before-scroll', `skipped (${ctx.source})`, { what }, 'danger');
       return false;
     }
     logEvent('log-before-scroll', `scroll (${ctx.source})`, { what, block: ctx.options.block }, 'success');
