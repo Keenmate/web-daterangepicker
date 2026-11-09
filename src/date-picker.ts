@@ -10,7 +10,7 @@
  * - Single date and date range selection
  * - Floating / modal / full-screen presentation (core createPopover)
  *
- * Dependencies: @keenmate/web-components-core (positioning, actions, search's escapeHtml)
+ * Dependencies: @keenmate/web-components-core (escapeHtml, positioning, actions)
  */
 
 import type { ShowMessageOptions, DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, DateRangePickerLabels, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
@@ -22,10 +22,9 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
 import { resolveLocale, resolveLabels, formatLabel, getWeekdayNames, getMonthNames } from './date-picker-locales';
-import { escapeHtml } from '@keenmate/web-components-core/search';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, createPresentationContext, getEnvironment, withComponentContext, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, withComponentContext, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)

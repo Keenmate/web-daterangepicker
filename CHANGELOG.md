@@ -112,6 +112,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   must drop the element name); where select-all can't land, editing starts from an empty
   pill (typing replaces the value, Escape restores it).
 
+### Internal — core 1.0.0-rc21 (2026-11-09)
+- `escapeHtml` is imported from the core main index (was `@keenmate/web-components-core/search`).
+- e2e: the WebKit "close-on-scroll ignores the opening scroll" test passes again (core's
+  scroll close takes the focus scroll WebKit makes after opening as the new baseline);
+  its expected-failure marker is gone.
+
 ### Internal — core 1.0.0-rc20 alignment (2026-11-09)
 - The calendar is a core `createPopover()` (kept mounted, anchored only when floating):
   the overlay tree (group exclusivity, nested overlays, Escape, outside click), the
@@ -128,9 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   core `getEnvironment().canHover`.
 - e2e: Chromium + Firefox + WebKit. Engine-conditioned skips: the phone action-buttons
   spec needs Chromium's `--blink-settings`; the overscroll-behavior check is skipped
-  where the engine lacks it (Playwright WebKit on Windows). WebKit fires `focus` before
-  it scrolls the input into view, so its "close-on-scroll ignores the opening scroll"
-  test is an expected failure until core settles it (reported to core).
+  where the engine lacks it (Playwright WebKit on Windows).
 - `VALIDATION-NOTES.md`: C-BV-6 (`--drp-fullscreen-input-font-size` is an input variable).
 
 ### Changed — two exported type names (**BREAKING**, type-only, 2026-11-04)

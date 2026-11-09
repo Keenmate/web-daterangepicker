@@ -7,7 +7,7 @@
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
 import { formatLabel } from './date-picker-locales';
-import { escapeHtml } from '@keenmate/web-components-core/search';
+import { escapeHtml } from '@keenmate/web-components-core';
 import { scrollOnOwn } from './date-picker-ui';
 import { hasEnabledDaysInYear } from './date-picker-validation';
 import * as Validation from './date-picker-validation';

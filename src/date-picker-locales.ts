@@ -8,7 +8,7 @@
 
 import type { DateRangePickerLabels } from './types';
 import log from './logger';
-import { escapeHtml } from '@keenmate/web-components-core/search';
+import { escapeHtml } from '@keenmate/web-components-core';
 
 /** Built-in English UI labels. `{count}` is interpolated by {@link formatLabel}. */
 export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
