@@ -167,8 +167,8 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'defaultValue',                 attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the submitted form (`value-format` / `value-format-mask` / `value-separator`), the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range as two dates with any separator between them (`2026-06-10 - 2026-06-14`, `2026-06-10/2026-06-14`, `2026-06-10 to 2026-06-14`, en dash, …), multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
-  { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction, not submitted). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
-  { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Full read-only lock (freezes every interaction aspect; the value is still submitted). Reflects. Read/write via `el.isReadonly`; use `lock()` / `lockedAspects` for partial locks.' },
+  { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction — the floating calendar does not open, an inline calendar is inert and greyed — not focusable, not submitted; calls from code keep working). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
+  { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Read-only, like a native input (core SPEC §6.4): the user cannot change the value — no day / time picks, typing, Today / Now / Clear / Apply or action buttons, and the floating calendar does not open — but the input stays focusable, an inline calendar can still be browsed month to month, and the value is submitted. Calls from code (`value`, `selectedDate`, `el.controller`, …) keep working. Reflects. Locks the aspects `selection`, `actions`, `open`; use `lock()` / `lockedAspects` for other combinations.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toEnum(INPUT_SIZES, { default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating only).' },
   { configKey: 'presentation',                 attribute: 'presentation',                  converter: toEnum(PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker opens (SPEC §12.9, via web-components-core). `auto` (default) follows the device: the floating popover on desktop, a centered `modal` on tablets, a full-screen sheet on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating` / `modal` / `fullscreen` force that presentation on any device. Ignored when `positioning-mode` is `inline`. Resolved reactively from the device/viewport environment; tune it per device class with the core `responsive` rules.' },
   { configKey: 'shouldFullscreenAutofocus',    attribute: 'fullscreen-autofocus',          converter: toBool('default-false'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
@@ -195,6 +195,7 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   // ── Callbacks: before-hooks (behavior-shaping → update) ───────────────────
   { configKey: 'beforeSelectCallback',         converter: cb(), on: 'update', type: '(ctx: BeforeSelectContext) => void | false | null | Date | DateRange | DateRange[] | Promise<…>', description: 'Runs before a selection is committed. Return nothing to accept, `false` to reject (explain via `ctx.controller.showMessage`; `ctx.markRangeInvalid()` keeps a rejected range visible), a `Date` / `DateRange` / `DateRange[]` to adjust, or `null` to clear. May be async.' },
   { configKey: 'beforeMonthChangeCallback',    converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => void | false | Promise<void | false>', description: 'Runs before month navigation; return `false` to block it. May be async.' },
+  { configKey: 'beforeScrollCallback',         converter: cb(), on: 'update', type: '(ctx: BeforeScrollContext) => void | false | Partial<DateRangePickerScrollOptions>', description: 'Runs before every scroll the picker does on its own: a keyboard move bringing the focused day into view (`source: keyboard`), a time roll centring its value on open (`open`) or after a pick (`select`). Synchronous. Return `false` to skip that scroll, or `{ block, inline, behavior }` to replace the defaults. The ctx carries `target` (`day` | `time`), `date` / `timeField` + `timeValue`, `item`, `source`, `container` (`null` = the page) and `options`. Property-only.' },
   { configKey: 'getMonthDataCallback',         converter: cb(), on: 'update', type: '(ctx: MonthChangeContext) => MonthDataResult | null | Promise<MonthDataResult | null>', description: 'Load data for the visible range (`metadata` per `YYYY-MM-DD`, `monthHeaders` per `YYYY-MM`) on the initial open and after each month navigation. May be async (a loader shows meanwhile).' },
   { configKey: 'beforeActionCallback',         converter: cb(), on: 'update', type: '(detail: DateRangePickerActionEventDetail) => void | false | Promise<void | false>', description: 'Runs before any action button / `data-action` trigger; return `false` to cancel it entirely (no `onClick`, no `action` event, no built-in). May be async.' },
 ];
@@ -226,6 +227,15 @@ const EVENTS = [
  * this element directly (input shell, presentation policy, custom styles). Stripped
  * before the merged config is handed to the picker.
  */
+/**
+ * What `readonly` locks (core SPEC §6.4, native readonly): the data — selection (days,
+ * time, typing, Today / Now / Clear), the action bar (Apply, custom buttons) — and opening
+ * the popover (like a native `<input type="date" readonly>`). Month navigation stays live
+ * (an inline calendar can still be browsed), the input stays focusable, the value is
+ * submitted, and calls from code keep working.
+ */
+const READONLY_ASPECTS: LockAspect[] = ['selection', 'actions', 'open'];
+
 const NON_PICKER_KEYS = new Set([
   'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize',
   'presentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow',
@@ -349,7 +359,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     else if ('labels' in partial && this.#hasFormatError) this.#applyFormatError();
     if ('placeholder' in partial) this.#applyPlaceholder();
     if ('labels' in partial) this.#inputClearButton?.setAttribute('aria-label', resolveLabels(partial.labels as Partial<DateRangePickerLabels> | null).clear);
-    if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock() : this.#picker.unlock(); this.#updateInputClear(); }
+    if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock(READONLY_ASPECTS) : this.#picker.unlock(READONLY_ASPECTS); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
     // The masks feed the derived placeholder hint (no-op for an explicit placeholder).
     if ('placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
@@ -414,6 +424,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if (this.#inputElement && this.#inputElement.type !== 'hidden') this.#inputElement.disabled = isDisabled;
     // Native semantics (core SPEC §6.4): a disabled control's value is not submitted.
     for (const input of this.#hiddenInputs) input.disabled = isDisabled;
+    // The calendar: an open one closes, an inline one goes inert (no clicks, no focus).
+    this.#picker?.setDisabled(isDisabled);
     this.#updateInputClear();
   }
 
@@ -481,9 +493,10 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     const options = this.#assembleConfig();
     this.#picker = new DateRangePickerEngine(this.#inputElement ?? null, options as DatePickerOptions);
 
-    // Re-apply a declarative full lock (the attribute is the source of truth and
-    // must survive a rebuild).
-    if (this.config.isReadonly) this.#picker.lock();
+    // Re-apply `readonly` and the effective disabled state (the attribute / fieldset is
+    // the source of truth and must survive a rebuild).
+    if (this.config.isReadonly) this.#picker.lock(READONLY_ASPECTS);
+    if (this.isEffectivelyDisabled) this.#picker.setDisabled(true);
 
     // First build: the selection starts from the `value` attribute (the default),
     // then a `value` property assigned before the build. A rebuild's caller

@@ -186,3 +186,10 @@ test('Ctrl+End goes to December 31st; pressed again, to the next year', async ({
     await expect(header(page)).toContainText(/December\s+2027/);
 });
 
+
+test('crossing the month edge leaves exactly one focused day (the re-render does not keep the old index)', async ({ page }) => {
+    await openPicker(page);
+    for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowDown'); // June 1 → … → July 6
+    await expect(focusedDay(page)).toHaveCount(1);
+    await expect(focusedDay(page)).toHaveAttribute('data-date', '2026-07-06');
+});

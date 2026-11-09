@@ -76,3 +76,13 @@
   pointer-events: none;
   cursor: default;
 }
+
+/* ==============================================================================
+   DISABLED (root state)
+   ==============================================================================
+   The host is disabled (`disabled` / a disabled `<fieldset>`): the calendar is
+   `inert` (no pointer, no focus — set in JS) and greys out like a disabled input.
+   Matters for `positioning-mode="inline"`, where the calendar is always visible. */
+.drp__picker--disabled {
+  opacity: var(--drp-disabled-opacity);
+}

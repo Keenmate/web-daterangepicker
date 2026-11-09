@@ -316,10 +316,12 @@ export function isSameOrAfterMonth(date1: Date, date2: Date): boolean {
  * Handles enabled-month boundary check, beforeMonthChangeCallback,
  * and collision propagation against the appropriate neighbour column.
  */
-async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1): Promise<void> {
-    // Navigation lock: block every month step (< > buttons, PageUp/Down, keyboard
+async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1, isCodeCall = false): Promise<void> {
+    // Navigation lock: block every user month step (< > buttons, PageUp/Down, keyboard
     // focus crossing a month edge, and the drag-over-nav auto-advance all funnel here).
-    if (picker.isAspectLocked('navigation')) return;
+    // A call from code (`controller.prevMonth()` / `nextMonth()`) is not gated: a lock
+    // freezes the end user, not the developer (core SPEC §6.4).
+    if (!isCodeCall && picker.isAspectLocked('navigation')) return;
     const idx = !isNaN(monthIndex) ? monthIndex : picker.activeMonthIndex;
     const dir = offset > 0 ? 'nextMonth' : 'prevMonth';
 
@@ -357,15 +359,15 @@ async function changeMonth(picker: any, monthIndex: number, offset: -1 | 1): Pro
             : isSameOrAfterMonth(neighbourDate, newDate);      // moved back into prev
         if (collides) {
             navigationLogger.debug(`${dir}() Col${idx} - collision detected with Col${neighbourIdx}, shifting`);
-            await changeMonth(picker, neighbourIdx, offset);
+            await changeMonth(picker, neighbourIdx, offset, isCodeCall);
         }
     }
 
     picker.renderCalendar();
 }
 
-export const prevMonth = (picker: any, monthIndex: number) => changeMonth(picker, monthIndex, -1);
-export const nextMonth = (picker: any, monthIndex: number) => changeMonth(picker, monthIndex, +1);
+export const prevMonth = (picker: any, monthIndex: number, isCodeCall = false) => changeMonth(picker, monthIndex, -1, isCodeCall);
+export const nextMonth = (picker: any, monthIndex: number, isCodeCall = false) => changeMonth(picker, monthIndex, +1, isCodeCall);
 
 /**
  * Find next enabled day index starting from given index, moving in direction
@@ -452,8 +454,9 @@ export function moveFocus(picker: any, offset: number) {
                 const result = findNextEnabledDayIndex(picker, newDays.length - 1, -1, newDays, savedMonthIndex);
                 if (result.index !== null) {
                     picker.focusedDayIndex = result.index;
+                    picker.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                     newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                    revealDay(newDays[picker.focusedDayIndex]);
+                    revealDay(picker, newDays[picker.focusedDayIndex]);
                 }
             }, 0);
         } else {
@@ -482,8 +485,9 @@ export function moveFocus(picker: any, offset: number) {
                         picker.focusedDayIndex = newDays.length - 1 - offsetDays;
 
                         navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - last day weekday ${lastWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
+                        picker.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                         newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                        revealDay(newDays[picker.focusedDayIndex]);
+                        revealDay(picker, newDays[picker.focusedDayIndex]);
                     }
                 }, 0);
             }
@@ -506,8 +510,9 @@ export function moveFocus(picker: any, offset: number) {
                 const result = findNextEnabledDayIndex(picker, 0, 1, newDays, savedMonthIndex);
                 if (result.index !== null) {
                     picker.focusedDayIndex = result.index;
+                    picker.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                     newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                    revealDay(newDays[picker.focusedDayIndex]);
+                    revealDay(picker, newDays[picker.focusedDayIndex]);
                 }
             }, 0);
         } else {
@@ -536,8 +541,9 @@ export function moveFocus(picker: any, offset: number) {
                         picker.focusedDayIndex = offsetDays;
 
                         navigationLogger.debug(`moveFocus() Col${savedMonthIndex} - first day weekday ${firstWeekday}, target ${targetWeekday}, focusing on day ${picker.focusedDayIndex+1}`);
+                        picker.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                         newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                        revealDay(newDays[picker.focusedDayIndex]);
+                        revealDay(picker, newDays[picker.focusedDayIndex]);
                     }
                 }, 0);
             }
@@ -574,8 +580,9 @@ export function moveFocus(picker: any, offset: number) {
 
             if (searchResult.index !== null) {
                 picker.focusedDayIndex = searchResult.index;
+                picker.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                 newDays[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-                revealDay(newDays[picker.focusedDayIndex]);
+                revealDay(picker, newDays[picker.focusedDayIndex]);
             }
         }, 0);
         return;
@@ -584,7 +591,7 @@ export function moveFocus(picker: any, offset: number) {
     if (result.index !== null) {
         picker.focusedDayIndex = result.index;
         days[picker.focusedDayIndex]?.classList.add('drp__day--focused');
-        revealDay(days[picker.focusedDayIndex]);
+        revealDay(picker, days[picker.focusedDayIndex]);
     } else {
         // No enabled day found, don't move
         navigationLogger.debug('moveFocus() - no enabled day found in search range');

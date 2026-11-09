@@ -95,6 +95,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Keyboard: Ctrl+Home/End (year jump, step year-by-year)        | ✓      | `keyboard-navigation.spec.ts`, `navigation-extras.spec.ts` | `keyboard-navigation.html`, `navigation-extras.html` |
 | Keyboard: Ctrl+Home/End leave a single focused day (FINDINGS #26, fixed) | ✓ | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: `t` jumps to today                                  | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
+| Keyboard: crossing a month edge leaves a single focused day   | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
+| `beforeScrollCallback`: keyboard day reveal + time-roll centring (ctx, `false` skips, options replace) | ✓ | `before-scroll.spec.ts` | `before-scroll.html` |
+| Attribute values escaped with core `escapeHtml` (`data-tooltip` round-trips `& " '` and markup) | ✓ | `tooltips.spec.ts` | `tooltips.html` |
 | Keyboard: Enter selects, Escape closes                        | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Tab cycles between month columns                    | ✓      | `navigation-extras.spec.ts`  | `navigation-extras.html`  |
 
@@ -289,7 +292,10 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `lock()` / `unlock()` / `toggleLock()`                        | ✓      | `lock.spec.ts`               | `lock.html`               |
 | Aspect locks: selection, actions, navigation (incl. rolling), open | ✓ | `lock.spec.ts`               | `lock.html`               |
-| `readonly` attribute = full lock, reflects to `lockedAspects` | ✓      | `lock.spec.ts`               | `lock.html`               |
+| `readonly` = native readonly (SPEC §6.4): selection / actions / open locked, month navigation live, reflects to `lockedAspects` | ✓ | `lock.spec.ts` | `lock.html` |
+| Removing `readonly` keeps an explicit `lock()` of another aspect | ✓ | `lock.spec.ts` | `lock.html` |
+| Calls from code under `readonly` + a navigation lock (`controller.prevMonth()` / `nextMonth()`, selection setters, `clearSelection()`) | ✓ | `lock.spec.ts` | `lock.html` |
+| `disabled`: inline calendar inert + greyed, code calls work; an open floating calendar closes; survives a rebuild | ✓ | `lock.spec.ts` | `lock.html` |
 | `isReadonly = false` removes the `readonly` attribute (reflects) | ✓ | `lock.spec.ts` | `lock.html` |
 | Full lock does not block the programmatic API                 | ✓      | `lock.spec.ts`               | `lock.html`               |
 

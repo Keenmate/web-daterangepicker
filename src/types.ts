@@ -179,6 +179,46 @@ export interface MonthChangeContext extends PickerContext {
 export type BeforeMonthChangeResult = void | false;
 
 /**
+ * Why the picker is about to scroll on its own (`beforeScrollCallback`):
+ * `keyboard` — a keyboard move brings the focused day into view; `open` — opening
+ * centres each time roll on its value; `select` — a time pick re-centres a roll whose
+ * value went off-screen.
+ */
+export type DateRangePickerScrollSource = 'keyboard' | 'open' | 'select';
+
+/** How the picker scrolls (core `scrollIntoContainer` options). */
+export interface DateRangePickerScrollOptions {
+  /** Vertical alignment: `nearest` for a day, `center` for a time roll. */
+  block: ScrollLogicalPosition;
+  /** Horizontal alignment (`nearest`). */
+  inline: ScrollLogicalPosition;
+  /** Day: the `--drp-scroll-behavior` token; time roll: `instant` (it must land before the next pick). */
+  behavior: ScrollBehavior;
+}
+
+/** Context of `beforeScrollCallback` (rulebook D-CA-5 / C-CA-6). */
+export interface BeforeScrollContext extends PickerContext {
+  /** What scrolls into view: a calendar day, or a time-roll item. */
+  target: 'day' | 'time';
+  /** The day (00:00 local) — `target: 'day'`; `null` for a time roll. */
+  date: Date | null;
+  /** The roll — `target: 'time'`; `null` for a day. */
+  timeField: 'hours' | 'minutes' | 'seconds' | null;
+  /** The roll item's value (hour 0-23 or 1-12, minute, second) — `target: 'time'`; `null` for a day. */
+  timeValue: number | null;
+  /** The element about to be scrolled into view. */
+  item: HTMLElement;
+  source: DateRangePickerScrollSource;
+  /** The container core will scroll (`null` = the page). */
+  container: HTMLElement | null;
+  /** The options the picker is about to use. */
+  options: DateRangePickerScrollOptions;
+}
+
+/** `beforeScrollCallback` result: `false` skips this scroll; an options object replaces (part of) the defaults. */
+export type BeforeScrollResult = void | false | Partial<DateRangePickerScrollOptions>;
+
+/**
  * Data `getMonthDataCallback` loads for the visible range (sync or async — a
  * loader shows while a Promise is pending).
  */
@@ -685,6 +725,15 @@ export interface DatePickerOptions {
    * navigation. Sync or async — a loader shows while a Promise is pending.
    */
   beforeMonthChangeCallback?: (ctx: MonthChangeContext) => BeforeMonthChangeResult | Promise<BeforeMonthChangeResult>;
+
+  /**
+   * Runs before every scroll the picker does on its own — a keyboard move bringing the
+   * focused day into view (`source: 'keyboard'`), a time roll centring its value on open
+   * (`'open'`) or after a pick (`'select'`). Synchronous. `false` skips that scroll; an
+   * options object (`block` / `inline` / `behavior`) replaces the defaults. The wheel
+   * display is not covered (its scroll position IS its value).
+   */
+  beforeScrollCallback?: (ctx: BeforeScrollContext) => BeforeScrollResult;
 
   /**
    * Load data for the visible range — on the initial open and after every accepted

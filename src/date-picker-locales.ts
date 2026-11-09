@@ -8,6 +8,7 @@
 
 import type { DateRangePickerLabels } from './types';
 import log from './logger';
+import { escapeHtml } from '@keenmate/web-components-core/search';
 
 /** Built-in English UI labels. `{count}` is interpolated by {@link formatLabel}. */
 export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
@@ -48,11 +49,6 @@ export function resolveLabels(labels?: Partial<DateRangePickerLabels> | null): D
     }
   }
   return out;
-}
-
-/** Escape text for HTML content / a double-quoted attribute value. */
-export function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 /**

@@ -13,12 +13,12 @@
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
 import { anchor, createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
-import { lockBodyScroll, observeKeyboardInset, renderLoader, scrollIntoContainer } from '@keenmate/web-components-core';
+import { findScrollContainer, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
 import { updateSummary } from './date-picker-rendering';
-import type { LoaderTarget, MessageVariant } from './types';
+import type { BeforeScrollContext, DateRangePickerScrollOptions, DateRangePickerScrollSource, LoaderTarget, MessageVariant } from './types';
 
 /**
  * Surface a daterangepicker-branded, once-per-instance warning when core's drift
@@ -61,10 +61,44 @@ export function cleanupPositioning(picker: any): void {
  * one container around it (the calendar's months area, a scrolling page section) —
  * `scrollIntoView` also scrolled every ancestor and the page, which can close a
  * floating calendar. Only with no scroll container at all does the page scroll.
- * Nearest, instant.
+ * `nearest`, behaviour from `--drp-scroll-behavior` (rulebook D-CA-5); goes through
+ * `beforeScrollCallback`.
  */
-export function revealDay(day: Element | null | undefined): void {
-    if (day instanceof HTMLElement) scrollIntoContainer(day);
+export function revealDay(picker: any, day: Element | null | undefined, source: DateRangePickerScrollSource = 'keyboard'): void {
+    if (!(day instanceof HTMLElement)) return;
+    const iso = day.dataset.date;
+    const [y, m, d] = iso ? iso.split('-').map(Number) : [];
+    const behavior = (getComputedStyle(day).getPropertyValue('--drp-scroll-behavior').trim() || 'auto') as ScrollBehavior;
+    scrollOnOwn(picker, day, {
+        target: 'day', date: iso ? new Date(y, m - 1, d) : null, timeField: null, timeValue: null, source,
+    }, { block: 'nearest', inline: 'nearest', behavior });
+}
+
+/**
+ * Every scroll the picker does on its own goes through here: `beforeScrollCallback`
+ * (core `runBeforeCallbackSync` — `false` skips, an options object replaces the
+ * defaults), then core `scrollIntoContainer`. `container`: the scroller when the
+ * caller knows it (a time roll), else core finds it.
+ */
+export function scrollOnOwn(
+    picker: any,
+    item: HTMLElement,
+    fields: Pick<BeforeScrollContext, 'target' | 'date' | 'timeField' | 'timeValue' | 'source'>,
+    defaults: DateRangePickerScrollOptions,
+    container?: HTMLElement,
+): void {
+    let options = defaults;
+    const callback = picker.options.beforeScrollCallback as ((ctx: BeforeScrollContext) => unknown) | undefined;
+    if (callback) {
+        const ctx = picker.ctx({
+            ...fields, item, container: container ?? findScrollContainer(item), options: { ...defaults },
+        }) as BeforeScrollContext;
+        const result = runBeforeCallbackSync<BeforeScrollContext, Partial<DateRangePickerScrollOptions> | null>(callback, ctx, 'beforeScrollCallback', ctx);
+        if (result.isRejected) return;
+        const replaced = 'value' in result ? result.value : undefined;
+        if (replaced && typeof replaced === 'object') options = { ...defaults, ...replaced };
+    }
+    scrollIntoContainer(item, container ? { ...options, container } : options);
 }
 
 /** Body scroll lock for the modal / full-screen sheet (core `lockBodyScroll`, shared and ref-counted page-wide). */

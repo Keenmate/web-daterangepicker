@@ -134,3 +134,25 @@ test.describe('getBadgeTooltipCallback', () => {
         await expect(p.locator('.drp__tooltip--visible')).toContainText('cb 16', { timeout: 2000 });
     });
 });
+
+// =============================================================================
+// escaping: attribute values go through core's escapeHtml (& < > " ')
+// =============================================================================
+
+test('a tooltip with quotes, apostrophes, & and markup survives the data-tooltip attribute exactly', async ({ page }) => {
+    const text = `Tom's "big" day &amp; <b>not bold</b> ' "`;
+    const p = pickerById(page, 'day-tip');
+    await p.evaluate((el: any, t: string) => {
+        el.getDayTooltipCallback = ({ dayNumber }: { dayNumber: number }) => (dayNumber === 15 ? t : null);
+        return el.whenSettled();
+    }, text);
+    await open(page, 'day-tip');
+    const day = dayByDate(p, '2026-06-15');
+    // The attribute round-trips exactly (an unescaped `&amp;` would decode to `&`).
+    expect(await day.getAttribute('data-tooltip')).toBe(text);
+    await day.hover();
+    await expect(dayTooltip(p)).toHaveClass(/drp__tooltip--visible/);
+    // The tooltip itself is a documented HTML content slot: the same string, rendered.
+    await expect(dayTooltip(p).locator('b')).toHaveText('not bold');
+    await expect(dayTooltip(p)).toContainText(`Tom's "big" day & not bold`);
+});

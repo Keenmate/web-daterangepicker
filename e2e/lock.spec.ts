@@ -54,7 +54,7 @@ test('lock() freezes day selection; unlock() restores it', async ({ page }) => {
 test('readonly attribute -> isReadonly = false removes the attribute and unlocks (reflects)', async ({ page }) => {
     const p = pickerById(page, 'lockpick');
     await p.evaluate((el: any) => el.setAttribute('readonly', ''));
-    expect(await p.evaluate((el: any) => el.lockedAspects.length)).toBe(4);
+    expect(await p.evaluate((el: any) => el.lockedAspects.length)).toBe(3);
     await p.evaluate((el: any) => { el.isReadonly = false; });
     expect(await p.evaluate((el: any) => el.hasAttribute('readonly'))).toBe(false);
     expect(await p.evaluate((el: any) => el.lockedAspects)).toEqual([]);
@@ -125,25 +125,37 @@ test('lock("actions") makes the action buttons non-interactive (pointer-events: 
 });
 
 // =============================================================================
-// readonly attribute (declarative full lock)
+// readonly attribute (native readonly, core SPEC §6.4)
 // =============================================================================
 
-test('the readonly attribute is a full lock and reflects to lockedAspects', async ({ page }) => {
+test('readonly locks selection / actions / open but keeps month navigation (native readonly)', async ({ page }) => {
     const p = pickerById(page, 'lockpick');
 
     await p.evaluate((el: any) => el.setAttribute('readonly', ''));
     expect(await p.evaluate((el: any) => el.lockedAspects.sort()))
-        .toEqual(['actions', 'navigation', 'open', 'selection']);
+        .toEqual(['actions', 'open', 'selection']);
     expect(await p.evaluate((el: any) => el.isReadonly)).toBe(true);
 
+    // The data can't be changed…
     await enabledDays(p).nth(3).click();
     await expect(selectedCells(p)).toHaveCount(0);
+    // …but the calendar stays navigable.
+    await expect(p.locator('.drp__month-year').first()).toContainText(/June\s+2026/);
+    await p.locator('.drp__nav--next[data-month-index="0"]').click();
+    await expect(p.locator('.drp__month-year').first()).toContainText(/July\s+2026/);
 
     await p.evaluate((el: any) => el.removeAttribute('readonly'));
     expect(await p.evaluate((el: any) => el.lockedAspects)).toEqual([]);
     await enabledDays(p).nth(3).click();
     await enabledDays(p).nth(8).click();
     await expect(selectedCells(p)).not.toHaveCount(0);
+});
+
+test('removing readonly keeps an explicit lock() of another aspect', async ({ page }) => {
+    const p = pickerById(page, 'lockpick');
+    await p.evaluate((el: any) => { el.lock('navigation'); el.setAttribute('readonly', ''); });
+    await p.evaluate((el: any) => { el.removeAttribute('readonly'); return el.whenSettled(); });
+    expect(await p.evaluate((el: any) => el.lockedAspects)).toEqual(['navigation']);
 });
 
 // =============================================================================
@@ -165,6 +177,58 @@ test('a full lock does not block the programmatic selection API', async ({ page 
     // clearSelection() is likewise not gated.
     await p.evaluate((el: any) => el.clearSelection());
     await expect(selectedCells(p)).toHaveCount(0);
+});
+
+test('calls from code work under readonly and a navigation lock (controller prevMonth / nextMonth, selection)', async ({ page }) => {
+    const p = pickerById(page, 'lockpick');
+    await p.evaluate((el: any) => { el.setAttribute('readonly', ''); el.lock('navigation'); });
+
+    await p.evaluate((el: any) => el.controller.nextMonth(0));
+    await expect(p.locator('.drp__month-year').first()).toContainText(/July\s+2026/);
+    await p.evaluate((el: any) => el.controller.prevMonth(0));
+    await expect(p.locator('.drp__month-year').first()).toContainText(/June\s+2026/);
+
+    await p.evaluate((el: any) => { el.selectedRanges = [{ start: new Date(2026, 5, 10), end: new Date(2026, 5, 12) }]; });
+    expect(await rangesOf(p)).toEqual([{ start: '2026-06-10', end: '2026-06-12' }]);
+    await p.evaluate((el: any) => el.controller.clearSelection());
+    expect(await rangesOf(p)).toEqual([]);
+});
+
+// =============================================================================
+// disabled (native disabled, core SPEC §6.4)
+// =============================================================================
+
+test('disabled: an inline calendar is inert (no clicks, no focus) and greyed; code calls still work', async ({ page }) => {
+    const p = pickerById(page, 'lockpick');
+    await p.evaluate((el: any) => { el.setAttribute('disabled', ''); return el.whenSettled(); });
+
+    await expect(calendarOf(p)).toHaveClass(/drp__picker--disabled/);
+    expect(await calendarOf(p).evaluate((c: any) => c.inert)).toBe(true);
+    await enabledDays(p).nth(3).click({ force: true });
+    await expect(selectedCells(p)).toHaveCount(0);
+    await p.locator('.drp__nav--next[data-month-index="0"]').click({ force: true });
+    await expect(p.locator('.drp__month-year').first()).toContainText(/June\s+2026/);
+
+    await p.evaluate((el: any) => el.controller.nextMonth(0));
+    await expect(p.locator('.drp__month-year').first()).toContainText(/July\s+2026/);
+    await p.evaluate((el: any) => { el.selectedRanges = [{ start: new Date(2026, 6, 10), end: new Date(2026, 6, 12) }]; });
+    expect(await rangesOf(p)).toEqual([{ start: '2026-07-10', end: '2026-07-12' }]);
+
+    await p.evaluate((el: any) => { el.removeAttribute('disabled'); return el.whenSettled(); });
+    expect(await calendarOf(p).evaluate((c: any) => c.inert)).toBe(false);
+    await expect(calendarOf(p)).not.toHaveClass(/drp__picker--disabled/);
+});
+
+test('disabled closes an open floating calendar and survives a rebuild', async ({ page }) => {
+    const f = pickerById(page, 'floatpick');
+    await f.locator('input').click();
+    await expect(calendarOf(f)).toBeVisible();
+    await f.evaluate((el: any) => { el.isDisabled = true; return el.whenSettled(); });
+    await expect(calendarOf(f)).not.toBeVisible();
+    // A structural change rebuilds the engine: still disabled.
+    await f.evaluate((el: any) => { el.setAttribute('selection-mode', 'single'); return el.whenSettled(); });
+    expect(await calendarOf(f).evaluate((c: any) => c.inert)).toBe(true);
+    await expect(f.locator('input')).toBeDisabled();
 });
 
 // =============================================================================

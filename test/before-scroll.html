@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — beforeScrollCallback</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+        .scroll-box { block-size: 150px; overflow: auto; max-width: 340px; }
+    </style>
+</head>
+<body>
+    <h1>beforeScrollCallback</h1>
+    <p>Targeted by <code>e2e/before-scroll.spec.ts</code>. The picker's own scrolls — a keyboard
+       move bringing the focused day into view, a time roll centring its value — go through
+       <code>beforeScrollCallback</code> (the spec sets it). The clock is pinned by the e2e
+       fixture to 2026-05-22 10:00:00.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">inline single picker inside a 150px scrolling box</div>
+        <div class="scroll-box" id="box">
+            <web-daterangepicker id="days" positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+        </div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">picker-mode="time" (rolls)</div>
+        <web-daterangepicker id="time" picker-mode="time"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

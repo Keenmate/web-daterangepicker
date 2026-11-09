@@ -51,6 +51,7 @@ export type {
     PickerContext, DateRangePickerController, ShowMessageOptions, MessageVariant, PresentationContext,
     DayContext, MonthHeaderContext, UnifiedHeaderContext, SummaryContext,
     BeforeSelectContext, BeforeSelectResult, MonthChangeContext, BeforeMonthChangeResult, MonthDataResult,
+    BeforeScrollContext, BeforeScrollResult, DateRangePickerScrollSource, DateRangePickerScrollOptions,
     // Action buttons (core ActionItem)
     DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail,
     // Event details

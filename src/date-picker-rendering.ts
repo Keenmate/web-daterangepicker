@@ -7,6 +7,8 @@
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
 import { formatLabel } from './date-picker-locales';
+import { escapeHtml } from '@keenmate/web-components-core/search';
+import { scrollOnOwn } from './date-picker-ui';
 import { hasEnabledDaysInYear } from './date-picker-validation';
 import * as Validation from './date-picker-validation';
 import { renderingLogger } from './logger';
@@ -405,8 +407,8 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             html += '<div class="drp__badge-row">';
             for (const badge of weekBadges) {
                 if (badge.text) {
-                    const tooltipAttr = badge.tooltip ? ` data-tooltip="${badge.tooltip.replace(/"/g, '&quot;')}"` : '';
-                    const classes = badge.class ? ` ${badge.class}` : '';
+                    const tooltipAttr = badge.tooltip ? ` data-tooltip="${escapeHtml(badge.tooltip)}"` : '';
+                    const classes = badge.class ? ` ${escapeHtml(badge.class)}` : '';
                     html += `<div class="drp__badge-cell${classes}"${tooltipAttr}>${badge.text}</div>`;
                 } else {
                     html += '<div class="drp__badge-cell"></div>';
@@ -543,8 +545,8 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
 
             // Render day cell with slot support
             // Priority: per-day slot > renderDayCallback > renderDayContentCallback > default
-            const tooltipAttr = dayTooltip ? ` data-tooltip="${dayTooltip.replace(/"/g, '&quot;')}"` : '';
-            html += `<div class="${classes.join(' ')}" data-date="${dateStr}" data-day-number="${dayData.day}" data-weekday="${weekday}"${tooltipAttr}>`;
+            const tooltipAttr = dayTooltip ? ` data-tooltip="${escapeHtml(dayTooltip)}"` : '';
+            html += `<div class="${escapeHtml(classes.join(' '))}" data-date="${dateStr}" data-day-number="${dayData.day}" data-weekday="${weekday}"${tooltipAttr}>`;
             html += `<slot name="day-${dateStr}">${dayData.day}</slot>`;
             html += `</div>`;
         }
@@ -796,8 +798,9 @@ export function renderTimePicker(picker: any) {
     //     getBoundingClientRect deltas instead to get the in-container offset.
     //   - Run inside requestAnimationFrame so reads happen after the browser
     //     has laid out the freshly-set innerHTML.
-    //   - scrollTo with behavior:'auto' overrides the CSS rule
-    //     `scroll-behavior: smooth` so the position lands instantly.
+    //   - behavior 'instant' overrides the CSS rule `scroll-behavior: smooth` so
+    //     the position lands instantly ('auto' would defer to that rule and
+    //     animate — an item clicked right after open then moved under the pointer).
     const scrollFocusIntoView = (container: Element | null) => {
         if (!container) return;
         requestAnimationFrame(() => {
@@ -817,8 +820,15 @@ export function renderTimePicker(picker: any) {
                 return;
             }
 
-            const target = itemTopInContainer - (c.clientHeight - focused.offsetHeight) / 2;
-            c.scrollTo({ top: Math.max(0, target), behavior: 'auto' });
+            // Centre it through core `scrollIntoContainer` (this roll is the container) and
+            // `beforeScrollCallback`. `instant`: a smooth centring would still be moving
+            // the items when the user clicks one.
+            const field = c.dataset.timeList as 'hours' | 'minutes' | 'seconds';
+            const raw = focused.dataset.hour ?? focused.dataset.hour12 ?? focused.dataset.minute ?? focused.dataset.second;
+            scrollOnOwn(picker, focused, {
+                target: 'time', date: null, timeField: field, timeValue: raw != null ? Number(raw) : null,
+                source: forceScroll ? 'open' : 'select',
+            }, { block: 'center', inline: 'nearest', behavior: 'instant' }, c);
         });
     };
 
@@ -1175,8 +1185,8 @@ export function renderWheelPicker(picker: any) {
             const skip = !forceScroll && Math.abs(col.scrollTop - desired) < 2;
             if (skip) return;
             picker.wheelScrollLock = true;
-            col.scrollTo({ top: desired, behavior: 'auto' });
-            // Release the lock on the next frame — `behavior: 'auto'` is synchronous
+            col.scrollTo({ top: desired, behavior: 'instant' });
+            // Release the lock on the next frame — `behavior: 'instant'` is synchronous
             // but the scroll event may still fire after layout settles.
             window.setTimeout(() => { picker.wheelScrollLock = false; }, 50);
         });

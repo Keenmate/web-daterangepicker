@@ -69,9 +69,10 @@ test('close-on-scroll="false": scrolling the ancestor keeps the picker open', as
 test('close-on-scroll ignores the scroll that opening causes (focus scrolls the input into view)', async ({ page, browserName }) => {
     // WebKit fires `focus` (which opens the calendar) BEFORE it scrolls the input into
     // view (asynchronously, a frame later), so the core popover sees the input move after
-    // it opened and closes. Known core gap (createPopover scroll close), reported in the
-    // core final-alignment pass; expected to fail on WebKit until core settles it.
-    test.fail(browserName === 'webkit', 'WebKit scrolls a focused input into view after the focus event (core createPopover scroll-close gap)');
+    // it opened and closes. Core gap C-1 (createPopover's scroll close, core final
+    // alignment): fixed in core, not here — drop this test.fail once the core release
+    // with the fix is the dependency.
+    test.fail(browserName === 'webkit', 'WebKit scrolls a focused input into view after the focus event (core gap C-1: createPopover scroll close)');
     const p = pickerById(page, 'below');
     // Push the picker below the fold, then focus its input: the browser scrolls it
     // into view (a window scroll) in the same task that opens the calendar.

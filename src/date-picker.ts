@@ -8,9 +8,9 @@
  * - Rolling month/year selector
  * - Today and Clear buttons
  * - Single date and date range selection
- * - Floating UI positioning
+ * - Floating / modal / full-screen presentation (core createPopover)
  *
- * Dependencies: @floating-ui/dom
+ * Dependencies: @keenmate/web-components-core (positioning, actions, search's escapeHtml)
  */
 
 import type { ShowMessageOptions, DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, DateRangePickerLabels, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
@@ -21,7 +21,8 @@ import * as Selection from './date-picker-selection';
 import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
-import { resolveLocale, resolveLabels, formatLabel, escapeHtml, getWeekdayNames, getMonthNames } from './date-picker-locales';
+import { resolveLocale, resolveLabels, formatLabel, getWeekdayNames, getMonthNames } from './date-picker-locales';
+import { escapeHtml } from '@keenmate/web-components-core/search';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { adoptStyles, createPresentationContext, getEnvironment, withComponentContext, type PresentationContext } from '@keenmate/web-components-core';
@@ -91,6 +92,7 @@ class DateRangePickerEngine {
     private committedEndDate: Date | null = null; // Last committed range end
     private committedRanges: DateRange[] = []; // Last committed multi-range result (range mode); empty for a plain single range
     private committedTime: SelectedTime | null = null; // Last committed time parts (time/datetime modes)
+    private _isDisabled = false; // host disabled (setDisabled), applied as `inert` on the calendar
     private _controller?: DateRangePickerController; // Memoized imperative facade (getController())
     focusedDayIndex: number | null;
     activeMonthIndex: number;
@@ -272,6 +274,7 @@ class DateRangePickerEngine {
             renderLoadingCallback: options.renderLoadingCallback ?? null,
             beforeSelectCallback: options.beforeSelectCallback,
             beforeMonthChangeCallback: options.beforeMonthChangeCallback,
+            beforeScrollCallback: options.beforeScrollCallback,
             getMonthDataCallback: options.getMonthDataCallback,
             beforeActionCallback: options.beforeActionCallback,
             rollingYearRange: options.rollingYearRange,
@@ -1456,6 +1459,7 @@ class DateRangePickerEngine {
 
         // Re-apply any active lock to the freshly built DOM (classes + input.readOnly).
         Lock.syncLockUI(this);
+        this.syncDisabledUI();
     }
 
     attachInputListeners() {
@@ -1879,8 +1883,9 @@ class DateRangePickerEngine {
                             // Try to maintain same day index, or use last day if month is shorter
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                            this.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                             newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                            UI.revealDay(newDays[this.focusedDayIndex]);
+                            UI.revealDay(this, newDays[this.focusedDayIndex]);
                         }
                     }, 0);
                 } else {
@@ -1901,8 +1906,9 @@ class DateRangePickerEngine {
                             // Try to maintain same day index, or use last day if month is shorter
                             this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                            this.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                             newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                            UI.revealDay(newDays[this.focusedDayIndex]);
+                            UI.revealDay(this, newDays[this.focusedDayIndex]);
                         }
                     }, 0);
                 } else {
@@ -1970,7 +1976,7 @@ class DateRangePickerEngine {
                             this.focusedDayIndex = todayIndex;
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             days[todayIndex].classList.add('drp__day--focused');
-                            UI.revealDay(days[todayIndex]);
+                            UI.revealDay(this, days[todayIndex]);
                         }
                     }
                 }, 0);
@@ -1987,8 +1993,9 @@ class DateRangePickerEngine {
                         // Try to maintain same day index, or use last day if month is shorter
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                         this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                        this.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                         newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                        UI.revealDay(newDays[this.focusedDayIndex]);
+                        UI.revealDay(this, newDays[this.focusedDayIndex]);
                     }
                 }, 0);
                 e.preventDefault();
@@ -2004,8 +2011,9 @@ class DateRangePickerEngine {
                         // Try to maintain same day index, or use last day if month is shorter
                         this.focusedDayIndex = Math.min(currentDayIndex !== null ? currentDayIndex : 0, newDays.length - 1);
                         this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                        this.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                         newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                        UI.revealDay(newDays[this.focusedDayIndex]);
+                        UI.revealDay(this, newDays[this.focusedDayIndex]);
                     }
                 }, 0);
                 e.preventDefault();
@@ -2052,7 +2060,7 @@ class DateRangePickerEngine {
                                 this.focusedDayIndex = 0;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 days[0]?.classList.add('drp__day--focused');
-                                UI.revealDay(days[0]);
+                                UI.revealDay(this, days[0]);
                             }
                         }, 0);
                     }
@@ -2073,7 +2081,7 @@ class DateRangePickerEngine {
                                 this.focusedDayIndex = 0;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 days[0]?.classList.add('drp__day--focused');
-                                UI.revealDay(days[0]);
+                                UI.revealDay(this, days[0]);
                             }
                         }, 0);
                     } else {
@@ -2084,7 +2092,7 @@ class DateRangePickerEngine {
                         if (days) {
                             this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                             days[0]?.classList.add('drp__day--focused');
-                            UI.revealDay(days[0]);
+                            UI.revealDay(this, days[0]);
                         }
                     }
                 }
@@ -2136,8 +2144,9 @@ class DateRangePickerEngine {
                             if (newDays) {
                                 this.focusedDayIndex = newDays.length - 1;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+                                this.calendar.querySelectorAll('.drp__day--focused').forEach((d: Element) => d.classList.remove('drp__day--focused')); // the re-render restored the old index
                                 newDays[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                                UI.revealDay(newDays[this.focusedDayIndex]);
+                                UI.revealDay(this, newDays[this.focusedDayIndex]);
                             }
                         }, 0);
                     }
@@ -2162,7 +2171,7 @@ class DateRangePickerEngine {
                                 this.focusedDayIndex = days.length - 1;
                                 this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                                 days[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                                UI.revealDay(days[this.focusedDayIndex]);
+                                UI.revealDay(this, days[this.focusedDayIndex]);
                             }
                         }, 0);
                     } else {
@@ -2170,7 +2179,7 @@ class DateRangePickerEngine {
                         this.focusedDayIndex = days.length - 1;
                         this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
                         days[this.focusedDayIndex]?.classList.add('drp__day--focused');
-                        UI.revealDay(days[this.focusedDayIndex]);
+                        UI.revealDay(this, days[this.focusedDayIndex]);
                     }
                 }
                 e.preventDefault();
@@ -2993,6 +3002,23 @@ class DateRangePickerEngine {
         return anyLocked ? Lock.unlock(this, aspects) : Lock.lock(this, aspects);
     }
     isAspectLocked(aspect: LockAspect): boolean { return Lock.isAspectLocked(this, aspect); }
+    /**
+     * The host's effective disabled state (core SPEC §6.4): no interaction at all —
+     * an open calendar closes, the calendar root turns `inert` (no clicks, no focus;
+     * an inline calendar stays visible, greyed). Calls from code keep working.
+     */
+    setDisabled(isDisabled: boolean): void {
+        this._isDisabled = isDisabled;
+        if (isDisabled && this.isOpen) this.close();
+        this.syncDisabledUI();
+    }
+    /** Re-apply the disabled state to the (possibly re-rendered) calendar root. */
+    syncDisabledUI(): void {
+        const root = this.calendar as HTMLElement | undefined;
+        if (!root) return;
+        root.inert = this._isDisabled;
+        root.classList.toggle('drp__picker--disabled', this._isDisabled);
+    }
     /** The currently locked aspects (read-only snapshot). */
     get lockedAspects(): LockAspect[] { return Array.from(this._lockedAspects); }
     /** Full-lock convenience: `true` when every aspect is locked; setting it locks/unlocks all. */
@@ -3093,8 +3119,9 @@ class DateRangePickerEngine {
             close: () => { picker.close(); },
             toggle: () => { picker.toggle(); },
             setPresentation: (next) => { picker.setPresentation(next); },
-            prevMonth: (monthIndex = picker.activeMonthIndex) => { picker.prevMonth(monthIndex); },
-            nextMonth: (monthIndex = picker.activeMonthIndex) => { picker.nextMonth(monthIndex); },
+            // Calls from code: not gated by a navigation lock / `readonly` (core SPEC §6.4).
+            prevMonth: (monthIndex = picker.activeMonthIndex) => { void Navigation.prevMonth(picker, monthIndex, true); },
+            nextMonth: (monthIndex = picker.activeMonthIndex) => { void Navigation.nextMonth(picker, monthIndex, true); },
             lock: (aspects) => { picker.lock(aspects); },
             unlock: (aspects) => { picker.unlock(aspects); },
             showMessage: (content, opts) => { picker.showMessage(content, opts); },

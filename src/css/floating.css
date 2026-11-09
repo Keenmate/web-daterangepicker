@@ -1,5 +1,5 @@
 /* ==============================================================================
-   FLOATING — Floating-UI-anchored elements (tooltips)
+   FLOATING — anchored elements (tooltips, core /positioning)
    ==============================================================================
    Tooltips for day-cell hover, badges, and action buttons. The calendar
    popover itself is a Floating-UI-anchored element but lives in `base.css`
