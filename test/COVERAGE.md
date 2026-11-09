@@ -158,6 +158,12 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `getMonthHeaderCallback` overrides per-month header           | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
 | `getUnifiedHeaderCallback` overrides unified-mode header text | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `getCustomStylesCallback` injects styles into Shadow DOM      | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
+| Page-wide `window.components[tag].customStyles` / `.getCustomStylesCallback` style every picker; instance `custom-styles` / callback override it (core `createCustomStyles`) | ✓ | `custom-styles.spec.ts` | `custom-styles.html` |
+| A disabled picker's hidden form inputs are not submitted (own `disabled`, set at creation or later) | ✓ | `form-association.spec.ts` | `form-association.html` |
+| `week-start-day="auto"` follows the `locale` input (also on a live locale change) | ✓ | `locale.spec.ts` | `locale.html` |
+| Closed sets refused through core `input-rejected`: `input-size`, `calendar-placement`, `week-start-day`, `disabled-weekdays`, `month-names`, `weekday-names` | ✓ | `sizing-theming.spec.ts`, `locale.spec.ts` | `sizing-theming.html`, `locale.html` |
+| Calendar popover (core `createPopover`): resize close, unrelated-scroller scroll keeps it open, a page `open()` keeps it open through its click, Escape in a compact field reverts the edit first | ✓ | `floating-placement.spec.ts`, `time-picker.spec.ts` | `floating-placement.html`, `time-picker.html` |
+| Modal page scroll lock (core `lockBodyScroll`, `<html>` overflow-x clamp) | ✓ | `positioning-modes.spec.ts` | `positioning-modes.html` |
 | `beforeSelectCallback`: accept / `false` / `DateRange[]` (adjust to N ranges, replaces the previous selection) | ✓ | `callbacks.spec.ts`  | `callbacks.html`          |
 | `beforeSelectCallback` returning `null` clears                | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `beforeMonthChangeCallback` returning `false` blocks          | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
