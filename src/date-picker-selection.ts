@@ -769,6 +769,14 @@ export function beginCompactEdit(picker: any, el: HTMLElement) {
         sel.removeAllRanges();
         sel.addRange(range);
     }
+    // WebKit can't put the document selection inside a shadow root: the range above
+    // doesn't land in the pill, so there is no caret and typing goes nowhere. Start
+    // from an empty pill there instead (typing replaces the value the same way;
+    // Escape restores it). Read back through the root's own selection where there is one.
+    const rootSelection = (el.getRootNode() as ShadowRoot & { getSelection?: () => Selection | null }).getSelection?.() ?? sel;
+    const isSelectionInPill = !!rootSelection && rootSelection.rangeCount > 0
+        && el.contains(rootSelection.getRangeAt(0).startContainer);
+    if (!isSelectionInPill) el.textContent = '';
 
     const teardown = () => {
         el.contentEditable = 'false';

@@ -1352,17 +1352,20 @@ class DateRangePickerEngine {
                 `;
             } else if (this.options.timeDisplay === 'compact') {
                 timePicker.className = 'drp__compact-picker';
-                // iOS 14+ pills: HH : MM [: SS] [AM/PM]. Each pill is a single button that
-                // becomes contentEditable on click; the renderer just updates the displayed
-                // value (no DOM rebuild per render).
+                // iOS 14+ pills: HH : MM [: SS] [AM/PM]. Each pill is a focusable span (role
+                // button) that becomes contentEditable on click / focus; the renderer just
+                // updates the displayed value (no DOM rebuild per render). Not a <button>:
+                // WebKit doesn't focus a contentEditable <button>, so the edit never got the
+                // caret / blur-commit / advance-to-next-pill there.
                 const sep = `<span class="drp__compact-sep">:</span>`;
+                const pill = (field: string) => `<span class="drp__compact-pill" role="button" tabindex="0" data-compact-field="${field}">--</span>`;
                 timePicker.innerHTML = `
                     <div class="drp__time-label">${this.labels.time}</div>
                     <div class="drp__compact-row">
-                        <button type="button" class="drp__compact-pill" data-compact-field="hours">--</button>
+                        ${pill('hours')}
                         ${sep}
-                        <button type="button" class="drp__compact-pill" data-compact-field="minutes">--</button>
-                        ${isSecondsShown ? sep + `<button type="button" class="drp__compact-pill" data-compact-field="seconds">--</button>` : ''}
+                        ${pill('minutes')}
+                        ${isSecondsShown ? sep + pill('seconds') : ''}
                         ${is12h ? `
                             <div class="drp__compact-ampm">
                                 <button type="button" class="drp__compact-ampm-button" data-compact-ampm="am">${this.labels.am}</button>
