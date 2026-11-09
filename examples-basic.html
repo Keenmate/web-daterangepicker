@@ -155,11 +155,18 @@
 </div>
 
 <div class="card">
-<h2>BU06 · Disabled State</h2>
+<h2>BU06 · Disabled / Readonly States</h2>
 <div class="grid">
   <div class="form-group">
     <label>Disabled Picker</label>
     <web-daterangepicker id="prefilled-disabled" disabled placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>No interaction, not focusable, not submitted with a form</small>
+  </div>
+
+  <div class="form-group">
+    <label>Readonly Picker</label>
+    <web-daterangepicker id="prefilled-readonly" readonly placeholder="YYYY-MM-DD"></web-daterangepicker>
+    <small>The value can't change; still focusable and copyable, submitted with a form</small>
   </div>
 </div>
 </div>
@@ -245,6 +252,7 @@ customElements.whenDefined('web-daterangepicker').then(() => {
   setIfPresent('prefilled-single',   { value: dayOffset(0) });
   setIfPresent('prefilled-range',    { value: `${dayOffset(0)}/${dayOffset(14)}` });
   setIfPresent('prefilled-disabled', { value: dayOffset(0) });
+  setIfPresent('prefilled-readonly', { value: dayOffset(0) });
   setIfPresent('range-limits-demo',  { 'min-date': monthFirstISO(), 'max-date': monthLastISO() });
   // Add event listeners to demo the events
   document.querySelectorAll('web-daterangepicker').forEach(picker => {
