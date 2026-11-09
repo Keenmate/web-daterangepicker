@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — the calendar gap is `--base-dropdown-offset` (2026-11-09)
+- **The floating calendar opens 4px below the input instead of 8px** — the gap is now the
+  page token `--base-dropdown-offset` (`@keenmate/base-css-variables` ^2.0.1), the one
+  field → panel gap of every KeenMate component; core's anchor reads it on the input (no
+  hard-coded offset left). To keep the old look: `web-daterangepicker { --base-dropdown-offset: 8px; }`
+  (page-wide, per section or per element). The day / badge tooltip keeps its own 6px.
+
 ### Changed — core 1.0.0-rc20 alignment (**BREAKING**, 2026-11-09)
 - **Depends on `@keenmate/web-components-core@^1.0.0-rc20`** (was `^1.0.0-rc15`).
 - **`showMessage(content, { variant })`** — the message kind is `variant` with the

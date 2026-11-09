@@ -312,7 +312,7 @@ function createCalendarPopover(picker: any, isAnchored: boolean) {
         },
         placement: (picker.options.calendarPlacement || 'bottom-start'),
         strategy: 'fixed',
-        offset: 8,
+        // No `offset`: core's default is the page's field → panel gap `--base-dropdown-offset`.
         flipPadding: 8,
         shift: 8,
         // Cap the calendar to the viewport-available height (it scrolls its

@@ -29,6 +29,23 @@ test('default placement: calendar top is below the input bottom (opens downward)
     expect(calBox!.y).toBeGreaterThanOrEqual(inputBox!.y + inputBox!.height - 10);
 });
 
+test('the input → calendar gap is --base-dropdown-offset (4 by default, follows the host)', async ({ page }) => {
+    const p = pickerById(page, 'below');
+    const gap = async () => {
+        const input = (await p.locator('input').boundingBox())!;
+        const cal = (await calendarOf(p).boundingBox())!;
+        return Math.round(cal.y - (input.y + input.height));
+    };
+    await open(page, 'below');
+    await expect.poll(gap).toBe(4);
+    await page.keyboard.press('Escape');
+    await expect(calendarOf(p)).toBeHidden();
+
+    await p.evaluate((el) => (el as HTMLElement).style.setProperty('--base-dropdown-offset', '12px'));
+    await open(page, 'below');
+    await expect.poll(gap).toBe(12);
+});
+
 // =============================================================================
 // explicit calendar-placement
 // =============================================================================

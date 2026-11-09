@@ -307,6 +307,17 @@ See [`examples-theming.html`](../examples-theming.html) for interactive
 demos including the classifier-retheming panel and the four
 time-display UIs (Test 8).
 
+## Calendar gap
+
+The floating calendar opens `--base-dropdown-offset` away from the input
+(`@keenmate/base-css-variables` 2.0.1+, `4px` when unset) — the one field → panel
+gap every KeenMate component shares; core reads it on the input when the calendar
+opens. Set it page-wide, per section, or per component:
+
+```css
+web-daterangepicker { --base-dropdown-offset: 8px; }
+```
+
 ## Motion
 
 Transitions are always on and use the contract's speeds: `--drp-transition-fast`
