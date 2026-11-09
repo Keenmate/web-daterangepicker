@@ -234,7 +234,7 @@ Placement options:
 - top, top-start, top-end
 - left, right
 
-Auto-adjusts with Floating UI if viewport constrained.
+Auto-adjusts (flip / shift, core createPopover) if the viewport is constrained.
 
 PRESENTATION (how a floating picker opens)
 -------------------------------------------

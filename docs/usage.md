@@ -23,6 +23,7 @@ page see the README quick start; for theming see
   - [CSS styling for special dates](#css-styling-for-special-dates)
   - [Date selection validation (`beforeSelectCallback`)](#date-selection-validation-beforeselectcallback)
   - [Month navigation & bulk metadata loading (`beforeMonthChangeCallback` / `getMonthDataCallback`)](#month-navigation--bulk-metadata-loading-beforemonthchangecallback--getmonthdatacallback)
+  - [Scrolling (`beforeScrollCallback`)](#scrolling-beforescrollcallback)
   - [Messages & actions](#messages--actions)
   - [Labels (i18n)](#labels-i18n)
   - [Locking (read-only)](#locking-read-only)
@@ -102,8 +103,8 @@ use camelCase (`selectionMode`).
 | `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How the calendar opens (focus = on input focus, typing = when user types, manual = programmatic only) |
 | `value` | `string` | — | Initial / default value (like a native input's `defaultValue`): parsed into the selection on build and restored by `form.reset()`. The `value` **property** sets the current value without writing the attribute. |
 | `placeholder` | `string` | — | Input placeholder |
-| `disabled` | `boolean` | `false` | Disable the picker (property `isDisabled`); an ancestor `<fieldset disabled>` disables it too |
-| `readonly` | `boolean` | `false` | Full read-only lock (property `isReadonly`); the value is still submitted |
+| `disabled` | `boolean` | `false` | Disable the picker like a native input (property `isDisabled`): no interaction — the calendar doesn't open, an inline calendar is inert and greyed — not focusable, the value is not submitted; calls from code keep working. An ancestor `<fieldset disabled>` disables it too |
+| `readonly` | `boolean` | `false` | Read-only like a native input (property `isReadonly`): no day / time picks, typing, Today / Now / Clear / Apply or action buttons, and the floating calendar doesn't open; the input stays focusable, an inline calendar can still be browsed month to month, the value is submitted, calls from code keep working. Locks the `selection`, `actions` and `open` aspects (see [Locking](#locking-read-only)) |
 | `defer` | `boolean` | `false` | Hold the first build until `el.release()` / removing the attribute (core; property `shouldDefer`) |
 | `labels` | JSON | English | UI strings, partial — see [Labels](#labels-i18n) |
 | `week-start-day` | `'auto' \| 0–6` | `'auto'` | First day of week (0 = Sunday, 1 = Monday, …; `'auto'` detects from locale) |
@@ -796,6 +797,31 @@ picker.beforeMonthChangeCallback = (ctx) => {
 **Performance:** 1 API call per month navigation vs 35–42 calls with
 `getDateMetadataCallback`.
 
+### Scrolling (`beforeScrollCallback`)
+
+The picker scrolls on its own in two places, both through core `scrollIntoContainer()`
+(it scrolls the one container around the item, never the page — unless there is no
+container at all):
+
+| `source` | What scrolls | Defaults |
+|---|---|---|
+| `keyboard` | a keyboard move brings the focused day into view (inline calendar in a scrolling box, a tall multi-month calendar) | `block: 'nearest'`, `behavior` from `--drp-scroll-behavior` (instant under reduced motion) |
+| `open` | opening centres each time roll (hours / minutes / seconds) on its value | `block: 'center'`, `behavior: 'instant'` |
+| `select` | a time pick re-centres a roll whose value went off-screen | same as `open` |
+
+`beforeScrollCallback(ctx)` runs first (synchronously): return `false` to skip that scroll,
+or `{ block, inline, behavior }` to replace the defaults. The wheel display is not covered
+— its scroll position *is* its value.
+
+```js
+picker.beforeScrollCallback = (ctx) => {
+  // ctx.target: 'day' | 'time'; ctx.date (day) or ctx.timeField + ctx.timeValue (time)
+  // ctx.item, ctx.source, ctx.container (null = the page), ctx.options, ctx.controller
+  if (ctx.target === 'day') return { block: 'center', behavior: 'smooth' };
+  if (ctx.source === 'select') return false;   // keep the rolls where the user left them
+};
+```
+
 ### Messages & actions
 
 Display contextual messages in the calendar with interactive buttons.
@@ -901,9 +927,11 @@ independent aspects.
 | `open` | (re)opening the popover (floating — every presentation). Closing (hide / Escape / backdrop) stays allowed, so a locked picker is never a keyboard trap |
 
 The lock gates the **end user only** — the programmatic API
-(`selectedRanges = …`, `clearSelection()`, `open()`, the nav methods,
-etc.) keeps working while locked, just like a `readOnly` `<input>` is
-still settable from JS.
+(`selectedRanges = …`, `clearSelection()`, `controller.prevMonth()` /
+`nextMonth()`, etc.) keeps working while locked, just like a `readOnly`
+`<input>` is still settable from JS. The one exception is opening: under the
+`open` aspect (and so under `readonly` / `disabled`) `open()` / `toggle()`
+don't open the popover, like a native `showPicker()` on a read-only input.
 
 ```js
 const picker = document.querySelector('web-daterangepicker');
@@ -931,11 +959,12 @@ picker.unlock('selection');
 picker.toggleLock('navigation');
 picker.isAspectLocked('open');   // -> boolean
 picker.lockedAspects;            // -> LockAspect[]
-picker.isReadonly = true;        // full lock (same as the `readonly` attribute)
+picker.isReadonly = true;        // selection + actions + open (same as the `readonly` attribute)
 ```
 
 ```html
-<!-- Declarative full lock -->
+<!-- Declarative read-only (native semantics: selection, actions and open locked;
+     month navigation stays live, the value is submitted) -->
 <web-daterangepicker readonly></web-daterangepicker>
 ```
 

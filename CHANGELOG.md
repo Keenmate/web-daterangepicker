@@ -42,6 +42,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as core's `Placement`, `inputSize` as `'xs' | 'sm' | 'md' | 'lg' | 'xl'`.
 - **The tag is defined by `registerComponent()` in the package entry only**; importing
   `web-component.ts` on its own no longer defines it (the package exports only the entry).
+- **`readonly` follows native readonly** (core SPEC §6.4): it locks the `selection`,
+  `actions` and `open` aspects — no day / time picks, typing, Today / Now / Clear / Apply or
+  action buttons, the floating calendar doesn't open — but month navigation stays live (an
+  inline calendar can be browsed), the input stays focusable and the value is submitted.
+  It used to be a full lock (all four aspects). `lockedAspects` under `readonly` is
+  `['selection', 'actions', 'open']`; removing `readonly` releases only those (an explicit
+  `lock('navigation')` survives). For the old behaviour call `el.lock()`.
+- **`disabled` disables the calendar too** (core SPEC §6.4): an inline calendar turns
+  `inert` (no clicks, not focusable) and greys out (`.drp__picker--disabled`,
+  `--drp-disabled-opacity`); an open floating calendar closes. It used to disable only the
+  text input, so an inline picker stayed fully interactive.
 
 ### Added — core 1.0.0-rc20 alignment (2026-11-09)
 - **Page-wide custom CSS.** `window.components['web-daterangepicker'].customStyles`
@@ -53,6 +64,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Typed input properties:** every input is a typed property on
   `WebDaterangepickerElement` (`el.selectionMode`, `el.isDisabled`, `el.inputSize`, …;
   a wrong enum value or an unknown property is a TypeScript error).
+- **`beforeScrollCallback`** (rulebook D-CA-5 / C-CA-6): runs before every scroll the
+  picker does on its own — a keyboard move bringing the focused day into view
+  (`source: 'keyboard'`), a time roll centring its value on open (`'open'`) or after a
+  pick (`'select'`). `false` skips it; `{ block, inline, behavior }` replaces the
+  defaults. Types `BeforeScrollContext`, `BeforeScrollResult`,
+  `DateRangePickerScrollSource`, `DateRangePickerScrollOptions`. Demo: events EV07.
 
 ### Fixed — core 1.0.0-rc20 alignment (2026-11-09)
 - **A disabled picker no longer submits its value.** The light-DOM hidden form inputs
@@ -74,6 +91,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   selection suppression (drag across days) and the summary's opt-in apply there too.
 - A page control that calls `el.open()` while the calendar is open keeps it open
   through its click (core decides the outside click when the click ends).
+- **Calls from code work under a lock / `readonly` / `disabled`** (core SPEC §6.4):
+  `controller.prevMonth()` / `nextMonth()` were refused while `navigation` was locked
+  (the lock's own docs promised the programmatic API stays live). Opening is the one
+  exception: `open()` / `toggle()` don't open under the `open` aspect, `readonly` or
+  `disabled` (like a native `showPicker()`).
+- **Time rolls land instantly when they centre.** The centring on open asked for
+  `behavior: 'auto'`, which defers to the rolls' `scroll-behavior: smooth`, so the items
+  were still moving when the user (or a test) clicked one — the click could land
+  between items and the hour was lost.
+- **Keyboard: crossing a month edge left two focused days** (the re-render restored the
+  old index next to the new one).
+- **Attribute values are escaped with core `escapeHtml`** (`& < > " '`): the own copy
+  didn't escape `'`, and the day / badge `data-tooltip` escaped only `"` (an `&amp;` in a
+  tooltip came back as `&`); the day / badge classes from the data are escaped too.
 - **Safari: the compact time pills are editable.** WebKit doesn't focus a
   contentEditable `<button>` and can't select inside a shadow root, so a tapped pill got
   no caret (typing went nowhere, Escape closed the calendar). The pills are focusable
@@ -90,6 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PointerType` → `PointerAccuracy` (core renames).
 - Custom CSS is the canonical core adoption (`createCustomStyles`, rulebook C-CA-15);
   the dev-only `--drp-*` typo lint runs through its `onApply`.
+- The own `escapeHtml` is gone (core `@keenmate/web-components-core/search`); the time
+  rolls centre through core `scrollIntoContainer()`.
 - `DateRangePickerEngine.injectGlobalStyles()` adopts the stylesheet with core
   `adoptStyles(document)` (idempotent; `force` is ignored); hover detection reads
   core `getEnvironment().canHover`.

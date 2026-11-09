@@ -1,5 +1,5 @@
 <meta name="kmwc:title" content="⚡ Events, Handlers &amp; Interceptors">
-<meta name="kmwc:subtitle" content="Custom events, handler properties, and callbacks (beforeSelectCallback, beforeMonthChangeCallback, getMonthDataCallback) for validating, controlling, and enriching selections">
+<meta name="kmwc:subtitle" content="Custom events, handler properties, and callbacks (beforeSelectCallback, beforeMonthChangeCallback, getMonthDataCallback, beforeScrollCallback) for validating, controlling, and enriching selections">
 
 <link rel="stylesheet" href="examples-local.css">
 
@@ -592,6 +592,37 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     monthHeaders  // Custom headers returned with data
   };
 };</code></pre>
+</div>
+
+<!-- beforeScrollCallback -->
+<div class="card">
+  <h2>EV07 · beforeScrollCallback - the Picker's Own Scrolling</h2>
+  <p>
+    The picker scrolls on its own when a keyboard move brings the focused day into view
+    (<code>source: 'keyboard'</code>) and when a time roll centres its value on open
+    (<code>'open'</code>) or after a pick (<code>'select'</code>) &mdash; always through core
+    <code>scrollIntoContainer()</code>, never the page. <code>beforeScrollCallback(ctx)</code> runs
+    first: return <code>false</code> to skip that scroll, or <code>{ block, inline, behavior }</code>
+    to replace the defaults. The ctx carries <code>target</code> (<code>day</code> | <code>time</code>),
+    <code>date</code> or <code>timeField</code> + <code>timeValue</code>, <code>item</code>,
+    <code>source</code>, <code>container</code> (<code>null</code> = the page) and <code>options</code>.
+  </p>
+
+  <pre><code>picker.beforeScrollCallback = (ctx) => {
+  if (ctx.target === 'day') return { block: 'center' };
+  if (ctx.source === 'select') return false; // keep the rolls where the user left them
+};</code></pre>
+
+  <div class="grid">
+    <div class="form-group">
+      <label>Date + time &mdash; open it, pick a time</label>
+      <web-daterangepicker id="before-scroll" picker-mode="datetime"></web-daterangepicker>
+      <small>The rolls centre on open; after a pick, the re-centring is skipped.</small>
+      <div id="log-before-scroll" class="log-panel log-panel--dark" style="--log-max-height: 200px">
+        <div class="muted">Open the picker to see its scrolls...</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -1349,5 +1380,16 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     const status = occupancy >= 90 ? '🔥' : occupancy >= 70 ? '📈' : '📉';
     logEvent('log-header-grid', `${monthName} ${year}`, { occupancy: `${occupancy}%` }, 'success');
     return `${monthName} ${year} ${status} ${occupancy}%`;
+  };
+  // EV07: beforeScrollCallback
+  const beforeScroll = document.getElementById('before-scroll');
+  beforeScroll.beforeScrollCallback = (ctx) => {
+    const what = ctx.target === 'day' ? ctx.date.toDateString() : `${ctx.timeField} ${ctx.timeValue}`;
+    if (ctx.source === 'select') {
+      logEvent('log-before-scroll', `skipped (${ctx.source})`, { what }, 'error');
+      return false;
+    }
+    logEvent('log-before-scroll', `scroll (${ctx.source})`, { what, block: ctx.options.block }, 'success');
+    if (ctx.target === 'day') return { block: 'center' };
   };
 </script>

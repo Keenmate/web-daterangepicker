@@ -553,3 +553,24 @@ LIMITATIONS
 2. Called every navigation — no built-in response caching.
 3. Navigation waits for async callbacks — keep them fast (< 1s recommended).
 4. No cancellation — once triggered, the callback runs to completion.
+
+SCROLLING: beforeScrollCallback
+===============================
+CRITICAL: property only. Synchronous.
+
+The picker scrolls on its own in two places (core scrollIntoContainer — the one
+container around the item, never the page):
+- source 'keyboard' - a keyboard move brings the focused day into view
+  (defaults { block: 'nearest', inline: 'nearest', behavior: --drp-scroll-behavior })
+- source 'open' / 'select' - a time roll centres its value on open / after a pick
+  (defaults { block: 'center', inline: 'nearest', behavior: 'instant' })
+The wheel display is not covered (its scroll position is its value).
+
+ctx: target ('day' | 'time'), date (day) / timeField + timeValue (time), item,
+source, container (null = the page), options, controller, element.
+Return false to skip that scroll, or { block, inline, behavior } to replace the defaults.
+
+el.beforeScrollCallback = (ctx) => {
+  if (ctx.target === 'day') return { block: 'center' };
+  if (ctx.source === 'select') return false;
+};

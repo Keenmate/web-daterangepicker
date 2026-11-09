@@ -15,6 +15,7 @@ mode out of the box.
 
 - **Aligned with `@keenmate/web-components-core` 1.0.0-rc20** — the floating calendar is a core popover (the shared overlay tree: one open overlay per group, Escape one level per press, outside click decided when the click ends; only a scroll that moves the input closes it), the modal / full-screen sheet uses the shared page scroll lock (it also stops a wide page from zooming the phone sheet out), and keyboard navigation scrolls only the calendar, never the page.
 - **Page-wide custom CSS** — `window.components['web-daterangepicker'].customStyles` (or `.getCustomStylesCallback(ctx)`) styles every picker on the page, an `@import` included; a picker's own `custom-styles` / `getCustomStylesCallback` overrides it. Every input is now a typed property on the element.
+- **`readonly` / `disabled` like native inputs** — `readonly` blocks changes and opening but keeps month navigation (and the value is submitted); `disabled` also makes an inline calendar inert; calls from code keep working under both. **`beforeScrollCallback`** intercepts the picker's own scrolling (keyboard day reveal, time-roll centring).
 - **Fixes** — a disabled picker no longer submits its value; `week-start-day="auto"` follows the `locale` input; the default loader is styled again (`.drp__loader`); malformed attributes are refused through core's `input-rejected`. **BREAKING:** `showMessage(content, { variant: 'danger' })` replaces `{ type: 'error' }` (`info` | `success` | `warning` | `danger`), and `input-size` / `calendar-placement` refuse unknown values — see the CHANGELOG.
 
 ## What's New in v2.0.0-rc06
@@ -274,7 +275,7 @@ over rendering but requires sanitizing untrusted data:
 
 **Safe callbacks** (output is escaped or used as data):
 
-- `beforeSelectCallback`, `beforeMonthChangeCallback` (return values, not markup)
+- `beforeSelectCallback`, `beforeMonthChangeCallback`, `beforeScrollCallback` (return values, not markup)
 - `actionButtons[].text` / `getTextCallback` (set as plain text)
 - `labels` text keys: `today` / `clear` / `apply` / `now` (button text), `close` (aria-label), `fullscreenTitle`, `selectionCount` (input value) — and `am` / `pm` where they appear in the input value
 - `onChange`, `onOpen`, `onClose`, `onAction`, `onMonthChange`, `onReady` (event handlers)

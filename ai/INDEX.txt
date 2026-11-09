@@ -49,6 +49,7 @@ controller, ctx.controller, el.controller → basic-usage.txt, events-callbacks.
 beforeSelectCallback, validation → events-callbacks.txt
 markRangeInvalid → events-callbacks.txt
 beforeMonthChangeCallback, block navigation → events-callbacks.txt
+beforeScrollCallback, skip / change the picker's own scrolling → events-callbacks.txt
 getMonthDataCallback, bulk month metadata → events-callbacks.txt
 data-action buttons in messages, dataset → events-callbacks.txt
 async validation, api check → events-callbacks.txt
@@ -183,6 +184,7 @@ renderDayContentCallback → custom-rendering.txt (property, not attribute)
 getCustomStylesCallback → custom-rendering.txt (property, not attribute)
 beforeSelectCallback → events-callbacks.txt (property, not attribute)
 beforeMonthChangeCallback → events-callbacks.txt (property, not attribute)
+beforeScrollCallback → events-callbacks.txt (property, not attribute)
 getMonthDataCallback → events-callbacks.txt (property, not attribute)
 beforeActionCallback → action-buttons.txt (property, not attribute)
 

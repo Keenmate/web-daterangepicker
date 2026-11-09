@@ -39,7 +39,7 @@ The event system (`change` / `open` / `close` / `action` / `month-change`) plus
 the `beforeSelectCallback` validation recipes from `usage.md`
 (minimum-nights, API availability check, the `ctx.markRangeInvalid()`
 red-error state), `beforeMonthChangeCallback` for blocking navigation and
-`getMonthDataCallback` for per-month data loading. (The five `disabled-dates-handling` range
+`getMonthDataCallback` for per-month data loading, and `beforeScrollCallback` (EV07) for the picker's own scrolling. (The five `disabled-dates-handling` range
 modes now live on the **Data & API** page.)
 
 ### Action buttons — [`examples-action-buttons.html`](../examples-action-buttons.html)
