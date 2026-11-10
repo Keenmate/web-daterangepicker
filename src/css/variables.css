@@ -267,7 +267,7 @@
   --drp-fullscreen-close-bg: transparent;
   --drp-fullscreen-close-border: none;
   --drp-fullscreen-close-border-radius: 50%;
-  --drp-fullscreen-close-bg-hover: rgba(0, 0, 0, 0.06);
+  --drp-fullscreen-close-bg-hover: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
   /* How far the ✕ slides toward the sheet's trailing edge (its tap area reaches the
      physical corner regardless — see the ::after hit area in fullscreen.css). */
   --drp-fullscreen-close-edge-nudge: calc(0.8 * var(--drp-fullscreen-rem));

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — BREAKING — `data-theme` is the only per-instance theme switch (2026-11-10)
+- `data-bs-theme` on the `<web-daterangepicker>` element itself no longer forces its scheme; use `data-theme`
+  (the switch every KeenMate component shares). Bootstrap's `data-bs-theme` on `<html>`, `<body>` or a
+  `theme-source` section is unchanged (core detects it).
+
+### Fixed — dark mode (2026-11-10)
+- The fullscreen close button's hover (`--drp-fullscreen-close-bg-hover`) and the disabled-day stripes were black
+  on a dark calendar (invisible); both are `light-dark()` now.
+
 ### Changed — the calendar gap is `--base-dropdown-offset` (2026-11-09)
 - **The floating calendar opens 4px below the input instead of 8px** — the gap is now the
   page token `--base-dropdown-offset` (`@keenmate/base-css-variables` ^2.0.1), the one

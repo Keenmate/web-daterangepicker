@@ -173,7 +173,7 @@ palette — no JavaScript involved.
 | **Page-level scheme** | `<body style="color-scheme: dark">` |
 | **Page signal** | `<html data-theme="dark">`, `<html data-bs-theme="dark">` (Bootstrap 5.3+), or `<html class="dark">` (Tailwind); also on `<body>`. For a themed section, put the signal on a wrapper and add `theme-source="closest"` (or a selector) to the picker |
 | **Per-instance attribute** | `<web-daterangepicker data-theme="dark">` on a single component |
-| **Explicit light override** | `data-theme="light"`, `data-bs-theme="light"`, or `.light` to force one widget back to light on an otherwise-dark page |
+| **Explicit light override** | `data-theme="light"` on the picker itself to force one widget back to light on an otherwise-dark page |
 
 The first signal (OS preference / page scheme) is handled by `light-dark()`
 in every color fallback. The latter three signals (page signal /

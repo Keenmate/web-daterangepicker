@@ -126,8 +126,8 @@
   bottom: 0;
   background-image: repeating-linear-gradient(
     45deg,
-    rgba(0, 0, 0, var(--drp-day-disabled-pattern-opacity)) 0px,
-    rgba(0, 0, 0, var(--drp-day-disabled-pattern-opacity)) 1px,
+    color-mix(in srgb, light-dark(#000, #fff) calc(var(--drp-day-disabled-pattern-opacity) * 100%), transparent) 0px,
+    color-mix(in srgb, light-dark(#000, #fff) calc(var(--drp-day-disabled-pattern-opacity) * 100%), transparent) 1px,
     transparent 1px,
     transparent 6px
   );
