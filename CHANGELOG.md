@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (page-wide, per section or per element). The day / badge tooltip keeps its own 6px.
 
 ### Changed — core 1.0.0-rc20 alignment (**BREAKING**, 2026-11-09)
-- **Depends on `@keenmate/web-components-core@^1.0.0-rc20`** (was `^1.0.0-rc15`).
+- **Depends on `@keenmate/web-components-core@^1.0.0-rc21`** (was `^1.0.0-rc15`).
 - **`showMessage(content, { variant })`** — the message kind is `variant` with the
   `--base-*` contract's role names (`info` | `success` | `warning` | `danger`; rulebook
   C-NC-13, the same as web-multiselect): `{ type: 'error' }` → `{ variant: 'danger' }`,
