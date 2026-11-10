@@ -5,25 +5,19 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-  /* Page-specific bespoke widget only — the small red square "clear" icon button
-     sitting next to a picker. Layout/containers use shared classes
+  /* The small square "clear" icon button next to a picker: the kit's .btn-danger
+     colours, this page's size. Layout/containers use shared classes
      (.field-row, .controls, .code-block, …) from the devkit kit. */
   .clear-btn {
-    background: #ef4444;
-    color: white;
-    border: none;
-    border-radius: 4px;
     width: 32px;
     height: 32px;
+    min-height: 0;  /* not the kit control height */
+    padding: 0;
     font-size: 1.25rem;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-  }
-  .clear-btn:hover {
-    background: #dc2626;
   }
 </style>
 
@@ -177,7 +171,7 @@
           show-today-button="false"
           show-clear-button="false">
         </web-daterangepicker>
-        <button class="clear-btn" onclick="clearPicker('commit-manual')" title="Clear selection">&times;</button>
+        <button class="btn-danger clear-btn" onclick="clearPicker('commit-manual')" title="Clear selection">&times;</button>
       </div>
     </div>
 
@@ -191,7 +185,7 @@
           selection-mode="range"
           commit-mode="selection">
         </web-daterangepicker>
-        <button class="clear-btn" onclick="clearPicker('commit-selection')" title="Clear selection">&times;</button>
+        <button class="btn-danger clear-btn" onclick="clearPicker('commit-selection')" title="Clear selection">&times;</button>
       </div>
     </div>
 
@@ -207,7 +201,7 @@
           commit-mode="selection"
           close-on-select="false">
         </web-daterangepicker>
-        <button class="clear-btn" onclick="clearPicker('commit-booking')" title="Clear selection">&times;</button>
+        <button class="btn-danger clear-btn" onclick="clearPicker('commit-booking')" title="Clear selection">&times;</button>
       </div>
     </div>
 
@@ -221,7 +215,7 @@
           selection-mode="range"
           commit-mode="apply">
         </web-daterangepicker>
-        <button class="clear-btn" onclick="clearPicker('commit-apply')" title="Clear selection">&times;</button>
+        <button class="btn-danger clear-btn" onclick="clearPicker('commit-apply')" title="Clear selection">&times;</button>
       </div>
     </div>
   </div>

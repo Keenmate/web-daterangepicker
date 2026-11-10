@@ -344,15 +344,15 @@ picker.beforeSelectCallback = async (ctx) => {
   if (!data.available) {
     // Show fully custom HTML message (no type = raw HTML)
     ctx.controller.showMessage(`
-      &lt;div style="background: #fef2f2; ..."&gt;
-        &lt;div style="color: #991b1b;"&gt;Dates not available&lt;/div&gt;
+      &lt;div style="background: light-dark(#fef2f2, #3b1219); ..."&gt;
+        &lt;div style="color: light-dark(#991b1b, #fca5a5);"&gt;Dates not available&lt;/div&gt;
         &lt;div style="margin-top: 8px;"&gt;
           ${data.alternatives.map(alt => `
             &lt;button data-action="custom"
                     data-id="use-alternative"
                     data-start-date="${alt.start}"
                     data-end-date="${alt.end}"
-                    style="background: #dcfce7; ..."&gt;
+                    style="background: light-dark(#dcfce7, #14532d); ..."&gt;
               ${alt.start} - ${alt.end}
             &lt;/button&gt;
           `).join('')}
@@ -852,14 +852,14 @@ picker.getMonthDataCallback = async ({ year, month }) => {
       // Show custom HTML message with available alternatives
       // No type = raw HTML. A data-action="custom" data-id="…" button fires the 'action' event.
       controller.showMessage(`
-        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px;">
-          <div style="color: #991b1b; font-weight: 600; margin-bottom: 8px;">
+        <div style="background: light-dark(#fef2f2, #3b1219); border: 1px solid light-dark(#fecaca, #7f1d1d); border-radius: 6px; padding: 12px;">
+          <div style="color: light-dark(#991b1b, #fca5a5); font-weight: 600; margin-bottom: 8px;">
             ⚠️ Selected dates not available
           </div>
-          <div style="color: #7f1d1d; font-size: 0.875rem; margin-bottom: 10px;">
+          <div style="color: light-dark(#7f1d1d, #fecaca); font-size: 0.875rem; margin-bottom: 10px;">
             Maximum 5 nights per booking. You requested ${nights} nights.
           </div>
-          <div style="color: #374151; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">
+          <div style="color: light-dark(#374151, #d1d5db); font-size: 0.875rem; font-weight: 500; margin-bottom: 6px;">
             Available alternatives:
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -867,14 +867,14 @@ picker.getMonthDataCallback = async ({ year, month }) => {
                     data-start-date="${toLocalISO(alt1Start)}"
                     data-end-date="${toLocalISO(alt1End)}"
                     data-nights="3"
-                    style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                    style="background: light-dark(#dcfce7, #14532d); border: 1px solid light-dark(#86efac, #166534); color: light-dark(#166534, #bbf7d0); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
               ${formatDate(alt1Start)} - ${formatDate(alt1End)} (3 nights)
             </button>
             <button data-action="custom" data-id="use-alternative"
                     data-start-date="${toLocalISO(alt2Start)}"
                     data-end-date="${toLocalISO(alt2End)}"
                     data-nights="4"
-                    style="background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                    style="background: light-dark(#dcfce7, #14532d); border: 1px solid light-dark(#86efac, #166534); color: light-dark(#166534, #bbf7d0); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
               ${formatDate(alt2Start)} - ${formatDate(alt2End)} (4 nights)
             </button>
           </div>

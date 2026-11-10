@@ -3,8 +3,13 @@
 
 /* Theme swatch buttons — coloured preview buttons in the theming page's "switch theme"
    row. Each keeps its colour on hover (the colour IS the preview). */
+/* kmwc-fixed-colors: the swatch colour is the preview */
 .swatch--blue,   .swatch--blue:hover   { background: #3b82f6; color: #fff; }
+/* kmwc-fixed-colors: the swatch colour is the preview */
 .swatch--green,  .swatch--green:hover  { background: #10b981; color: #fff; }
+/* kmwc-fixed-colors: the swatch colour is the preview */
 .swatch--purple, .swatch--purple:hover { background: #8b5cf6; color: #fff; }
+/* kmwc-fixed-colors: the swatch colour is the preview */
 .swatch--red,    .swatch--red:hover    { background: #ef4444; color: #fff; }
+/* kmwc-fixed-colors: the swatch colour is the preview */
 .swatch--dark,   .swatch--dark:hover   { background: #1f2937; color: #fff; }

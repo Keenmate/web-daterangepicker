@@ -22,36 +22,25 @@
     padding: revert-layer;
   }
 
-  /* Page-specific bespoke widget only — the real light-DOM <input> elements that
-     the DateRangePickerEngine class attaches to (this page demonstrates JS instantiation
-     against plain inputs). Everything else (cards, code blocks, copy buttons,
-     notes, output panels) uses shared classes from the devkit kit. */
+  /* The real light-DOM <input> elements the DateRangePickerEngine class attaches to
+     (this page demonstrates JS instantiation against plain inputs). The kit styles the
+     field; this only makes it full width. */
   .demo-input {
     width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 1rem;
-    transition: border-color 150ms;
-  }
-
-  .demo-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
   /* Kept bespoke: the JS-instantiation demos assign this class by name in
      script (output.className = 'output-box') and it appears verbatim in the
      code samples, so it can't be renamed to a shared class. It's the small
-     per-demo result panel. */
+     per-demo result panel, on the kit's output colours. */
   .output-box {
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
+    background: var(--kmwc-page-bg);
+    color: var(--kmwc-text-color-1);
+    border: 1px solid var(--kmwc-border-color);
+    border-radius: var(--kmwc-radius-sm);
     padding: 1rem;
     margin-top: 1rem;
-    font-family: 'Courier New', monospace;
+    font-family: var(--kmwc-mono-font-family);
     font-size: 0.875rem;
     min-height: 3rem;
   }
@@ -61,43 +50,23 @@
      typeset method signatures (monospace box + colored return/param tokens);
      there is no shared equivalent. */
   .method-signature {
-    background: #f1f3f5;
+    background: var(--kmwc-inline-code-bg);
     padding: 0.75rem 1rem;
-    border-left: 3px solid #4dabf7;
+    border-left: 3px solid var(--kmwc-info-color);
     border-radius: 4px;
     margin: 1rem 0;
-    font-family: 'Courier New', monospace;
+    font-family: var(--kmwc-mono-font-family);
     font-size: 0.875rem;
   }
 
   .return-type {
-    color: #0c8599;
+    color: var(--kmwc-info-color);
     font-weight: 600;
   }
 
   .param-name {
-    color: #c92a2a;
+    color: var(--kmwc-danger-color);
   }
-
-  /* Status pill used inside the booking-desk status line. The static
-     markup uses the shared `.pill`/`.pill--ok`/`.pill--warn`, but the
-     JS (refresh9) rebuilds this line via innerHTML with these class
-     names — and the JS must not be changed — so the equivalents are
-     kept here. */
-  .lock-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.15rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-family: ui-monospace, SFMono-Regular, Menlo, 'Courier New', monospace;
-    background: #e5e7eb;
-    color: #374151;
-  }
-  .lock-pill--locked { background: #fef3c7; color: #92400e; }
-  .lock-pill--open   { background: #dcfce7; color: #166534; }
 </style>
 
 <!-- ===== GETTING STARTED ===== -->
@@ -2059,6 +2028,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
   <!-- JS-instantiation demos (DateRangePickerEngine class against plain inputs) -->
   <script type="module">
     import { DateRangePickerEngine, observeEnvironment, classifyDevice } from './src/index.ts';
+    import { copyText } from '@keenmate/web-components-devkit/examples';
     // IMPORTANT: Import styles globally for DateRangePickerEngine class to work
     import './src/css/main.css';
 
@@ -2213,19 +2183,10 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
     });
 
     // Copy code functionality (shared across all demos on this page)
-    window.copyCode = function(button) {
-      const codeBlock = button.nextElementSibling;
-      const code = codeBlock.textContent;
-      navigator.clipboard.writeText(code);
-
-      const originalText = button.textContent;
-      button.textContent = 'Copied!';
-      button.style.background = '#10b981';
-
-      setTimeout(() => {
-        button.textContent = originalText;
-        button.style.background = '#374151';
-      }, 2000);
+    window.copyCode = async function(button) {
+      const isCopied = await copyText(button.nextElementSibling.textContent);
+      button.textContent = isCopied ? 'Copied!' : 'Ctrl/Cmd+C';
+      setTimeout(() => { button.textContent = 'Copy'; }, 2000);
     };
   </script>
 
@@ -2252,7 +2213,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
     const renderState1 = () => {
       const open = picker1.isOpen;
       state1.textContent = open ? 'open' : 'closed';
-      output1.innerHTML = `Calendar state: <strong style="color: ${open ? '#28a745' : '#6c757d'};">${open ? 'open' : 'closed'}</strong>`;
+      output1.innerHTML = `Calendar state: <span class="pill ${open ? 'pill--ok' : 'pill--muted'}">${open ? 'open' : 'closed'}</span>`;
     };
 
     document.getElementById('btn-show').addEventListener('click', () => {
@@ -2369,13 +2330,12 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
     function updateState5() {
       const isOpen = picker5.isOpen;
       state5.textContent = isOpen ? 'open' : 'closed';
-      state5.style.color = isOpen ? '#28a745' : '#6c757d';
-      state5.style.fontWeight = 'bold';
+      state5.className = isOpen ? 'pill pill--ok' : 'pill pill--muted';
     }
 
     document.getElementById('btn-check-state').addEventListener('click', () => {
       updateState5();
-      output5.innerHTML = `Calendar state: <strong style="color: ${picker5.isOpen ? '#28a745' : '#6c757d'};">${picker5.isOpen ? 'open' : 'closed'}</strong>`;
+      output5.innerHTML = `Calendar state: <span class="pill ${picker5.isOpen ? 'pill--ok' : 'pill--muted'}">${picker5.isOpen ? 'open' : 'closed'}</span>`;
     });
 
     document.getElementById('btn-toggle-5').addEventListener('click', () => {
@@ -2451,11 +2411,11 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
     const refresh9 = () => {
       const locked = picker9.lockedAspects;
       if (booked9) {
-        state9.innerHTML = '<span class="lock-pill lock-pill--locked">🔒 booked</span> the dates are frozen — hit <strong>Amend</strong> in the calendar to change them';
+        state9.innerHTML = '<span class="pill pill--warn">🔒 booked</span> the dates are frozen — hit <strong>Amend</strong> in the calendar to change them';
       } else if (!locked.length) {
-        state9.innerHTML = '<span class="lock-pill lock-pill--open">● unlocked</span> fully interactive';
+        state9.innerHTML = '<span class="pill pill--ok">● unlocked</span> fully interactive';
       } else {
-        state9.innerHTML = `<span class="lock-pill lock-pill--locked">🔒 partial</span> locked: <code>${locked.join('</code> <code>')}</code> · other aspects still respond`;
+        state9.innerHTML = `<span class="pill pill--warn">🔒 partial</span> locked: <code>${locked.join('</code> <code>')}</code> · other aspects still respond`;
       }
     };
 
@@ -2689,7 +2649,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
               <strong>Summary:</strong>
               <div style="margin-left: 16px; margin-top: 4px;">
                 ${rangeDetails}
-                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--kmwc-border-color);">
                   <strong>Total:</strong> ${e.detail.dates.length} enabled day${e.detail.dates.length !== 1 ? 's' : ''}, ${disabledDays} disabled day${disabledDays !== 1 ? 's' : ''} excluded
                 </div>
               </div>
@@ -2808,7 +2768,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
             ${prefix}
             <div style="display: flex; justify-content: space-between; width: 100%; gap: 1rem;">
               <span>${data.nights} ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
-              <span style="font-weight: bold; color: #10b981;">$${total}</span>
+              <span style="font-weight: bold; color: var(--kmwc-success-color);">${total}</span>
             </div>
           `;
         };
@@ -2858,7 +2818,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
 
           return `
             ${prefix}
-            <strong style="font-size: 1.1em; color: #3b82f6;">${data.nights}</strong>
+            <strong style="font-size: 1.1em; color: var(--kmwc-info-color);">${data.nights}</strong>
             <span> ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
           `;
         };

@@ -216,8 +216,9 @@
   }
 
   .demo-controls output {
-    font-family: monospace;
-    background: #e5e7eb;
+    font-family: var(--kmwc-mono-font-family);
+    background: var(--kmwc-inline-code-bg);
+    color: var(--kmwc-inline-code-color);
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.875rem;
@@ -225,51 +226,7 @@
 
   /* ---- Typography-controls panel (merged from the Base Variables page) ---- */
 
-  /* Controls-panel header row (title + reset button on one line). */
-  .controls-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .controls-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    border: none;
-    padding: 0;
-  }
-
-  /* Grouped sections of controls inside the panel, each with an uppercase
-     label rule + optional descriptive line. */
-  .control-section {
-    margin-bottom: 1.5rem;
-  }
-
-  .control-section:last-child {
-    margin-bottom: 0;
-  }
-
-  .control-section h3 {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6b7280;
-    margin: 0 0 0.75rem 0;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 0.5rem;
-  }
-
-  .section-desc {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin: 0 0 0.75rem 0;
-    line-height: 1.4;
-  }
-
-  .section-desc strong {
-    color: #374151;
-  }
+  /* .controls-header / .control-section / .section-desc come from the kit. */
 
   /* Fixed input widths for the typography controls (text vs number vs URL). */
   .control-group input[type="text"] {
@@ -288,7 +245,7 @@
      preformatted for the terminal-style values readout. */
   .current-values {
     --log-max-height: 300px;
-    color: #a5d6a7;
+    color: var(--kmwc-console-highlight-color);
     margin-top: 2rem;
     font-size: 0.75rem;
     line-height: 1.6;
@@ -296,7 +253,7 @@
   }
 
   .current-values-header {
-    color: #93c5fd;
+    color: var(--kmwc-console-info-color);
     font-weight: bold;
     margin-bottom: 0.5rem;
   }

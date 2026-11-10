@@ -5,25 +5,14 @@
 
 <style>
   /* Page-unique only — base styles come from the devkit kit.
-     .method-note is a compact inline "Uses: <api>" annotation chip that sits
-     under each demo's label. It's intentionally small and inline-block, unlike
-     the shared block-level `.note.info` callout, so it has no shared equivalent. */
+     .method-note is the compact "Uses: <api>" annotation under each demo's label:
+     the kit's .note.info colours, a smaller box. */
   .method-note {
     display: block;
-    margin-top: 0.5rem;
+    margin: 0.5rem 0 0;
     padding: 0.375rem 0.5rem;
-    background: #f0f9ff;
-    border-left: 3px solid #0ea5e9;
-    border-radius: 0.25rem;
+    border-left-width: 3px;
     font-size: 0.75rem;
-    color: #0369a1;
-  }
-
-  .method-note code {
-    background: #e0f2fe;
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.125rem;
-    font-weight: 600;
   }
 </style>
 
@@ -125,7 +114,7 @@ picker.specialDates = [
     <label>1. Static Data</label>
     <web-daterangepicker id="method-static" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
     <small><strong>Best for:</strong> Known dates defined at initialization (holidays, events)</small>
-    <span class="method-note">Uses: <code>specialDates</code> array property</span>
+    <span class="note info method-note">Uses: <code>specialDates</code> array property</span>
   </div>
 
   <!-- Method 2: Dynamic Callback -->
@@ -133,7 +122,7 @@ picker.specialDates = [
     <label>2. Dynamic Calculation</label>
     <web-daterangepicker id="method-dynamic" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
     <small><strong>Best for:</strong> Computed values based on date properties (pricing, availability)</small>
-    <span class="method-note">Uses: <code>getDateMetadataCallback</code></span>
+    <span class="note info method-note">Uses: <code>getDateMetadataCallback</code></span>
   </div>
 
   <!-- Method 3: Member Mapping -->
@@ -141,7 +130,7 @@ picker.specialDates = [
     <label>3. Custom Data Structure</label>
     <web-daterangepicker id="method-mapping" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
     <small><strong>Best for:</strong> Integrating existing data without reshaping (legacy systems, APIs)</small>
-    <span class="method-note">Uses: <code>badgeMemberMapping</code> with custom data</span>
+    <span class="note info method-note">Uses: <code>badgeMemberMapping</code> with custom data</span>
   </div>
 
   <!-- Method 4: HTML Tooltips -->
@@ -149,7 +138,7 @@ picker.specialDates = [
     <label>4. Rich Tooltips</label>
     <web-daterangepicker id="method-tooltips" visible-month-count="1" placeholder="Select date"></web-daterangepicker>
     <small><strong>Best for:</strong> Complex tooltip content with HTML formatting</small>
-    <span class="method-note">Uses: <code>getBadgeTooltipCallback</code></span>
+    <span class="note info method-note">Uses: <code>getBadgeTooltipCallback</code></span>
   </div>
 </div>
 
@@ -201,7 +190,7 @@ picker.getBadgeTooltipCallback = (data) => {
   <label>Availability &amp; pricing, loaded on demand</label>
   <web-daterangepicker id="method-async" visible-month-count="2" placeholder="Select a range"></web-daterangepicker>
   <small><strong>Best for:</strong> API-driven badges — one request per month instead of a per-day callback.</small>
-  <span class="method-note">Uses: <code>getMonthDataCallback</code></span>
+  <span class="note info method-note">Uses: <code>getMonthDataCallback</code></span>
 </div>
 
 <pre><code>picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
@@ -1227,7 +1216,7 @@ if (htmlTooltipsEvents) {
     if (event) {
       return `
         <div style="padding: 0.75rem; min-width: 250px;">
-          <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #3b82f6;">
+          <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--kmwc-info-color);">
             ${event.title}
           </div>
           <div style="font-size: 0.875rem; line-height: 1.8;">
@@ -1324,8 +1313,8 @@ if (combinedExample) {
           </div>
           <div style="font-size: 0.875rem;">
             <div>Standard Rate: <strong>$${price}</strong>/night</div>
-            ${discount > 0 ? `<div style="color: #10b981;">Early Bird: ${discount}% off!</div>` : ''}
-            <div style="margin-top: 0.5rem; color: #6b7280;">
+            ${discount > 0 ? `<div style="color: var(--kmwc-success-color);">Early Bird: ${discount}% off!</div>` : ''}
+            <div style="margin-top: 0.5rem; color: var(--kmwc-text-color-3);">
               Click to select this date
             </div>
           </div>

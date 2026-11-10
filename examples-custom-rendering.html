@@ -14,7 +14,7 @@
     display: inline-block;
     width: 6px;
     height: 6px;
-    background: #ef4444;
+    background: var(--kmwc-danger-color);
     border-radius: 50%;
     margin-left: 4px;
     vertical-align: middle;
@@ -29,7 +29,7 @@
 
   .day-label {
     font-size: 10px;
-    color: #6b7280;
+    color: var(--kmwc-text-color-3);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -42,7 +42,7 @@
   /* Small annotation text inside slotted day cells */
   .day-note-due {
     font-size: 10px;
-    color: #dc2626;
+    color: var(--kmwc-danger-color);
   }
 
   .day-note-small {
@@ -327,10 +327,10 @@ picker.renderDayCallback = (data) => {
 
     if (info.booked) {
       label.textContent = 'Booked';
-      label.style.color = '#dc2626';
+      label.style.color = 'var(--kmwc-danger-color)';
     } else if (info.available) {
       label.textContent = `$${info.price}`;
-      label.style.color = '#059669';
+      label.style.color = 'var(--kmwc-success-color)';
     }
 
     container.appendChild(label);
@@ -573,10 +573,10 @@ picker.addEventListener('change', (event) =&gt; {
 
         if (info.booked) {
           label.textContent = 'Booked';
-          label.style.color = '#dc2626';
+          label.style.color = 'var(--kmwc-danger-color)';
         } else if (info.available) {
           label.textContent = `$${info.price}`;
-          label.style.color = '#059669';
+          label.style.color = 'var(--kmwc-success-color)';
         }
 
         container.appendChild(label);
@@ -613,7 +613,7 @@ picker.addEventListener('change', (event) =&gt; {
           <div>Check-in: ${start.toLocaleDateString()}</div>
           <div>Check-out: ${end.toLocaleDateString()}</div>
           <div>Available nights: ${availableDays}</div>
-          <div style="margin-top: 0.5rem; font-size: 1.25rem; color: #059669;">
+          <div style="margin-top: 0.5rem; font-size: 1.25rem; color: var(--kmwc-success-color);">
             <strong>Total: $${totalPrice}</strong>
           </div>
         `;

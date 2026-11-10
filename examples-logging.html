@@ -3,31 +3,6 @@
 
 <link rel="stylesheet" href="examples-local.css">
 
-<style>
-  /* Page-specific log-category token colors only. These are the per-category
-     badge chips shown in the "Log Categories" reference table — a page-local
-     vocabulary that no shared class covers (mirrors the multiselect logging
-     page keeping only its entry-color classes). All layout / cards / notes /
-     code-blocks / tables come from the devkit kit. */
-  .log-category {
-    display: inline-block;
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-right: 0.5rem;
-  }
-
-  .cat-init { background: #dbeafe; color: #1e40af; }
-  .cat-navigation { background: #fef3c7; color: #92400e; }
-  .cat-ui { background: #d1fae5; color: #065f46; }
-  .cat-rendering { background: #fce7f3; color: #831843; }
-  .cat-selection { background: #e0e7ff; color: #3730a3; }
-  .cat-validation { background: #fed7aa; color: #9a3412; }
-  .cat-drag { background: #fecaca; color: #991b1b; }
-  .cat-interaction { background: #e9d5ff; color: #6b21a8; }
-</style>
-
 <div class="card">
   <h2>LG01 · Overview: Built-in Logging System</h2>
   <div class="note info">
@@ -56,42 +31,42 @@
     <tbody>
       <tr>
         <td><code>DRP:GENERAL</code></td>
-        <td><span class="log-category cat-init">GENERAL</span></td>
+        <td><span class="pill">GENERAL</span></td>
         <td>General/initialization, option parsing, setup</td>
       </tr>
       <tr>
         <td><code>NAVIGATION</code></td>
-        <td><span class="log-category cat-navigation">NAVIGATION</span></td>
+        <td><span class="pill">NAVIGATION</span></td>
         <td>Month navigation, keyboard navigation</td>
       </tr>
       <tr>
         <td><code>UI</code></td>
-        <td><span class="log-category cat-ui">UI</span></td>
+        <td><span class="pill">UI</span></td>
         <td>Show/hide calendar, positioning, visibility changes</td>
       </tr>
       <tr>
         <td><code>RENDERING</code></td>
-        <td><span class="log-category cat-rendering">RENDERING</span></td>
+        <td><span class="pill">RENDERING</span></td>
         <td>Calendar rendering, day cell updates, DOM operations</td>
       </tr>
       <tr>
         <td><code>SELECTION</code></td>
-        <td><span class="log-category cat-selection">SELECTION</span></td>
+        <td><span class="pill">SELECTION</span></td>
         <td>Date selection, range selection, value changes</td>
       </tr>
       <tr>
         <td><code>VALIDATION</code></td>
-        <td><span class="log-category cat-validation">VALIDATION</span></td>
+        <td><span class="pill">VALIDATION</span></td>
         <td>Date validation, disabled date handling, range validation</td>
       </tr>
       <tr>
         <td><code>DRAG</code></td>
-        <td><span class="log-category cat-drag">DRAG</span></td>
+        <td><span class="pill">DRAG</span></td>
         <td>Drag-to-adjust functionality, drag previews</td>
       </tr>
       <tr>
         <td><code>INTERACTION</code></td>
-        <td><span class="log-category cat-interaction">INTERACTION</span></td>
+        <td><span class="pill">INTERACTION</span></td>
         <td>User interactions, clicks, hover events</td>
       </tr>
     </tbody>
