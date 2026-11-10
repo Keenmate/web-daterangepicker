@@ -19,7 +19,7 @@
  * - DRAG        — drag-to-adjust
  *
  * Default level is core's `warn` (warnings/errors show, debug/info don't); the
- * page-wide `window.components.logging` switch drives every KeenMate bundle at
+ * page-wide `window.components.logging` switch drives every Keenmate bundle at
  * once. Per element, core's `el.enableLogging()` / `el.disableLogging()` turn
  * that element's instance loggers (`this.log`) up / back.
  *

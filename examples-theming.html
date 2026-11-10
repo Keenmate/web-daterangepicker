@@ -128,7 +128,7 @@
   /* Icon theming — override the shared --base-icon-* glyphs. Every --drp-icon-*
      chains to --base-icon-*, so one override re-skins the prev/next nav chevrons,
      the input clear ✕, and the calendar affordance at once (and, set on :root,
-     would re-skin every other KeenMate component in lockstep). */
+     would re-skin every other Keenmate component in lockstep). */
   web-daterangepicker.icons-alt {
     /* Lucide chevrons-right (double) — one directional glyph, rotated per nav dir. */
     --base-icon-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 17 5-5-5-5'/><path d='m13 17 5-5-5-5'/></svg>");
@@ -1537,7 +1537,7 @@ picker.className = newTheme;
     <code>--base-icon-*</code> contract (<code>var(--base-icon-chevron, …)</code>),
     so overriding a base icon on the host re-skins the prev/next nav chevrons, the
     input clear ✕, and the calendar affordance at once. Set the same override on
-    <code>:root</code> and it re-skins <em>every</em> KeenMate component
+    <code>:root</code> and it re-skins <em>every</em> Keenmate component
     (multiselect, treeview, …) in lockstep. The nav reuses <strong>one</strong>
     directional chevron rotated per direction, so there's a single glyph to swap.
   </p>

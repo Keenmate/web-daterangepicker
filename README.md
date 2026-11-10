@@ -20,7 +20,7 @@ mode out of the box.
 
 ## What's New in v2.0.0-rc06
 
-- **One loader for every KeenMate component** — every loading state (`showLoader('calendar' | 'message' | 'summary')`, async callbacks) now draws through the shared core loader: the new `renderLoadingCallback` property, else the page-wide `window.components.renderLoadingCallback`, else the default shape from the `--base-loader-*` tokens (`--drp-loader-icon` / `-rotate` / `-duration` / `-size`). The loader is `role="status"` with `labels.loading` as its accessible label. **BREAKING:** the border-ring spinner tokens are gone — see the CHANGELOG.
+- **One loader for every Keenmate component** — every loading state (`showLoader('calendar' | 'message' | 'summary')`, async callbacks) now draws through the shared core loader: the new `renderLoadingCallback` property, else the page-wide `window.components.renderLoadingCallback`, else the default shape from the `--base-loader-*` tokens (`--drp-loader-icon` / `-rotate` / `-duration` / `-size`). The loader is `role="status"` with `labels.loading` as its accessible label. **BREAKING:** the border-ring spinner tokens are gone — see the CHANGELOG.
 
 - **Form integration — submit selections in a `<form>` with just a `name`, like a native control** — `<web-daterangepicker>` now participates in forms the way `<web-multiselect>` does: give it a `name` and it renders a light-DOM hidden `<input>` inside the form carrying the selection, clears on `form.reset()`, and exposes `el.form` / `event.target.form` so frameworks that delegate form changes by reading `target.form` (Phoenix LiveView's `phx-change`) resolve the parent form. It replaces the earlier `ElementInternals.setFormValue` approach, which silently submitted nothing for inline pickers (they have no visible input); the hidden-input model works uniformly across `inline`, `floating`, and `modal`. The submitted value is stable ISO-8601, independent of `date-format-mask` / `display-format-mask`, so a locale display mask never leaks into your form data. Requires `@keenmate/web-components-core` ≥ 1.0.0-rc02 (the `el.form` getter).
 
@@ -57,10 +57,10 @@ What makes it different from the rest of the date-picker ecosystem:
   the framework signal is detected once per page by web-components-core
   and shared by every Keenmate component, so it works in Firefox and
   Safari too.
-- **Theme Designer integration.** Optional. If you use the KeenMate
+- **Theme Designer integration.** Optional. If you use the Keenmate
   Theme Designer at [theme-designer.keenmate.dev](https://theme-designer.keenmate.dev),
   the picker reads the cross-component `--base-*` taxonomy so one
-  theme drives every KeenMate component on the page.
+  theme drives every Keenmate component on the page.
 - **One component, every selection shape.** Date / range / multiple /
   time / datetime in one custom element with one consistent API —
   switch by changing one attribute, not by installing a different
@@ -182,7 +182,7 @@ combinations (device class AND width, orientation, …) go in `responsiveCallbac
 be set page-wide, per tag, or per instance:
 
 ```js
-// Page-wide (every KeenMate component) and per tag
+// Page-wide (every Keenmate component) and per tag
 window.components.responsive = { device: { mobile: { visibleMonthCount: 1 } } };
 window.components['web-daterangepicker'].responsive = { device: { tablet: { presentation: 'fullscreen' } } };
 

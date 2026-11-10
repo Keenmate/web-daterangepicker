@@ -1,6 +1,6 @@
 # Input Size Variables
 
-This document shows the input size CSS variables aligned with `@keenmate/web-multiselect` for consistent styling across KeenMate components.
+This document shows the input size CSS variables aligned with `@keenmate/web-multiselect` for consistent styling across Keenmate components.
 
 ## Input Font Sizes
 

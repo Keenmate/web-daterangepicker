@@ -201,7 +201,7 @@ documented at the top of this file remain as separate decisions.
 ## Decisions deferred (require user input before scheduling)
 
 ~~All three resolved 2026-06-10: the user asked for full alignment to the
-guidelines so every KeenMate library handles this the same way. All three
+guidelines so every Keenmate library handles this the same way. All three
 items are now in-scope for this batch.~~
 
 ---
@@ -258,7 +258,7 @@ MORE verbose than the canonical example. We follow the canonical example
 and document the deviation in the README so the C-BV-2 failure is
 intentional.
 
-This matches the implementation pattern other KeenMate libraries
+This matches the implementation pattern other Keenmate libraries
 (`web-grid`, `web-multiselect`) are expected to follow per the same
 guideline.
 

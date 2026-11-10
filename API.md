@@ -154,7 +154,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `responsive` | `ResponsiveMap \| null` | — | Instance responsive rules (core, SPEC §6.7): partial configs on two axes — `device` (keyed by device class `mobile` / `tablet` / `desktop`; a mouse device is `desktop` at any width) and `breakpoint` (keyed by the window-width bucket); the breakpoint entry applies first, the device entry over it (device wins). An object or a JSON attribute, e.g. `{"device":{"tablet":{"presentation":"modal"}},"breakpoint":{"mobile":{…}}}`. Beats page rules (`window.components.responsive*`) and values set on the element; never reflects. An entry of `null` ignores the page rules while it matches. |
 <!-- GEN:attributes:end -->
 
-**Core-declared inputs** (every KeenMate component; not in the generated tables): `defer`
+**Core-declared inputs** (every Keenmate component; not in the generated tables): `defer`
 attribute / `shouldDefer` property (hold the first build until `release()`), and the
 responsive rules — `responsive` (JSON attribute / property: `{ device?, breakpoint? }`, each keyed `mobile` / `tablet` / `desktop` → partial config)
 and the property-only `responsiveCallback` (core SPEC §6.7; see
@@ -728,7 +728,7 @@ The `DRP:*` loggers start at `warn`. Turn them up with core's logging switches (
 window.components['web-daterangepicker'].logging.enableLogging();
 window.components['web-daterangepicker'].logging.setLogLevel('warn'); // back to the default
 
-// every KeenMate component on the page
+// every Keenmate component on the page
 window.components.logging.enableLogging();
 
 // one element's own instance loggers (core BlissElement), independent of the page level
@@ -2313,7 +2313,7 @@ If you're using a design system (Material UI, Bootstrap, Tailwind, etc.), apply 
 
 ### To v2.0: Interaction Model (web-components-core rc15)
 
-Callbacks, events and action buttons follow the shared KeenMate interaction
+Callbacks, events and action buttons follow the shared Keenmate interaction
 model. No aliases — rename on upgrade. The full table is in
 [CHANGELOG.md](./CHANGELOG.md); the essentials:
 

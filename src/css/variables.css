@@ -339,7 +339,7 @@
 
      Each glyph chains to the shared --base-icon-* contract with the inline Lucide
      SVG as fallback: setting --base-icon-close / -clear / -chevron / -calendar at
-     :root re-skins this picker AND the rest of the KeenMate component family at
+     :root re-skins this picker AND the rest of the Keenmate component family at
      once, while a standalone picker (no base layer) still renders the Lucide
      default. Token sub-names mirror the --base-icon-* names 1:1. */
   /* Lucide `x` — the shared close glyph (--base-icon-close). */

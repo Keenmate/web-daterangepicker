@@ -61,7 +61,7 @@ web-daterangepicker {
 
 ### Cascading mode (multi-component)
 
-When using multiple KeenMate components on the same page, declare a
+When using multiple Keenmate components on the same page, declare a
 shared `--base-*` layer at `:root`. Each component reads its
 `--<prefix>-*` tokens through the `--base-*` chain, so one base
 declaration drives all of them:
@@ -76,7 +76,7 @@ declaration drives all of them:
 }
 ```
 
-Tier-1 variables follow a consistent naming pattern across KeenMate
+Tier-1 variables follow a consistent naming pattern across Keenmate
 components:
 
 | Purpose | `web-multiselect` | `web-daterangepicker` |
@@ -213,10 +213,10 @@ The component's stylesheet declares three cascade layers:
 
 ## Theme Designer
 
-The fastest way to customize appearance is the **KeenMate Theme Designer**
+The fastest way to customize appearance is the **Keenmate Theme Designer**
 at [theme-designer.keenmate.dev](https://theme-designer.keenmate.dev).
 It writes the `--base-*` taxonomy directly, so the same theme cascades
-into every KeenMate component on the page.
+into every Keenmate component on the page.
 
 1. Choose 3 base colors — background, text, accent.
 2. Preview changes live.
@@ -311,7 +311,7 @@ time-display UIs (Test 8).
 
 The floating calendar opens `--base-dropdown-offset` away from the input
 (`@keenmate/base-css-variables` 2.0.1+, `4px` when unset) — the one field → panel
-gap every KeenMate component shares; core reads it on the input when the calendar
+gap every Keenmate component shares; core reads it on the input when the calendar
 opens. Set it page-wide, per section, or per component:
 
 ```css
@@ -360,7 +360,7 @@ single-colour mask shape in `--drp-loader-color` (the accent).
 | `--drp-loader-color` | `var(--drp-accent-color)` |
 | `--drp-loader-overlay-bg` | translucent scrim |
 
-Set `--base-loader-*` on `:root` to change every KeenMate component at once; anything
+Set `--base-loader-*` on `:root` to change every Keenmate component at once; anything
 richer than one colour → `window.components.renderLoadingCallback` / `renderLoadingCallback`.
 The default loader element is `<span class="drp__loader">`.
 

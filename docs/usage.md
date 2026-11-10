@@ -232,12 +232,12 @@ Locking state: `lockedAspects` (`LockAspect[]` getter); `isReadonly` / the `read
 
 Every loading state — `showLoader('calendar' | 'message' | 'summary')` and the overlay shown
 automatically while an async callback (`beforeSelectCallback`, `beforeMonthChangeCallback`,
-`getMonthDataCallback`) is pending — draws through the shared KeenMate loader
+`getMonthDataCallback`) is pending — draws through the shared Keenmate loader
 (`@keenmate/web-components-core` `renderLoader`). The container gets `role="status"` and
 `aria-label` = `labels.loading`. Precedence:
 
 1. the instance **`renderLoadingCallback`** property;
-2. the page-wide **`window.components.renderLoadingCallback`** (one place for every KeenMate component);
+2. the page-wide **`window.components.renderLoadingCallback`** (one place for every Keenmate component);
 3. the default `<span class="drp__loader">` — a single-colour mask shape from the
    `--drp-loader-icon` / `-rotate` / `-duration` / `-size` tokens (chained to `--base-loader-*`),
    coloured by `--drp-loader-color`.
@@ -989,7 +989,7 @@ callback.
 ```ts
 import type { DateRangePickerResponsiveMap, DateRangePickerResponsiveCallback } from '@keenmate/web-daterangepicker';
 
-// page-wide (all KeenMate components) — unknown keys are skipped silently here
+// page-wide (all Keenmate components) — unknown keys are skipped silently here
 window.components.responsive = { device: { mobile: { visibleMonthCount: 1 } } };
 // per tag
 window.components['web-daterangepicker'].responsive = { device: { tablet: { presentation: 'fullscreen' } } };

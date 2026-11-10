@@ -204,7 +204,7 @@ The full chain is intact: pure-admin SCSS sources → Theme Designer
 generator → `--base-*` CSS custom properties → both `web-multiselect`
 and `web-daterangepicker` read them. A single
 `:root { --base-input-size-md-height: 4.0 }` declaration recolors
-input heights across every KeenMate component on the page.
+input heights across every Keenmate component on the page.
 
 No action required on subsequent validation runs unless the
 upstream taxonomy table changes; revisit if the BlissFramework

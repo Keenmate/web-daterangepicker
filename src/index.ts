@@ -102,7 +102,7 @@ registerComponent('web-daterangepicker', WebDaterangepickerElement as unknown as
     config: {
         name: typeof __PACKAGE_NAME__ !== 'undefined' ? __PACKAGE_NAME__ : '@keenmate/web-daterangepicker',
         version: typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.0',
-        author: typeof __AUTHOR__ !== 'undefined' ? __AUTHOR__ : 'KeenMate',
+        author: typeof __AUTHOR__ !== 'undefined' ? __AUTHOR__ : 'Keenmate',
         license: typeof __LICENSE__ !== 'undefined' ? __LICENSE__ : 'MIT',
         repository: typeof __REPOSITORY__ !== 'undefined' ? __REPOSITORY__ : '',
         homepage: typeof __HOMEPAGE__ !== 'undefined' ? __HOMEPAGE__ : '',
