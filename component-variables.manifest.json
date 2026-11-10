@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/keenmate/schemas/main/component-variables.schema.json",
+  "$schema": "https://schemas.keenmate.dev/component-variables/v1.schema.json",
   "component": "@keenmate/web-daterangepicker",
   "prefix": "drp",
   "baseVariables": [

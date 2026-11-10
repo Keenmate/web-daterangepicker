@@ -29,7 +29,9 @@ locally — every local fork is how they drifted apart.
   tables are already styled by the kit (`.reference-table`, `.table-striped`,
   `.table-compact`, …) — don't restyle them per page; `kmwc-native` opts an
   element out. Log lines take the kit tones (`.log-line--ok|info|warn|err|muted`,
-  `--action`, timeline cells `.log-line__time` …) — don't colour them per page.
+  `--action`, timeline cells `.log-line__time` …) — don't colour them per page;
+  write event-log lines with `appendLogLine(panel, { name, detail, variant })`
+  from `@keenmate/web-components-devkit/examples`, never an `innerHTML` template.
   `<kbd>`, `<mark>`, field widths (`.w-xs` … `.w-lg`) and `.push-end` are kit
   too — no inline styles for them. Page colours come from the kit's `--kmwc-*`
   tokens or `light-dark()` — a literal doesn't follow dark mode (doctor warns);
