@@ -694,6 +694,11 @@
      TOOLTIP DIMENSIONS
      ========================================================================== */
   --drp-tooltip-line-height: 1.4;
+  /* Width model: auto = shrink-to-content (capped by max-width). Set --drp-tooltip-width
+     to a length for a fixed box (also set --drp-tooltip-max-width: none), or
+     --drp-tooltip-min-width for a floor that still grows up to max-width. */
+  --drp-tooltip-width: auto;
+  --drp-tooltip-min-width: 0;
   --drp-tooltip-max-width: 200px;
   --drp-tooltip-arrow-size: 8px;
 

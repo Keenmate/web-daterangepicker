@@ -156,3 +156,58 @@ test('a tooltip with quotes, apostrophes, & and markup survives the data-tooltip
     await expect(dayTooltip(p).locator('b')).toHaveText('not bold');
     await expect(dayTooltip(p)).toContainText(`Tom's "big" day & not bold`);
 });
+
+// =============================================================================
+// width variables: --drp-tooltip-width / -min-width / -max-width
+// =============================================================================
+
+test.describe('tooltip width variables', () => {
+    async function hoverAndMeasure(page: Page, date: string, vars: Record<string, string> = {}) {
+        const p = pickerById(page, 'width-tip');
+        await p.evaluate((el: HTMLElement, v: Record<string, string>) => {
+            for (const [k, val] of Object.entries(v)) el.style.setProperty(k, val);
+        }, vars);
+        await open(page, 'width-tip');
+        await dayByDate(p, date).hover();
+        const tip = dayTooltip(p);
+        await expect(tip).toHaveClass(/drp__tooltip--visible/);
+        return tip.evaluate((el) => {
+            const cs = getComputedStyle(el);
+            return {
+                width: el.getBoundingClientRect().width,
+                minWidth: cs.minWidth,
+                maxWidth: cs.maxWidth,
+            };
+        });
+    }
+
+    test('defaults: shrink-to-content, no floor, 200px cap', async ({ page }) => {
+        const short = await hoverAndMeasure(page, '2026-06-15');
+        expect(short.minWidth).toBe('0px');
+        expect(short.maxWidth).toBe('200px');
+        expect(short.width).toBeLessThan(80);
+    });
+
+    test('--drp-tooltip-min-width sets a floor for short content', async ({ page }) => {
+        const m = await hoverAndMeasure(page, '2026-06-15', { '--drp-tooltip-min-width': '150px' });
+        expect(m.minWidth).toBe('150px');
+        expect(m.width).toBeGreaterThanOrEqual(150);
+    });
+
+    test('--drp-tooltip-max-width caps (wraps) long content', async ({ page }) => {
+        const m = await hoverAndMeasure(page, '2026-06-16', { '--drp-tooltip-max-width': '120px' });
+        expect(m.maxWidth).toBe('120px');
+        // content-box: 120px + the horizontal padding
+        expect(m.width).toBeLessThanOrEqual(140);
+    });
+
+    test('--drp-tooltip-width gives a fixed box (with max-width: none)', async ({ page }) => {
+        const short = await hoverAndMeasure(page, '2026-06-15', {
+            '--drp-tooltip-width': '260px',
+            '--drp-tooltip-max-width': 'none',
+        });
+        expect(short.maxWidth).toBe('none');
+        expect(Math.round(short.width)).toBeGreaterThanOrEqual(260);
+        expect(Math.round(short.width)).toBeLessThanOrEqual(290);
+    });
+});

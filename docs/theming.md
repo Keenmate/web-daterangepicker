@@ -345,6 +345,28 @@ web-daterangepicker {                 /* this component */
 scrolling is instant, and the loader keeps turning, slower (the contract's
 `--base-loader-duration` 0.8s → 1.5s, which `--drp-loader-duration` follows).
 
+## Tooltip width
+
+One tooltip surface (`.drp__tooltip`) serves the day-cell, badge and action-button
+tooltips, so one set of width tokens sizes all three:
+
+| Token | Default | Effect |
+|---|---|---|
+| `--drp-tooltip-width` | `auto` | `auto` = shrink to the content (wraps at max-width). A length gives a FIXED box — pair it with `--drp-tooltip-max-width: none` |
+| `--drp-tooltip-min-width` | `0` | A floor: short tooltips still get at least this wide, long ones grow up to max-width |
+| `--drp-tooltip-max-width` | `200px` | The wrap point |
+
+```css
+/* Rich getDayTooltipCallback content: a roomier, stable box */
+web-daterangepicker {
+  --drp-tooltip-min-width: 180px;
+  --drp-tooltip-max-width: 320px;
+}
+```
+
+Tooltip colours come from `--drp-tooltip-bg` / `--drp-tooltip-text-color` (themed via the
+shared `--base-tooltip-*`); widths are content-specific and have no `--base-*` token.
+
 ## Loader
 
 The loaders (`showLoader()`, async callbacks) follow the shared loader contract: a

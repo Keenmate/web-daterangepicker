@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — tooltip width variables (2026-11-11)
+- `--drp-tooltip-width` (`auto` = shrink-to-content; a length = fixed box, pair with
+  `--drp-tooltip-max-width: none`) and `--drp-tooltip-min-width` (`0`; a floor that still grows up to max-width)
+  next to the existing `--drp-tooltip-max-width` (`200px`). One surface: day, badge and action-button tooltips.
+  Same model as web-treeview's `--wtv-tooltip-*`.
+
+### Examples and docs — tooltip width + custom-tooltip demos (2026-11-11)
+- docs/theming.md "Tooltip width" table; TH24 lists the tooltip tokens.
+- BT07 (Badges & Tooltips): width / min-width / max-width controls; the booking tooltip is selection-aware
+  (bold date, italic rate line, a "click to check in / ✓ Check-in / In your stay / Sold out" chip from the
+  callback's `isStartDate` / `isInRange` / `element` context); the events tooltip carries a "today / in N days /
+  ✓ Selected" chip. Display-only content (no buttons / links).
+
 ### Changed — BREAKING — `data-theme` is the only per-instance theme switch (2026-11-10)
 - `data-bs-theme` on the `<web-daterangepicker>` element itself no longer forces its scheme; use `data-theme`
   (the switch every KeenMate component shares). Bootstrap's `data-bs-theme` on `<html>`, `<body>` or a

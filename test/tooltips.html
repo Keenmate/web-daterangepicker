@@ -51,6 +51,12 @@
         <web-daterangepicker id="badge-cb" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">tooltip width variables (--drp-tooltip-width / -min-width / -max-width)</div>
+        <web-daterangepicker id="width-tip" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
     <script type="module">
         await customElements.whenDefined('web-daterangepicker');
 
@@ -78,6 +84,11 @@
 
         document.getElementById('tip-overflow').getDayTooltipCallback = ({ dayNumber }) =>
             dayNumber === 28 ? 'Bottom-edge tooltip' : null;
+
+        document.getElementById('width-tip').getDayTooltipCallback = ({ dayNumber }) =>
+            dayNumber === 15 ? 'Hi'
+            : dayNumber === 16 ? 'A long tooltip sentence that has to wrap somewhere once it reaches the max-width cap of the box'
+            : null;
     </script>
     <script type="module" src="/src/index.ts"></script>
 </body>

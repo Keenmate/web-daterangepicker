@@ -113,7 +113,9 @@
     { "name": "drp-tooltip-bg", "category": "tooltip", "usage": "Tooltip background" },
     { "name": "drp-tooltip-text-color", "category": "tooltip", "usage": "Tooltip text color" },
     { "name": "drp-tooltip-line-height", "category": "tooltip", "usage": "Tooltip line height" },
-    { "name": "drp-tooltip-max-width", "category": "tooltip", "usage": "Tooltip max width" },
+    { "name": "drp-tooltip-width", "category": "tooltip", "usage": "Tooltip width (auto = shrink-to-content; set a length for a fixed box + max-width:none)" },
+    { "name": "drp-tooltip-min-width", "category": "tooltip", "usage": "Tooltip minimum width (0 = none; a floor that still grows up to max-width)" },
+    { "name": "drp-tooltip-max-width", "category": "tooltip", "usage": "Tooltip max width (wrap point; set none when using a fixed width)" },
     { "name": "drp-tooltip-arrow-size", "category": "tooltip", "usage": "Tooltip arrow size" },
 
     { "name": "drp-loader-overlay-bg", "category": "loading", "usage": "Full-calendar loading overlay background (light-dark aware scrim)" },

@@ -347,70 +347,93 @@ picker.getDateMetadataCallback = ({ date }) => {
 <h2>BT07 · Advanced HTML Tooltips</h2>
 <p>
   For rich, formatted tooltips with HTML content, use <code>getBadgeTooltipCallback</code> or <code>getDayTooltipCallback</code>.
-  These callbacks return HTML strings that are rendered with full formatting support.
+  These callbacks return HTML strings and receive the day's context (<code>isStartDate</code>, <code>isInRange</code>,
+  <code>isWeekend</code>, <code>isToday</code>, <code>element</code> …), so the content can follow the live selection:
+  pick a check-in date and hover again — the chip changes from <em>click to check in</em> to <em>check-in</em>.
+  Tooltip content is display-only (<code>pointer-events: none</code>, it closes when the pointer leaves the day) — no buttons or links inside.
 </p>
+
+<h3>Tooltip width</h3>
+<p>
+  One tooltip surface serves day, badge and action-button tooltips. <code>--drp-tooltip-width</code> (<code>auto</code> = shrink to content),
+  <code>--drp-tooltip-min-width</code> (a floor) and <code>--drp-tooltip-max-width</code> (the wrap point, default <code>200px</code>) size it.
+  The two pickers below start with <code>--drp-tooltip-max-width: 320px</code> so the rich content fits.
+</p>
+<div class="control-row">
+  <div class="control-group">
+    <label for="tt-width">--drp-tooltip-width</label>
+    <select id="tt-width">
+      <option value="auto" selected>auto (default)</option>
+      <option value="260px">260px (fixed)</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label for="tt-min-width">--drp-tooltip-min-width</label>
+    <select id="tt-min-width">
+      <option value="0" selected>0 (default)</option>
+      <option value="180px">180px</option>
+      <option value="240px">240px</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label for="tt-max-width">--drp-tooltip-max-width</label>
+    <select id="tt-max-width">
+      <option value="200px">200px (default)</option>
+      <option value="320px" selected>320px</option>
+      <option value="none">none</option>
+    </select>
+  </div>
+</div>
 
 <div class="grid">
   <div class="form-group">
-    <label>Rich Booking Info Tooltips</label>
-    <web-daterangepicker id="html-tooltips-booking" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-    <small>Hover over dates to see detailed booking information</small>
+    <label>Rich Booking Info Tooltips (selection-aware)</label>
+    <web-daterangepicker id="html-tooltips-booking" selection-mode="range" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
+    <small>Hover a priced date, then pick check-in and hover again — the state chip follows the selection</small>
   </div>
 
   <div class="form-group">
     <label>Event Details Tooltips</label>
     <web-daterangepicker id="html-tooltips-events" visible-month-count="2" placeholder="Select dates"></web-daterangepicker>
-    <small>HTML tooltips with event schedules and details</small>
+    <small>Event schedules with a "past / today / in N days" chip computed from the hovered date</small>
   </div>
 </div>
 
 <pre><code>const picker = document.getElementById('html-tooltips-booking');
+picker.style.setProperty('--drp-tooltip-max-width', '320px');
 
 const bookingInfo = {
-  '2025-11-15': { price: 180, available: 5, rating: 4.5 },
-  '2025-11-16': { price: 200, available: 2, rating: 4.8 },
-  '2025-11-22': { price: 250, available: 1, rating: 4.9 }
+  '2026-06-15': { price: 180, available: 5, rating: 4.5 },
+  '2026-06-20': { price: 400, available: 0, rating: 5.0 }
 };
 
-// Set up basic badges via getDateMetadataCallback
-// Use local-date formatter — date.toISOString() returns UTC, which would
-// shift the lookup key by one day in any timezone east of UTC.
-const toLocalISO = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// Tooltip content lives in the shadow root — style it through the custom-styles slot.
+picker.getCustomStylesCallback = () =&gt; `
+  .tt { display: grid; gap: 0.25rem; padding: 0.25rem 0.125rem; }
+  .tt-name { font-weight: 700; font-size: 1.1em; }
+  .tt-desc { font-style: italic; opacity: 0.85; }
+  .tt-chip { justify-self: start; padding: 0.0625rem 0.5rem; border-radius: 999px;
+             border: 1px solid currentColor; font-size: 0.85em; }
+  .tt-chip--on { background: color-mix(in srgb, currentColor 22%, transparent); font-weight: 600; }
+`;
 
-picker.getDateMetadataCallback = ({ date }) => {
-  const dateStr = toLocalISO(date);
-  const info = bookingInfo[dateStr];
+picker.getDayTooltipCallback = ({ dateString, date, isStartDate, isEndDate, isInRange, isWeekend, element }) =&gt; {
+  const info = bookingInfo[dateString];
+  if (!info) return null;
 
-  if (info) {
-    return {
-      badgeText: `$${info.price}`,
-      badgeClass: 'badge-number'
-    };
-  }
-  return null;
-};
+  let chip;
+  if (info.available === 0)            chip = '&lt;span class="tt-chip"&gt;Sold out&lt;/span&gt;';
+  else if (isStartDate || isEndDate)   chip = `&lt;span class="tt-chip tt-chip--on"&gt;✓ ${isStartDate ? 'Check-in' : 'Check-out'}&lt;/span&gt;`;
+  else if (isInRange)                  chip = '&lt;span class="tt-chip tt-chip--on"&gt;In your stay&lt;/span&gt;';
+  else                                 chip = `&lt;span class="tt-chip"&gt;Click to ${element.selectedStartDate &amp;&amp; !element.selectedEndDate ? 'check out' : 'check in'}&lt;/span&gt;`;
 
-// Add rich HTML tooltips via callback
-picker.getDayTooltipCallback = (data) => {
-  const info = bookingInfo[data.dateString];
-
-  if (info) {
-    return `
-      &lt;div style="padding: 0.5rem;"&gt;
-        &lt;strong style="display: block; margin-bottom: 0.5rem;"&gt;
-          ${data.dateString}
-        &lt;/strong&gt;
-        &lt;div style="font-size: 0.875rem;"&gt;
-          &lt;div&gt;💰 Price: $${info.price}/night&lt;/div&gt;
-          &lt;div&gt;🏠 Available: ${info.available} rooms&lt;/div&gt;
-          &lt;div&gt;⭐ Rating: ${info.rating}/5.0&lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    `;
-  }
-
-  return null;
+  return `
+    &lt;div class="tt"&gt;
+      &lt;span class="tt-name"&gt;${date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}&lt;/span&gt;
+      &lt;em class="tt-desc"&gt;$${info.price}/night · ${info.available} rooms left${isWeekend ? ' · weekend rate' : ''}&lt;/em&gt;
+      &lt;span&gt;${'⭐'.repeat(Math.floor(info.rating))} ${info.rating}&lt;/span&gt;
+      ${chip}
+    &lt;/div&gt;`;
 };</code></pre>
 
 <div class="note warning">
@@ -1124,7 +1147,47 @@ if (dynamicAvailability) {
 // Method 3: HTML Tooltip Callbacks
 // ========================================
 
+// Rich tooltip content lives in each picker's shadow root, so its classes are styled
+// through the custom-styles slot. Display-only: no buttons / links (tooltips are
+// pointer-events: none and close when the pointer leaves the day).
+const richTooltipStyles = `
+  .tt { display: grid; gap: 0.25rem; padding: 0.25rem 0.125rem; }
+  .tt-name { font-weight: 700; font-size: 1.1em; }
+  .tt-desc { font-style: italic; opacity: 0.85; }
+  .tt-chip {
+    justify-self: start;
+    padding: 0.0625rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    font-size: 0.85em;
+  }
+  .tt-chip--on { background: color-mix(in srgb, currentColor 22%, transparent); font-weight: 600; }
+`;
+const formatTooltipDate = (date) =>
+  date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
 const htmlTooltipsBooking = document.getElementById('html-tooltips-booking');
+const htmlTooltipsEvents = document.getElementById('html-tooltips-events');
+
+// Tooltip width controls (component CSS variables on the two BT07 pickers).
+const tooltipWidthControls = [
+  ['tt-width', '--drp-tooltip-width'],
+  ['tt-min-width', '--drp-tooltip-min-width'],
+  ['tt-max-width', '--drp-tooltip-max-width']
+];
+const applyTooltipWidths = () => {
+  for (const [id, variable] of tooltipWidthControls) {
+    const value = document.getElementById(id).value;
+    for (const picker of [htmlTooltipsBooking, htmlTooltipsEvents]) {
+      picker?.style.setProperty(variable, value);
+    }
+  }
+};
+for (const [id] of tooltipWidthControls) {
+  document.getElementById(id).addEventListener('change', applyTooltipWidths);
+}
+applyTooltipWidths();
+
 if (htmlTooltipsBooking) {
   const bookingInfo = {
     [dayOffset(2)]:  { price: 180, available: 5, rating: 4.5 },
@@ -1135,11 +1198,11 @@ if (htmlTooltipsBooking) {
     [dayOffset(17)]: { price: 400, available: 0, rating: 5.0 }
   };
 
+  htmlTooltipsBooking.getCustomStylesCallback = () => richTooltipStyles;
+
   // Set up badges
   htmlTooltipsBooking.getDateMetadataCallback = ({ date }) => {
-    const dateStr = toLocalISO(date);
-    const info = bookingInfo[dateStr];
-
+    const info = bookingInfo[toLocalISO(date)];
     if (info) {
       return {
         badgeText: `$${info.price}`,
@@ -1150,85 +1213,59 @@ if (htmlTooltipsBooking) {
     return null;
   };
 
-  // Add rich HTML tooltips
-  htmlTooltipsBooking.getDayTooltipCallback = (data) => {
-    const info = bookingInfo[data.dateString];
+  // Selection-aware tooltip: the chip reads the day's context (isStartDate / isEndDate /
+  // isInRange) and the picker's half-picked state (element.selectedStartDate).
+  htmlTooltipsBooking.getDayTooltipCallback = ({ dateString, date, isStartDate, isEndDate, isInRange, isWeekend, element }) => {
+    const info = bookingInfo[dateString];
+    if (!info) return null;
 
-    if (info) {
-      const stars = '⭐'.repeat(Math.floor(info.rating));
-      return `
-        <div style="padding: 0.5rem; min-width: 200px;">
-          <strong style="display: block; margin-bottom: 0.5rem; font-size: 1rem;">
-            ${data.dateString}
-          </strong>
-          <div style="font-size: 0.875rem; line-height: 1.6;">
-            <div style="margin-bottom: 0.25rem;">💰 <strong>$${info.price}</strong>/night</div>
-            <div style="margin-bottom: 0.25rem;">🏠 ${info.available > 0 ? info.available + ' rooms' : 'Fully booked'}</div>
-            <div>${stars} ${info.rating}/5.0</div>
-          </div>
-        </div>
-      `;
-    }
+    let chip;
+    if (info.available === 0) chip = '<span class="tt-chip">Sold out</span>';
+    else if (isStartDate || isEndDate) chip = `<span class="tt-chip tt-chip--on">✓ ${isStartDate ? 'Check-in' : 'Check-out'}</span>`;
+    else if (isInRange) chip = '<span class="tt-chip tt-chip--on">In your stay</span>';
+    else chip = `<span class="tt-chip">Click to ${element.selectedStartDate && !element.selectedEndDate ? 'check out' : 'check in'}</span>`;
 
-    return null;
+    return `
+      <div class="tt">
+        <span class="tt-name">${formatTooltipDate(date)}</span>
+        <em class="tt-desc">$${info.price}/night · ${info.available > 0 ? `${info.available} rooms left` : 'fully booked'}${isWeekend ? ' · weekend rate' : ''}</em>
+        <span>${'⭐'.repeat(Math.floor(info.rating))} ${info.rating}</span>
+        ${chip}
+      </div>`;
   };
 }
 
-const htmlTooltipsEvents = document.getElementById('html-tooltips-events');
 if (htmlTooltipsEvents) {
   const eventInfo = {
-    [dayOffset(2)]: {
-      title: 'Product Launch',
-      time: '10:00 AM - 2:00 PM',
-      location: 'Main Hall',
-      attendees: 150
-    },
-    [dayOffset(9)]: {
-      title: 'Team Building Workshop',
-      time: '9:00 AM - 5:00 PM',
-      location: 'Conference Room A',
-      attendees: 45
-    },
-    [dayOffset(18)]: {
-      title: 'Holiday Party',
-      time: '6:00 PM - 11:00 PM',
-      location: 'Grand Ballroom',
-      attendees: 300
-    }
+    [dayOffset(-4)]: { title: 'Kick-off Breakfast', time: '8:00 – 9:30 AM', location: 'Cafeteria', attendees: 60 },
+    [dayOffset(0)]: { title: 'Design Review', time: '1:00 – 2:30 PM', location: 'Room 4B', attendees: 12 },
+    [dayOffset(2)]: { title: 'Product Launch', time: '10:00 AM – 2:00 PM', location: 'Main Hall', attendees: 150 },
+    [dayOffset(9)]: { title: 'Team Building Workshop', time: '9:00 AM – 5:00 PM', location: 'Conference Room A', attendees: 45 },
+    [dayOffset(18)]: { title: 'Holiday Party', time: '6:00 – 11:00 PM', location: 'Grand Ballroom', attendees: 300 }
   };
 
-  htmlTooltipsEvents.getDateMetadataCallback = ({ date }) => {
-    const dateStr = toLocalISO(date);
-    const event = eventInfo[dateStr];
+  htmlTooltipsEvents.getCustomStylesCallback = () => richTooltipStyles;
 
-    if (event) {
-      return {
-        badgeText: '📅',
-        badgeClass: 'badge-emoji'
-      };
-    }
-    return null;
-  };
+  htmlTooltipsEvents.getDateMetadataCallback = ({ date }) =>
+    eventInfo[toLocalISO(date)] ? { badgeText: '📅', badgeClass: 'badge-emoji' } : null;
 
-  htmlTooltipsEvents.getDayTooltipCallback = (data) => {
-    const event = eventInfo[data.dateString];
+  // The "when" chip is computed from the hovered date (isToday + distance from today).
+  htmlTooltipsEvents.getDayTooltipCallback = ({ dateString, date, isToday, isSelected }) => {
+    const event = eventInfo[dateString];
+    if (!event) return null;
 
-    if (event) {
-      return `
-        <div style="padding: 0.75rem; min-width: 250px;">
-          <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--kmwc-info-color);">
-            ${event.title}
-          </div>
-          <div style="font-size: 0.875rem; line-height: 1.8;">
-            <div>🕐 ${event.time}</div>
-            <div>📍 ${event.location}</div>
-            <div>👥 ${event.attendees} attendees</div>
-          </div>
-        </div>
-      `;
-    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = Math.round((date - today) / 86400000);
+    const when = isToday ? 'Today' : days < 0 ? `${-days} days ago` : `In ${days} day${days === 1 ? '' : 's'}`;
 
-    return null;
+    return `
+      <div class="tt">
+        <span class="tt-name">${event.title}</span>
+        <em class="tt-desc">${formatTooltipDate(date)} · ${event.time}</em>
+        <span>📍 ${event.location} · 👥 ${event.attendees}</span>
+        <span class="tt-chip${isToday || isSelected ? ' tt-chip--on' : ''}">${isSelected ? '✓ Selected · ' : ''}${when}</span>
+      </div>`;
   };
 }
 
