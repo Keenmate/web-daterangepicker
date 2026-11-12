@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Internal — core 1.0.0-rc22 (2026-11-13)
+- **Requires `@keenmate/web-components-core` `^1.0.0-rc22`** (was `^1.0.0-rc21`).
+
 ### Added — tooltip width variables (2026-11-11)
 - `--drp-tooltip-width` (`auto` = shrink-to-content; a length = fixed box, pair with
   `--drp-tooltip-max-width: none`) and `--drp-tooltip-min-width` (`0`; a floor that still grows up to max-width)
