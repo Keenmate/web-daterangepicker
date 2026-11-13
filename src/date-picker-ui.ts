@@ -13,7 +13,7 @@
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
 import { anchor, createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
-import { claimBackEntry, findScrollContainer, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer } from '@keenmate/web-components-core';
+import { adoptStyles, claimBackEntry, createSheetHeader, findScrollContainer, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -503,11 +503,17 @@ function exitFullscreen(picker: any) {
     unlockPageScroll(picker);
 }
 
-/** Build the full-screen header (optional title + ✕ close) as the calendar's first child. */
+/**
+ * Build the full-screen header (optional title + ✕ close) as the calendar's first child —
+ * core's sheet chrome (createSheetHeader: .km-sheet-header / -title / -close, SPEC §12.9);
+ * the drp__fullscreen-* classes stay only as layout hooks (relocated input, merged corner).
+ */
 function buildFullscreenHeader(picker: any) {
     if (picker.fullscreenHeader) return;
-    const header = document.createElement('div');
-    header.className = 'drp__fullscreen-header';
+    // The chrome CSS lives in the root the picker renders into (shadow root or document);
+    // adoptStyles() caches + dedupes, so re-adopting on every open is free.
+    const root = picker.calendar.getRootNode();
+    if (root instanceof Document || root instanceof ShadowRoot) adoptStyles(root, SHEET_CHROME_CSS);
 
     // `show-fullscreen-input` relocates the real trigger input into the header (it carries
     // the mask + form value, and otherwise sits offscreen behind the fixed sheet). It
@@ -515,26 +521,22 @@ function buildFullscreenHeader(picker: any) {
     const wantsInput = !!(picker.options.isFullscreenInputShown && picker.input);
     const fullscreenTitle = picker.labels.fullscreenTitle;
     const merged = !fullscreenTitle && !wantsInput;
+    const { header, title, close: closeBtn } = createSheetHeader({
+        title: wantsInput || merged ? null : fullscreenTitle,
+        closeLabel: picker.labels.close,
+        onClose: () => close(picker),
+    });
+    header.classList.add('drp__fullscreen-header');
+    title?.classList.add('drp__fullscreen-title');
+    closeBtn.classList.add('drp__fullscreen-close');
     if (wantsInput) {
         relocateInputIntoHeader(picker, header);
-    } else if (!merged) {
-        const title = document.createElement('span');
-        title.className = 'drp__fullscreen-title';
-        title.textContent = fullscreenTitle;
-        header.appendChild(title);
-    } else {
+    } else if (merged) {
         // No title → the ✕ merges into the month-navigation row instead of taking its
         // own empty row. This class drives the CSS that floats the ✕ and reserves
         // trailing space in the month header for it (see fullscreen.css).
         picker.calendar.classList.add('drp__picker--fs-merged-header');
     }
-
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.className = 'drp__fullscreen-close';
-    closeBtn.setAttribute('aria-label', picker.labels.close);
-    closeBtn.addEventListener('click', () => close(picker));
-    header.appendChild(closeBtn);
 
     // Titled header is a flow row pinned at the top (first child). The merged (no-
     // title) header is position:absolute, so its visual spot is fixed regardless of
@@ -564,7 +566,8 @@ function relocateInputIntoHeader(picker: any, header: HTMLElement) {
     input.setAttribute('inputmode', 'numeric');
     input.setAttribute('enterkeyhint', 'done');
     input.classList.add('drp__fullscreen-input');
-    header.appendChild(node);
+    // The relocated field fills the row BEFORE the ✕.
+    header.insertBefore(node, header.querySelector('.km-sheet-close'));
 }
 
 /** Reverse relocateInputIntoHeader(): restore the input's attributes and DOM home. */

@@ -60,27 +60,33 @@
   --drp-rem: var(--drp-fullscreen-rem);
 }
 
-/* The full-screen header (built in JS): pinned title + close button row. */
-.drp__fullscreen-header {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: var(--drp-fullscreen-header-gap);
-  min-height: var(--drp-fullscreen-header-min-height);
-  padding: var(--drp-fullscreen-header-padding);
-  background: var(--drp-fullscreen-header-bg);
-  border-bottom: var(--drp-fullscreen-header-border);
-}
-
-.drp__fullscreen-title {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: var(--drp-fullscreen-title-font-size);
-  font-weight: 600;
-  color: var(--drp-fullscreen-title-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* The full-screen header (built in JS with core createSheetHeader()): the bar / title / ✕
+   look is core's sheet chrome (SHEET_CHROME_CSS — .km-sheet-header / -title / -close, adopted
+   into the picker's root in date-picker-ui.ts). drp only maps its per-instance overrides onto
+   the private --_km-sheet-* channel — WITH NO FALLBACK, and the --drp-fullscreen-* vars are
+   unset by default, so an unset one falls through to the page-wide --km-sheet-* / base tokens.
+   Mapped on the picker (not :root) so a light-DOM override never leaks into other components'
+   sheets. */
+.drp__picker {
+  --_km-sheet-header-gap: var(--drp-fullscreen-header-gap);
+  --_km-sheet-header-padding-block: var(--drp-fullscreen-header-padding-block);
+  --_km-sheet-header-padding-inline: var(--drp-fullscreen-header-padding-inline);
+  --_km-sheet-header-min-height: var(--drp-fullscreen-header-min-height);
+  --_km-sheet-header-bg: var(--drp-fullscreen-header-bg);
+  --_km-sheet-header-border: var(--drp-fullscreen-header-border);
+  --_km-sheet-title-color: var(--drp-fullscreen-title-color);
+  --_km-sheet-title-font-size: var(--drp-fullscreen-title-font-size);
+  --_km-sheet-title-font-weight: var(--drp-fullscreen-title-font-weight);
+  --_km-sheet-close-size: var(--drp-fullscreen-close-size);
+  --_km-sheet-close-icon-size: var(--drp-fullscreen-close-icon-size);
+  --_km-sheet-close-icon: var(--drp-fullscreen-close-icon);
+  --_km-sheet-close-color: var(--drp-fullscreen-close-color);
+  --_km-sheet-close-bg: var(--drp-fullscreen-close-bg);
+  --_km-sheet-close-bg-hover: var(--drp-fullscreen-close-bg-hover);
+  --_km-sheet-close-border: var(--drp-fullscreen-close-border);
+  --_km-sheet-close-border-radius: var(--drp-fullscreen-close-border-radius);
+  --_km-sheet-close-edge-nudge: var(--drp-fullscreen-close-edge-nudge);
+  --_km-sheet-close-focus-color: var(--drp-fullscreen-close-focus-color);
 }
 
 /* `show-fullscreen-input`: the relocated trigger input fills the header row (before the
@@ -92,7 +98,7 @@
   width: auto;
   min-width: 0;
   height: auto;
-  font-size: var(--drp-fullscreen-input-font-size, var(--drp-fullscreen-title-font-size));
+  font-size: var(--drp-fullscreen-input-font-size, var(--_km-sheet-title-font-size, var(--km-sheet-title-font-size, calc(var(--base-font-size-lg, 1.8) * var(--base-rem, 10px)))));
   padding: calc(0.9 * var(--drp-fullscreen-rem)) calc(1.2 * var(--drp-fullscreen-rem));
 }
 
@@ -130,15 +136,16 @@
   /* Vertically centre the ✕ chip on the month-nav row. The row's half-height is
      ~2.1 × the fullscreen rem (nav buttons + the month-year label's padding, all
      rem-relative), so this tracks the scale; subtracting half the chip height
-     centres it and stays centred if --drp-fullscreen-close-size is themed. */
+     centres it and stays centred if the close size is themed (the EFFECTIVE size:
+     the instance override, else the page --km-sheet-close-size, else core's 44px). */
   /* Centre the ✕ on the month-nav row. The nav row is normal-flow content, so the
      sheet's `content-padding-top` (added in merged mode) pushes it down — but this
      header is absolutely positioned and `inset-block-start` is measured from the
      padding EDGE, which padding-top does NOT move. So add the same top padding here
      to follow the row down; the `2.1rem − close/2` then centres the chip on it. */
-  inset-block-start: calc(var(--drp-fullscreen-content-padding-top) + 2.1 * var(--drp-fullscreen-rem) - var(--drp-fullscreen-close-size) / 2);
+  inset-block-start: calc(var(--drp-fullscreen-content-padding-top) + 2.1 * var(--drp-fullscreen-rem) - var(--_km-sheet-close-size, var(--km-sheet-close-size, var(--base-touch-target-min, 44px))) / 2);
   /* Match the content gutter so the ✕ lines up with the trailing edge of the day
-     grid; the -edge-nudge margin on .drp__fullscreen-close then slides it the same
+     grid; the edge-nudge margin on .km-sheet-close then slides it the same
      0.8rem past that gutter as the multiselect overlay's close button. */
   inset-inline-end: var(--drp-fullscreen-content-padding-h);
   min-height: 0;
@@ -155,59 +162,7 @@
    the ✕ chip plus the header gap on both sides of it. */
 .drp__picker--fs-merged-header .drp__header,
 .drp__picker--fs-merged-header .drp__unified-header {
-  padding-inline-end: calc(var(--drp-fullscreen-close-size) + 2 * var(--drp-fullscreen-header-gap));
-}
-
-/* The visible ✕ is a fixed-size chip. The defaults keep a bare round glyph, but the
-   --drp-fullscreen-close-bg / -border / -border-radius vars can turn it into a bordered
-   command-palette-style button — `box-sizing: border-box` keeps a border from growing
-   it, and the ::after tap target stays larger than the chip regardless of styling. */
-.drp__fullscreen-close {
-  flex: 0 0 auto;
-  position: relative;                  /* anchor for the ::after hit-area extension */
-  box-sizing: border-box;              /* a border must not grow the fixed close-size box */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--drp-fullscreen-close-size);
-  height: var(--drp-fullscreen-close-size);
-  margin-inline-end: calc(-1 * var(--drp-fullscreen-close-edge-nudge)); /* slide toward the edge */
-  padding: 0;
-  font-size: var(--drp-fullscreen-close-icon-size);
-  line-height: 1;
-  color: var(--drp-fullscreen-close-color);
-  background: var(--drp-fullscreen-close-bg);
-  border: var(--drp-fullscreen-close-border);
-  border-radius: var(--drp-fullscreen-close-border-radius);
-  cursor: pointer;
-}
-
-.drp__fullscreen-close::before {
-  content: ''; /* mask icon, not a font glyph — see --drp-icon-close */
-  width: var(--drp-fullscreen-close-icon-size);
-  height: var(--drp-fullscreen-close-icon-size);
-  background-color: currentColor;
-  -webkit-mask: var(--drp-icon-close) center / contain no-repeat;
-          mask: var(--drp-icon-close) center / contain no-repeat;
-}
-
-/* Invisible hit-area extension — grows the tap target past the visible chip so the
-   whole top-trailing corner (the natural place to reach for a close, and the old dead
-   padding around the button) dismisses the sheet, without changing the chip's look. It
-   overshoots UP past the button (off the top of the sheet) and past the trailing edge
-   (clipped), and reaches a bounded amount below and into the leading gap so it never
-   covers the month-nav › button or the first day row. */
-.drp__fullscreen-close::after {
-  content: '';
-  position: absolute;
-  inset-block-start: calc(-1 * var(--drp-fullscreen-close-size));
-  inset-block-end: calc(-1 * var(--drp-fullscreen-header-padding-v));
-  inset-inline-end: calc(-1 * var(--drp-fullscreen-header-padding-h));
-  inset-inline-start: calc(-1 * var(--drp-fullscreen-header-gap));
-}
-
-.drp__fullscreen-close:hover {
-  background: var(--drp-fullscreen-close-bg-hover);
+  padding-inline-end: calc(var(--_km-sheet-close-size, var(--km-sheet-close-size, var(--base-touch-target-min, 44px))) + 2 * var(--_km-sheet-header-gap, var(--km-sheet-header-gap, calc(var(--base-space-sm, 0.8) * var(--base-rem, 10px)))));
 }
 
 /* Give the last row of the scrolling months area breathing room above the pinned

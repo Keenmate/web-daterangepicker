@@ -55,6 +55,23 @@ test('labels.fullscreenTitle shows a heading; labels.close is the ✕ ARIA label
   await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--fs-merged-header/);
 });
 
+test('the sheet header is core sheet chrome: km-sheet-* classes, masked ✕ (no text), instance var override', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.evaluate(async (el: any) => {
+    el.labels = { fullscreenTitle: 'Choose dates' };
+    el.style.setProperty('--drp-fullscreen-close-size', '50px');
+    await el.whenSettled();
+    el.open();
+  });
+  await expect(host.locator('.km-sheet-header .km-sheet-title')).toHaveText('Choose dates');
+  const close = host.locator('.km-sheet-header .km-sheet-close');
+  await expect(close).toHaveText('');
+  const box = await close.boundingBox();
+  expect(Math.round(box!.width)).toBe(50);
+});
+
 test('with no title, the ✕ merges into the month-nav row and stays on top', async ({ page }) => {
   await page.goto('/test/presentation.html');
   const host = page.locator('#picker'); // no fullscreen-title

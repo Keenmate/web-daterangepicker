@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — the full-screen sheet header is core sheet chrome (2026-11-13)
+- **The phone sheet's header / title / ✕ now use core's shared sheet chrome** (`SHEET_CHROME_CSS` +
+  `createSheetHeader()`, SPEC §12.9; rulebook C-RO-17; needs core `^1.0.0-rc24`): the same look as every
+  Keenmate sheet (44px round chip, `--base-icon-close` mask, tap area into the corner). drp's own close /
+  header / title rules are gone; the elements carry `km-sheet-header` / `-title` / `-close` (the
+  `drp__fullscreen-*` classes stay as layout hooks). `show-fullscreen-input` and the title-less merged
+  corner are unchanged (the merged ✕ centres on the effective close size). Visual change: sizes follow
+  the base tokens instead of the 12px sheet rem.
+- **BREAKING (vars):** the `--drp-fullscreen-header-*` / `-title-*` / `-close-*` variables are now
+  **unset-by-default instance overrides** mapped onto core's `--_km-sheet-*` (unset = page-wide
+  `--km-sheet-*` / base tokens). `--drp-fullscreen-header-padding` / `-padding-v` / `-padding-h` are
+  replaced by `--drp-fullscreen-header-padding-block` / `-padding-inline`; new `--drp-fullscreen-title-font-weight`,
+  `-close-icon`, `-close-focus-color`. See docs/theming.md "Full-screen sheet header".
+
 ### Fixed — closing the full-screen sheet / modal kept the page scroll (2026-11-13)
 - **Closing the phone full-screen sheet or the tablet modal no longer jumps the page to the top**
   (✕, Escape, a pick, `close()`, or the phone Back gesture). The Back entry is now core

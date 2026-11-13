@@ -232,14 +232,12 @@
   --drp-fullscreen-rem: 12px;
   --drp-fullscreen-bg: var(--drp-dropdown-bg);
   --drp-fullscreen-text-color: var(--drp-text-primary);
-  --drp-fullscreen-header-bg: var(--drp-fullscreen-bg);
-  --drp-fullscreen-header-border: 1px solid var(--drp-border-color);
-  --drp-fullscreen-header-gap: calc(0.8 * var(--drp-fullscreen-rem));
-  /* Split v/h so the close-button hit area (fullscreen.css) can reclaim the header
-     padding to reach the sheet's physical corner. */
-  --drp-fullscreen-header-padding-v: calc(0.8 * var(--drp-fullscreen-rem));
-  --drp-fullscreen-header-padding-h: calc(1.2 * var(--drp-fullscreen-rem));
-  --drp-fullscreen-header-padding: var(--drp-fullscreen-header-padding-v) var(--drp-fullscreen-header-padding-h);
+  /* The header / title / ✕ look is core's sheet chrome (SHEET_CHROME_CSS). Its per-instance
+     overrides are deliberately UNSET here — --drp-fullscreen-header-{gap,padding-block,
+     padding-inline,min-height,bg,border}, --drp-fullscreen-title-{color,font-size,font-weight},
+     --drp-fullscreen-close-{size,icon-size,icon,color,bg,bg-hover,border,border-radius,
+     edge-nudge,focus-color} — fullscreen.css maps each onto core's --_km-sheet-* with no
+     fallback, so unset = the page-wide --km-sheet-* / base tokens. */
   /* Horizontal gutter for the sheet's scrolling content (month header + day grid)
      so it doesn't hug the physical edges — matches the multiselect overlay's
      header padding (1.2 × rem) for a consistent mobile chrome across the two
@@ -253,24 +251,6 @@
      the SHEET's padding box so the floated ✕ (positioned from that box) shifts down
      in lockstep with the nav row and stays vertically aligned with it. */
   --drp-fullscreen-content-padding-top: calc(1.4 * var(--drp-fullscreen-rem));
-  --drp-fullscreen-header-min-height: calc(5.2 * var(--drp-fullscreen-rem));
-  --drp-fullscreen-title-font-size: calc(1.7 * var(--drp-fullscreen-rem));
-  --drp-fullscreen-title-color: var(--drp-fullscreen-text-color);
-  --drp-fullscreen-close-size: calc(3.6 * var(--drp-fullscreen-rem));
-  --drp-fullscreen-close-icon-size: calc(1.6 * var(--drp-fullscreen-rem));
-  --drp-fullscreen-close-color: var(--drp-fullscreen-text-color);
-  /* Close (✕) is a fixed-size chip: the defaults keep a bare round glyph, but set
-     these to make it a bordered command-palette-style button, e.g.
-     --drp-fullscreen-close-border: 1px solid var(--drp-border-color);
-     --drp-fullscreen-close-border-radius: calc(0.8 * var(--drp-fullscreen-rem));
-     --drp-fullscreen-close-bg: var(--drp-dropdown-bg); */
-  --drp-fullscreen-close-bg: transparent;
-  --drp-fullscreen-close-border: none;
-  --drp-fullscreen-close-border-radius: 50%;
-  --drp-fullscreen-close-bg-hover: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
-  /* How far the ✕ slides toward the sheet's trailing edge (its tap area reaches the
-     physical corner regardless — see the ::after hit area in fullscreen.css). */
-  --drp-fullscreen-close-edge-nudge: calc(0.8 * var(--drp-fullscreen-rem));
 
   /* ==========================================================================
      LAYOUT & DIMENSIONS
