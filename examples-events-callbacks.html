@@ -22,7 +22,7 @@
   </div>
 
   <h3>Event Detail Structure</h3>
-  <pre><code>// Single mode
+  <div class="code-block" data-language="js"><pre><code>// Single mode
 {
   formattedValue: "2025-11-17",
   date: Date object
@@ -38,7 +38,7 @@
   dates: [Date, Date, ...],           // If using 'split' or 'individual' mode
   getEnabledDateCount: () => number,  // Helper function
   getTotalDays: () => number          // Helper function
-}</code></pre>
+}</code></pre></div>
 
   <h3>Listening to Events</h3>
   <div class="grid">
@@ -55,7 +55,7 @@
     </div>
   </div>
 
-  <pre><code>// Listening to events
+  <div class="code-block" data-language="js"><pre><code>// Listening to events
 const picker = document.getElementById('my-picker');
 
 picker.addEventListener('change', (event) => {
@@ -81,7 +81,7 @@ picker.addEventListener('close', () => console.log('closed'));
 picker.addEventListener('month-change', (event) => {
   const { year, month, monthIndex } = event.detail; // month is 0-11
   console.log(`Column ${monthIndex} now shows ${year}-${month + 1}`);
-});</code></pre>
+});</code></pre></div>
 </div>
 
 <!-- beforeSelectCallback Callback -->
@@ -197,7 +197,7 @@ picker.addEventListener('month-change', (event) => {
   </div>
 
   <h3>Code Examples</h3>
-  <pre><code>// Block weekends
+  <div class="code-block" data-language="js"><pre><code>// Block weekends
 picker.beforeSelectCallback = ({ date, controller }) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   if (isWeekend) {
@@ -229,7 +229,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
     controller.showMessage('Date not available', { variant: 'danger' });
     return false;
   }
-};</code></pre>
+};</code></pre></div>
 </div>
 
 <!-- Range Mode Examples -->
@@ -283,7 +283,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
   </div>
 
   <h3>Code Examples</h3>
-  <pre><code>// Minimum nights requirement
+  <div class="code-block" data-language="js"><pre><code>// Minimum nights requirement
 picker.beforeSelectCallback = ({ range, controller }) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
   if (nights &lt; 2) {
@@ -373,7 +373,7 @@ picker.addEventListener('action', (e) => {
     end: new Date(endDate)
   }];
   e.detail.controller.hideMessage();
-});</code></pre>
+});</code></pre></div>
 </div>
 
 <!-- getMonthDataCallback / beforeMonthChangeCallback Examples -->
@@ -389,7 +389,7 @@ picker.addEventListener('action', (e) => {
     <code>firstVisibleDate</code>, <code>lastVisibleDate</code>, plus <code>controller</code> / <code>element</code>.
   </p>
 
-  <pre><code>// Bulk data for the visible range
+  <div class="code-block" data-language="js"><pre><code>// Bulk data for the visible range
 picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   const days = await fetchPricing(firstVisibleDate, lastVisibleDate);
   return {
@@ -404,7 +404,7 @@ picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
 picker.beforeMonthChangeCallback = ({ year, month }) => {
   const now = new Date();
   if ((year - now.getFullYear()) * 12 + (month - now.getMonth()) > 2) return false;
-};</code></pre>
+};</code></pre></div>
 
   <div class="note info">
     <strong>Performance:</strong> 1 API call per month vs 35-42 calls with per-day callbacks
@@ -518,7 +518,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
   </div>
 
   <h3>Code Examples</h3>
-  <pre><code>// Approach 1: getMonthHeaderCallback
+  <div class="code-block" data-language="js"><pre><code>// Approach 1: getMonthHeaderCallback
 picker.getMonthHeaderCallback = ({ month, monthName, year }) => {
   const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
   const rooms = roomAvailability[key] || 0;
@@ -539,7 +539,7 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     metadata: data.dateMetadata,
     monthHeaders  // Custom headers returned with data
   };
-};</code></pre>
+};</code></pre></div>
 </div>
 
 <!-- beforeScrollCallback -->
@@ -556,10 +556,10 @@ picker.getMonthDataCallback = async ({ year, month }) => {
     <code>source</code>, <code>container</code> (<code>null</code> = the page) and <code>options</code>.
   </p>
 
-  <pre><code>picker.beforeScrollCallback = (ctx) => {
+  <div class="code-block" data-language="js"><pre><code>picker.beforeScrollCallback = (ctx) => {
   if (ctx.target === 'day') return { block: 'center' };
   if (ctx.source === 'select') return false; // keep the rolls where the user left them
-};</code></pre>
+};</code></pre></div>
 
   <div class="grid">
     <div class="form-group">

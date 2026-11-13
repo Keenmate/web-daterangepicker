@@ -93,12 +93,12 @@
   </div>
 </div>
 
-<pre><code>const picker = document.getElementById('holidays-demo');
+<div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('holidays-demo');
 picker.specialDates = [
   { date: '2025-12-25', badgeClass: 'holiday', badgeText: '🎄', badgeTooltip: 'Christmas Day' },
   { date: '2025-01-01', badgeClass: 'holiday', badgeText: '🎉', badgeTooltip: 'New Year\'s Day' },
   { date: '2025-07-04', badgeClass: 'holiday', badgeText: '🎆', badgeTooltip: 'Independence Day' }
-];</code></pre>
+];</code></pre></div>
 </div>
 
 <!-- Badge Implementation Methods -->
@@ -142,7 +142,7 @@ picker.specialDates = [
   </div>
 </div>
 
-<pre><code>// Method 1: Static Array
+<div class="code-block" data-language="js"><pre><code>// Method 1: Static Array
 picker.specialDates = [
   { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
 ];
@@ -171,7 +171,7 @@ picker.specialDates = [
 ];
 picker.getBadgeTooltipCallback = (data) => {
   return '&lt;strong&gt;Christmas Day&lt;/strong&gt;&lt;br&gt;🎁 Gift exchange&lt;br&gt;🍽️ Family dinner';
-};</code></pre>
+};</code></pre></div>
 </div>
 
 <!-- Method 5: Async data on month change -->
@@ -193,7 +193,7 @@ picker.getBadgeTooltipCallback = (data) => {
   <span class="note info method-note">Uses: <code>getMonthDataCallback</code></span>
 </div>
 
-<pre><code>picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
+<div class="code-block" data-language="js"><pre><code>picker.getMonthDataCallback = async ({ firstVisibleDate, lastVisibleDate }) => {
   // One request for the whole visible grid (may include adjacent-month days).
   const days = await fetchAvailability(firstVisibleDate, lastVisibleDate);
 
@@ -210,7 +210,7 @@ picker.getBadgeTooltipCallback = (data) => {
   // Merged into the picker's cache and used instead of a per-day callback.
   // (To refuse a navigation instead, return false from beforeMonthChangeCallback.)
   return { metadata };
-};</code></pre>
+};</code></pre></div>
 
 <div class="note info">
   <strong>Why this and not <code>getDateMetadataCallback</code>?</strong>
@@ -234,7 +234,7 @@ picker.getBadgeTooltipCallback = (data) => {
   <small>This example uses a custom data structure with properties like 'displayDate', 'icon', 'description', etc.</small>
 </div>
 
-<pre><code>// Your existing data structure (no need to reshape!)
+<div class="code-block" data-language="js"><pre><code>// Your existing data structure (no need to reshape!)
 const myHolidays = [
   { id: 1, displayDate: '2025-12-25', icon: '🎄', description: 'Christmas - Office Closed', style: 'holiday', disabled: true },
   { id: 2, displayDate: '2025-12-31', icon: '🥳', description: 'New Year Eve - Office Closed', style: 'holiday', disabled: true },
@@ -255,7 +255,7 @@ picker.badgeTooltipMember = 'description';  // Which property contains the toolt
 picker.isDisabledMember = 'disabled';       // Which property contains the disabled flag
 
 // Assign your data as-is!
-picker.specialDates = myHolidays;</code></pre>
+picker.specialDates = myHolidays;</code></pre></div>
 
 <div class="note info">
   <strong>Available Member Properties:</strong>
@@ -293,7 +293,7 @@ picker.specialDates = myHolidays;</code></pre>
   </div>
 </div>
 
-<pre><code>const picker = document.getElementById('dynamic-pricing');
+<div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('dynamic-pricing');
 
 // Pricing data from API or database
 const priceData = {
@@ -327,7 +327,7 @@ picker.getDateMetadataCallback = ({ date }) => {
   }
 
   return null;
-};</code></pre>
+};</code></pre></div>
 
 <div class="note info">
   <strong>Return Value:</strong> The callback returns a <code>DateInfo</code> object with these properties:
@@ -399,7 +399,7 @@ picker.getDateMetadataCallback = ({ date }) => {
   </div>
 </div>
 
-<pre><code>const picker = document.getElementById('html-tooltips-booking');
+<div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('html-tooltips-booking');
 picker.style.setProperty('--drp-tooltip-max-width', '320px');
 
 const bookingInfo = {
@@ -434,7 +434,7 @@ picker.getDayTooltipCallback = ({ dateString, date, isStartDate, isEndDate, isIn
       &lt;span&gt;${'⭐'.repeat(Math.floor(info.rating))} ${info.rating}&lt;/span&gt;
       ${chip}
     &lt;/div&gt;`;
-};</code></pre>
+};</code></pre></div>
 
 <div class="note warning">
   <strong>Security Note:</strong> Tooltip callbacks return HTML that is rendered with <code>innerHTML</code>.
@@ -456,7 +456,7 @@ picker.getDayTooltipCallback = ({ dateString, date, isStartDate, isEndDate, isIn
   <small>Static holidays + dynamic pricing + HTML tooltips all working together</small>
 </div>
 
-<pre><code>const picker = document.getElementById('combined-example');
+<div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('combined-example');
 
 // 1. Static holidays via specialDates
 picker.specialDates = [
@@ -491,7 +491,7 @@ picker.getDayTooltipCallback = (data) => {
     return `&lt;strong&gt;$${price}/night&lt;/strong&gt;&lt;br&gt;Click to book`;
   }
   return null;
-};</code></pre>
+};</code></pre></div>
 
 <div class="note info">
   <strong>Priority:</strong> When multiple methods provide data for the same date:
@@ -535,13 +535,13 @@ picker.getDayTooltipCallback = (data) => {
   </div>
 </div>
 
-<pre><code>const picker = document.getElementById('dayclass-builtin-demo');
+<div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('dayclass-builtin-demo');
 picker.specialDates = [
   { date: dayOffset(-7), dayClass: 'holiday', dayTooltip: 'Office closed' },
   { date: dayOffset(-3), dayClass: 'event',   dayTooltip: 'Team offsite' },
   { date: dayOffset(2),  dayClass: 'event',   dayTooltip: 'Product launch' },
   { date: dayOffset(7),  dayClass: 'holiday', dayTooltip: 'Public holiday' },
-];</code></pre>
+];</code></pre></div>
 
 <h3>Demo 2 — Built-in <code>badgeClass</code> badge types</h3>
 <div class="grid">
@@ -552,14 +552,14 @@ picker.specialDates = [
   </div>
 </div>
 
-<pre><code>const picker = document.getElementById('badgeclass-builtin-demo');
+<div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('badgeclass-builtin-demo');
 picker.specialDates = [
   { date: dayOffset(-5), badgeClass: 'badge-number', badgeText: '12',  badgeTooltip: 'Slot number' },
   { date: dayOffset(-2), badgeClass: 'badge-count',  badgeText: '3',   badgeTooltip: '3 alerts' },
   { date: dayOffset(1),  badgeClass: 'badge-text',   badgeText: 'NEW', badgeTooltip: 'New offering' },
   { date: dayOffset(4),  badgeClass: 'badge-number', badgeText: '7',   badgeTooltip: 'Capacity' },
   { date: dayOffset(8),  badgeClass: 'badge-count',  badgeText: '15',  badgeTooltip: '15 bookings' },
-];</code></pre>
+];</code></pre></div>
 
 <h3>Demo 3 — Custom classifiers (your own vocabulary)</h3>
 <p>
@@ -577,7 +577,7 @@ picker.specialDates = [
   </div>
 </div>
 
-<pre><code>const picker = document.getElementById('custom-classifier-demo');
+<div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('custom-classifier-demo');
 
 // 1. Ship the CSS for your class names — injected into the picker's shadow DOM.
 picker.getCustomStylesCallback = () => `
@@ -603,7 +603,7 @@ picker.specialDates = [
   { date: dayOffset(3),  dayClass: 'salsa',   dayTooltip: 'Salsa advanced' },
   { date: dayOffset(6),  dayClass: 'pilates', dayTooltip: 'Pilates flow' },
   { date: dayOffset(10), dayClass: 'rumba',   dayTooltip: 'Rumba show night' },
-];</code></pre>
+];</code></pre></div>
 
 <div class="note info">
   <strong>Why <code>getCustomStylesCallback</code> instead of a regular stylesheet?</strong>

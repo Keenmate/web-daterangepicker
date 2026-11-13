@@ -55,14 +55,14 @@
     </div>
   </div>
 
-  <div class="code-block"><code><span class="comment">&lt;!-- auto (default): floating on desktop, modal on tablets, fullscreen on phones --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span>
-<span class="property">selection-mode</span>=<span class="string">"range"</span>
-<span class="property">visible-month-count</span>=<span class="string">"2"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <div class="code-block" data-language="html"><pre><code>&lt;!-- auto (default): floating on desktop, modal on tablets, fullscreen on phones --&gt;
+&lt;web-daterangepicker
+selection-mode="range"
+visible-month-count="2"&gt;&lt;/web-daterangepicker&gt;
 
-<span class="comment">&lt;!-- force one presentation everywhere --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">presentation</span>=<span class="string">"floating"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">presentation</span>=<span class="string">"fullscreen"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+&lt;!-- force one presentation everywhere --&gt;
+&lt;web-daterangepicker presentation="floating"&gt;&lt;/web-daterangepicker&gt;
+&lt;web-daterangepicker presentation="fullscreen"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- ============================================================ -->
@@ -119,12 +119,12 @@
     </div>
   </div>
 
-  <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
-<span class="property">selection-mode</span>=<span class="string">"range"</span>
-<span class="property">presentation</span>=<span class="string">"modal"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker
+selection-mode="range"
+presentation="modal"&gt;&lt;/web-daterangepicker&gt;
 
-<span class="comment">// Open programmatically</span>
-<span class="function">document.querySelector</span>(<span class="string">'#picker'</span>).<span class="property">isOpen</span> = <span class="property">true</span>;</code></div>
+// Open programmatically
+document.querySelector('#picker').isOpen = true;</code></pre></div>
 </div>
 
 <!-- ============================================================ -->
@@ -147,13 +147,13 @@
       <tr>
         <td><strong>xs</strong></td>
         <td>≤ 480px</td>
-        <td><code>calc(100vw − 2 × gap)</code></td>
+        <td><code>calc(100dvw − 2 × gap)</code></td>
         <td><code>--drp-modal-width-xs</code></td>
       </tr>
       <tr>
         <td><strong>sm</strong></td>
         <td>481–768px</td>
-        <td><code>calc(100vw − 2 × gap)</code></td>
+        <td><code>calc(100dvw − 2 × gap)</code></td>
         <td><code>--drp-modal-width-sm</code></td>
       </tr>
       <tr>
@@ -173,20 +173,20 @@
 
   <p>Override per-instance via the host element. The breakpoints themselves are hardcoded in <code>modal.css</code> because CSS media queries cannot read CSS variables — only the widths inside each rule are variable-driven.</p>
 
-  <div class="code-block"><code><span class="comment">/* Custom widths per tier */</span>
-<span class="keyword">web-daterangepicker</span> {
-<span class="property">--drp-modal-width-md</span>: <span class="string">75vw</span>;
-<span class="property">--drp-modal-width-lg</span>: <span class="string">1300px</span>;
+  <div class="code-block" data-language="css"><pre><code>/* Custom widths per tier */
+web-daterangepicker {
+--drp-modal-width-md: 75vw;
+--drp-modal-width-lg: 1300px;
 }
 
-<span class="comment">/* Other modal hooks */</span>
-<span class="keyword">:root</span> {
-<span class="property">--drp-modal-gap</span>: <span class="string">16px</span>;                    <span class="comment">/* viewport-edge gap */</span>
-<span class="property">--drp-modal-backdrop-bg</span>: <span class="string">rgba(0, 0, 0, 0.45)</span>; <span class="comment">/* scrim color */</span>
-<span class="property">--drp-modal-transition</span>: <span class="string">0.15s ease-out</span>;     <span class="comment">/* fade timing */</span>
-<span class="property">--drp-z-index-modal</span>: <span class="property">9800</span>;
-<span class="property">--drp-z-index-modal-backdrop</span>: <span class="property">9700</span>;
-}</code></div>
+/* Other modal hooks */
+:root {
+--drp-modal-gap: 16px;                    /* viewport-edge gap */
+--drp-modal-backdrop-bg: rgba(0, 0, 0, 0.45); /* scrim color */
+--drp-modal-transition: 0.15s ease-out;     /* fade timing */
+--drp-z-index-modal: 9800;
+--drp-z-index-modal-backdrop: 9700;
+}</code></pre></div>
 </div>
 
 <!-- ============================================================ -->
@@ -278,11 +278,11 @@
     </div>
   </div>
 
-  <div class="code-block"><code><span class="comment">&lt;!-- default: keyboard stays closed, calendar visible --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker&gt;&lt;/web-daterangepicker&gt;</span>
+  <div class="code-block" data-language="html"><pre><code>&lt;!-- default: keyboard stays closed, calendar visible --&gt;
+&lt;web-daterangepicker&gt;&lt;/web-daterangepicker&gt;
 
-<span class="comment">&lt;!-- opt in to focus the input + soft keyboard on open --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">fullscreen-autofocus</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+&lt;!-- opt in to focus the input + soft keyboard on open --&gt;
+&lt;web-daterangepicker fullscreen-autofocus&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- ============================================================ -->
@@ -316,11 +316,11 @@
     </div>
   </div>
 
-  <div class="code-block"><code><span class="comment">&lt;!-- typeable input in the full-screen header, numeric keypad + mask --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">show-fullscreen-input</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <div class="code-block" data-language="html"><pre><code>&lt;!-- typeable input in the full-screen header, numeric keypad + mask --&gt;
+&lt;web-daterangepicker show-fullscreen-input&gt;&lt;/web-daterangepicker&gt;
 
-<span class="comment">&lt;!-- type-first: also pop the keypad on open --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">show-fullscreen-input</span> <span class="property">fullscreen-autofocus</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+&lt;!-- type-first: also pop the keypad on open --&gt;
+&lt;web-daterangepicker show-fullscreen-input fullscreen-autofocus&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- ============================================================ -->
@@ -339,8 +339,8 @@
     <web-daterangepicker id="titled" selection-mode="range" labels='{"fullscreenTitle":"Choose your dates"}' placeholder="Titled full-screen"></web-daterangepicker>
   </div>
 
-  <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
-<span class="property">labels</span>=<span class="string">'{"fullscreenTitle":"Choose your dates"}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker
+labels='{"fullscreenTitle":"Choose your dates"}'&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- ============================================================ -->
@@ -395,11 +395,11 @@
     </div>
   </div>
 
-  <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
-<span class="property">selection-mode</span>=<span class="string">"range"</span>
-<span class="property">positioning-mode</span>=<span class="string">"inline"</span>
-<span class="property">visible-month-count</span>=<span class="string">"2"</span>
-<span class="property">compact-below</span>=<span class="string">"520"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker
+selection-mode="range"
+positioning-mode="inline"
+visible-month-count="2"
+compact-below="520"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 
   <div class="note info">
     <strong>CSS container queries first.</strong> <code>compact-below</code> exists for the <em>structural</em> change — swapping the month-column count is a JS decision the engine can't do with CSS alone. For purely presentational tweaks under a narrow box (padding, a label→icon swap, stacking the summary), reach for <code>container-type: inline-size</code> + <code>@container</code> in your own CSS instead; it's cheaper and paints without a rebuild. Leave <code>compact-below</code> unset (or <code>0</code>) to disable the behavior entirely — it's opt-in and never changes an existing picker's layout on its own.
@@ -471,21 +471,21 @@
     </div>
   </div>
 
-  <div class="code-block"><code><span class="comment">&lt;!-- instance map, as a JSON attribute (or el.responsive = {…}) --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">selection-mode</span>=<span class="string">"range"</span>
-<span class="property">responsive</span>=<span class="string">'{"breakpoint":{"mobile":{"visibleMonthCount":1},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}},"device":{"mobile":{"presentation":"modal"}}}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <div class="code-block" data-language="html"><pre><code>&lt;!-- instance map, as a JSON attribute (or el.responsive = {…}) --&gt;
+&lt;web-daterangepicker selection-mode="range"
+responsive='{"breakpoint":{"mobile":{"visibleMonthCount":1},"tablet":{"visibleMonthCount":2},"desktop":{"visibleMonthCount":3}},"device":{"mobile":{"presentation":"modal"}}}'&gt;&lt;/web-daterangepicker&gt;
 
-<span class="comment">// instance callback — ctx: { env, deviceClass, breakpoint, element, component, config (base) }</span>
-<span class="keyword">const</span> rule <span class="comment">/* : DateRangePickerResponsiveCallback */</span> = (ctx) =&gt;
-({ <span class="property">visibleMonthCount</span>: ctx.breakpoint === <span class="string">'desktop'</span> ? 2 : 1 });
-document.getElementById(<span class="string">'rules-callback'</span>).<span class="property">responsiveCallback</span> = rule;
+// instance callback — ctx: { env, deviceClass, breakpoint, element, component, config (base) }
+const rule /* : DateRangePickerResponsiveCallback */ = (ctx) =&gt;
+({ visibleMonthCount: ctx.breakpoint === 'desktop' ? 2 : 1 });
+document.getElementById('rules-callback').responsiveCallback = rule;
 
-<span class="comment">// per-tag page rule (callbacks can scope by ctx.element)</span>
-window.components[<span class="string">'web-daterangepicker'</span>].<span class="property">responsiveCallback</span> = (ctx) =&gt;
-ctx.element.closest(<span class="string">'#rs-page-rule'</span>) ? { <span class="property">presentation</span>: <span class="string">'modal'</span> } : <span class="keyword">undefined</span>;
+// per-tag page rule (callbacks can scope by ctx.element)
+window.components['web-daterangepicker'].responsiveCallback = (ctx) =&gt;
+ctx.element.closest('#rs-page-rule') ? { presentation: 'modal' } : undefined;
 
-<span class="comment">&lt;!-- an attribute on the instance beats every page rule --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span> <span class="property">presentation</span>=<span class="string">"floating"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+&lt;!-- an attribute on the instance beats every page rule --&gt;
+&lt;web-daterangepicker presentation="floating"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 
   <div class="note info">
     Overrides never reflect to attributes (<code>getAttribute('presentation')</code> stays as authored)

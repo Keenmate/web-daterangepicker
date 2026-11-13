@@ -101,49 +101,37 @@
   </div>
 
   <h3>Method 1: Import CSS in JavaScript (Recommended for Bundlers)</h3>
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>// When using a bundler (Webpack, Vite, Rollup, etc.)
+  <div class="code-block" data-language="js"><pre><code>// When using a bundler (Webpack, Vite, Rollup, etc.)
 import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/dist/style.css';
 
-const picker = new DateRangePickerEngine(inputElement, options);</pre>
-  </div>
+const picker = new DateRangePickerEngine(inputElement, options);</code></pre></div>
 
   <h3>Method 2: Link CSS in HTML (For CDN or Simple Setups)</h3>
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>&lt;!-- In your HTML &lt;head&gt; --&gt;
+  <div class="code-block" data-language="html"><pre><code>&lt;!-- In your HTML &lt;head&gt; --&gt;
 &lt;link rel="stylesheet" href="./node_modules/@keenmate/web-daterangepicker/dist/style.css"&gt;
 
 &lt;script type="module"&gt;
   import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
   const picker = new DateRangePickerEngine(inputElement, options);
-&lt;/script&gt;</pre>
-  </div>
+&lt;/script&gt;</code></pre></div>
 
   <h3>Method 3: Import CSS Source (For Custom Builds)</h3>
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>// If you want to customize variables or build from source
+  <div class="code-block" data-language="js"><pre><code>// If you want to customize variables or build from source
 import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/src/css/main.css';
 
-const picker = new DateRangePickerEngine(inputElement, options);</pre>
-  </div>
+const picker = new DateRangePickerEngine(inputElement, options);</code></pre></div>
 
   <h3>Method 4: Programmatic Injection (Alternative)</h3>
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>// Inject styles programmatically (no CSS import needed!)
+  <div class="code-block" data-language="js"><pre><code>// Inject styles programmatically (no CSS import needed!)
 import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 // Inject styles once before creating any pickers
 DateRangePickerEngine.injectGlobalStyles();
 
 // Now create your pickers
-const picker = new DateRangePickerEngine(inputElement, options);</pre>
-  </div>
+const picker = new DateRangePickerEngine(inputElement, options);</code></pre></div>
 
   <div class="note info">
     <strong>💡 Why is this necessary?</strong><br>
@@ -171,9 +159,7 @@ const picker = new DateRangePickerEngine(inputElement, options);</pre>
     <div id="output-1" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>import {
+  <div class="code-block" data-language="js"><pre><code>import {
   DateRangePickerEngine, observeEnvironment, classifyDevice
 } from '@keenmate/web-daterangepicker';
 
@@ -197,8 +183,7 @@ const picker = new DateRangePickerEngine(inputElement, {
 // Mirror the element's ladder: phone → fullscreen, tablet → modal,
 // desktop → floating. observeEnvironment fires now and on every flip.
 const BY_DEVICE = { mobile: 'fullscreen', tablet: 'modal', desktop: 'floating' };
-observeEnvironment(env => picker.setPresentation(BY_DEVICE[classifyDevice(env)]));</pre>
-  </div>
+observeEnvironment(env => picker.setPresentation(BY_DEVICE[classifyDevice(env)]));</code></pre></div>
 </div>
 
 <!-- Example 2: Date Range Picker -->
@@ -212,9 +197,7 @@ observeEnvironment(env => picker.setPresentation(BY_DEVICE[classifyDevice(env)])
     <div id="output-2" class="output-box">No range selected</div>
   </div>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const inputElement = document.getElementById('input-2');
 
@@ -229,12 +212,11 @@ const picker = new DateRangePickerEngine(inputElement, {
     const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
 
     document.getElementById('output-2').innerHTML =
-      `Start: ${start.toLocaleDateString()}<br>` +
-      `End: ${end.toLocaleDateString()}<br>` +
+      `Start: ${start.toLocaleDateString()}&lt;br&gt;` +
+      `End: ${end.toLocaleDateString()}&lt;br&gt;` +
       `Nights: ${nights}`;
   }
-});</pre>
-  </div>
+});</code></pre></div>
 </div>
 
 <!-- Example 4: Different Formats -->
@@ -256,9 +238,7 @@ const picker = new DateRangePickerEngine(inputElement, {
     </div>
   </div>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>// European format
+  <div class="code-block" data-language="js"><pre><code>// European format
 const pickerEU = new DateRangePickerEngine(document.getElementById('input-4a'), {
   selectionMode: 'single',
   dateFormatMask: 'DD.MM.YYYY',
@@ -276,8 +256,7 @@ const pickerUS = new DateRangePickerEngine(document.getElementById('input-4b'), 
     document.getElementById('output-4b').textContent =
       `Selected: ${detail.formattedValue}`;
   }
-});</pre>
-  </div>
+});</code></pre></div>
 </div>
 
 <!-- Example 3: With Date Restrictions -->
@@ -292,9 +271,7 @@ const pickerUS = new DateRangePickerEngine(document.getElementById('input-4b'), 
     <div id="output-3" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const today = new Date();
 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -315,8 +292,7 @@ const picker = new DateRangePickerEngine(inputElement, {
     document.getElementById('output-3').textContent =
       `Selected business day: ${detail.formattedValue}`;
   }
-});</pre>
-  </div>
+});</code></pre></div>
 </div>
 
 <!-- Example 5: Inline Calendar (No Input) -->
@@ -330,9 +306,7 @@ const picker = new DateRangePickerEngine(inputElement, {
     <div id="output-5" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 // For inline mode, pass null as the input element
 const picker = new DateRangePickerEngine(null, {
@@ -344,8 +318,7 @@ const picker = new DateRangePickerEngine(null, {
     document.getElementById('output-5').textContent =
       `Selected: ${detail.date.toLocaleDateString()}`;
   }
-});</pre>
-  </div>
+});</code></pre></div>
 
   <div class="note info">
     <strong>💡 Tip:</strong> When using <code>positioningMode: 'inline'</code>, pass <code>null</code>
@@ -364,9 +337,7 @@ const picker = new DateRangePickerEngine(null, {
     <div id="output-6" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
   selectionMode: 'single',
@@ -379,8 +350,7 @@ const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
     document.getElementById('output-6').textContent =
       `Selected: ${detail.formattedValue}`;
   }
-});</pre>
-  </div>
+});</code></pre></div>
 </div>
 
 <!-- Example 7: Dynamic Creation -->
@@ -394,9 +364,7 @@ const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
 
   <div id="dynamic-pickers"></div>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 let pickerCount = 0;
 
@@ -438,8 +406,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
       output.textContent = `Selected: ${detail.formattedValue}`;
     }
   });
-});</pre>
-  </div>
+});</code></pre></div>
 </div>
 
 <!-- ===== ADVANCED CONFIGURATION ===== -->
@@ -750,9 +717,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>&lt;!-- This demo overrides the default placement (bottom-start).
+    <div class="code-block" data-language="html"><pre><code>&lt;!-- This demo overrides the default placement (bottom-start).
      "top" is center-aligned, so the calendar sits in the middle
      of the wide input (and flips below when space above is tight).
 
@@ -782,8 +747,7 @@ console.log('Calendar open?', picker.isOpen);
 
 // Tip: Add data-calendar-button to external trigger buttons
 // to prevent "click outside" from closing the calendar
-// &lt;button data-calendar-button onclick="picker.toggle()"&gt;Toggle&lt;/button&gt;</code></pre>
-    </div>
+// &lt;button data-calendar-button onclick="picker.toggle()"&gt;Toggle&lt;/button&gt;</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">void</span> open()</div>
@@ -837,9 +801,7 @@ console.log('Calendar open?', picker.isOpen);
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>const singlePicker = document.getElementById('picker-2a');
+    <div class="code-block" data-language="js"><pre><code>const singlePicker = document.getElementById('picker-2a');
 const rangePicker = document.getElementById('picker-2b');
 
 // Get current input value (formatted string)
@@ -855,8 +817,7 @@ rangePicker.value = '01/01/2025 - 01/31/2025';
 
 // Clear input
 singlePicker.value = '';
-rangePicker.value = '';</code></pre>
-    </div>
+rangePicker.value = '';</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">string</span> value <span class="param-name">(get / set)</span></div>
@@ -904,9 +865,7 @@ rangePicker.value = '';</code></pre>
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>const picker = document.getElementById('picker-3a');
+    <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('picker-3a');
 
 // Clear selection
 picker.clearSelection();
@@ -916,8 +875,7 @@ console.log(picker.value); // ""
 
 // Clear and reset to specific date
 picker.clearSelection();
-picker.value = '2025-12-25';</code></pre>
-    </div>
+picker.value = '2025-12-25';</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">void</span> clearSelection()</div>
@@ -968,9 +926,7 @@ picker.value = '2025-12-25';</code></pre>
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>const singlePicker = document.getElementById('picker-4a');
+    <div class="code-block" data-language="js"><pre><code>const singlePicker = document.getElementById('picker-4a');
 const rangePicker = document.getElementById('picker-4b');
 
 // Get selected date (single mode)
@@ -994,8 +950,7 @@ rangePicker.selectedRanges = [{
 
 // Clear using properties
 singlePicker.selectedDate = null;
-rangePicker.selectedRanges = [];</code></pre>
-    </div>
+rangePicker.selectedRanges = [];</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">Date | null</span> selectedDate</div>
@@ -1033,9 +988,7 @@ rangePicker.selectedRanges = [];</code></pre>
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>const picker = document.getElementById('picker-5');
+    <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('picker-5');
 
 // Check if calendar is open
 if (picker.isOpen) {
@@ -1059,8 +1012,7 @@ function smartToggle() {
 picker.open();
 console.log('isOpen is now:', picker.isOpen); // true
 picker.close();
-console.log('isOpen is now:', picker.isOpen); // false</code></pre>
-    </div>
+console.log('isOpen is now:', picker.isOpen); // false</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">boolean</span> isOpen <em>(read/write)</em></div>
@@ -1098,9 +1050,7 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre>
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>const component = document.getElementById('picker-6');
+    <div class="code-block" data-language="js"><pre><code>const component = document.getElementById('picker-6');
 const controller = component.controller;
 
 // Read the selection
@@ -1117,8 +1067,7 @@ controller.unlock();
 
 // Configuration is read from the element itself
 console.log('Mode:', component.selectionMode);
-console.log('Months to show:', component.visibleMonthCount);</code></pre>
-    </div>
+console.log('Months to show:', component.visibleMonthCount);</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">DateRangePickerController</span> controller <em>(read-only)</em></div>
@@ -1140,7 +1089,7 @@ console.log('Months to show:', component.visibleMonthCount);</code></pre>
     </div>
   </div>
 
-  <div class="code-block"><pre>const picker = document.querySelector('web-daterangepicker');
+  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('web-daterangepicker');
 
 // Methods
 picker.open();        // Show calendar
@@ -1160,7 +1109,7 @@ picker.addEventListener('change', (e) => {
   console.log('Selected:', e.detail);
 });
 // ...or the on* twin, which receives the detail directly
-picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);</pre></div>
+picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);</code></pre></div>
 </div>
 
 <!-- ===== REAL-WORLD PATTERNS ===== -->
@@ -1227,9 +1176,7 @@ picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);</
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>const picker = document.getElementById('picker-9');
+    <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('picker-9');
 
 // Nightly-rate badges — same getDateMetadataCallback as the
 // "Dynamic Calculation" demo (examples-badges-tooltips.html).
@@ -1288,8 +1235,7 @@ picker.unlock('selection');     // just one aspect
 // Declarative full lock via attribute / property
 // &lt;web-daterangepicker readonly&gt;&lt;/web-daterangepicker&gt;
 picker.isReadonly = true;
-picker.lockedAspects;           // -> ['selection','navigation','actions','open']</code></pre>
-    </div>
+picker.lockedAspects;           // -> ['selection','navigation','actions','open']</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">void</span> lock(aspects?: LockAspect | LockAspect[])</div>
@@ -1345,9 +1291,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
       </div>
     </div>
 
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>&lt;web-daterangepicker id="picker" selection-mode="range"
+    <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker id="picker" selection-mode="range"
                      commit-mode="manual"&gt;&lt;/web-daterangepicker&gt;
 
 const picker = document.getElementById('picker');
@@ -1381,8 +1325,7 @@ picker.actionButtons = [
             controller.commit();
         }
     }
-];</code></pre>
-    </div>
+];</code></pre></div>
 
     <div class="method-signature">
       <div><span class="return-type">void</span> controller.showMessage(html: string, { variant?: 'info' | 'success' | 'warning' | 'danger', autoHideMs?: number })</div>
@@ -1403,9 +1346,7 @@ picker.actionButtons = [
   </div>
   <div>
     <h3>Form Integration</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>&lt;form id="booking-form"&gt;
+    <div class="code-block" data-language="html"><pre><code>&lt;form id="booking-form"&gt;
     &lt;web-daterangepicker
         id="check-in"
         name="check-in-date"
@@ -1438,13 +1379,10 @@ form.addEventListener('submit', (e) => {
         body: formData
     });
 });
-&lt;/script&gt;</code></pre>
-    </div>
+&lt;/script&gt;</code></pre></div>
 
     <h3>React/Vue Integration</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>// React
+    <div class="code-block" data-language="js"><pre><code>// React
 import { useRef, useEffect } from 'react';
 
 function DatePicker({ value, onChange }) {
@@ -1493,13 +1431,10 @@ watch(selectedValue, (newValue) => {
         picker.value.value = newValue;
     }
 });
-&lt;/script&gt;</code></pre>
-    </div>
+&lt;/script&gt;</code></pre></div>
 
     <h3>State Synchronization</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>// Synchronize with application state
+    <div class="code-block" data-language="js"><pre><code>// Synchronize with application state
 class DateRangeManager {
     constructor() {
         this.picker = document.getElementById('date-range');
@@ -1554,8 +1489,7 @@ class DateRangeManager {
     }
 }
 
-const manager = new DateRangeManager();</code></pre>
-    </div>
+const manager = new DateRangeManager();</code></pre></div>
   </div>
 </section>
 
@@ -1584,9 +1518,7 @@ const manager = new DateRangeManager();</code></pre>
   <h2>DA26 · Complete Options Reference</h2>
   <p>All available options you can pass to the DateRangePickerEngine constructor.</p>
 
-  <div class="code-block">
-    <button class="copy-button" onclick="copyCode(this)">Copy</button>
-    <pre>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
 
 const picker = new DateRangePickerEngine(inputElement, {
   // Selection
@@ -1686,12 +1618,12 @@ const picker = new DateRangePickerEngine(inputElement, {
 
   renderDayCallback: ({ date, cellElement }) => {
     // Completely custom day cell rendering
-    return `<div class="custom-day">${date.getDate()}</div>`;
+    return `&lt;div class="custom-day"&gt;${date.getDate()}&lt;/div&gt;`;
   },
 
   renderDayContentCallback: ({ date }) => {
     // Custom content inside day cell
-    return `<span class="custom-content">${date.getDate()}</span>`;
+    return `${date.getDate()}`;
   },
 
   getCustomStylesCallback: (ctx) => {
@@ -1716,8 +1648,7 @@ const picker = new DateRangePickerEngine(inputElement, {
   dayClassMember: 'dayClass',                      // Custom day class property
   badgeTooltipMember: 'badgeTooltip',             // Custom badge tooltip property
   dayTooltipMember: 'dayTooltip'                  // Custom day tooltip property
-});</pre>
-  </div>
+});</code></pre></div>
 </div>
 
 <!-- Section 9: Complete API Reference -->
@@ -1761,11 +1692,6 @@ const picker = new DateRangePickerEngine(inputElement, {
           <td>Clear the current selection and reset the input</td>
         </tr>
         <tr>
-          <td><code>value</code></td>
-          <td><code>string</code></td>
-          <td>Current input text (floating/modal modes); <code>''</code> when there is no input</td>
-        </tr>
-        <tr>
           <td><code>commit()</code></td>
           <td><code>void</code></td>
           <td>Commit the staged selection (what Apply does; the app's call in <code>commit-mode="manual"</code>)</td>
@@ -1773,7 +1699,7 @@ const picker = new DateRangePickerEngine(inputElement, {
         <tr>
           <td><code>showMessage(content, { variant?, autoHideMs? })</code></td>
           <td><code>void</code></td>
-          <td>Show an inline message; <code>type</code> ∈ error/warning/info/success, <code>autoHideMs</code> auto-dismisses</td>
+          <td>Show an inline message; <code>variant</code> ∈ info/success/warning/danger, <code>autoHideMs</code> auto-dismisses</td>
         </tr>
         <tr>
           <td><code>hideMessage()</code></td>
@@ -1830,6 +1756,11 @@ const picker = new DateRangePickerEngine(inputElement, {
           <td><code>void</code></td>
           <td>Align items within the rolling year/month selector (<code>'flex-start' | 'center' | 'flex-end'</code>)</td>
         </tr>
+        <tr>
+          <td><code>whenReady()</code></td>
+          <td><code>Promise&lt;void&gt;</code></td>
+          <td>Resolves once the picker is built and live (the <code>ready</code> event)</td>
+        </tr>
       </tbody>
     </table>
 
@@ -1846,9 +1777,9 @@ const picker = new DateRangePickerEngine(inputElement, {
       <tbody>
         <tr>
           <td><code>value</code></td>
-          <td><code>string</code></td>
+          <td><code>string | string[]</code></td>
           <td>Read/Write</td>
-          <td>The current value as the input shows it; assigning sets the selection (the <code>value</code> attribute stays the <code>form.reset()</code> default)</td>
+          <td>The value the form submits, shaped by <code>value-format</code> / <code>value-format-mask</code> (a <code>string[]</code> for <code>value-format="array"</code>); assigning sets the selection and also accepts ISO or the displayed text (the <code>value</code> attribute stays the <code>form.reset()</code> default)</td>
         </tr>
         <tr>
           <td><code>isReadonly</code></td>
@@ -1959,19 +1890,14 @@ const picker = new DateRangePickerEngine(inputElement, {
       </thead>
       <tbody>
         <tr>
-          <td><code>select</code></td>
-          <td><code>ChangeEventDetail</code></td>
-          <td>Fired when date(s) selected (twin: <code>onChange(detail)</code>)</td>
-        </tr>
-        <tr>
           <td><code>change</code></td>
           <td><code>ChangeEventDetail</code></td>
-          <td>Fires right after <code>select</code> (same detail; twin: <code>onChange(detail)</code>)</td>
+          <td>The selection was committed: every completed pick in <code>commit-mode="selection"</code>, on Apply / <code>commit()</code> in <code>apply</code> / <code>manual</code> (twin: <code>onChange(detail)</code>)</td>
         </tr>
         <tr>
           <td><code>action</code></td>
           <td><code>DateRangePickerActionEventDetail</code></td>
-          <td>Fired for every action button (built-ins too) and every <code>data-action</code> trigger (<code>detail.action</code> / <code>detail.id</code> / <code>detail.source</code> / <code>detail.dataset</code>)</td>
+          <td>Fired for every action button (built-ins too) and every <code>data-action</code> trigger, after its <code>onClick</code> and the built-in behaviour (<code>detail.action</code> / <code>detail.id</code> / <code>detail.source</code> / <code>detail.dataset</code>)</td>
         </tr>
         <tr>
           <td><code>month-change</code></td>
@@ -1983,13 +1909,26 @@ const picker = new DateRangePickerEngine(inputElement, {
           <td><code>ReadyEventDetail</code></td>
           <td>First build finished (<code>detail.controller</code> / <code>detail.element</code>)</td>
         </tr>
+        <tr>
+          <td><code>open</code></td>
+          <td><code>OpenEventDetail</code></td>
+          <td>The calendar popover opened (floating / modal / full-screen; inline never opens; twin: <code>onOpen(detail)</code>)</td>
+        </tr>
+        <tr>
+          <td><code>close</code></td>
+          <td><code>CloseEventDetail</code></td>
+          <td>The calendar popover closed, for any reason; a staged, uncommitted pick is already discarded (twin: <code>onClose(detail)</code>)</td>
+        </tr>
+        <tr>
+          <td><code>value-format-error</code></td>
+          <td><code>ValueFormatErrorEventDetail</code></td>
+          <td><code>getValueFormatCallback</code> threw; the field submits <code>''</code> and the host turns invalid (<code>detail.error</code>, <code>detail.value</code>; twin: <code>onValueFormatError(detail)</code>)</td>
+        </tr>
       </tbody>
     </table>
 
     <h3>TypeScript Interfaces</h3>
-    <div class="code-block">
-      <button class="copy-button" onclick="copyCode(this)">Copy</button>
-      <pre><code>interface DateRange {
+    <div class="code-block" data-language="ts"><pre><code>interface DateRange {
     start: Date;
     end: Date;
 }
@@ -2014,8 +1953,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
     if (event.detail.dateRange) {
         console.log('Range:', event.detail.dateRange.start, '-', event.detail.dateRange.end);
     }
-});</code></pre>
-    </div>
+});</code></pre></div>
   </div>
 </section>
 
@@ -2028,7 +1966,6 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
   <!-- JS-instantiation demos (DateRangePickerEngine class against plain inputs) -->
   <script type="module">
     import { DateRangePickerEngine, observeEnvironment, classifyDevice } from './src/index.ts';
-    import { copyText } from '@keenmate/web-components-devkit/examples';
     // IMPORTANT: Import styles globally for DateRangePickerEngine class to work
     import './src/css/main.css';
 
@@ -2181,13 +2118,6 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
         }
       }));
     });
-
-    // Copy code functionality (shared across all demos on this page)
-    window.copyCode = async function(button) {
-      const isCopied = await copyText(button.nextElementSibling.textContent);
-      button.textContent = isCopied ? 'Copied!' : 'Ctrl/Cmd+C';
-      setTimeout(() => { button.textContent = 'Copy'; }, 2000);
-    };
   </script>
 
   <!-- API-methods demos (web component instance) -->

@@ -53,12 +53,12 @@
     </div>
   </div>
 
-  <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span> <span class="property">locale</span>=<span class="string">"de"</span>
-<span class="property">labels</span>=<span class="string">'{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span>
+  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker locale="de"
+labels='{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'&gt;&lt;/web-daterangepicker&gt;
 
-<span class="comment">// or as a property — keys: today, clear, apply, now, close, preview, day, days,
-// night, nights, selectionCount, time, am, pm, hours, minutes, seconds, fullscreenTitle</span>
-el.<span class="property">labels</span> = { today: <span class="string">'Heute'</span>, days: <span class="string">'{count} Tage'</span> };</code></div>
+// or as a property — keys: today, clear, apply, now, close, preview, day, days,
+// night, nights, selectionCount, time, am, pm, hours, minutes, seconds, fullscreenTitle
+el.labels = { today: 'Heute', days: '{count} Tage' };</code></pre></div>
 </div>
 
 <!-- week-start-day -->
@@ -119,12 +119,12 @@ el.<span class="property">labels</span> = { today: <span class="string">'Heute'<
     </div>
   </div>
 
-  <div class="code-block"><code><span class="comment">&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;</span>
-<span class="keyword">&lt;web-daterangepicker</span>
-<span class="property">week-start-day</span>=<span class="string">"3"</span>
-<span class="property">weekday-names</span>=<span class="string">"Ne|Po|Út|St|Čt|Pá|So"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+  <div class="code-block" data-language="html"><pre><code>&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;
+&lt;web-daterangepicker
+week-start-day="3"
+weekday-names="Ne|Po|Út|St|Čt|Pá|So"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 
-  <table class="reference-table">
+  <table class="reference-table table-scroll">
     <thead>
       <tr><th>List position</th><th>[0]</th><th>[1]</th><th>[2]</th><th>[3]</th><th>[4]</th><th>[5]</th><th>[6]</th></tr>
     </thead>
@@ -159,8 +159,8 @@ el.<span class="property">labels</span> = { today: <span class="string">'Heute'<
     </div>
   </div>
 
-  <div class="code-block"><code><span class="keyword">&lt;web-daterangepicker</span>
-<span class="property">month-names</span>=<span class="string">"Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"</span><span class="keyword">&gt;&lt;/web-daterangepicker&gt;</span></code></div>
+  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker
+month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- Combined full Czech -->
@@ -197,14 +197,14 @@ el.<span class="property">labels</span> = { today: <span class="string">'Heute'<
       week-start-day="1" positioning-mode="inline"></web-daterangepicker>
   </div>
 
-  <div class="code-block"><code><span class="keyword">const</span> el = document.getElementById(<span class="string">'js-names'</span>);
+  <div class="code-block" data-language="js"><pre><code>const el = document.getElementById('js-names');
 
-<span class="comment">// [0]=January … [11]=December</span>
-el.<span class="property">monthNames</span> = [<span class="string">'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
-               'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'</span>];
+// [0]=January … [11]=December
+el.monthNames = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+               'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
 
-<span class="comment">// [0]=Sunday … [6]=Saturday</span>
-el.<span class="property">weekdayNames</span> = [<span class="string">'Nd','Pn','Wt','Śr','Cz','Pt','So'</span>];</code></div>
+// [0]=Sunday … [6]=Saturday
+el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
 </div>
 
 <!-- Validation -->
@@ -222,9 +222,9 @@ el.<span class="property">weekdayNames</span> = [<span class="string">'Nd','Pn',
       positioning-mode="inline"></web-daterangepicker>
   </div>
 
-  <div class="code-block"><code><span class="comment">// Console output:</span>
-<span class="comment">// [web-daterangepicker] "weekday-names" ignored: expected exactly 7</span>
-<span class="comment">//   pipe-delimited segments, got 3. Falling back to locale names.</span></code></div>
+  <div class="code-block" data-language="js"><pre><code>// Console output:
+// [web-daterangepicker] "weekday-names" ignored: expected exactly 7
+//   pipe-delimited segments, got 3. Falling back to locale names.</code></pre></div>
 </div>
 
 <script type="module">

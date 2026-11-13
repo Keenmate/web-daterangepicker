@@ -28,6 +28,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the private `pushOverlayHistory` / `popOverlayHistory` copy, which pushed its history entry while the
   page was scroll-locked. A DOM move of an open picker keeps the same entry (core adopts it).
 
+### Examples and docs — devkit 1.0.0-rc14 (2026-11-13)
+- Devkit `^1.0.0-rc14`: API tables stack into cards on a phone (the logging categories table is a
+  `reference-table` now, the localization weekday grid keeps scrolling), and every code block is plain text
+  in `.code-block[data-language]`, highlighted at build time — the hand-made highlight spans and
+  examples-data-api's own Copy buttons / `copyCode` are gone (two snippets there rendered a raw `<br>` /
+  `<div>` as markup; they show it as code now).
+- Reference fixes: DA events drop the non-existent `select` event and add `open` / `close` /
+  `value-format-error`; `value` is `string | string[]` (what the form submits) and moves out of Methods;
+  `showMessage` takes `variant` (info / success / warning / danger), not `type`; `whenReady()` added. AB15
+  adds `icon` / `getIconCallback` and corrects the click order (`onClick` → built-in → `action` event).
+  TH24 lists `--drp-clock-number-rim-color` / `-rim-width` instead of the removed `-bg-selected` /
+  `-color-selected`; the modal widths are `100dvw`-based; LG categories carry their `DRP:` prefix.
+
 ### Internal — core 1.0.0-rc22 (2026-11-13)
 - **Requires `@keenmate/web-components-core` `^1.0.0-rc22`** (was `^1.0.0-rc21`).
 
