@@ -150,3 +150,36 @@ test('responsive map: the device axis beats the breakpoint axis on a phone', asy
   expect(r.cls).toContain('drp__picker--modal');
   expect(r.cls).not.toContain('drp__picker--fullscreen');
 });
+
+// Regression (core claimBackEntry, rulebook C-RO-15): the sheet's Back entry was pushed while
+// the page was scroll-locked (window scroll 0), so closing it — ✕ or Back — jumped the page to
+// the top once the history entry was given back / popped.
+test('closing the sheet (✕, then Back) keeps the page scrolled where it was', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await page.evaluate(() => {
+    const spacer = document.createElement('div');
+    spacer.style.height = '1500px';
+    document.body.prepend(spacer);
+    document.body.style.minHeight = '4000px';
+  });
+  await host.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  const scrollY = () => page.evaluate(() => Math.round(window.scrollY));
+  const before = await scrollY();
+  expect(before).toBeGreaterThan(1000);
+
+  await host.evaluate(el => (el as any).open());
+  await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--fullscreen/);
+  await host.evaluate(el => (el.shadowRoot?.querySelector('.drp__fullscreen-close') as HTMLElement)?.click());
+  await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--visible/);
+  await page.waitForTimeout(300); // the deferred history.back() and its traversal
+  expect(await scrollY()).toBe(before);
+
+  await host.evaluate(el => (el as any).open());
+  await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--fullscreen/);
+  await page.evaluate(() => history.back());
+  await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--visible/);
+  await page.waitForTimeout(300);
+  expect(await scrollY()).toBe(before);
+});

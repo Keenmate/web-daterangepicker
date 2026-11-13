@@ -44,3 +44,35 @@ test('tapping the input opens the modal and it STAYS open (ghost click swallowed
   expect(cls).toContain('drp__picker--visible');
   expect(cls).toContain('drp__picker--modal');
 });
+
+// Regression (core claimBackEntry, rulebook C-RO-15): closing the modal — programmatically or
+// with Back — used to jump the page to the top (its Back entry was pushed while scroll-locked).
+test('closing the modal (close(), then Back) keeps the page scrolled where it was', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await page.evaluate(() => {
+    const spacer = document.createElement('div');
+    spacer.style.height = '1500px';
+    document.body.prepend(spacer);
+    document.body.style.minHeight = '4000px';
+  });
+  await host.evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  const scrollY = () => page.evaluate(() => Math.round(window.scrollY));
+  const before = await scrollY();
+  expect(before).toBeGreaterThan(1000);
+
+  await host.evaluate(el => (el as any).open());
+  await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--modal/);
+  await host.evaluate(el => (el as any).close());
+  await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--visible/);
+  await page.waitForTimeout(300); // the deferred history.back() and its traversal
+  expect(await scrollY()).toBe(before);
+
+  await host.evaluate(el => (el as any).open());
+  await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--modal/);
+  await page.evaluate(() => history.back());
+  await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--visible/);
+  await page.waitForTimeout(300);
+  expect(await scrollY()).toBe(before);
+});

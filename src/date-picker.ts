@@ -185,14 +185,9 @@ class DateRangePickerEngine {
      * as the device environment changes. `inline` pickers ignore this field.
      */
     presentation: 'floating' | 'modal' | 'fullscreen' = 'floating';
-    // Back-gesture trap for the full-screen sheet: on open we push a same-URL
-    // history entry so the phone Back gesture/button pops it (closing the sheet)
-    // instead of navigating the page. `onOverlayPopstate` is the bound listener.
-    // Managed by pushOverlayHistory()/popOverlayHistory()/handleOverlayPopstate() in
-    // date-picker-ui.ts — kept parallel with web-multiselect so this trap can later
-    // be extracted into web-components-core in one symmetric change.
-    overlayHistoryActive = false;
-    onOverlayPopstate: (() => void) | null = null;
+    // Release of the phone Back entry (core `claimBackEntry`) held while the modal /
+    // full-screen sheet is open — claimBack() / releaseBack() in date-picker-ui.ts.
+    releaseBack: (() => void) | null = null;
     /**
      * Set by the input's pointer triggers so the just-opened modal/full-screen sheet
      * knows to swallow the tap's trailing "ghost" click (which would otherwise land
@@ -207,10 +202,9 @@ class DateRangePickerEngine {
     // Document-level keyboard navigation listener (see setupCalendarListeners).
     private onDocumentKeydown: ((e: KeyboardEvent) => void) | null = null;
     // deactivate()/activate() state: true while the host is out of the DOM. The
-    // Back-trap flag is parked here so a re-activated open sheet doesn't push a
-    // second history entry.
+    // Back entry needs no parking: the teardown releases it and a re-activation in
+    // the same task (a DOM move) claims it again — core adopts the same entry.
     private isSuspended = false;
-    private suspendedOverlayHistory = false;
     private suspendedModalRestoreFocus = false;
 
     // Week start and date restrictions
@@ -2829,15 +2823,7 @@ class DateRangePickerEngine {
         if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
         this.hideTooltip();
 
-        // Park the Back trap WITHOUT popping history (a move must not navigate), then
-        // tear down the open chrome while keeping the --visible flag.
-        this.suspendedOverlayHistory = this.overlayHistoryActive;
-        if (this.overlayHistoryActive) {
-            this.overlayHistoryActive = false;
-            if (typeof window !== 'undefined' && this.onOverlayPopstate) {
-                window.removeEventListener('popstate', this.onOverlayPopstate);
-            }
-        }
+        // Tear down the open chrome while keeping the --visible flag.
         this.suspendedModalRestoreFocus = !!(this as any).modalRestoreFocus;
         const openOverlay = this.options.positioningMode !== 'inline' &&
             this.calendar.classList.contains('drp__picker--visible');
@@ -2861,20 +2847,11 @@ class DateRangePickerEngine {
         const isOpen = this.options.positioningMode !== 'inline' &&
             this.calendar.classList.contains('drp__picker--visible');
         if (isOpen) {
-            // Re-arm the parked Back trap first so the chrome doesn't push a second entry.
-            if (this.suspendedOverlayHistory && typeof window !== 'undefined' && this.onOverlayPopstate) {
-                this.overlayHistoryActive = true;
-                window.addEventListener('popstate', this.onOverlayPopstate);
-            }
             // Re-opens the calendar popover too (anchor, overlay tree — dismissing the
             // group's other overlays — and the scroll / resize close).
             UI.applyPresentationChrome(this);
             (this as any).modalRestoreFocus = this.suspendedModalRestoreFocus;
-        } else if (this.suspendedOverlayHistory) {
-            // Parked trap but no longer open — drop it (the entry is harmless).
-            this.overlayHistoryActive = false;
         }
-        this.suspendedOverlayHistory = false;
         this.suspendedModalRestoreFocus = false;
     }
 
@@ -2905,21 +2882,11 @@ class DateRangePickerEngine {
 
         // Tear down positioning/overlay chrome BEFORE removing the calendar. If a
         // modal/full-screen sheet is open we must run its full exit (unlock body
-        // scroll, drop the header, pop the Back-trap history entry, detach keyboard
+        // scroll, drop the header, release the Back entry, detach keyboard
         // tracking) — but ONLY when open, or exitModal/exitFullscreen would unlock a
         // scroll lock that was never taken and corrupt the ref count. When closed,
         // cleanupPositioning alone stops any floating autoUpdate leaking onto the
         // detached calendar (the rebuild-while-open drift guard).
-        // Detach Back-gesture handling WITHOUT popping history — a teardown (attribute
-        // rebuild, DOM move) must not trigger navigation. Any same-URL entry we pushed
-        // is harmless. Done before teardownPresentationChrome() so exitFullscreen's
-        // popOverlayHistory() no-ops. (Kept parallel with web-multiselect's destroy().)
-        if (this.overlayHistoryActive) {
-            this.overlayHistoryActive = false;
-            if (typeof window !== 'undefined' && this.onOverlayPopstate) {
-                window.removeEventListener('popstate', this.onOverlayPopstate);
-            }
-        }
         // A deactivated picker already tore its chrome down (running it again would
         // double-release the body scroll lock).
         const openOverlay = !this.isSuspended && this.options.positioningMode !== 'inline' &&

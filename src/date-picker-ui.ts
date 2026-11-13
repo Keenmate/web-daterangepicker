@@ -13,7 +13,7 @@
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
 import { anchor, createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
-import { findScrollContainer, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer } from '@keenmate/web-components-core';
+import { claimBackEntry, findScrollContainer, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -110,6 +110,26 @@ function lockPageScroll(picker: any) {
 function unlockPageScroll(picker: any) {
     const release = picker.releaseScrollLock;
     picker.releaseScrollLock = null;
+    release?.();
+}
+
+/**
+ * Phone Back gesture / browser Back closes the open modal / full-screen sheet instead of
+ * leaving the page: core `claimBackEntry` (one page-wide history entry, the page keeps its
+ * scroll; a release followed by a claim in the same task — a presentation swap, a DOM move —
+ * adopts the entry). The release on every other close is idempotent.
+ */
+function claimBack(picker: any) {
+    if (picker.releaseBack) return;
+    picker.releaseBack = claimBackEntry(() => {
+        picker.releaseBack = null; // the entry is gone already
+        if (picker.calendar.classList.contains('drp__picker--visible')) close(picker);
+    });
+}
+
+function releaseBack(picker: any) {
+    const release = picker.releaseBack;
+    picker.releaseBack = null;
     release?.();
 }
 
@@ -377,9 +397,8 @@ function enterModal(picker: any) {
     armGhostClickGuard(picker);
     ensureModalBackdrop(picker).classList.add('drp__backdrop--visible');
     lockPageScroll(picker);
-    // Trap the phone Back gesture / browser Back button so it dismisses the modal
-    // instead of navigating away (same as full-screen).
-    pushOverlayHistory(picker);
+    // The phone Back gesture / browser Back button dismisses the modal (same as full-screen).
+    claimBack(picker);
     // Remember if input was focused so we can restore on close.
     // Compare against the input's own root: inside the web component's shadow root
     // `document.activeElement` is the HOST, never the input (FINDINGS #29).
@@ -417,7 +436,7 @@ function blurTrailingFocus(picker: any) {
 
 /** Reverse enterModal(): hide backdrop, unlock scroll, restore focus. */
 function exitModal(picker: any) {
-    popOverlayHistory(picker);
+    releaseBack(picker);
     if (picker.modalBackdrop) {
         picker.modalBackdrop.classList.remove('drp__backdrop--visible');
     }
@@ -454,8 +473,8 @@ function enterFullscreen(picker: any) {
     // Shrink the fixed sheet above the soft keyboard (writes inline height/top —
     // see fullscreen.css for why the sheet pins only top, not bottom).
     picker.keyboardInsetCleanup = observeKeyboardInset(picker.calendar);
-    // Trap the phone Back gesture/button so it closes the sheet instead of navigating.
-    pushOverlayHistory(picker);
+    // The phone Back gesture/button closes the sheet instead of navigating.
+    claimBack(picker);
     // Keyboard-off by default: drop any focus the opening tap gave the input so the
     // soft keyboard doesn't linger over the calendar. Opt in via shouldFullscreenAutofocus.
     if (picker.options.shouldFullscreenAutofocus && picker.input) {
@@ -471,7 +490,7 @@ function exitFullscreen(picker: any) {
         picker.keyboardInsetCleanup();
         picker.keyboardInsetCleanup = null;
     }
-    popOverlayHistory(picker);
+    releaseBack(picker);
     picker.calendar.classList.remove('drp__picker--fullscreen', 'drp__picker--fs-merged-header');
     // Remove from the SAME element enterFullscreen tagged (shadow host or <html>).
     (picker.fullscreenScaleHost ?? (picker.calendar.getRootNode() as ShadowRoot)?.host)?.removeAttribute('data-drp-fullscreen');
@@ -560,48 +579,6 @@ function restoreRelocatedInput(picker: any) {
     const { node, parent, nextSibling } = picker.fullscreenInputHome;
     parent?.insertBefore(node ?? input, nextSibling);
     picker.fullscreenInputHome = null;
-}
-
-/**
- * Back-gesture handling for the full-screen sheet. On open we push a history entry
- * (same URL) and listen for `popstate`; the phone Back gesture/button then pops that
- * entry — which we treat as "close the sheet" — instead of navigating away from the
- * page. A programmatic close (✕, selection, Escape) consumes the entry via
- * `history.back()` so the stack is left as it was found.
- *
- * Kept structurally parallel with web-multiselect (pushOverlayHistory /
- * handleOverlayPopstate / popOverlayHistory) so this trap can later be extracted
- * into web-components-core as one shared primitive.
- */
-function pushOverlayHistory(picker: any) {
-    if (picker.overlayHistoryActive) return;
-    if (typeof history === 'undefined' || typeof window === 'undefined') return;
-    picker.overlayHistoryActive = true;
-    // Bind once so add/removeEventListener share a stable reference (mirrors
-    // web-multiselect's onOverlayPopstate field).
-    if (!picker.onOverlayPopstate) picker.onOverlayPopstate = () => handleOverlayPopstate(picker);
-    history.pushState({ drpOverlay: true }, '');
-    window.addEventListener('popstate', picker.onOverlayPopstate);
-}
-
-/** Back gesture/button fired: our pushed entry is already gone, so just close the
- *  sheet — WITHOUT popping history again (popOverlayHistory becomes a no-op). */
-function handleOverlayPopstate(picker: any) {
-    if (!picker.overlayHistoryActive) return;
-    picker.overlayHistoryActive = false;
-    window.removeEventListener('popstate', picker.onOverlayPopstate);
-    if (picker.calendar.classList.contains('drp__picker--visible')) close(picker);
-}
-
-/** Programmatic close: remove the listener and pop the entry we pushed (so the
- *  history stack returns to its pre-open state). No-op if a Back gesture already
- *  consumed it (overlayHistoryActive is false by then). */
-function popOverlayHistory(picker: any) {
-    if (!picker.overlayHistoryActive) return;
-    picker.overlayHistoryActive = false;
-    window.removeEventListener('popstate', picker.onOverlayPopstate);
-    // The listener is already detached, so the popstate this triggers is ignored.
-    if (typeof history !== 'undefined') history.back();
 }
 
 /**

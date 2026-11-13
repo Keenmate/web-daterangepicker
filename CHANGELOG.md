@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — closing the full-screen sheet / modal kept the page scroll (2026-11-13)
+- **Closing the phone full-screen sheet or the tablet modal no longer jumps the page to the top**
+  (✕, Escape, a pick, `close()`, or the phone Back gesture). The Back entry is now core
+  `claimBackEntry()` (needs `@keenmate/web-components-core` `^1.0.0-rc23`; rulebook C-RO-15) instead of
+  the private `pushOverlayHistory` / `popOverlayHistory` copy, which pushed its history entry while the
+  page was scroll-locked. A DOM move of an open picker keeps the same entry (core adopts it).
+
 ### Internal — core 1.0.0-rc22 (2026-11-13)
 - **Requires `@keenmate/web-components-core` `^1.0.0-rc22`** (was `^1.0.0-rc21`).
 
