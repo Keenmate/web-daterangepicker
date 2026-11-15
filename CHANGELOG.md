@@ -68,6 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   TH24 lists `--drp-clock-number-rim-color` / `-rim-width` instead of the removed `-bg-selected` /
   `-color-selected`; the modal widths are `100dvw`-based; LG categories carry their `DRP:` prefix.
 
+### Internal — core 1.0.0-rc24 (2026-11-15)
+- core `^1.0.0-rc24` (was `^1.0.0-rc22`).
+
 ### Internal — core 1.0.0-rc22 (2026-11-13)
 - **Requires `@keenmate/web-components-core` `^1.0.0-rc22`** (was `^1.0.0-rc21`).
 
