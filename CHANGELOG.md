@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — sheet bar variables renamed `--drp-fullscreen-*` → `--drp-sheet-*` (2026-11-15)
+- **BREAKING (vars):** the phone sheet's bar / title / ✕ overrides now share the `--<prefix>-sheet-*`
+  name every Keenmate component uses (commandpalette `--cp-sheet-*`, dropzone `--dz-sheet-*`, grid
+  `--wg-sheet-*`, core `--km-sheet-*`) — the same 19 suffixes. No aliases. Everything else keeps the
+  `--drp-fullscreen-*` name (`-bg`, `-text-color`, `-rem`, `-content-padding-*`, `-input-font-size`).
+  - `--drp-fullscreen-header-gap` → `--drp-sheet-header-gap`
+  - `--drp-fullscreen-header-padding-block` → `--drp-sheet-header-padding-block`
+  - `--drp-fullscreen-header-padding-inline` → `--drp-sheet-header-padding-inline`
+  - `--drp-fullscreen-header-min-height` → `--drp-sheet-header-min-height`
+  - `--drp-fullscreen-header-bg` → `--drp-sheet-header-bg`
+  - `--drp-fullscreen-header-border` → `--drp-sheet-header-border`
+  - `--drp-fullscreen-title-color` → `--drp-sheet-title-color`
+  - `--drp-fullscreen-title-font-size` → `--drp-sheet-title-font-size`
+  - `--drp-fullscreen-title-font-weight` → `--drp-sheet-title-font-weight`
+  - `--drp-fullscreen-close-size` → `--drp-sheet-close-size`
+  - `--drp-fullscreen-close-icon-size` → `--drp-sheet-close-icon-size`
+  - `--drp-fullscreen-close-icon` → `--drp-sheet-close-icon`
+  - `--drp-fullscreen-close-color` → `--drp-sheet-close-color`
+  - `--drp-fullscreen-close-bg` → `--drp-sheet-close-bg`
+  - `--drp-fullscreen-close-bg-hover` → `--drp-sheet-close-bg-hover`
+  - `--drp-fullscreen-close-border` → `--drp-sheet-close-border`
+  - `--drp-fullscreen-close-border-radius` → `--drp-sheet-close-border-radius`
+  - `--drp-fullscreen-close-edge-nudge` → `--drp-sheet-close-edge-nudge`
+  - `--drp-fullscreen-close-focus-color` → `--drp-sheet-close-focus-color`
+- docs/theming.md "Full-screen sheet header" now opens with what a sheet is; the manifest lists the
+  19 under the `sheet` category.
+
 ### Changed — the full-screen sheet header is core sheet chrome (2026-11-13)
 - **The phone sheet's header / title / ✕ now use core's shared sheet chrome** (`SHEET_CHROME_CSS` +
   `createSheetHeader()`, SPEC §12.9; rulebook C-RO-17; needs core `^1.0.0-rc24`): the same look as every

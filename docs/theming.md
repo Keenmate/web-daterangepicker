@@ -347,6 +347,10 @@ scrolling is instant, and the loader keeps turning, slower (the contract's
 
 ## Full-screen sheet header
 
+A **sheet** is a panel that covers the page on a phone — a bottom sheet, a side drawer, a full-screen
+picker. These variables style its top bar: the strip (`header-*`), its title (`title-*`) and the round
+close button (`close-*`).
+
 The phone full-screen sheet's header bar, title and ✕ are core's **sheet chrome**
 (`SHEET_CHROME_CSS` — `.km-sheet-header` / `.km-sheet-title` / `.km-sheet-close`), the same
 look as every other Keenmate sheet (the `/menu` sheet, multiselect, grid editors …). Each value
@@ -354,19 +358,19 @@ reads three layers, later wins:
 
 1. core default (base tokens: `--base-touch-target-min` 44px chip, `--base-icon-close`, …),
 2. page-wide `--km-sheet-*` on `:root` (every component's sheets at once),
-3. this picker's `--drp-fullscreen-*` (unset by default — set one to override just this picker).
+3. this picker's `--drp-sheet-*` (unset by default — set one to override just this picker).
 
-| drp override | core page variable |
+| drp override (`--drp-sheet-*`, the same 19 suffixes as `--km-sheet-*`) | core page variable |
 |---|---|
-| `--drp-fullscreen-header-gap` / `-header-padding-block` / `-header-padding-inline` / `-header-min-height` / `-header-bg` / `-header-border` | `--km-sheet-header-*` |
-| `--drp-fullscreen-title-color` / `-title-font-size` / `-title-font-weight` | `--km-sheet-title-*` |
-| `--drp-fullscreen-close-size` / `-close-icon-size` / `-close-icon` / `-close-color` / `-close-bg` / `-close-bg-hover` / `-close-border` / `-close-border-radius` / `-close-edge-nudge` / `-close-focus-color` | `--km-sheet-close-*` |
+| `--drp-sheet-header-gap` / `-header-padding-block` / `-header-padding-inline` / `-header-min-height` / `-header-bg` / `-header-border` | `--km-sheet-header-*` |
+| `--drp-sheet-title-color` / `-title-font-size` / `-title-font-weight` | `--km-sheet-title-*` |
+| `--drp-sheet-close-size` / `-close-icon-size` / `-close-icon` / `-close-color` / `-close-bg` / `-close-bg-hover` / `-close-border` / `-close-border-radius` / `-close-edge-nudge` / `-close-focus-color` | `--km-sheet-close-*` |
 
 ```css
 /* All sheets on the page: a bordered ✕ button */
 :root { --km-sheet-close-border: 1px solid var(--base-border-color); --km-sheet-close-border-radius: 8px; }
 /* Just this picker: a bigger chip */
-web-daterangepicker.kiosk { --drp-fullscreen-close-size: 52px; }
+web-daterangepicker.kiosk { --drp-sheet-close-size: 52px; }
 ```
 
 drp keeps only its own layout around the chrome: `show-fullscreen-input` (the relocated input

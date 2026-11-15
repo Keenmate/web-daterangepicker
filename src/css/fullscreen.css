@@ -63,30 +63,30 @@
 /* The full-screen header (built in JS with core createSheetHeader()): the bar / title / ✕
    look is core's sheet chrome (SHEET_CHROME_CSS — .km-sheet-header / -title / -close, adopted
    into the picker's root in date-picker-ui.ts). drp only maps its per-instance overrides onto
-   the private --_km-sheet-* channel — WITH NO FALLBACK, and the --drp-fullscreen-* vars are
+   the private --_km-sheet-* channel — WITH NO FALLBACK, and the --drp-sheet-* vars are
    unset by default, so an unset one falls through to the page-wide --km-sheet-* / base tokens.
    Mapped on the picker (not :root) so a light-DOM override never leaks into other components'
    sheets. */
 .drp__picker {
-  --_km-sheet-header-gap: var(--drp-fullscreen-header-gap);
-  --_km-sheet-header-padding-block: var(--drp-fullscreen-header-padding-block);
-  --_km-sheet-header-padding-inline: var(--drp-fullscreen-header-padding-inline);
-  --_km-sheet-header-min-height: var(--drp-fullscreen-header-min-height);
-  --_km-sheet-header-bg: var(--drp-fullscreen-header-bg);
-  --_km-sheet-header-border: var(--drp-fullscreen-header-border);
-  --_km-sheet-title-color: var(--drp-fullscreen-title-color);
-  --_km-sheet-title-font-size: var(--drp-fullscreen-title-font-size);
-  --_km-sheet-title-font-weight: var(--drp-fullscreen-title-font-weight);
-  --_km-sheet-close-size: var(--drp-fullscreen-close-size);
-  --_km-sheet-close-icon-size: var(--drp-fullscreen-close-icon-size);
-  --_km-sheet-close-icon: var(--drp-fullscreen-close-icon);
-  --_km-sheet-close-color: var(--drp-fullscreen-close-color);
-  --_km-sheet-close-bg: var(--drp-fullscreen-close-bg);
-  --_km-sheet-close-bg-hover: var(--drp-fullscreen-close-bg-hover);
-  --_km-sheet-close-border: var(--drp-fullscreen-close-border);
-  --_km-sheet-close-border-radius: var(--drp-fullscreen-close-border-radius);
-  --_km-sheet-close-edge-nudge: var(--drp-fullscreen-close-edge-nudge);
-  --_km-sheet-close-focus-color: var(--drp-fullscreen-close-focus-color);
+  --_km-sheet-header-gap: var(--drp-sheet-header-gap);
+  --_km-sheet-header-padding-block: var(--drp-sheet-header-padding-block);
+  --_km-sheet-header-padding-inline: var(--drp-sheet-header-padding-inline);
+  --_km-sheet-header-min-height: var(--drp-sheet-header-min-height);
+  --_km-sheet-header-bg: var(--drp-sheet-header-bg);
+  --_km-sheet-header-border: var(--drp-sheet-header-border);
+  --_km-sheet-title-color: var(--drp-sheet-title-color);
+  --_km-sheet-title-font-size: var(--drp-sheet-title-font-size);
+  --_km-sheet-title-font-weight: var(--drp-sheet-title-font-weight);
+  --_km-sheet-close-size: var(--drp-sheet-close-size);
+  --_km-sheet-close-icon-size: var(--drp-sheet-close-icon-size);
+  --_km-sheet-close-icon: var(--drp-sheet-close-icon);
+  --_km-sheet-close-color: var(--drp-sheet-close-color);
+  --_km-sheet-close-bg: var(--drp-sheet-close-bg);
+  --_km-sheet-close-bg-hover: var(--drp-sheet-close-bg-hover);
+  --_km-sheet-close-border: var(--drp-sheet-close-border);
+  --_km-sheet-close-border-radius: var(--drp-sheet-close-border-radius);
+  --_km-sheet-close-edge-nudge: var(--drp-sheet-close-edge-nudge);
+  --_km-sheet-close-focus-color: var(--drp-sheet-close-focus-color);
 }
 
 /* `show-fullscreen-input`: the relocated trigger input fills the header row (before the

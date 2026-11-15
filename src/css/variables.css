@@ -233,9 +233,9 @@
   --drp-fullscreen-bg: var(--drp-dropdown-bg);
   --drp-fullscreen-text-color: var(--drp-text-primary);
   /* The header / title / ✕ look is core's sheet chrome (SHEET_CHROME_CSS). Its per-instance
-     overrides are deliberately UNSET here — --drp-fullscreen-header-{gap,padding-block,
-     padding-inline,min-height,bg,border}, --drp-fullscreen-title-{color,font-size,font-weight},
-     --drp-fullscreen-close-{size,icon-size,icon,color,bg,bg-hover,border,border-radius,
+     overrides are deliberately UNSET here — --drp-sheet-header-{gap,padding-block,
+     padding-inline,min-height,bg,border}, --drp-sheet-title-{color,font-size,font-weight},
+     --drp-sheet-close-{size,icon-size,icon,color,bg,bg-hover,border,border-radius,
      edge-nudge,focus-color} — fullscreen.css maps each onto core's --_km-sheet-* with no
      fallback, so unset = the page-wide --km-sheet-* / base tokens. */
   /* Horizontal gutter for the sheet's scrolling content (month header + day grid)

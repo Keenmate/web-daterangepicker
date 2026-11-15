@@ -258,7 +258,7 @@ presentation, each written once per file:
 
 `--drp-fullscreen-input-font-size` is listed in the manifest but never declared
 in CSS, by design: it is an **input** — `fullscreen.css` reads it with a fallback,
-`var(--drp-fullscreen-input-font-size, var(--drp-fullscreen-title-font-size))`, so
+`var(--drp-fullscreen-input-font-size, var(--drp-sheet-title-font-size))`, so
 an unset knob follows the full-screen header title size. Declaring it on `:host`
 would pin a value and cut that chain; dropping it from the manifest would hide a
 documented theming knob. The check only accepts declared variables — rulebook gap

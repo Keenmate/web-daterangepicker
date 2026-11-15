@@ -61,7 +61,7 @@ test('the sheet header is core sheet chrome: km-sheet-* classes, masked ✕ (no 
   await host.waitFor();
   await host.evaluate(async (el: any) => {
     el.labels = { fullscreenTitle: 'Choose dates' };
-    el.style.setProperty('--drp-fullscreen-close-size', '50px');
+    el.style.setProperty('--drp-sheet-close-size', '50px');
     await el.whenSettled();
     el.open();
   });
