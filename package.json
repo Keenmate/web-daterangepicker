@@ -127,7 +127,7 @@
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
-    "@keenmate/base-css-variables": "^2.0.1",
+    "@keenmate/base-css-variables": "^2.0.2",
     "@keenmate/web-components-devkit": "^1.0.0-rc14",
     "@playwright/test": "^1.60.0",
     "custom-element-jet-brains-integration": "^1.7.0",
