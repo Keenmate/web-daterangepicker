@@ -24,7 +24,7 @@ import * as Lock from './date-picker-lock';
 import { resolveLocale, resolveLabels, formatLabel, getWeekdayNames, getMonthNames } from './date-picker-locales';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, withComponentContext, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
@@ -185,9 +185,13 @@ class DateRangePickerEngine {
      * as the device environment changes. `inline` pickers ignore this field.
      */
     presentation: 'floating' | 'modal' | 'fullscreen' = 'floating';
-    // Release of the phone Back entry (core `claimBackEntry`) held while the modal /
-    // full-screen sheet is open — claimBack() / releaseBack() in date-picker-ui.ts.
+    // Release of the phone Back entry (core `claimBackEntry`) held while the full-screen
+    // sheet is open — claimBack() / releaseBack() in date-picker-ui.ts.
     releaseBack: (() => void) | null = null;
+    // The core modal session while presentation="modal" is open (enterModal / exitModal).
+    modalSession: ModalSession | null = null;
+    // The ghost-click guard of a full-screen sheet opened by a tap (enterFullscreen / exitFullscreen).
+    stopGhostClickGuard: (() => void) | null = null;
     /**
      * Set by the input's pointer triggers so the just-opened modal/full-screen sheet
      * knows to swallow the tap's trailing "ghost" click (which would otherwise land

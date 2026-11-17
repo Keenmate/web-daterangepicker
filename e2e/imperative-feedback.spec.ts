@@ -246,3 +246,15 @@ test('showMessage with raw HTML shows it; the built-in close button hides it', a
     await messageOf(p).locator('[data-drp-action="hide-message"]').click();
     await expect(messageOf(p)).not.toHaveClass(/drp__message--visible/);
 });
+
+// Screen readers hear the message (core announce(), the page-wide live region): the text,
+// not the HTML; a danger message assertively.
+test('showMessage is announced: the text through the polite region, danger through the assertive one', async ({ page }) => {
+    const p = pickerById(page, 'feedback');
+
+    await p.evaluate((el: any) => el.showMessage('<b>3</b> nights selected', { variant: 'info' }));
+    await expect(page.locator('[data-km-announcer="polite"]')).toHaveText('3 nights selected');
+
+    await p.evaluate((el: any) => el.showMessage('Invalid range', { variant: 'danger' }));
+    await expect(page.locator('[data-km-announcer="assertive"]')).toHaveText('Invalid range');
+});

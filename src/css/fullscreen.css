@@ -152,9 +152,9 @@
   padding: 0;
   background: transparent;
   border-bottom: none;
-  /* Above the sticky month header (z-index: 11) and the rolling selector (100) so
+  /* Above the sticky month header (z-index: 11) and the rolling selector (20) so
      the ✕ stays visible and clickable. */
-  z-index: 101;
+  z-index: 21;
 }
 
 /* Reserve room at the trailing edge of the month header(s) so the › nav button

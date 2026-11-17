@@ -193,15 +193,18 @@
   /* ==========================================================================
      Z-INDEX LAYERS
      ========================================================================== */
-  --drp-z-index-dropdown: 9500;
-  --drp-z-index-modal-backdrop: 9700;
-  --drp-z-index-modal: 9800;
-  --drp-z-index-fullscreen: 10001;                    /* phone full-screen overlay (above modal) */
+  /* The page-wide tiers (core Z_INDEX, base-css-variables --base-z-*): a dialog / sheet opened
+     from the page stacks with every other Keenmate component's. Dialogs and phone sheets share
+     the modal tier; a dropdown opened inside one is above it. */
+  --drp-z-index-dropdown: var(--base-z-dropdown, 7500);
+  --drp-z-index-modal-backdrop: var(--base-z-modal-backdrop, 6000);
+  --drp-z-index-modal: var(--base-z-modal, 7000);
+  --drp-z-index-fullscreen: var(--base-z-modal, 7000); /* phone full-screen sheet = modal tier */
   /* Tooltip is a SIBLING of the calendar (both children of the container), not a
      child of the sheet — so in full-screen mode it competes with the sheet in the
      same stacking context. It must top every open surface, including the
      full-screen overlay, or a tap-opened day/badge tooltip renders BEHIND the sheet. */
-  --drp-z-index-tooltip: 10002;
+  --drp-z-index-tooltip: var(--base-z-tooltip, 9000);
 
   /* Modal mode (presentation="modal" / auto on tablets) */
   --drp-modal-gap: 16px;                              /* gap between calendar and viewport edges */

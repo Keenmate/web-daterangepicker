@@ -32,6 +32,7 @@ import {
   toValue,
   adoptStyles,
   createCustomStyles,
+  createFormInputs,
   extractConsumedCssVars,
   lintCssVars,
   getEnvironment,
@@ -304,9 +305,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   // re-apply (or a reactive update) doesn't re-spam the console.
   #customStyleVarsWarned = new Set<string>();
   // Light-DOM hidden <input>(s) that carry the selection into form submission
-  // (web-multiselect's model). Children of the host, so they sit inside the
-  // <form> and submit under `name`; the host itself never calls setFormValue.
-  #hiddenInputs: HTMLInputElement[] = [];
+  // (core createFormInputs, SPEC §12.21). Children of the host, so they sit inside
+  // the <form> and submit under `name`; the host itself never calls setFormValue.
+  #formInputs = createFormInputs(this);
   // A `value` property assigned before the picker was built — applied on the first build.
   #pendingValue: string | readonly string[] | null = null;
   /** What the form submits now (the hidden input values) — also `el.value`. */
@@ -423,7 +424,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   protected override disabledChanged(isDisabled: boolean): void {
     if (this.#inputElement && this.#inputElement.type !== 'hidden') this.#inputElement.disabled = isDisabled;
     // Native semantics (core SPEC §6.4): a disabled control's value is not submitted.
-    for (const input of this.#hiddenInputs) input.disabled = isDisabled;
+    for (const input of this.#formInputs.inputs) input.disabled = isDisabled;
     // The calendar: an open one closes, an inline one goes inert (no clicks, no focus).
     this.#picker?.setDisabled(isDisabled);
     this.#updateInputClear();
@@ -437,8 +438,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   protected override destroyCallback(): void {
     this.#picker?.destroy();
     this.#picker = undefined;
-    for (const el of this.#hiddenInputs) el.remove();
-    this.#hiddenInputs = [];
+    this.#formInputs.clear();
     this.#customStyles?.destroy();
     this.#customStyles = null;
   }
@@ -535,7 +535,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     const isHidden = !hasInput(mode);
     const input = document.createElement('input');
     if (isHidden) {
-      input.type = 'hidden';
+      input.type = 'hidden'; // not a form input: the inline engine's value carrier, in the shadow root
     } else {
       input.type = 'text';
       input.classList.add('drp__input');
@@ -804,30 +804,15 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   }
 
   /**
-   * Replace the light-DOM hidden `<input>`(s) that carry the value into form
-   * submission. Children of the host so they sit inside the `<form>`. `array`
-   * format emits one `name[]` input per value; the others emit a single `name`
-   * input (empty string when nothing is selected). No `name` → no participation.
-   * The inputs are `disabled` while the control is (not submitted, like a native one).
+   * Write the light-DOM hidden `<input>`(s) that carry the value into form submission
+   * (core `createFormInputs`): `array` format = one `name[]` input per value (none when
+   * nothing is selected); the others one `name` input (empty string when nothing is
+   * selected). No `name` → no participation. `disabled` while the control is.
    */
   #renderHiddenInputs(format: FormValueFormat, values: string[]): void {
-    for (const el of this.#hiddenInputs) el.remove();
-    this.#hiddenInputs = [];
-
-    const name = this.config.name as string | null;
-    if (!name) return;
-
-    const inputName = format === 'array' ? `${name}[]` : name;
-    for (const value of values) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = inputName;
-      input.value = value;
-      // A disabled control (own `disabled` or a disabled <fieldset>) submits nothing.
-      input.disabled = this.isEffectivelyDisabled;
-      this.appendChild(input);
-      this.#hiddenInputs.push(input);
-    }
+    this.#formInputs.write(this.config.name as string | null, format === 'array' ? values : (values[0] ?? ''), {
+      isDisabled: this.isEffectivelyDisabled,
+    });
   }
 
   // ── element-level styling helpers ─────────────────────────────────────────

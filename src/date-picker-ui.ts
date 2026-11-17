@@ -13,7 +13,7 @@
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
 import { anchor, createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, claimBackEntry, createSheetHeader, findScrollContainer, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS } from '@keenmate/web-components-core';
+import { adoptStyles, announce, claimBackEntry, createSheetHeader, findScrollContainer, guardGhostClick, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS, startModalSession } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -362,85 +362,43 @@ function isEditingInCalendar(picker: any): boolean {
 }
 
 /**
- * Swallow the ONE "ghost" click the opening tap leaves behind. On touch, tapping
- * the input opens a modal/full-screen sheet on `pointerdown`; the tap's synthesized
- * `click` then lands inside the freshly-shown overlay (a day cell → select →
- * single-mode auto-close, or the backdrop → dismiss). Armed only when the open was
- * pointer-triggered (`openViaPointer`), a one-shot capture-phase listener eats that
- * next click if it targets the overlay, then removes itself — so a genuine later tap
- * is untouched, and a programmatic `open()` (no ghost click) never arms it.
+ * Modal mode: a core modal session (SPEC §12.19) — the page behind is inert, Tab stays in the
+ * calendar, Escape / the phone Back gesture close it, page scroll is locked. Our own backdrop
+ * keeps its press-start check and the `close-on-outside-click` switch. Opened by a tap on the
+ * input (`pointerdown`, before the press focuses it): `isOpenedByPointer` swallows the tap's own
+ * trailing click on the calendar / backdrop, and the inert input can't take the press's focus.
  */
-function armGhostClickGuard(picker: any) {
-    if (!picker.openViaPointer) return;
-    picker.openViaPointer = false;
-    const onClick = (e: Event) => {
-        cleanup();
-        const path = (e as MouseEvent).composedPath?.() ?? [];
-        const onOverlay = path.includes(picker.calendar) ||
-            (picker.modalBackdrop && path.includes(picker.modalBackdrop));
-        if (onOverlay) { e.stopPropagation(); e.preventDefault(); }
-    };
-    const cleanup = () => {
-        document.removeEventListener('click', onClick, true);
-        clearTimeout(picker.ghostClickTimer);
-        picker.ghostClickTimer = null;
-    };
-    // Self-removes on the first click; the timeout is a safety net if none arrives.
-    picker.ghostClickTimer = setTimeout(cleanup, 700);
-    document.addEventListener('click', onClick, true);
-}
-
-/** Modal mode: backdrop, body scroll lock, blur input to suppress mobile keyboard. */
 function enterModal(picker: any) {
-    // Read before armGhostClickGuard() consumes it.
     const isPointerOpen = !!picker.openViaPointer;
-    armGhostClickGuard(picker);
-    ensureModalBackdrop(picker).classList.add('drp__backdrop--visible');
-    lockPageScroll(picker);
-    // The phone Back gesture / browser Back button dismisses the modal (same as full-screen).
-    claimBack(picker);
-    // Remember if input was focused so we can restore on close.
+    picker.openViaPointer = false;
+    const backdrop = ensureModalBackdrop(picker);
+    backdrop.classList.add('drp__backdrop--visible');
     // Compare against the input's own root: inside the web component's shadow root
     // `document.activeElement` is the HOST, never the input (FINDINGS #29).
     const root = picker.input?.getRootNode() as Document | ShadowRoot | undefined;
-    const isFocused = !!picker.input && root?.activeElement === picker.input;
-    if (picker.input && isFocused) {
-        // Keyboard / programmatic focus opened it — hand focus back on close.
-        picker.modalRestoreFocus = true;
-        picker.input.blur();
-    } else {
-        // A press on the input opens on pointerdown, BEFORE the press focuses the
-        // input — drop that trailing focus (one-shot, short-lived). No focus restore
-        // on close for a pointer open: that would bring the soft keyboard back up.
-        if (picker.input && isPointerOpen) blurTrailingFocus(picker);
-        picker.modalRestoreFocus = false;
-    }
+    // Keyboard / programmatic focus opened it — hand focus back on close. Not after a pointer
+    // open: that would bring the soft keyboard back up.
+    picker.modalRestoreFocus = !!picker.input && root?.activeElement === picker.input;
     picker.calendar.classList.add('drp__picker--modal');
     // Modal is centered purely via CSS — no Floating UI involvement.
-}
-
-/** One-shot: blur the input when the opening press focuses it after the modal opened. */
-function blurTrailingFocus(picker: any) {
-    const input = picker.input as HTMLInputElement;
-    const onFocus = () => {
-        cleanup();
-        if (picker.presentation === 'modal' && picker.calendar.classList.contains('drp__picker--visible')) input.blur();
-    };
-    const cleanup = () => {
-        input.removeEventListener('focus', onFocus);
-        clearTimeout(timer);
-    };
-    const timer = setTimeout(cleanup, 700);
-    input.addEventListener('focus', onFocus);
+    picker.modalSession = startModalSession(picker.calendar, {
+        backdrop,
+        shouldCloseOnBackdropClick: false, // ensureModalBackdrop() decides
+        // Escape: the popover's overlay entry closes the picker; the session stays out of it.
+        shouldCloseOnEscape: false,
+        onDismiss: () => close(picker),
+        isOpenedByPointer: isPointerOpen,
+        trigger: picker.input ?? null,
+    });
 }
 
 /** Reverse enterModal(): hide backdrop, unlock scroll, restore focus. */
 function exitModal(picker: any) {
-    releaseBack(picker);
+    picker.modalSession?.end({ shouldReturnFocus: false });
+    picker.modalSession = null;
     if (picker.modalBackdrop) {
         picker.modalBackdrop.classList.remove('drp__backdrop--visible');
     }
-    unlockPageScroll(picker);
     picker.calendar.classList.remove('drp__picker--modal');
     // Restore focus to the input if it was focused before opening — the user is
     // back in the input flow and may want to type or Tab away.
@@ -457,7 +415,9 @@ function exitModal(picker: any) {
  * the other non-inline presentations and lives in base.css / fullscreen.css.
  */
 function enterFullscreen(picker: any) {
-    armGhostClickGuard(picker);
+    // Opened by a tap on the input: swallow that tap's own trailing click on the sheet.
+    if (picker.openViaPointer) picker.stopGhostClickGuard = guardGhostClick([picker.calendar]);
+    picker.openViaPointer = false;
     picker.calendar.classList.add('drp__picker--fullscreen');
     // Rescale every size token to the touch scale by overriding --drp-rem on the
     // element that DECLARES the tokens — a sheet-level override can't reach the
@@ -486,6 +446,8 @@ function enterFullscreen(picker: any) {
 
 /** Reverse enterFullscreen(): detach keyboard tracking, drop the header + Back trap, unlock scroll. */
 function exitFullscreen(picker: any) {
+    picker.stopGhostClickGuard?.();
+    picker.stopGhostClickGuard = null;
     if (picker.keyboardInsetCleanup) {
         picker.keyboardInsetCleanup();
         picker.keyboardInsetCleanup = null;
@@ -876,6 +838,10 @@ export function showMessage(
 
     // Show the message
     picker.messageElement.classList.add('drp__message--visible');
+    // Screen readers hear it too (focus stays where it is): core's page-wide live region,
+    // assertive for an error. The text only — the HTML is for sighted users.
+    const spoken = (textElement?.textContent ?? '').trim();
+    if (spoken) announce(spoken, { politeness: variant === 'danger' ? 'assertive' : 'polite' });
 
     // Set up auto-hide if specified
     if (autoHide && autoHide > 0) {

@@ -76,3 +76,43 @@ test('closing the modal (close(), then Back) keeps the page scrolled where it wa
   await page.waitForTimeout(300);
   expect(await scrollY()).toBe(before);
 });
+
+// The modal is a core modal session (SPEC §12.19 of core): the page behind is inert, Tab stays
+// in the calendar, Escape closes it and a keyboard open hands focus back to the input.
+test('modal: the page behind is inert, Tab stays inside, Escape closes and focus returns to the input', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.locator('input').focus();
+  const cal = host.locator('.drp__picker');
+  await expect(cal).toHaveClass(/drp__picker--modal/);
+  await expect(cal).toHaveAttribute('aria-modal', 'true');
+  expect(await page.locator('h1').evaluate(el => el.closest('[inert]') !== null)).toBe(true);
+
+  const focusInCalendar = () => host.evaluate(el => {
+    const a = el.shadowRoot!.activeElement;
+    return !!a && !!el.shadowRoot!.querySelector('.drp__picker')!.contains(a);
+  });
+  expect(await focusInCalendar()).toBe(true);
+  for (let i = 0; i < 12; i++) await page.keyboard.press('Tab');
+  expect(await focusInCalendar()).toBe(true);
+
+  await page.keyboard.press('Escape');
+  await expect(cal).not.toHaveClass(/drp__picker--visible/);
+  expect(await page.locator('h1').evaluate(el => el.closest('[inert]') !== null)).toBe(false);
+  expect(await host.evaluate(el => el.shadowRoot!.activeElement?.tagName)).toBe('INPUT');
+});
+
+test('modal: a backdrop tap closes it and releases the page', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.locator('input').tap();
+  const cal = host.locator('.drp__picker');
+  await expect(cal).toHaveClass(/drp__picker--modal/);
+  await page.waitForTimeout(100);
+  await page.touchscreen.tap(10, 10); // the backdrop covers the viewport
+  await expect(cal).not.toHaveClass(/drp__picker--visible/);
+  expect(await page.locator('h1').evaluate(el => el.closest('[inert]') !== null)).toBe(false);
+  await expect(host.locator('.drp__backdrop')).not.toHaveClass(/drp__backdrop--visible/);
+});

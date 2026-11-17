@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — core modal session, form inputs, announcements, z-index tiers (2026-11-17, core 1.0.0-rc25)
+- **Modal presentation is a core modal session** (`startModalSession`): the page behind the centered
+  calendar is `inert`, Tab stays inside the calendar, focus moves into it on open (a keyboard open still
+  hands focus back to the input on close), Escape / Back / the backdrop close it, page scroll is locked.
+  The tap that opens it on `pointerdown` has its trailing click swallowed by core (`isOpenedByPointer`);
+  the full-screen sheet uses core `guardGhostClick`. The own ghost-click and trailing-focus code is gone.
+- **Hidden form inputs** are written by core `createFormInputs` (same output: one `name` input, one
+  `name[]` input per value for `value-format="array"`, no `id`, `disabled` with the control).
+- **Messages are announced** to screen readers through core `announce()` (the page-wide live region):
+  `showMessage` / a validation message reads its text; a `danger` message is assertive.
+- **z-index from the page-wide tiers** (`--base-z-*`): `--drp-z-index-dropdown` 9500 → `var(--base-z-dropdown, 7500)`,
+  `-modal-backdrop` 9700 → `var(--base-z-modal-backdrop, 6000)`, `-modal` 9800 → `var(--base-z-modal, 7000)`,
+  `-fullscreen` 10001 → `var(--base-z-modal, 7000)` (phone sheets are the modal tier), `-tooltip` 10002 →
+  `var(--base-z-tooltip, 9000)`. Inside the calendar the rolling selector is 20 (was 100) and the merged ✕ 21.
+
 ### Changed — sheet bar variables renamed `--drp-fullscreen-*` → `--drp-sheet-*` (2026-11-15)
 - **BREAKING (vars):** the phone sheet's bar / title / ✕ overrides now share the `--<prefix>-sheet-*`
   name every Keenmate component uses (commandpalette `--cp-sheet-*`, dropzone `--dz-sheet-*`, grid

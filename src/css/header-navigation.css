@@ -289,7 +289,7 @@
   height: 350px;
   max-height: 350px;
   display: none;
-  z-index: 100; /* Above everything */
+  z-index: 20; /* Above everything inside the calendar (sticky header 11) */
   background: var(--drp-dropdown-bg); /* White background to cover calendar below */
   gap: var(--drp-spacing-xs); /* Match normal rolling selector gap */
 }

@@ -3,6 +3,10 @@
   "component": "@keenmate/web-daterangepicker",
   "prefix": "drp",
   "baseVariables": [
+    { "name": "base-z-dropdown", "required": false, "usage": "z-index tier of the floating calendar" },
+    { "name": "base-z-modal-backdrop", "required": false, "usage": "z-index tier of the modal backdrop" },
+    { "name": "base-z-modal", "required": false, "usage": "z-index tier of the modal calendar and the phone sheet" },
+    { "name": "base-z-tooltip", "required": false, "usage": "z-index tier of the day / badge tooltip" },
     { "name": "base-primary-color", "required": true, "usage": "Selected dates, focus rings, buttons" },
     { "name": "base-primary-color-hover", "required": false, "usage": "Accent hover state" },
     { "name": "base-text-color-1", "required": true, "usage": "Primary text (dates, headers, inputs)" },
@@ -331,7 +335,7 @@
 
     { "name": "drp-z-index-modal-backdrop", "category": "z-index", "usage": "Modal backdrop z-index" },
     { "name": "drp-z-index-modal", "category": "z-index", "usage": "Modal dialog z-index" },
-    { "name": "drp-z-index-fullscreen", "category": "z-index", "usage": "Phone full-screen overlay z-index (above modal)" },
+    { "name": "drp-z-index-fullscreen", "category": "z-index", "usage": "Phone full-screen sheet z-index (the modal tier, --base-z-modal)" },
 
     { "name": "drp-modal-gap", "category": "modal", "usage": "Gap between elements inside modal layout" },
     { "name": "drp-modal-backdrop-bg", "category": "modal", "usage": "Modal backdrop background (scrim)" },
