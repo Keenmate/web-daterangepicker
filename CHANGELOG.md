@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed — `compact-below` (2026-11-17)
+- **BREAKING:** the `compact-below` attribute / `compactBelow` property is gone — core's responsive
+  `container` axis does the same, the way every Keenmate component does it. Before:
+  `compact-below="520"`. After: `responsive='{"container":{"narrow":{"visibleMonthCount":1,"isTodayButtonShown":false,"isClearButtonShown":false}}}'`
+  plus `--base-container-narrow: 520px` on the element for a line other than the default 480px. The
+  first build is already narrow (no wide flash), and the selection survives the rebuild.
+
 ### Changed — core modal session, form inputs, announcements, z-index tiers (2026-11-17, core 1.0.0-rc25)
 - **Modal presentation is a core modal session** (`startModalSession`): the page behind the centered
   calendar is `inert`, Tab stays inside the calendar, focus moves into it on open (a keyboard open still

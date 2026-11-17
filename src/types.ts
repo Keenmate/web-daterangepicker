@@ -277,7 +277,6 @@ export interface DateRangePickerConfig extends Omit<DatePickerOptions, EngineOnl
   isReadonly?: boolean;
   /** `xs` | `sm` | `md` | `lg` | `xl`. */
   inputSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  compactBelow?: number | null;
   name?: string | null;
   valueFormat?: 'text' | 'json' | 'array';
   valueFormatMask?: string | null;

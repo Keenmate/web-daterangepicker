@@ -373,10 +373,10 @@ labels='{"fullscreenTitle":"Choose your dates"}'&gt;&lt;/web-daterangepicker&gt;
 <!-- RS11. Container-responsive compaction (responsive §7)        -->
 <!-- ============================================================ -->
 <div class="card">
-  <h2>RS11 · Container-Responsive Compaction: <code>compact-below</code></h2>
-  <p>The modal tiers above react to the <strong>viewport</strong>. But a picker placed in a narrow sidebar or a resizable panel on a wide monitor has a small <em>box</em> while the viewport is still large — viewport media/container queries on the modal don't help an <strong>inline</strong> picker sitting in a column. <code>compact-below</code> keys off the element's <strong>own border box</strong> (via a shared <code>ResizeObserver</code> in <code>@keenmate/web-components-core</code>), so it reacts to its container, not the window.</p>
+  <h2>RS11 · Container-Responsive Compaction: the <code>container</code> axis</h2>
+  <p>The modal tiers above react to the <strong>viewport</strong>. But a picker placed in a narrow sidebar or a resizable panel on a wide monitor has a small <em>box</em> while the viewport is still large — viewport media/container queries on the modal don't help an <strong>inline</strong> picker sitting in a column. The <code>container</code> axis of the <code>responsive</code> map keys off the element's <strong>own border box</strong> (<code>narrow</code> / <code>medium</code> / <code>wide</code>, the lines from <code>--base-container-narrow</code> / <code>-medium</code> read at the element, 480 / 768 by default), so it reacts to its container, not the window. It is the same map every Keenmate component reads (see RS12).</p>
 
-  <p>When the element's box drops below the threshold, the calendar collapses to a <strong>single month</strong> and hides the <strong>Today / Clear</strong> buttons. Widen it back and the authored layout returns verbatim — and any selection you've made survives the transition.</p>
+  <p>Here <code>narrow</code> sets a <strong>single month</strong> and hides the <strong>Today / Clear</strong> buttons, and the narrow line is moved to 520px on the element. Widen it back and the authored layout returns verbatim — and any selection you've made survives the transition.</p>
 
   <div class="form-group">
     <label>Drag the bottom-right handle to resize (threshold: 520px)</label>
@@ -387,10 +387,10 @@ labels='{"fullscreenTitle":"Choose your dates"}'&gt;&lt;/web-daterangepicker&gt;
         selection-mode="range"
         positioning-mode="inline"
         visible-month-count="2"
-        compact-below="520"
+        responsive='{"container":{"narrow":{"visibleMonthCount":1,"isTodayButtonShown":false,"isClearButtonShown":false}}}'
         show-clear-button="true"
         initial-date="2026-06-15"
-        style="display: block; width: 100%;">
+        style="display: block; width: 100%; --base-container-narrow: 520px;">
       </web-daterangepicker>
     </div>
   </div>
@@ -399,10 +399,14 @@ labels='{"fullscreenTitle":"Choose your dates"}'&gt;&lt;/web-daterangepicker&gt;
 selection-mode="range"
 positioning-mode="inline"
 visible-month-count="2"
-compact-below="520"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
+style="--base-container-narrow: 520px"
+responsive='{"container":{"narrow":{
+  "visibleMonthCount": 1,
+  "isTodayButtonShown": false,
+  "isClearButtonShown": false}}}'&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 
   <div class="note info">
-    <strong>CSS container queries first.</strong> <code>compact-below</code> exists for the <em>structural</em> change — swapping the month-column count is a JS decision the engine can't do with CSS alone. For purely presentational tweaks under a narrow box (padding, a label→icon swap, stacking the summary), reach for <code>container-type: inline-size</code> + <code>@container</code> in your own CSS instead; it's cheaper and paints without a rebuild. Leave <code>compact-below</code> unset (or <code>0</code>) to disable the behavior entirely — it's opt-in and never changes an existing picker's layout on its own.
+    <strong>CSS container queries first.</strong> The <code>container</code> rule exists for the <em>structural</em> change — swapping the month-column count is a JS decision the engine can't do with CSS alone. For purely presentational tweaks under a narrow box (padding, a label→icon swap, stacking the summary), reach for <code>container-type: inline-size</code> + <code>@container</code> in your own CSS instead; it's cheaper and paints without a rebuild. Without a <code>container</code> rule nothing watches the box — it's opt-in and never changes an existing picker's layout on its own.
   </div>
 </div>
 

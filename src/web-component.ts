@@ -40,7 +40,6 @@ import {
   type InputDef,
   type CustomStylesHandle,
   type EnvironmentSnapshot,
-  type ElementSize,
   type Presentation,
 } from '@keenmate/web-components-core';
 import { DateRangePickerEngine } from './date-picker';
@@ -174,7 +173,6 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   { configKey: 'presentation',                 attribute: 'presentation',                  converter: toEnum(PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker opens (SPEC §12.9, via web-components-core). `auto` (default) follows the device: the floating popover on desktop, a centered `modal` on tablets, a full-screen sheet on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating` / `modal` / `fullscreen` force that presentation on any device. Ignored when `positioning-mode` is `inline`. Resolved reactively from the device/viewport environment; tune it per device class with the core `responsive` rules.' },
   { configKey: 'shouldFullscreenAutofocus',    attribute: 'fullscreen-autofocus',          converter: toBool('default-false'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
   { configKey: 'isFullscreenInputShown',       attribute: 'show-fullscreen-input',         converter: toBool('default-false'), on: 'update', description: 'In the phone full-screen overlay, relocate the date input into the header so it is visible and typeable above the sheet (with a numeric keypad; the mask supplies the separators). Takes over the header row, so fullscreen-title is not shown alongside it. No effect in floating/modal presentations.' },
-  { configKey: 'compactBelow',                 attribute: 'compact-below',                 converter: toInt({ min: 0 }), on: 'update', description: 'Container-responsive compaction threshold in CSS px. When the element’s OWN box is narrower than this, the calendar collapses to a single month and hides the Today/Clear buttons — keyed on the element box (core’s shared ResizeObserver), not the viewport, so a picker in a narrow column/sidebar compacts even on a wide monitor. Unset or `0` disables it. Purely presentational tweaks (padding, label→icon) belong in CSS `@container`; this drives the structural month-count change.' },
 
   // ── Complex property data (property-only) ─────────────────────────────────
   { configKey: 'specialDates',                 converter: toObjectArray(), on: 'update', type: 'DecoratedDate[]', description: 'Array of decorated-date objects (badges, tooltips, per-day classes). Property-only.' },
@@ -239,7 +237,7 @@ const READONLY_ASPECTS: LockAspect[] = ['selection', 'actions', 'open'];
 
 const NON_PICKER_KEYS = new Set([
   'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize',
-  'presentation', 'getCustomStylesCallback', 'customStyles', 'compactBelow',
+  'presentation', 'getCustomStylesCallback', 'customStyles',
   'name', 'valueFormat', 'valueFormatMask', 'valueSeparator', 'getValueFormatCallback',
   'placeholderFormatMask', 'placeholderTimeFormatMask',
 ]);
@@ -316,13 +314,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   #hasFormatError = false;
   #formatError: unknown = null;
 
-  // Container-responsive compaction (core `sizeChanged` hook). `#narrowMax` is the
-  // px threshold derived from `compact-below` (0 = disabled); `#isNarrow` is the
-  // current state. When narrow, #assembleConfig layers a compact override (1 month,
-  // no Today/Clear) on top of the pristine base config — the config itself is never
-  // mutated, so widening back restores exactly what the consumer authored.
-  #narrowMax = 0;
-  #isNarrow = false;
 
   constructor() {
     super();
@@ -370,13 +361,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       // Presentation policy changed at runtime — the environment observable won't
       // re-fire on its own, so re-resolve against the current environment now.
       this.#applyPresentation(getEnvironment());
-    }
-    if ('compactBelow' in partial) {
-      // Re-evaluate the compaction threshold against the current box; a flip of the
-      // compact state requires a rebuild (month-count is structural).
-      const prev = this.#isNarrow;
-      this.#measureNarrow();
-      if (this.#isNarrow !== prev) this.#rebuildPreservingSelection();
     }
 
     // Everything else goes to the live picker as an in-place patch. Forward `null`
@@ -484,11 +468,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#ensureInput();
     // A reused input keeps its old hint — re-derive it for the (possibly new) modes.
     this.#applyPlaceholder();
-
-    // Seed the responsive-compaction state from the current box BEFORE assembling
-    // config: `sizeChanged()` fires only after layout, so the first build must measure
-    // directly, otherwise a narrow container would flash the wide layout then rebuild.
-    this.#measureNarrow();
 
     const options = this.#assembleConfig();
     this.#picker = new DateRangePickerEngine(this.#inputElement ?? null, options as DatePickerOptions);
@@ -606,14 +585,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // picker resolves per field (`?? default` / falsy reads). Replaces the old per-component
     // delete-null loop.
     const cfg = this.engineConfig(NON_PICKER_KEYS);
-
-    // Container-responsive compaction: layer the compact override on top of the
-    // pristine base (this.config is never mutated, so widening restores it verbatim).
-    if (this.#isNarrow) {
-      cfg.visibleMonthCount = 1;
-      cfg.isTodayButtonShown = false;
-      cfg.isClearButtonShown = false;
-    }
 
     cfg.onChange = (detail: ChangeEventDetail) => this.#handleChange(detail);
     cfg.onAction = (detail: DateRangePickerActionEventDetail) => this.emit('action', detail);
@@ -933,44 +904,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#picker.setPresentation(resolvePresentation(mode, env, { tablet: 'modal' }));
   }
 
-  // ── container-responsive compaction (SPEC §12.9, core `sizeChanged` hook) ──────
-
-  /**
-   * React to THIS element's own box changing (core's shared, per-element
-   * ResizeObserver), as distinct from the viewport. When the box crosses the
-   * `compact-below` threshold we swap between the authored month layout and a
-   * compact one (single month, no wide Today/Clear buttons) so a picker in a
-   * narrow column stays usable — the container-query companion to the
-   * environment-driven `presentation`.
-   *
-   * Month-column count is a STRUCTURAL engine option (no in-place patch), so a
-   * threshold cross rebuilds the picker; the committed selection is snapshotted
-   * and restored so a resize never drops the user's dates. Merely overriding this
-   * hook subscribes the element to the observer (core wires it on connect and
-   * tears it down on disconnect) — cheap even for pickers that never opt in.
-   */
-  protected override sizeChanged({ width }: ElementSize): void {
-    if (width <= 0) return;                       // detached / pre-layout measure
-    const narrow = this.#narrowMax > 0 && width < this.#narrowMax;
-    if (narrow === this.#isNarrow) return;        // no threshold cross → nothing to do
-    this.#isNarrow = narrow;
-    this.#rebuildPreservingSelection();
-  }
-
-  /**
-   * Sync `#narrowMax` from `compact-below` and re-measure the current box into
-   * `#isNarrow`. The single source of truth for the compaction state, called at
-   * build time (before assembling config) and whenever the threshold changes.
-   */
-  #measureNarrow(): void {
-    this.#narrowMax = (this.config.compactBelow as number | null) ?? 0;
-    if (this.#narrowMax <= 0) { this.#isNarrow = false; return; }
-    const width = this.getBoundingClientRect().width;
-    if (width > 0) this.#isNarrow = width < this.#narrowMax;
-  }
-
-  /** Rebuild the picker while carrying the committed selection across (used by the
-   *  structural responsive flip, where the engine can't patch in place). */
+  /** Rebuild the picker while carrying the committed selection across (a structural
+   *  change — e.g. a responsive `container` rule flipping `visibleMonthCount` — can't
+   *  be patched in place). */
   #rebuildPreservingSelection(): void {
     const snap = this.#snapshotSelection();
     this.#rebuildPicker();

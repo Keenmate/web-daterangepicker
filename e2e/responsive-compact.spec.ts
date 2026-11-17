@@ -1,13 +1,13 @@
 import { test, expect, Page, Locator, pickerById } from './fixtures';
 
 /**
- * Container-responsive compaction (`compact-below`, core `sizeChanged` hook).
- *
- * The picker collapses to a single month and sheds its Today/Clear buttons when
- * the element's OWN box drops below the threshold — keyed on the element box (a
- * shared ResizeObserver), NOT the viewport, so it reacts to a resizable container
- * without any window resize. The month count is a structural engine option, so a
- * threshold cross rebuilds the picker; the committed selection must survive that.
+ * Container-responsive compaction through core's responsive `container` axis:
+ * `responsive='{"container":{"narrow":{"visibleMonthCount":1,…}}}'` with the narrow
+ * line moved to 520px (`--base-container-narrow` on the element). It collapses to a
+ * single month and sheds its Today/Clear buttons when the element's OWN box drops
+ * below the line — NOT the viewport, so it reacts to a resizable container without
+ * any window resize. The month count is structural (reinit), so a cross rebuilds the
+ * picker; the committed selection must survive that.
  *
  * Fixture: test/responsive-compact.html
  */
@@ -29,7 +29,7 @@ test.beforeEach(async ({ page }) => {
     await page.goto(PAGE);
 });
 
-test.describe('compact-below', () => {
+test.describe('container axis: narrow = one month', () => {
     test('starts wide: two months, Today + Clear present', async ({ page }) => {
         const p = pickerById(page, 'responsive');
         await expect(monthsOf(p)).toHaveCount(2);
@@ -93,10 +93,18 @@ test.describe('compact-below', () => {
     });
 });
 
-test.describe('control (no compact-below)', () => {
+test.describe('starts narrow', () => {
+    test('one month and no Today/Clear from the first build', async ({ page }) => {
+        const p = pickerById(page, 'narrow');
+        await expect(monthsOf(p)).toHaveCount(1);
+        await expect(p.locator('.drp__button--today')).toHaveCount(0);
+    });
+});
+
+test.describe('control (no responsive map)', () => {
     test('stays two months even in a 420px box', async ({ page }) => {
         const p = pickerById(page, 'control');
-        // Rendered narrow from the start, but with no compact-below it never collapses.
+        // Rendered narrow from the start, but with no responsive map it never collapses.
         await expect(monthsOf(p)).toHaveCount(2);
         await expect(p.locator('.drp__button--today')).toBeVisible();
     });

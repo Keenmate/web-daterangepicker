@@ -2,37 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test — container-responsive compaction (compact-below)</title>
+    <title>Test — container-responsive compaction (responsive container axis)</title>
     <link rel="stylesheet" href="test-fixtures.css">
     <style>
         /* The resizable box is the picker's containing block; the picker fills it,
-           so shrinking the box shrinks the element's OWN border box and drives the
-           core `sizeChanged` hook — no window resize needed. */
+           so shrinking the box shrinks the element's OWN border box and drives core's
+           responsive `container` axis — no window resize needed. The narrow line is
+           moved to 520px with --base-container-narrow on the element. */
         .box { width: 640px; overflow: hidden; }
         web-daterangepicker { display: block; width: 100%; }
+        .compact { --base-container-narrow: 520px; }
     </style>
 </head>
 <body>
     <h1>container-responsive compaction</h1>
     <p>Targeted by <code>e2e/responsive-compact.spec.ts</code>. Inline 2-month range
-       picker with <code>compact-below="520"</code>: when the element's own box drops
-       below 520px it collapses to one month and hides the Today/Clear buttons
-       (keyed on the element box via core's ResizeObserver, not the viewport). A
-       second picker with no <code>compact-below</code> is the control — it never
-       compacts.</p>
+       picker with a <code>responsive</code> container map (narrow = one month, no
+       Today/Clear) and <code>--base-container-narrow: 520px</code>: when the element's
+       own box drops below 520px it collapses (keyed on the element box, not the
+       viewport). A second picker starts narrow (no wide flash); a third, with no map,
+       is the control — it never compacts.</p>
 
     <div class="fixture">
-        <div class="fixture-label">compact-below="520" — collapses under 520px</div>
+        <div class="fixture-label">container narrow (&lt; 520px) — collapses</div>
         <div class="box" id="box">
-            <web-daterangepicker id="responsive" selection-mode="range"
+            <web-daterangepicker id="responsive" class="compact" selection-mode="range"
                 positioning-mode="inline" visible-month-count="2"
-                compact-below="520" show-clear-button="true"
+                responsive='{"container":{"narrow":{"visibleMonthCount":1,"isTodayButtonShown":false,"isClearButtonShown":false}}}'
+                show-clear-button="true"
                 initial-date="2026-06-15"></web-daterangepicker>
         </div>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">control — no compact-below, never collapses</div>
+        <div class="fixture-label">starts narrow — one month from the first build</div>
+        <div class="box" id="box-narrow" style="width: 420px;">
+            <web-daterangepicker id="narrow" class="compact" selection-mode="range"
+                positioning-mode="inline" visible-month-count="2"
+                responsive='{"container":{"narrow":{"visibleMonthCount":1,"isTodayButtonShown":false,"isClearButtonShown":false}}}'
+                show-clear-button="true"
+                initial-date="2026-06-15"></web-daterangepicker>
+        </div>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">control — no responsive map, never collapses</div>
         <div class="box" id="box-control" style="width: 420px;">
             <web-daterangepicker id="control" selection-mode="range"
                 positioning-mode="inline" visible-month-count="2"

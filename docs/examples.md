@@ -94,7 +94,7 @@ phones), **responsive rules** (a `device` / `breakpoint` map, a callback, and an
 instance override beating a per-tag rule), the forced `presentation="modal"` layout with its
 viewport-tier widths (xs / sm / md / lg), container-query inner layout,
 the `labels.fullscreenTitle` heading, the `fullscreen-autofocus` / `show-fullscreen-input`
-options, and container-responsive compaction (`compact-below`).
+options, and container-responsive compaction (the `responsive` map's `container` axis).
 
 ## Time / datetime
 
