@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — locale and paste through core (2026-11-18, core 1.0.0-rc25)
+- **Page-wide locale:** `locale="auto"` (the default) now resolves through core `/locale` — the page-wide
+  `window.components.locale` first, then the browser language. `window.components.locale = { locale: 'cs-CZ' }`
+  localizes every picker without its own `locale`; a page-wide `weekStartDay` applies when `week-start-day`
+  is `auto`. Assigning a new page-wide locale re-renders live pickers (the selection survives).
+- Week start, month and weekday names come from core `getLocaleSettings` / `getMonthNames` /
+  `getWeekdayNames`; the own `Intl` helpers are gone.
+- Paste into the input reads the text through core `readPasteText` (line breaks normalized).
+
 ### Removed — `compact-below` (2026-11-17)
 - **BREAKING:** the `compact-below` attribute / `compactBelow` property is gone — core's responsive
   `container` axis does the same, the way every Keenmate component does it. Before:

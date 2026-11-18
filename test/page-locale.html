@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — page-wide locale (window.components.locale)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>page-wide locale</h1>
+    <p>Targeted by <code>e2e/page-locale.spec.ts</code>. The page sets
+        <code>window.components.locale = { locale: 'cs-CZ' }</code> before the component loads (core /locale).</p>
+
+    <div class="fixture">
+        <div class="fixture-label">no locale attribute — follows the page (cs-CZ: Czech names, Monday first)</div>
+        <web-daterangepicker id="page" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">locale="en-US" — the instance wins over the page (English, Sunday first)</div>
+        <web-daterangepicker id="instance" selection-mode="single" initial-date="2026-06-15" locale="en-US"></web-daterangepicker>
+    </div>
+
+    <script>
+        window.components = window.components || {};
+        window.components.locale = { locale: 'cs-CZ' };
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

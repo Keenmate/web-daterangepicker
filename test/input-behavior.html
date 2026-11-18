@@ -36,6 +36,21 @@
         <web-daterangepicker id="progressive" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
+    <script>
+        // The system clipboard is never touched: the paste specs dispatch a synthetic
+        // ClipboardEvent, and the Clipboard API is stubbed so nothing can reach it.
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText: () => Promise.resolve(), readText: () => Promise.resolve('') },
+        });
+        window.__paste = (input, text) => {
+            const data = new DataTransfer();
+            data.setData('text/plain', text);
+            const event = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true });
+            input.dispatchEvent(event);
+            return event.defaultPrevented;
+        };
+    </script>
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

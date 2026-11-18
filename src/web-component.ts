@@ -125,7 +125,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'disabledDates',                attribute: 'disabled-dates',                converter: toDisabledDates(), on: 'update', type: 'Array<Date | string>', description: 'Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string.' },
   { configKey: 'disabledDatesHandling',        attribute: 'disabled-dates-handling',       converter: toEnum(DISABLED_HANDLING), on: 'update', description: 'Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`.' },
   { configKey: 'shouldHighlightDisabledInRange', attribute: 'highlight-disabled-in-range',   converter: toBool('tristate'), on: 'update', description: 'Visually mark disabled dates that fall inside a selected range.' },
-  { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ default: 'auto' }), on: 'update', description: 'BCP-47 locale for the `Intl` month / weekday names, or `auto` (the browser language). UI strings are `labels`.' },
+  { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ default: 'auto' }), on: 'update', description: 'BCP-47 locale for the `Intl` month / weekday names and the `auto` week start, or `auto` (the page-wide `window.components.locale`, else the browser language). UI strings are `labels`.' },
   { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws), `loading` (accessible label of the loaders). Property, or a JSON attribute: `labels=\'{"today":"Heute","days":"{count} Tage"}\'`. Month / weekday names come from `Intl` via `locale`.' },
   { configKey: 'monthNames',                   attribute: 'month-names',                   converter: toPipeList(12), on: 'update', type: 'string[]', description: 'Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`.' },
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
@@ -869,6 +869,17 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    */
   protected override directionChanged(_isRtl: boolean): void {
     this.#picker?.renderCalendar();
+  }
+
+  // ── page-wide locale (core `/locale`, SPEC §12.24) ────────────────────────
+
+  /**
+   * `window.components.locale` changed (core hook — overriding opts in). The picker
+   * re-resolves its locale, week start and month / weekday names and repaints;
+   * the selection survives.
+   */
+  protected override localeChanged(): void {
+    this.#picker?.refreshLocale();
   }
 
   // ── responsive presentation (SPEC §12.9) ──────────────────────────────────

@@ -190,6 +190,8 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | `locale="auto"` detects from browser (de-DE / en-US)          | ✓      | `locale.spec.ts`             | `locale.html`             |
 | Explicit `locale="de"` / `"fr"` / etc.                        | ✓      | `locale.spec.ts`             | `locale.html`             |
+| Page-wide `window.components.locale` localizes pickers without `locale`; instance wins; runtime change re-renders | ✓ | `page-locale.spec.ts` | `page-locale.html` |
+| Paste: core `readPasteText`, cleaned + masked (synthetic ClipboardEvent, clipboard stubbed) | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
 | `labels` overrides individual UI strings (property + JSON attribute, `{count}`, live update); `locale` only changes Intl names | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `monthNames` override (property)                              | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `month-names` override (pipe-delimited attribute)             | ✓      | `locale.spec.ts`             | `locale.html`             |

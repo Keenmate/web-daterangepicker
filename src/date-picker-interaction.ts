@@ -9,6 +9,7 @@ import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, for
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
+import { readPasteText } from '@keenmate/web-components-core';
 
 // === DRAG FUNCTIONALITY ===
 
@@ -766,7 +767,7 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
 export function handlePaste(picker: any, event: ClipboardEvent) {
     event.preventDefault();
 
-    const pastedText = event.clipboardData?.getData('text') || '';
+    const pastedText = readPasteText(event);
     const { separator } = picker.formatInfo;
 
     // Clean pasted content: keep only digits and separators

@@ -7,53 +7,6 @@
 import type { DateRange } from './types';
 
 /**
- * The first column of the week: the given weekday index, or for `'auto'` the
- * locale's first day — `locale` is the picker's resolved `locale` input (a BCP-47
- * tag), so `locale="de"` starts on Monday on an en-US browser too.
- */
-export function detectWeekStartDay(weekStartDay: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6 | null | undefined, locale: string): number {
-    // Unset (an input reset to its default) means `auto`.
-    if (weekStartDay != null && weekStartDay !== 'auto') {
-        return weekStartDay;
-    }
-
-    // Intl.Locale week info: `getWeekInfo()` (current spec; Firefox, Chrome 130+) or the
-    // older `weekInfo` getter (Chrome 99–129, Safari 17+). firstDay: 1 = Monday … 7 = Sunday;
-    // we need 0 = Sunday, 1 = Monday.
-    try {
-        const intlLocale = new Intl.Locale(locale) as Intl.Locale & {
-            getWeekInfo?: () => { firstDay?: number };
-            weekInfo?: { firstDay?: number };
-        };
-        const firstDay = (typeof intlLocale.getWeekInfo === 'function' ? intlLocale.getWeekInfo() : intlLocale.weekInfo)?.firstDay;
-        if (typeof firstDay === 'number' && firstDay >= 1 && firstDay <= 7) {
-            return firstDay === 7 ? 0 : firstDay;
-        }
-    } catch (e) {
-        // Invalid tag or no week info — fall back below.
-    }
-
-    // Fallback: locale-based detection
-    const tag = locale.toLowerCase();
-
-    // Countries/regions that start week on Sunday
-    const sundayCountries = [
-        'en-us', 'en-ca', // US, Canada
-        'ja', 'ja-jp',    // Japan
-        'he', 'he-il',    // Israel
-        'ar-sa', 'ar-ae', // Saudi Arabia, UAE
-        'ko', 'ko-kr'     // South Korea
-    ];
-
-    if (sundayCountries.some(country => tag.startsWith(country))) {
-        return 0; // Sunday
-    }
-
-    // Default to Monday for most of the world
-    return 1;
-}
-
-/**
  * Normalize a date input (string or Date) to a Date object.
  *
  * @param preserveTime When false (default), the time component is zeroed to

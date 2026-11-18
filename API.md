@@ -110,7 +110,7 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `disabled-dates` | `Array<Date \| string>` | — | Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string. |
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual' \| null` | — | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
 | `highlight-disabled-in-range` | `boolean \| null` | `null` | Visually mark disabled dates that fall inside a selected range. |
-| `locale` | `string` | `'auto'` | BCP-47 locale for the `Intl` month / weekday names, or `auto` (the browser language). UI strings are `labels`. |
+| `locale` | `string` | `'auto'` | BCP-47 locale for the `Intl` month / weekday names and the `auto` week start, or `auto` (the page-wide `window.components.locale`, else the browser language). UI strings are `labels`. |
 | `labels` | `Partial<DateRangePickerLabels>` | — | UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws), `loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"today":"Heute","days":"{count} Tage"}'`. Month / weekday names come from `Intl` via `locale`. |
 | `month-names` | `string[]` | — | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
 | `weekday-names` | `string[]` | — | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
@@ -1650,7 +1650,7 @@ The web component provides convenient property accessors for JavaScript:
 | `disabledDates` | `Array<Date \| string>` | Read/Write | Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string. |
 | `disabledDatesHandling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual' \| null` | Read/Write | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
 | `shouldHighlightDisabledInRange` | `boolean \| null` | Read/Write | Visually mark disabled dates that fall inside a selected range. |
-| `locale` | `string` | Read/Write | BCP-47 locale for the `Intl` month / weekday names, or `auto` (the browser language). UI strings are `labels`. |
+| `locale` | `string` | Read/Write | BCP-47 locale for the `Intl` month / weekday names and the `auto` week start, or `auto` (the page-wide `window.components.locale`, else the browser language). UI strings are `labels`. |
 | `labels` | `Partial<DateRangePickerLabels>` | Read/Write | UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws), `loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"today":"Heute","days":"{count} Tage"}'`. Month / weekday names come from `Intl` via `locale`. |
 | `monthNames` | `string[]` | Read/Write | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
 | `weekdayNames` | `string[]` | Read/Write | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
@@ -1826,11 +1826,13 @@ The date picker provides comprehensive i18n support with automatic browser detec
 <web-daterangepicker locale="auto"></web-daterangepicker>
 ```
 
-The picker will:
-1. Detect the user's browser language (`navigator.language`)
-2. Use built-in translations if available (`en`, `de`, `fr`, `es`)
-3. Fall back to English if locale is not supported
-4. Use Intl API for weekday and month names
+The picker resolves the locale through core `/locale`:
+1. The page-wide `window.components.locale.locale` (e.g. `window.components.locale = { locale: 'cs-CZ' }`), else
+2. the browser language, else `en-US`.
+3. Weekday and month names come from `Intl`; `week-start-day="auto"` follows the locale (or the page-wide `weekStartDay`).
+4. UI strings stay English unless translated via `labels`.
+
+Assigning a new `window.components.locale` re-renders live pickers.
 
 #### Built-in Locales
 

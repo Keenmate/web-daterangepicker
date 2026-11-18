@@ -21,7 +21,8 @@ import * as Selection from './date-picker-selection';
 import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
-import { resolveLocale, resolveLabels, formatLabel, getWeekdayNames, getMonthNames } from './date-picker-locales';
+import { resolveLabels, formatLabel } from './date-picker-locales';
+import { getLocaleSettings, getMonthNames, getWeekdayNames } from '@keenmate/web-components-core/locale';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
@@ -364,15 +365,9 @@ class DateRangePickerEngine {
         }
 
         // Initialize internationalization
-        this.locale = resolveLocale(this.options.locale);
-        // Week start day — `auto` follows the resolved locale (not the browser language)
-        this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay, this.locale);
-        drpLogger.debug('Week starts on day:', this.weekStartDay);
+        this.applyLocale();
         drpLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
         this.labels = resolveLabels(this.options.labels);
-        this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
-        this.monthNames = this.options.monthNames || getMonthNames(this.locale);
-        drpLogger.debug('Locale:', this.locale, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
 
         // Normalize date restrictions
         this.initializeDateRestrictions();
@@ -630,6 +625,35 @@ class DateRangePickerEngine {
     }
 
     /**
+     * Resolve the locale-derived state through core `/locale` (SPEC §12.24): the
+     * `locale` input → page-wide `window.components.locale` → the browser language;
+     * the week start likewise (`weekStartDay` input → page-wide → the locale's own);
+     * month / weekday names from `Intl` unless given explicitly.
+     */
+    private applyLocale(): void {
+        const weekStartDay = this.options.weekStartDay;
+        const settings = getLocaleSettings(
+            { locale: this.options.locale, weekStartDay: typeof weekStartDay === 'number' ? weekStartDay : undefined },
+            this.options.hostElement,
+        );
+        this.locale = settings.locale;
+        this.weekStartDay = settings.weekStartDay;
+        this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale, 'short');
+        this.monthNames = this.options.monthNames || getMonthNames(this.locale, 'long');
+        drpLogger.debug('Locale:', this.locale, 'Week start:', this.weekStartDay, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
+    }
+
+    /**
+     * The page-wide locale (`window.components.locale`) changed: re-resolve the
+     * locale-derived state and re-render. Selection / navigation state survives.
+     */
+    refreshLocale(): void {
+        this.applyLocale();
+        this.renderCalendar();
+        this.updateSummary();
+    }
+
+    /**
      * Apply a partial options update in place.
      *
      * Refreshes derived state (locale strings, format info, normalized date sets,
@@ -684,16 +708,9 @@ class DateRangePickerEngine {
         }
 
         // Refresh derived state where touched.
-        if (has('locale') || has('labels') || has('monthNames') || has('weekdayNames')) {
-            this.locale = resolveLocale(this.options.locale);
-            this.labels = resolveLabels(this.options.labels);
-            this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale);
-            this.monthNames = this.options.monthNames || getMonthNames(this.locale);
-        }
+        if (has('labels')) this.labels = resolveLabels(this.options.labels);
         // `auto` follows the locale, so a locale change moves the week start too.
-        if (has('weekStartDay') || has('locale')) {
-            this.weekStartDay = Validation.detectWeekStartDay(this.options.weekStartDay, this.locale);
-        }
+        if (has('locale') || has('monthNames') || has('weekdayNames') || has('weekStartDay')) this.applyLocale();
         if (has('dateFormatMask')) {
             this.formatInfo = this.parseFormat(this.options.dateFormatMask);
         }

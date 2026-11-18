@@ -119,6 +119,25 @@ test('range: a compact bare "-" between the two dates is accepted and normalised
 });
 
 // =============================================================================
+// paste (core readPasteText) — a synthetic ClipboardEvent, never the system clipboard
+// =============================================================================
+
+test('paste: the pasted text is cleaned to digits + separators and masked', async ({ page }) => {
+    const inp = inputOf(pickerById(page, 'iso'));
+    await inp.focus();
+    const isPrevented = await inp.evaluate((el: HTMLInputElement) => (window as any).__paste(el, ' 2026/06/10\r\n'));
+    expect(isPrevented).toBe(true);
+    await expect(inp).toHaveValue('2026-06-10');
+});
+
+test('paste: DD.MM.YYYY mask applies to the pasted digits', async ({ page }) => {
+    const inp = inputOf(pickerById(page, 'eu'));
+    await inp.focus();
+    await inp.evaluate((el: HTMLInputElement) => (window as any).__paste(el, '10062026'));
+    await expect(inp).toHaveValue('10.06.2026');
+});
+
+// =============================================================================
 // inline clear (✕) button
 // =============================================================================
 
