@@ -156,10 +156,12 @@ class DateRangePickerEngine {
     /** True while revealDay moves roving focus (it scrolls itself — the grid's shouldScroll stays out). */
     isRevealingDay = false;
 
-    // Floating UI tooltips
-    private tooltip?: HTMLElement;
-    private tooltipArrow?: HTMLElement;
-    private currentTooltipTarget?: HTMLElement;
+    /**
+     * The day / badge tooltip — ONE core `createTooltip` delegated over the calendar
+     * (SPEC §12.2): hover, keyboard focus (days take real focus — roving grid), Escape,
+     * tap-toggle for badges on touch. Its `element` is mounted only while shown.
+     */
+    private dayTooltip?: TooltipHandle;
 
     // Message area
     private messageElement?: HTMLElement;
@@ -978,6 +980,46 @@ class DateRangePickerEngine {
         });
     }
 
+    /**
+     * The day / badge tooltip: ONE core `createTooltip` in delegated mode over the calendar
+     * (SPEC §12.2) for every `.drp__day` / `.drp__badge-cell` carrying `data-tooltip` (the
+     * `dayTooltip` / `badgeTooltip` members or `getDayTooltipCallback` /
+     * `getBadgeTooltipCallback`, written at render). The content is that attribute's HTML (a
+     * documented HTML slot), read at every show; empty = no tooltip. Shows on hover AND on
+     * keyboard focus (days take real focus — the roving grid), Escape hides it. Touch: a tap
+     * toggles a BADGE's tooltip (badges do nothing else on a tap); a day's tap selects it, so
+     * hover-less devices get no day tooltip (beforeShowCallback). Shown at once (no delay),
+     * mounted in the picker's container, `position: fixed` resolved from the tooltip (a hovered
+     * badge is itself a containing block — `transform`).
+     */
+    private createDayTooltip(): void {
+        this.dayTooltip?.destroy();
+        const arrow = document.createElement('div');
+        arrow.className = 'drp__tooltip-arrow';
+        this.dayTooltip = createTooltip({
+            trigger: this.calendar,
+            selector: '.drp__day[data-tooltip], .drp__badge-cell[data-tooltip]',
+            content: (target) => {
+                const html = target.dataset.tooltip;
+                if (!html) return null;
+                const el = document.createElement('div');
+                el.className = 'drp__tooltip-content';
+                el.innerHTML = html; // HTML content slot (escaped into the attribute, decoded here)
+                return el;
+            },
+            container: this.containerElement,
+            strategy: 'fixed',
+            placement: 'top',
+            offset: 6,
+            arrow,
+            shouldUseFixedContainingBlock: true,
+            shouldToggleOnTap: true,
+            cssClass: 'drp__tooltip',
+            visibleClass: 'drp__tooltip--visible',
+            beforeShowCallback: (target) => this.supportsHover() || !target.matches('.drp__day'),
+        });
+    }
+
     private destroyAllActionButtonTooltips(): void {
         this.actionButtonTooltipInstances.forEach(t => t.destroy());
         this.actionButtonTooltipInstances = [];
@@ -1494,13 +1536,7 @@ class DateRangePickerEngine {
         this.containerElement.appendChild(this.calendar);
         drpLogger.debug('Calendar appended to container:', this.calendar);
 
-        // Create tooltip for Floating UI
-        this.tooltip = document.createElement('div');
-        this.tooltip.className = 'drp__tooltip';
-        this.tooltipArrow = document.createElement('div');
-        this.tooltipArrow.className = 'drp__tooltip-arrow';
-        this.tooltip.appendChild(this.tooltipArrow);
-        this.containerElement.appendChild(this.tooltip);
+        this.createDayTooltip();
 
         this.attachCalendarListeners();
 
@@ -1601,25 +1637,8 @@ class DateRangePickerEngine {
             // Stop propagation to prevent "close on outside click" from firing
             e.stopPropagation();
 
-            // Touch badge tooltips: on hover-less devices (phone full-screen sheet,
-            // tablets) a badge's tooltip can't show on hover, so a tap toggles it.
-            // Gated on `!supportsHover()` so desktop keeps the mouseenter/leave path
-            // untouched. A tap on the same badge (or an empty badge) closes it; a tap
-            // anywhere else in the calendar dismisses an open badge tooltip before the
-            // tap's own action runs. Badge cells drive nothing else, so we return.
-            if (!this.supportsHover()) {
-                const badgeCell = target.closest('.drp__badge-cell') as HTMLElement | null;
-                if (badgeCell) {
-                    const tip = badgeCell.dataset.tooltip;
-                    if (tip && this.currentTooltipTarget !== badgeCell) {
-                        this.showTooltip(badgeCell, tip);
-                    } else {
-                        this.hideTooltip();
-                    }
-                    return;
-                }
-                if (this.currentTooltipTarget) this.hideTooltip();
-            }
+            // Touch badge tooltips (a tap toggles, a tap elsewhere closes) are core's
+            // `shouldToggleOnTap` on the day tooltip (createDayTooltip).
 
             // Action items: footer buttons and consumer HTML (message / summary / custom
             // renderers) carrying `data-action`. Internal controls use `data-drp-action`.
@@ -1781,37 +1800,6 @@ class DateRangePickerEngine {
             // A click elsewhere closes an open year / month selector through core's outside click
             // (syncSelectorOverlays).
         });
-
-        // Tooltip event delegation (for both days and badge cells). Hover-only:
-        // touch devices report `(hover: none)` and get tap-to-toggle tooltips in the
-        // click handler instead. Bailing here also avoids the synthesized mouseenter
-        // that a tap fires from showing a tooltip the same tap would then toggle off.
-        this.calendar.addEventListener('mouseenter', (e) => {
-            if (!this.supportsHover()) return;
-            const target = e.target as HTMLElement;
-            const day = target.closest('.drp__day');
-            const badgeCell = target.closest('.drp__badge-cell');
-
-            const element = day || badgeCell;
-            if (element && element instanceof HTMLElement) {
-                const tooltip = element.dataset.tooltip;
-                if (tooltip) {
-                    this.showTooltip(element, tooltip);
-                }
-            }
-        }, true); // Use capture phase to catch events on child elements
-
-        this.calendar.addEventListener('mouseleave', (e) => {
-            if (!this.supportsHover()) return;
-            const target = e.target as HTMLElement;
-            const day = target.closest('.drp__day');
-            const badgeCell = target.closest('.drp__badge-cell');
-
-            const element = day || badgeCell;
-            if (element && this.currentTooltipTarget === element) {
-                this.hideTooltip();
-            }
-        }, true);
 
         // Hover preview: paint the would-be range while the user is in the
         // half-selected state (start clicked, end pending). Drag has its own
@@ -3088,9 +3076,8 @@ class DateRangePickerEngine {
         this.isSuspended = false;
 
         this.calendar.remove();
-        if (this.tooltip) {
-            this.tooltip.remove();
-        }
+        this.dayTooltip?.destroy();
+        this.dayTooltip = undefined;
         if ((this as any).modalBackdrop) {
             (this as any).modalBackdrop.remove();
             (this as any).modalBackdrop = null;
@@ -3136,8 +3123,10 @@ class DateRangePickerEngine {
     }
     toggle() { return UI.toggle(this); }
     position() { return UI.position(this); }
-    showTooltip(element: HTMLElement, content: string) { return UI.showTooltip(this, element, content); }
-    hideTooltip() { return UI.hideTooltip(this); }
+    /** Hide the day / badge tooltip now (close, deactivate). */
+    hideTooltip() { this.dayTooltip?.hide(); }
+    /** The day / badge tooltip element (mounted only while shown) — inside the calendar for outside clicks. */
+    get dayTooltipElement(): HTMLElement | undefined { return this.dayTooltip?.element; }
     /** Bumped by every public showMessage — lets beforeSelectCallback detect a message the consumer showed. */
     messageSeq = 0;
     /** Show a message; `opts.variant` styles it (omit for raw-HTML content), `opts.autoHideMs` hides it after that many ms. */

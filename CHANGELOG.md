@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — day / badge tooltip on core `createTooltip` (2026-11-18, core 1.0.0-rc25)
+- **Added (accessibility): the day tooltip shows on keyboard focus too** — a day that receives focus (Tab into
+  the grid, arrows) shows its tooltip, the same as on hover; a focused day keeps it while the pointer moves away,
+  and **Escape** hides it (WCAG 1.4.13). The tooltip is `role="tooltip"` and the day / badge gets
+  `aria-describedby` while it shows.
+- Internal: the engine's own tooltip layer (one shared element over `anchor()`, capture-phase
+  mouseenter / mouseleave, the touch tap-toggle branch in the click handler) is gone — ONE delegated core
+  `createTooltip` over the calendar serves every `.drp__day` / `.drp__badge-cell` with `data-tooltip` (content =
+  that HTML, read at every show; `dayTooltip` / `badgeTooltip` members and `getDayTooltipCallback` /
+  `getBadgeTooltipCallback` unchanged). Same classes (`.drp__tooltip`, `--visible`, `-arrow`; the HTML now sits
+  in a `.drp__tooltip-content` box), `--drp-tooltip-*` variables, shown at once (no delay) as before. Touch: a tap
+  toggles a badge's tooltip (core `shouldToggleOnTap`), days show none on hover-less devices — as before.
+- Differences: the tooltip element is mounted only while shown (not kept hidden in the container); fade-in kept
+  (`@starting-style`), a hidden tooltip is removed at once (no fade-out); it follows its day while shown
+  (autoUpdate). The engine's internal `showTooltip(element, html)` is removed (`hideTooltip()` stays).
+
 ### Changed — render callbacks through core `renderSlot` (2026-11-18, core 1.0.0-rc25)
 - `renderDayCallback`, `renderDayContentCallback` and `renderSummaryCallback` read their result by core's one
   rule (`renderSlot`): a string is HTML, a Node (element, fragment) is mounted, `null` / `undefined` draws the

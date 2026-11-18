@@ -30,6 +30,14 @@
   opacity: 1;
 }
 
+/* core createTooltip mounts the tooltip and marks it visible in one go: fade in from 0
+   (a hidden tooltip is removed at once — no fade-out) */
+@starting-style {
+  .drp__tooltip--visible {
+    opacity: 0;
+  }
+}
+
 /* Tooltip arrow */
 .drp__tooltip-arrow {
   position: absolute;

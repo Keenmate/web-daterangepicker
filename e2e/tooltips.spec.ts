@@ -32,6 +32,34 @@ test('day-cell tooltip becomes --visible when hovering a day that has tooltip te
     await expect(tip).toContainText('Special day 15');
 });
 
+test('day-cell tooltip shows on hover AND on keyboard focus (core createTooltip, delegated)', async ({ page }) => {
+    const p = await open(page, 'day-tip');
+    const day15 = dayByDate(p, '2026-06-15');
+
+    // hover
+    await day15.hover();
+    const tip = dayTooltip(p);
+    await expect(tip).toHaveClass(/drp__tooltip--visible/);
+    await expect(tip).toContainText('Special day 15');
+    await expect(tip).toHaveAttribute('role', 'tooltip');
+    const id = await tip.getAttribute('id');
+    await expect(day15).toHaveAttribute('aria-describedby', new RegExp(id!));
+
+    // pointer away: hidden (removed)
+    await page.mouse.move(0, 0);
+    await expect(p.locator('.drp__tooltip--visible')).toHaveCount(0);
+
+    // keyboard: real focus moves onto the day (roving grid) and shows its tooltip
+    await dayByDate(p, '2026-06-14').focus();
+    await expect(p.locator('.drp__tooltip--visible')).toHaveCount(0);   // 14 has no tooltip
+    await page.keyboard.press('ArrowRight');
+    await expect(day15).toBeFocused();
+    await expect(dayTooltip(p)).toHaveClass(/drp__tooltip--visible/);
+    await expect(dayTooltip(p)).toContainText('Special day 15');
+    await page.keyboard.press('ArrowRight');                               // 16: none → hidden
+    await expect(p.locator('.drp__tooltip--visible')).toHaveCount(0);
+});
+
 test('day-cell tooltip uses position: fixed (so it escapes overflow ancestors)', async ({ page }) => {
     const p = await open(page, 'day-tip');
 
@@ -44,7 +72,7 @@ test('hovering a day without tooltip text does not show the tooltip element', as
     const p = await open(page, 'day-tip');
 
     await dayByDate(p, '2026-06-14').hover();
-    await expect(dayTooltip(p)).not.toHaveClass(/drp__tooltip--visible/);
+    await expect(p.locator('.drp__tooltip--visible')).toHaveCount(0);
 });
 
 // =============================================================================

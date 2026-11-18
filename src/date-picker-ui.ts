@@ -8,11 +8,12 @@
 // All positioning goes through core `@keenmate/web-components-core/positioning`:
 // the calendar is a core `createPopover()` (anchoring, the overlay tree — group
 // exclusivity, Escape, outside click — and the scroll / resize close), the day/badge
-// tooltips a bare `anchor()`. Both use the first-class `shouldUseFixedContainingBlock`
+// tooltip a delegated core `createTooltip()` (date-picker.ts createDayTooltip). Both use
+// the first-class `shouldUseFixedContainingBlock`
 // (the narrowed containing-block heuristic); the calendar adds `onDrift` (the drift
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
-import { anchor, createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
+import { createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
 import { adoptStyles, announce, claimBackEntry, createSheetHeader, findScrollContainer, guardGhostClick, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS, startModalSession } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
@@ -330,7 +331,7 @@ function createCalendarPopover(picker: any, isAnchored: boolean) {
         shouldCloseOnOutsideClick: () => picker.presentation === 'floating' && picker.closesOnOutsideClick(),
         // External trigger buttons and the day / badge tooltip don't count as outside.
         getInsideElements: () => [
-            picker.tooltip,
+            picker.dayTooltipElement,
             ...(typeof document !== 'undefined' ? Array.from(document.querySelectorAll('[data-calendar-button]')) : []),
         ],
         shouldCloseOnScroll: () => picker.closesOnScroll(),
@@ -679,46 +680,9 @@ export function position(picker: any) {
     picker.calendarPopover?.update();
 }
 
-/**
- * Show tooltip using Floating UI
- */
-export function showTooltip(picker: any, element: HTMLElement, content: string) {
-    if (!picker.tooltip || !picker.tooltipArrow) return;
-
-    picker.currentTooltipTarget = element;
-    picker.tooltip.innerHTML = content; // Support HTML content
-    picker.tooltip.appendChild(picker.tooltipArrow); // Re-append arrow after setting innerHTML
-    picker.tooltip.classList.add('drp__tooltip--visible');
-
-    // Position via core anchor() — offset/flip/shift + arrow, plus the narrowed
-    // fixed-CB heuristic (`shouldUseFixedContainingBlock`), resolved from the FLOATING element
-    // (the tooltip), NOT the reference `element`: a badge cell is itself a
-    // fixed-positioning containing block (`transform` on hover), so measuring the
-    // reference would return badge-relative coordinates that render off-screen.
-    // The day/badge tooltip reuses ONE shared element across cells (event
-    // delegation), so replace any prior anchor. shouldAutoUpdate:false = single compute,
-    // matching the previous one-shot behaviour (the tooltip lives only while hovered).
-    picker.tooltipAnchor?.destroy();
-    picker.tooltipAnchor = anchor(picker.tooltip, element, {
-        placement: 'top',
-        strategy: 'fixed',
-        offset: 6,
-        shift: 5,
-        arrow: { element: picker.tooltipArrow },
-        shouldUseFixedContainingBlock: true,
-        shouldAutoUpdate: false,
-    });
-}
-
-/**
- * Hide tooltip
- */
+/** Hide the day / badge tooltip (core createTooltip, owned by the engine). */
 export function hideTooltip(picker: any) {
-    if (!picker.tooltip) return;
-    picker.tooltipAnchor?.destroy();
-    picker.tooltipAnchor = undefined;
-    picker.tooltip.classList.remove('drp__tooltip--visible');
-    picker.currentTooltipTarget = undefined;
+    picker.hideTooltip?.();
 }
 
 /**
