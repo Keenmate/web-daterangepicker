@@ -6,7 +6,7 @@
  */
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
-import { escapeHtml } from '@keenmate/web-components-core';
+import { escapeHtml, renderSlot } from '@keenmate/web-components-core';
 import { getWeekdayNames } from '@keenmate/web-components-core/locale';
 import { scrollOnOwn } from './date-picker-ui';
 import { hasEnabledDaysInYear } from './date-picker-validation';
@@ -638,40 +638,31 @@ function processRenderCallbacks(picker: any, monthIndex: number, daysContainer: 
             cellElement: element
         });
 
-        // Priority: renderDayCallback (full replacement) > renderDayContentCallback (augmentation)
+        if (!slot) return;
+        const cell = slot as HTMLElement;
+
+        // Priority: renderDayCallback (full replacement) > renderDayContentCallback (augmentation).
+        // Core renderSlot reads the result: string = HTML, Node = mounted, null / undefined = the
+        // default (the day number), false = hidden (the cell stays, its content is empty).
         if (picker.options.renderDayCallback) {
             try {
-                const result = picker.options.renderDayCallback(renderData);
-                if (result !== null && result !== undefined) {
-                    // Replace slot content with callback result
-                    if (typeof result === 'string') {
-                        if (slot) {
-                            slot.innerHTML = result;
-                        }
-                    } else if (result instanceof HTMLElement) {
-                        if (slot) {
-                            slot.innerHTML = '';
-                            slot.appendChild(result);
-                        }
-                    }
-                }
+                renderSlot(cell, () => picker.options.renderDayCallback(renderData), {
+                    renderDefault: (c) => { c.textContent = String(dayNumber); },
+                });
             } catch (error) {
                 renderingLogger.error('Error in renderDayCallback:', error);
             }
         } else if (picker.options.renderDayContentCallback) {
             try {
                 const result = picker.options.renderDayContentCallback(renderData);
-                if (result !== null && result !== undefined) {
-                    // Append to default content (augmentation)
-                    if (typeof result === 'string') {
-                        if (slot) {
-                            slot.innerHTML += result;
-                        }
-                    } else if (result instanceof HTMLElement) {
-                        if (slot) {
-                            slot.appendChild(result);
-                        }
-                    }
+                if (result === false) {
+                    renderSlot(cell, false); // the day's content (number included) hidden
+                } else if (result != null) {
+                    // Added after the day number, in a `display: contents` box.
+                    const extra = document.createElement('span');
+                    extra.className = 'drp__day-extra';
+                    cell.appendChild(extra);
+                    renderSlot(extra, result);
                 }
             } catch (error) {
                 renderingLogger.error('Error in renderDayContentCallback:', error);
@@ -1348,7 +1339,7 @@ export function updateSummary(picker: any) {
     // until the next selection change clears picker.summaryOverride.
     if (picker.summaryOverride != null) {
         summary.className = 'drp__summary drp__summary--visible';
-        summary.innerHTML = picker.summaryOverride;
+        renderSlot(summary, String(picker.summaryOverride));
         reapplySummaryLoader(picker, summary);
         return;
     }
@@ -1415,8 +1406,9 @@ export function updateSummary(picker: any) {
         summary.className = 'drp__summary drp__summary--visible';
 
         // Check if custom formatter exists
+        let callbackData: any = null;
         if (picker.options.renderSummaryCallback) {
-            const callbackData: any = picker.ctx({
+            callbackData = picker.ctx({
                 days,
                 nights,
                 startDate: picker._selectedStartDate,
@@ -1433,18 +1425,20 @@ export function updateSummary(picker: any) {
             if (dates) callbackData.dates = dates;
             if (dateRanges) callbackData.dateRanges = dateRanges;
 
-            summary.innerHTML = picker.options.renderSummaryCallback(callbackData);
-        } else {
-            // Default format
-            summary.innerHTML = `
+        }
+        // Core renderSlot: string = HTML, Node = mounted, null / undefined = the default, false = hidden.
+        renderSlot(summary, () => callbackData ? picker.options.renderSummaryCallback(callbackData) : null, {
+            renderDefault: (c) => {
+                c.innerHTML = `
                 <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'day' : 'days', { count: days })}</span>
                 <span>, </span>
                 <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'night' : 'nights', { count: nights })}</span>
             `;
-        }
+            },
+        });
     } else {
         summary.className = 'drp__summary drp__summary--hidden';
-        summary.innerHTML = '';
+        renderSlot(summary, null);
     }
 
     reapplySummaryLoader(picker, summary);
@@ -1459,7 +1453,7 @@ export function updateSummaryWithPreview(picker: any) {
     // An active override suppresses drag/hover preview too (keeps pinned content stable).
     if (picker.summaryOverride != null) {
         summary.className = 'drp__summary drp__summary--visible';
-        summary.innerHTML = picker.summaryOverride;
+        renderSlot(summary, String(picker.summaryOverride));
         reapplySummaryLoader(picker, summary);
         return;
     }
@@ -1514,8 +1508,9 @@ export function updateSummaryWithPreview(picker: any) {
         summary.className = 'drp__summary drp__summary--visible';
 
         // Check if custom formatter exists
+        let callbackData: any = null;
         if (picker.options.renderSummaryCallback) {
-            const callbackData: any = picker.ctx({
+            callbackData = picker.ctx({
                 days,
                 nights,
                 startDate: picker.dragPreviewStart,
@@ -1532,16 +1527,18 @@ export function updateSummaryWithPreview(picker: any) {
             if (dates) callbackData.dates = dates;
             if (dateRanges) callbackData.dateRanges = dateRanges;
 
-            summary.innerHTML = picker.options.renderSummaryCallback(callbackData);
-        } else {
-            // Default format with preview label
-            summary.innerHTML = `
+        }
+        // Core renderSlot: string = HTML, Node = mounted, null / undefined = the default, false = hidden.
+        renderSlot(summary, () => callbackData ? picker.options.renderSummaryCallback(callbackData) : null, {
+            renderDefault: (c) => {
+                c.innerHTML = `
                 <span style="opacity: 0.7;">${picker.labels.html('preview')}: </span>
                 <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'day' : 'days', { count: days })}</span>
                 <span>, </span>
                 <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'night' : 'nights', { count: nights })}</span>
             `;
-        }
+            },
+        });
     }
 
     reapplySummaryLoader(picker, summary);

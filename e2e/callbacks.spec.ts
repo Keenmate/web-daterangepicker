@@ -31,6 +31,49 @@ test('renderDayContentCallback appends additional HTML into the matched day cell
 });
 
 // =============================================================================
+// render*Callback results (core renderSlot): string = HTML, Node = mounted,
+// null / undefined = the default, false = hidden
+// =============================================================================
+
+test('renderDayCallback: false hides the content, null draws the default, a string is HTML, a Node is mounted', async ({ page }) => {
+    const p = pickerById(page, 'slot-results');
+    await p.evaluate((el: any) => {
+        el.renderDayCallback = ({ dayNumber }: any) => {
+            if (dayNumber === 15) return false;
+            if (dayNumber === 16) return null;
+            if (dayNumber === 17) return '<b data-testid="html">17!</b>';
+            if (dayNumber === 18) { const i = document.createElement('i'); i.dataset.testid = 'node'; i.textContent = '18?'; return i; }
+            return undefined;
+        };
+        return el.whenSettled();
+    });
+    await expect(dayByDate(p, '2026-06-15')).toHaveCount(1);
+    await expect(dayByDate(p, '2026-06-15')).toHaveText('');
+    await expect(dayByDate(p, '2026-06-16')).toHaveText('16');
+    await expect(dayByDate(p, '2026-06-17').locator('[data-testid="html"]')).toHaveText('17!');
+    await expect(dayByDate(p, '2026-06-18').locator('[data-testid="node"]')).toHaveText('18?');
+    await expect(dayByDate(p, '2026-06-19')).toHaveText('19');
+});
+
+test('renderSummaryCallback: false hides the summary, null draws the default', async ({ page }) => {
+    const p = pickerById(page, 'slot-results');
+    const summary = p.locator('.drp__summary');
+    await p.evaluate((el: any) => { (window as any).__summary = false; el.renderSummaryCallback = () => (window as any).__summary; return el.whenSettled(); });
+    await dayByDate(p, '2026-06-10').click();
+    await dayByDate(p, '2026-06-12').click();
+    await expect(summary).toHaveClass(/drp__summary--visible/); // a range is picked …
+    await expect(summary).toHaveAttribute('hidden', '');       // … but the callback hid the block
+    await expect(summary).toBeHidden();
+
+    await p.evaluate(() => { (window as any).__summary = null; });
+    await dayByDate(p, '2026-06-20').click();
+    await dayByDate(p, '2026-06-23').click();
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText('4');
+    await expect(summary).toContainText('3');
+});
+
+// =============================================================================
 // getMonthHeaderCallback
 // =============================================================================
 

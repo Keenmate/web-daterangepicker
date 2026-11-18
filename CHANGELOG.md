@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — render callbacks through core `renderSlot` (2026-11-18, core 1.0.0-rc25)
+- `renderDayCallback`, `renderDayContentCallback` and `renderSummaryCallback` read their result by core's one
+  rule (`renderSlot`): a string is HTML, a Node (element, fragment) is mounted, `null` / `undefined` draws the
+  default, `false` hides it.
+- **BREAKING:** `renderDayCallback` returning `false` now empties the day's content (the cell stays clickable);
+  before, `false` was ignored and the day number showed.
+- **BREAKING:** `renderDayContentCallback` returning `false` now hides the day's content, number included (before:
+  nothing added). Its content now sits in a `.drp__day-extra` box (`display: contents`) after the number — a
+  selector that expected it as a direct child of the day's `<slot>` needs the extra step.
+- **BREAKING:** `renderSummaryCallback` returning `null` / `undefined` now draws the default summary (before: an
+  empty block / the text `undefined`); `false` hides the summary block (before: the text `false`).
+- API.md regenerated: the `labels` row now carries the page-wide labels chain (the source was updated with
+  `createLabels`, the generated docs were not).
+
 ### Changed — the year / month selectors close through core's overlay tree (2026-11-18, core 1.0.0-rc25)
 - The rolling year / month selectors (per column and unified) are core overlays (`registerOverlay`): a click
   outside the open selector closes it (as before — now also a click on another column's header or nav), and

@@ -38,6 +38,11 @@
   display: none;
 }
 
+/* renderSummaryCallback returned false (core renderSlot sets `hidden`). */
+.drp__summary[hidden] {
+  display: none;
+}
+
 .drp__summary-count {
   font-weight: var(--drp-font-weight-semibold);
   color: var(--drp-summary-count-color);

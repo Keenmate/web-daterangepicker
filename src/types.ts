@@ -1,5 +1,5 @@
 import type {
-  ComponentContext, PresentationContext, RenderLoaderCallback, Presentation, ResponsiveMap, ResponsiveCallback,
+  ComponentContext, PresentationContext, RenderLoaderCallback, Presentation, ResponsiveMap, ResponsiveCallback, SlotResult,
 } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 import type { Placement } from '@keenmate/web-components-core/positioning';
@@ -568,21 +568,28 @@ export interface DatePickerOptions {
   getCustomStylesCallback?: (ctx: PickerContext) => string | null;
 
   /**
-   * Full replacement — return element or HTML string to completely replace day cell content.
+   * Full replacement of a day cell's content (core `renderSlot`). The result:
+   * - a `string` → HTML (the cell's content);
+   * - a `Node` (element, fragment) → mounted as the content;
+   * - `null` / `undefined` → the default (the day number);
+   * - `false` → hidden: the cell stays (clickable), its content is empty.
    *
-   * SECURITY: When returning a string, the value is spliced into innerHTML without escaping.
-   * Callers are responsible for sanitizing any user-controlled data interpolated into the
-   * returned string. Prefer returning an HTMLElement when content depends on untrusted input.
+   * SECURITY: a string is inserted as HTML without escaping — sanitize user-controlled data
+   * interpolated into it, or return a Node when content depends on untrusted input.
    */
-  renderDayCallback?: (data: DayContext) => HTMLElement | string | null;
+  renderDayCallback?: (data: DayContext) => SlotResult;
 
   /**
-   * Augmentation — return element or HTML string to add to default day cell.
+   * Augmentation — content added after the day number (in a `.drp__day-extra` box,
+   * `display: contents`; core `renderSlot`). The result:
+   * - a `string` → HTML, added after the number;
+   * - a `Node` (element, fragment) → mounted after the number;
+   * - `null` / `undefined` → the default (the day number only);
+   * - `false` → hidden: the cell stays, its content (number included) is empty.
    *
-   * SECURITY: Same caveat as renderDayCallback — string return values are appended to
-   * innerHTML unescaped. Sanitize untrusted data or return an HTMLElement.
+   * SECURITY: same caveat as renderDayCallback — a string is inserted unescaped.
    */
-  renderDayContentCallback?: (data: DayContext) => HTMLElement | string | null;
+  renderDayContentCallback?: (data: DayContext) => SlotResult;
 
   // Tooltips (HTML support)
   /** Return HTML for the badge hover tooltip (overrides DayMetadata.badgeTooltip); null keeps the default. */
@@ -638,12 +645,15 @@ export interface DatePickerOptions {
   weekdayNames?: string[];
 
   /**
-   * Render the summary (receives all selection data, returns an HTML string).
+   * Render the range summary (receives all selection data; core `renderSlot`). The result:
+   * - a `string` → HTML (the summary's content);
+   * - a `Node` (element, fragment) → mounted as the content;
+   * - `null` / `undefined` → the default (`N days, N nights`);
+   * - `false` → hidden: no summary block.
    *
-   * SECURITY: Return value is spliced into innerHTML without escaping. Callers are responsible
-   * for sanitizing any user-controlled data in the returned string.
+   * SECURITY: a string is inserted as HTML without escaping — sanitize user-controlled data.
    */
-  renderSummaryCallback?: (ctx: SummaryContext) => string;
+  renderSummaryCallback?: (ctx: SummaryContext) => SlotResult;
 
   /**
    * Draw every loader of this picker (`showLoader()` targets and the automatic one

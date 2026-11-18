@@ -57,6 +57,11 @@
    DAY CELLS
    ============================================================================== */
 
+/* renderDayContentCallback's content, after the day number — a box that adds no layout. */
+.drp__day-extra {
+  display: contents;
+}
+
 .drp__day {
   aspect-ratio: 1;
   display: flex;
