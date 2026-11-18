@@ -105,6 +105,9 @@ export function renderCalendar(picker: any) {
     // One tab stop per day grid (core roving focus) + real focus back after the rebuild.
     picker.refreshDayGrids?.(hadDayFocus);
 
+    // Open / closed year-month selectors ↔ their core overlay entries (outside click, Escape).
+    picker.syncSelectorOverlays?.();
+
     // Initialize drag listeners for range mode
     if (picker.options.selectionMode === 'range' && !picker.isDragging) {
         picker.initDragListeners();

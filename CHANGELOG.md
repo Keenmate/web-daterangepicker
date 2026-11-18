@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — the year / month selectors close through core's overlay tree (2026-11-18, core 1.0.0-rc25)
+- The rolling year / month selectors (per column and unified) are core overlays (`registerOverlay`): a click
+  outside the open selector closes it (as before — now also a click on another column's header or nav), and
+  **Escape now closes the selector first**, then the picker on the next press (one level per press). Opening
+  a selector joins the picker's `overlay-group` (it is the floating calendar's child, so the calendar stays).
+- The private outside-click manager (`src/modules/click-events`) is removed.
+
 ### Fixed — keyboard moves in the day grid honour `beforeScrollCallback` again (2026-11-18, core 1.0.0-rc25)
 - With real focus in the day grid, an arrow move scrolls the day into its container through the picker's own
   scroll path (core `createRovingFocus` `shouldScroll` gate): `beforeScrollCallback` runs (`source: keyboard`),

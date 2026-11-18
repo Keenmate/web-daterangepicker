@@ -26,9 +26,8 @@ import { createLabels, getLocaleSettings, getMonthNames, getWeekdayNames, type L
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
-import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, onTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createPresentationContext, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, onTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
-import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
 
@@ -180,8 +179,13 @@ class DateRangePickerEngine {
     // Click event manager (Pub/Sub): the calendar-click active tracking and the
     // rolling selectors' outside close. Closing the floating calendar on an outside
     // click is the core popover's (calendarPopover).
-    clickEvents: ClickEventManager;
-    private clickSubscriptions: ClickSubscription[] = [];
+    /**
+     * Core overlay entries of the inline year / month selectors (key: month column, or 'unified'):
+     * outside click + Escape close them, one level per press (a selector inside a floating calendar
+     * is the calendar's child, so Escape closes the selector first). Registered on first open.
+     */
+    private selectorOverlays = new Map<number | 'unified', OverlayHandle>();
+    private openSelectorOverlays = new Set<number | 'unified'>();
     /**
      * The concrete presentation of the OPEN calendar chrome (non-inline pickers):
      * `floating` popover, centered `modal`, or phone `fullscreen` overlay. Starts as
@@ -504,21 +508,12 @@ class DateRangePickerEngine {
         this.invalidRangeEnd = null;
         this.autoScrollInterval = null;
 
-        // Initialize the click event manager
-        this.clickEvents = createClickEventManager();
-
         this.init();
     }
 
     init() {
         drpLogger.debug('Init called');
         this.createCalendar();
-
-        // Initialize the click event manager
-        this.clickEvents.init(this.calendar, this.input);
-
-        // Subscribe to events
-        this.setupEventSubscriptions();
 
         // Listen for sibling pickers becoming active so this one can deactivate.
         // (The keydown listener lives on document, so without this, every picker
@@ -554,56 +549,69 @@ class DateRangePickerEngine {
         drpLogger.debug('Init complete');
     }
 
+    /** The open flag of selector `key` (a month column, or the unified one). */
+    private isSelectorOpen(key: number | 'unified'): boolean {
+        return key === 'unified'
+            ? !!this.options.isUnifiedNavigationEnabled && this.isUnifiedRollingSelectorOpen
+            : !!this.rollingSelectorOpenByColumn[key];
+    }
+
     /**
-     * Set up event subscriptions using the pub/sub event managers
+     * Keep the core overlay entries in step with the selector open flags (called after every
+     * render): a newly open selector activates (its trigger — the month-year header — sits in the
+     * calendar, so a floating calendar is its parent), a closed one deactivates.
      */
-    private setupEventSubscriptions() {
-        // Subscribe to outside clicks - close calendar or rolling selectors
-        const outsideClickSub = this.clickEvents.subscribe('outsideClick', (ctx) => {
-            drpLogger.debug('Outside click detected', ctx.target);
-
-            // Modal handles "outside click" via the backdrop element; fullscreen is
-            // edge-to-edge (no document-level "outside" to click). Both ignore the
-            // outside-click stream here.
-            if (this.presentation === 'modal' || this.presentation === 'fullscreen') {
-                return;
+    syncSelectorOverlays() {
+        const keys: (number | 'unified')[] = this.rollingSelectorOpenByColumn.map((_, i) => i);
+        keys.push('unified');
+        for (const key of keys) {
+            const isOpen = this.isSelectorOpen(key);
+            if (isOpen === this.openSelectorOverlays.has(key)) continue;
+            if (!isOpen) {
+                this.openSelectorOverlays.delete(key);
+                this.selectorOverlays.get(key)?.deactivate();
+                continue;
             }
-
-            if (this.options.positioningMode !== 'inline' && this.closesOnOutsideClick()) {
-                // A floating calendar that closes on an outside click: the core popover
-                // closes it once the click has ended (calendarPopover).
-                return;
-            } else {
-                // Inline mode (or close-on-outside-click off): close only rolling selectors
-                let needsRender = false;
-
-                // Close any open individual selectors
-                for (let i = 0; i < this.rollingSelectorOpenByColumn.length; i++) {
-                    if (this.rollingSelectorOpenByColumn[i]) {
-                        this.rollingSelectorOpenByColumn[i] = false;
-                        needsRender = true;
-                    }
-                }
-
-                // Close unified selector if open
-                if (this.isUnifiedRollingSelectorOpen) {
-                    this.isUnifiedRollingSelectorOpen = false;
-                    needsRender = true;
-                }
-
-                // Re-render to apply closed state
-                if (needsRender) {
-                    this.renderCalendar();
-                }
+            let handle = this.selectorOverlays.get(key);
+            if (!handle) {
+                handle = registerOverlay(() => this.dismissSelector(key), this.options.overlayGroup || undefined, {
+                    getElement: () => this.getSelectorPanel(key),
+                    shouldCloseOnOutsideClick: true,
+                    shouldCloseOnEscape: true,
+                    getInsideElements: () => [this.input],
+                });
+                this.selectorOverlays.set(key, handle);
             }
-        });
-        this.clickSubscriptions.push(outsideClickSub);
+            this.openSelectorOverlays.add(key);
+            // returnFocusTo null: the header isn't focusable — focus stays where it is (the input).
+            handle.activate({ trigger: this.getSelectorTrigger(key), returnFocusTo: null });
+        }
+    }
 
-        // Subscribe to calendar clicks - track active state (and deactivate sibling pickers)
-        const calendarClickSub = this.clickEvents.subscribe('calendarClick', () => {
-            this.setCalendarActive();
-        });
-        this.clickSubscriptions.push(calendarClickSub);
+    private getSelectorPanel(key: number | 'unified'): HTMLElement | null {
+        if (key === 'unified') return this.unifiedRollingSelector ?? null;
+        return this.calendar?.querySelector<HTMLElement>(`.drp__rolling-selector[data-month-index="${key}"]`) ?? null;
+    }
+
+    private getSelectorTrigger(key: number | 'unified'): HTMLElement | null {
+        if (key === 'unified') return this.unifiedRangeDisplay ?? null;
+        return this.calendar?.querySelector<HTMLElement>(`.drp__month-year[data-month-index="${key}"]`) ?? null;
+    }
+
+    /** Core closed selector `key` (outside click, Escape, another overlay, its calendar closed). Idempotent. */
+    private dismissSelector(key: number | 'unified') {
+        this.openSelectorOverlays.delete(key);
+        if (!this.isSelectorOpen(key)) return;
+        if (key === 'unified') this.isUnifiedRollingSelectorOpen = false;
+        else this.rollingSelectorOpenByColumn[key] = false;
+        this.renderCalendar();
+    }
+
+    /** Destroy every selector overlay entry (picker destroy / reinit). */
+    private destroySelectorOverlays() {
+        for (const handle of this.selectorOverlays.values()) handle.destroy();
+        this.selectorOverlays.clear();
+        this.openSelectorOverlays.clear();
     }
 
     /**
@@ -1496,7 +1504,8 @@ class DateRangePickerEngine {
 
         this.attachCalendarListeners();
 
-        // Initialize rolling selector states for each month
+        // Initialize rolling selector states for each month (a rebuild closes them all)
+        this.destroySelectorOverlays();
         this.rollingSelectorOpenByColumn = new Array(this.options.visibleMonthCount).fill(false);
 
         // Re-apply any active lock to the freshly built DOM (classes + input.readOnly).
@@ -1769,34 +1778,8 @@ class DateRangePickerEngine {
                     }
                 }
             }
-            else {
-                // Clicked somewhere else in calendar (not a handled element)
-                // Check if click was outside rolling selector elements
-                if (!target.closest('.drp__rolling-selector') &&
-                    !target.closest('.drp__unified-rolling-selector')) {
-
-                    let needsRender = false;
-
-                    // Close any open individual selectors
-                    for (let i = 0; i < this.rollingSelectorOpenByColumn.length; i++) {
-                        if (this.rollingSelectorOpenByColumn[i]) {
-                            this.rollingSelectorOpenByColumn[i] = false;
-                            needsRender = true;
-                        }
-                    }
-
-                    // Close unified selector if open
-                    if (this.isUnifiedRollingSelectorOpen) {
-                        this.isUnifiedRollingSelectorOpen = false;
-                        needsRender = true;
-                    }
-
-                    // Re-render to apply closed state
-                    if (needsRender) {
-                        this.renderCalendar();
-                    }
-                }
-            }
+            // A click elsewhere closes an open year / month selector through core's outside click
+            // (syncSelectorOverlays).
         });
 
         // Tooltip event delegation (for both days and badge cells). Hover-only:
@@ -1859,13 +1842,14 @@ class DateRangePickerEngine {
             }
         });
 
-        // Track calendar focus for keyboard navigation (especially important for inline mode)
-        // Note: Calendar click tracking is also handled by clickEvents manager
+        // Track calendar focus / presses for keyboard navigation (especially important for
+        // inline mode) — and deactivate sibling pickers.
         this.calendar.addEventListener('focusin', () => {
             this.setCalendarActive();
         });
-
-        // Note: Outside click deactivation is now handled by the clickEvents manager
+        this.calendar.addEventListener('mousedown', () => {
+            this.setCalendarActive();
+        });
 
         // Keyboard navigation (document-level; a named field so destroy() /
         // deactivate() can detach it)
@@ -1879,7 +1863,6 @@ class DateRangePickerEngine {
 
         this.setupDayGridNavigation();
 
-        // Note: Outside click handling is now managed by the clickEvents manager (see setupEventSubscriptions)
     }
 
     /** The key event comes from a day cell of this picker's grid (real focus in the grid). */
@@ -3031,7 +3014,6 @@ class DateRangePickerEngine {
         if (this.isSuspended) return;
         this.isSuspended = true;
 
-        this.clickEvents.suspend();
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
         if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
         this.hideTooltip();
@@ -3053,7 +3035,6 @@ class DateRangePickerEngine {
         if (!this.isSuspended) return;
         this.isSuspended = false;
 
-        this.clickEvents.resume();
         document.addEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
         if (this.onDocumentKeydown) document.addEventListener('keydown', this.onDocumentKeydown);
 
@@ -3069,15 +3050,11 @@ class DateRangePickerEngine {
     }
 
     destroy() {
-        // Unsubscribe from all event subscriptions
-        this.clickSubscriptions.forEach(sub => sub.unsubscribe());
-        this.clickSubscriptions = [];
+        // The year / month selectors' overlay entries
+        this.destroySelectorOverlays();
 
         // Remove active loaders (runs a render hook's cleanup)
         for (const target of Object.keys(this.loaders) as LoaderTarget[]) UI.hideLoader(this, target);
-
-        // Destroy the click event manager
-        this.clickEvents.destroy();
 
         // Stop listening for cross-picker activation broadcasts + keyboard navigation
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);

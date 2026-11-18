@@ -57,6 +57,28 @@ test('clicking the month-year text again closes the rolling selector', async ({ 
     await expect(p.locator('.drp__rolling-selector--visible')).toHaveCount(0);
 });
 
+test('Escape closes the rolling selector first, then the calendar (core overlay tree)', async ({ page }) => {
+    const p = await open(page, 'single');
+
+    await p.locator('.drp__month-year').first().click();
+    await expect(p.locator('.drp__rolling-selector--visible')).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(p.locator('.drp__rolling-selector--visible')).toHaveCount(0);
+    await expect(calendarOf(p)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(calendarOf(p)).toBeHidden();
+});
+
+test('a click elsewhere in the calendar closes the rolling selector; the calendar stays open', async ({ page }) => {
+    const p = await open(page, 'two-month');
+
+    await p.locator('.drp__month-year').first().click();
+    await expect(p.locator('.drp__rolling-selector--visible')).toHaveCount(1);
+    await p.locator('.drp__month').nth(1).locator('.drp__weekday').first().click();
+    await expect(p.locator('.drp__rolling-selector--visible')).toHaveCount(0);
+    await expect(calendarOf(p)).toBeVisible();
+});
+
 // =============================================================================
 // Tab cycles between columns (multi-month)
 // =============================================================================
