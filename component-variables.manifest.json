@@ -300,6 +300,8 @@
     { "name": "drp-button-border-hover-full", "category": "button", "usage": "Button hover border full" },
     { "name": "drp-button-today-color", "category": "button", "usage": "Today button color" },
     { "name": "drp-button-clear-color", "category": "button", "usage": "Clear button color" },
+    { "name": "drp-button-shortcut-color", "category": "button", "usage": "Action-button shortcut keycap color" },
+    { "name": "drp-button-shortcut-font-size", "category": "button", "usage": "Action-button shortcut keycap font size" },
     { "name": "drp-button-cancel-color", "category": "button", "usage": "Cancel button color" },
     { "name": "drp-button-apply-bg", "category": "button", "usage": "Apply button background" },
     { "name": "drp-button-apply-color", "category": "button", "usage": "Apply button text color" },

@@ -640,6 +640,9 @@
   --drp-button-border-hover-full: var(--drp-border-width-base) solid var(--drp-button-border-hover);
   --drp-button-today-color: var(--drp-accent-color);
   --drp-button-clear-color: var(--drp-text-secondary);
+  /* Keycap of an action button's `shortcut` (core formatShortcut) */
+  --drp-button-shortcut-color: var(--drp-text-secondary);
+  --drp-button-shortcut-font-size: 0.85em;
   --drp-button-cancel-color: var(--drp-text-secondary);
   --drp-button-apply-bg: var(--drp-accent-color);
   --drp-button-apply-color: var(--drp-button-accent-text-color);

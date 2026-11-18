@@ -48,6 +48,23 @@
         </script>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">action buttons with a `shortcut` (keycap + chord while open)</div>
+        <web-daterangepicker id="shortcuts" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+        <script type="module">
+            await customElements.whenDefined('web-daterangepicker');
+            const p = document.getElementById('shortcuts');
+            window.__shortcutActions = [];
+            p.actionButtons = [
+                { action: 'today', shortcut: 'Mod+T' },
+                { action: 'custom', id: 'mark', text: 'Mark', shortcut: 'm' },
+                { action: 'clear' },
+            ];
+            p.addEventListener('action', (e) => window.__shortcutActions.push(e.detail.id ?? e.detail.action));
+        </script>
+    </div>
+
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

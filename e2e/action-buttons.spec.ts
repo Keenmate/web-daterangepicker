@@ -94,3 +94,37 @@ test('custom renderSummaryCallback overrides the default summary HTML', async ({
     await expect(summary).toHaveClass(/drp__summary--visible/);
     await expect(summary).toContainText('CUSTOM: 6d');
 });
+
+// =============================================================================
+// `shortcut` on action buttons (core formatShortcut / matchesShortcut / isTypingTarget)
+// =============================================================================
+
+test('an action with shortcut: Mod+T shows a keycap and runs on the chord while open', async ({ page }) => {
+    const p = await open(page, 'shortcuts');
+    const today = p.locator('.drp__button--today');
+    await expect(today.locator('kbd.drp__button-shortcut')).toHaveText(/^(Ctrl\+T|⌘T)$/);
+    await expect(p.locator('.drp__button--clear kbd')).toHaveCount(0);
+
+    // focus is in the input (a typing target) — a chord with a modifier still fires
+    await expect(inputOf(p)).toBeFocused();
+    await page.keyboard.press('ControlOrMeta+t');
+    await expect.poll(() => page.evaluate(() => (window as any).__shortcutActions)).toEqual(['today']);
+    await expect(inputOf(p)).not.toHaveValue('');
+});
+
+test('a plain-key shortcut is skipped while typing in the input, runs from the day grid; closed = no run', async ({ page }) => {
+    const p = await open(page, 'shortcuts');
+    await expect(p.locator('.drp__button--custom kbd')).toHaveText('M');
+
+    await page.keyboard.press('m');                                   // typing in the input
+    expect(await page.evaluate(() => (window as any).__shortcutActions)).toEqual([]);
+
+    await dayByDate(p, '2026-06-15').focus();
+    await page.keyboard.press('m');
+    await expect.poll(() => page.evaluate(() => (window as any).__shortcutActions)).toEqual(['mark']);
+
+    await page.keyboard.press('Escape');                              // closed: the chord does nothing
+    await expect(calendarOf(p)).not.toBeVisible();
+    await page.keyboard.press('ControlOrMeta+t');
+    expect(await page.evaluate(() => (window as any).__shortcutActions)).toEqual(['mark']);
+});

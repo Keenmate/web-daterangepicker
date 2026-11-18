@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `shortcut` on action buttons (2026-11-18, core 1.0.0-rc25)
+- An `actionButtons` item takes the standard `/actions` **`shortcut`** field (`'Mod+T'`, `'Shift+C'`, `'m'`;
+  `Mod` = ⌘ on Apple, Ctrl elsewhere). The button shows it as a keycap after its label
+  (`<kbd class="drp__button-shortcut">`, core `formatShortcut`; `--drp-button-shortcut-color` /
+  `-font-size`; hidden on the full-screen sheet), and the chord runs the button — the same path as a click (locks,
+  `beforeActionCallback`, `onClick`, built-in, `action` event) — while the picker is open and keyboard-active
+  (core `matchesShortcut`). A plain-key shortcut (no Ctrl / Alt / Meta) is skipped while typing in the input
+  (`isTypingTarget`); a disabled or hidden button doesn't run. A button's shortcut beats the picker's own keys
+  (`t`, PageUp / PageDown, …). Single chords only (no `'g f'` sequences).
+
 ### Changed — day / badge tooltip on core `createTooltip` (2026-11-18, core 1.0.0-rc25)
 - **Added (accessibility): the day tooltip shows on keyboard focus too** — a day that receives focus (Tab into
   the grid, arrows) shows its tooltip, the same as on hover; a focused day keeps it while the pointer moves away,

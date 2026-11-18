@@ -27,7 +27,7 @@ import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
 import { adoptStyles, createPresentationContext, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, onTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
-import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
+import { formatShortcut, isTypingTarget, matchesShortcut, normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
 
@@ -177,6 +177,8 @@ class DateRangePickerEngine {
     actionsContainer: HTMLElement | null = null;
     /** Rendered footer button → the item it was built from (click + tooltip lookup). */
     private actionButtonItems = new WeakMap<HTMLElement, DateRangePickerActionItem>();
+    /** Rendered footer buttons with a resolved `shortcut` (their chord runs them while open). */
+    private actionButtonShortcuts = new Map<HTMLButtonElement, string>();
 
     // Click event manager (Pub/Sub): the calendar-click active tracking and the
     // rolling selectors' outside close. Closing the floating calendar on an outside
@@ -856,6 +858,7 @@ class DateRangePickerEngine {
         this.destroyAllActionButtonTooltips();
 
         container.innerHTML = ''; // Clear existing buttons
+        this.actionButtonShortcuts.clear();
 
         // Store container reference for re-rendering
         this.actionsContainer = container;
@@ -894,6 +897,16 @@ class DateRangePickerEngine {
                 label.className = 'drp__button-label';
                 label.textContent = resolved.text;
                 buttonEl.appendChild(label);
+            }
+            // `shortcut` (the `/actions` syntax): a keycap formatted for the platform (core
+            // formatShortcut), and the chord runs the button while the picker is open
+            // (runActionShortcut).
+            if (resolved.shortcut) {
+                const keycap = document.createElement('kbd');
+                keycap.className = 'drp__button-shortcut';
+                keycap.textContent = formatShortcut(resolved.shortcut);
+                buttonEl.appendChild(keycap);
+                this.actionButtonShortcuts.set(buttonEl, resolved.shortcut);
             }
             if (!resolved.text && resolved.tooltip) buttonEl.setAttribute('aria-label', resolved.tooltip);
             if (resolved.isDisabled) buttonEl.disabled = true;
@@ -1996,6 +2009,25 @@ class DateRangePickerEngine {
         });
     }
 
+    /**
+     * An action button's `shortcut` (core `matchesShortcut`, single chord): runs the button through the
+     * normal action path (locks, `beforeActionCallback`, `onClick`, built-in, `action` event) while the
+     * picker is open and keyboard-active. A plain-key shortcut (no Ctrl / Alt / Meta) is skipped while
+     * typing in a field (`isTypingTarget` — the picker's own input). Disabled / hidden buttons don't run.
+     */
+    private runActionShortcut(e: KeyboardEvent): boolean {
+        if (e.defaultPrevented || this.actionButtonShortcuts.size === 0) return false;
+        const isPlainKey = !e.ctrlKey && !e.altKey && !e.metaKey;
+        if (isPlainKey && isTypingTarget(e)) return false;
+        for (const [button, shortcut] of this.actionButtonShortcuts) {
+            if (!button.isConnected || button.disabled || !matchesShortcut(e, shortcut)) continue;
+            e.preventDefault();
+            void this.activateAction(button, e);
+            return true;
+        }
+        return false;
+    }
+
     /** Calendar keys: from the input / document (focus outside the grid) or from a focused day cell. */
     private handleCalendarKeydown(e: KeyboardEvent) {
         {
@@ -2003,6 +2035,7 @@ class DateRangePickerEngine {
             if (!this.calendar.classList.contains('drp__picker--visible')) return;
             if (!this.isCalendarActive) return;
             if (isImeEnter(e)) return; // the IME confirming a candidate in the typed input
+            if (this.runActionShortcut(e)) return; // an action button's `shortcut` beats the built-in keys
 
             drpLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
 

@@ -93,6 +93,19 @@
   margin-inline-start: var(--drp-spacing-xs, 0.25rem);
 }
 
+/* `shortcut` keycap (core formatShortcut) after the label */
+.drp__button-shortcut {
+  margin-inline-start: var(--drp-spacing-xs, 0.25rem);
+  color: var(--drp-button-shortcut-color);
+  font-family: inherit;
+  font-size: var(--drp-button-shortcut-font-size);
+}
+
+/* No keycaps on the touch sheet (the keys still work with a keyboard) */
+.drp__picker--fullscreen .drp__button-shortcut {
+  display: none;
+}
+
 /* `isDanger` — destructive action */
 .drp__button--danger {
   color: var(--drp-message-danger-color);

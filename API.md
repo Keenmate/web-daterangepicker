@@ -630,6 +630,7 @@ picker.addEventListener('action', (e) => {
 | `text` | `string` | Label (plain text) |
 | `icon` | `string` | Icon (core `renderIcon`): `<svg…>` markup raw, an ASCII name masked from `--base-icon-<name>`, anything else text |
 | `tooltip` | `string` | Tooltip text |
+| `shortcut` | `string` | Key chord in the core `/actions` syntax (`'Mod+T'`, `'Shift+C'`, `'m'`; `Mod` = ⌘ on Apple, Ctrl elsewhere): shown as a `<kbd class="drp__button-shortcut">` keycap (core `formatShortcut`) and runs the button while the picker is open and keyboard-active. A plain key (no Ctrl / Alt / Meta) is skipped while typing in the input. Single chord only |
 | `cssClass` | `string` | Extra CSS classes |
 | `isVisible` / `isDisabled` / `isDanger` / `isToggled` | `boolean` | Static flags (`isToggled` renders `aria-pressed="true"`) |
 | `getTextCallback` / `getIconCallback` / `getTooltipCallback` | `(ctx: PickerContext) => string` | Dynamic text / icon / tooltip |
