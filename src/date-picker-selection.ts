@@ -5,7 +5,7 @@
  */
 
 import { showLoader, hideLoader, showMessage, hideMessage } from './date-picker-ui';
-import { runBeforeCallback } from '@keenmate/web-components-core';
+import { isImeEnter, onTextInput, runBeforeCallback } from '@keenmate/web-components-core';
 import type { BeforeSelectContext, DateRange } from './types';
 import { validationLogger, selectionLogger } from './logger';
 import log from './logger';
@@ -781,7 +781,7 @@ export function beginCompactEdit(picker: any, el: HTMLElement) {
         el.contentEditable = 'false';
         el.removeEventListener('blur', commit);
         el.removeEventListener('keydown', onKey);
-        el.removeEventListener('input', onInput);
+        stopTextInput();
     };
 
     // Find the next pill in tab order (only HH / MM / SS — not the AM/PM
@@ -863,6 +863,7 @@ export function beginCompactEdit(picker: any, el: HTMLElement) {
         }
     };
     const onKey = (e: KeyboardEvent) => {
+        if (isImeEnter(e)) return; // the IME confirming a candidate, not "commit the pill"
         if (e.key === 'Enter') {
             e.preventDefault();
             el.blur();
@@ -916,7 +917,8 @@ export function beginCompactEdit(picker: any, el: HTMLElement) {
     };
     el.addEventListener('blur', commit);
     el.addEventListener('keydown', onKey);
-    el.addEventListener('input', onInput);
+    // Core onTextInput (IME-safe): a composition commits once, on compositionend.
+    const stopTextInput = onTextInput(el, onInput);
 }
 
 export function selectNow(picker: any) {

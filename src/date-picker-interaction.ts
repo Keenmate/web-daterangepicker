@@ -9,7 +9,7 @@ import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, for
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
-import { readPasteText } from '@keenmate/web-components-core';
+import { isImeEnter, readPasteText } from '@keenmate/web-components-core';
 
 // === DRAG FUNCTIONALITY ===
 
@@ -683,6 +683,7 @@ export function inputOwnsCaretKey(event: KeyboardEvent): boolean {
 }
 
 export function handleKeydown(picker: any, event: KeyboardEvent) {
+    if (isImeEnter(event)) return; // the IME confirming / choosing a candidate — not ours
     const { key, ctrlKey, metaKey } = event;
     const { separator } = picker.formatInfo;
 

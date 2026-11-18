@@ -25,7 +25,7 @@ import { DEFAULT_LABELS } from './date-picker-locales';
 import { createLabels, getLocaleSettings, getMonthNames, getWeekdayNames, type Labels } from '@keenmate/web-components-core/locale';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, isImeEnter, onTextInput, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
@@ -1542,17 +1542,21 @@ class DateRangePickerEngine {
             // Diagnose: log when the input loses focus and when window focus changes.
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
-            this.input.addEventListener('input', (e) => {
+            const stopTyping = onTextInput(this.input, () => {
                 if (!this.calendar.classList.contains('drp__picker--visible') && this.input && this.input.value.length > 0) {
                     drpLogger.debug('User started typing - opening calendar');
                     this.open();
                 }
-            }, { signal });
+            });
+            signal.addEventListener('abort', stopTyping, { once: true });
         }
         // 'manual' mode: no automatic trigger, calendar only opens via .open()/.toggle() methods
 
         // Input masking handlers (always attached regardless of trigger mode)
-        this.input.addEventListener('input', (e) => this.handleInputMask(e), { signal });
+        // Core onTextInput (IME-safe, SPEC §12.30): no masking of half-composed text;
+        // the composition result arrives once, on compositionend.
+        const stopMask = onTextInput(this.input, (_value, e) => this.handleInputMask(e));
+        signal.addEventListener('abort', stopMask, { once: true });
         this.input.addEventListener('keydown', (e) => this.handleKeydown(e), { signal });
         this.input.addEventListener('paste', (e) => this.handlePaste(e), { signal });
     }
@@ -1858,6 +1862,7 @@ class DateRangePickerEngine {
             // Only respond if calendar is visible AND active (has focus)
             if (!this.calendar.classList.contains('drp__picker--visible')) return;
             if (!this.isCalendarActive) return;
+            if (isImeEnter(e)) return; // the IME confirming a candidate in the typed input
 
             drpLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
 

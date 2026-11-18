@@ -36,6 +36,7 @@ import {
   extractConsumedCssVars,
   lintCssVars,
   getEnvironment,
+  onTextInput,
   resolvePresentation,
   type InputDef,
   type CustomStylesHandle,
@@ -546,7 +547,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       clear.addEventListener('click', () => this.#clearInput());
       // Toggle the clear's visibility as the user types (mask handler dispatches
       // 'input' too), and keep the form value fresh on manual edits.
-      input.addEventListener('input', () => this.#updateInputClear());
+      onTextInput(input, () => this.#updateInputClear());
       wrapper.appendChild(input);
       wrapper.appendChild(clear);
       this.#shadow.appendChild(wrapper);

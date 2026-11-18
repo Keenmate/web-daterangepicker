@@ -138,6 +138,41 @@ test('paste: DD.MM.YYYY mask applies to the pasted digits', async ({ page }) => 
 });
 
 // =============================================================================
+// IME composition (core onTextInput / isImeEnter) — synthetic composition events
+// =============================================================================
+
+test('IME: half-composed text is not masked; the composition result is masked once, on compositionend', async ({ page }) => {
+    const p = pickerById(page, 'iso');
+    const inp = inputOf(p);
+    await inp.focus();
+    const during = await inp.evaluate((el: HTMLInputElement) => {
+        el.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+        el.value = '20260615';
+        el.dispatchEvent(new InputEvent('input', { bubbles: true, isComposing: true, data: '20260615' }));
+        // a composing keydown belongs to the IME: the mask's key filter must not swallow it
+        const key = new KeyboardEvent('keydown', { key: 'a', bubbles: true, cancelable: true, isComposing: true });
+        el.dispatchEvent(key);
+        return { value: el.value, isKeyPrevented: key.defaultPrevented };
+    });
+    expect(during).toEqual({ value: '20260615', isKeyPrevented: false });
+    await expect(p.locator('.drp__input-clear')).not.toHaveClass(/drp__input-clear--visible/);
+
+    await inp.evaluate((el: HTMLInputElement) => {
+        el.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '20260615' }));
+    });
+    await expect(inp).toHaveValue('2026-06-15');
+    await expect(p.locator('.drp__input-clear')).toHaveClass(/drp__input-clear--visible/);
+
+    // the same non-digit key outside a composition is filtered by the mask
+    const isPrevented = await inp.evaluate((el: HTMLInputElement) => {
+        const key = new KeyboardEvent('keydown', { key: 'a', bubbles: true, cancelable: true });
+        el.dispatchEvent(key);
+        return key.defaultPrevented;
+    });
+    expect(isPrevented).toBe(true);
+});
+
+// =============================================================================
 // inline clear (✕) button
 // =============================================================================
 

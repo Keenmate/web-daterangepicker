@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — IME-safe typed input (2026-11-18, core 1.0.0-rc25)
+- The typed date input, the `typing` open trigger, the inline ✕ visibility and the compact time pills read
+  text through core `onTextInput`: half-composed IME text (Japanese / Chinese / Korean, phone suggestions) is no
+  longer masked or acted on — the result is applied once, on `compositionend`. Keydown handlers (input mask,
+  calendar keys, time pills) ignore the IME's own keys (`isImeEnter`), so confirming a candidate with Enter no
+  longer picks a day or commits a pill.
+
 ### Added — page-wide labels through core `/locale` (2026-11-18, core 1.0.0-rc25)
 - Labels resolve through core `createLabels`: instance `labels` → page-wide
   `window.components.locale.labels['web-daterangepicker']` → English. Assigning `window.components.locale`
