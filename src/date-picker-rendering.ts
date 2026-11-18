@@ -6,7 +6,6 @@
  */
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
-import { formatLabel } from './date-picker-locales';
 import { escapeHtml } from '@keenmate/web-components-core';
 import { scrollOnOwn } from './date-picker-ui';
 import { hasEnabledDaysInYear } from './date-picker-validation';
@@ -881,8 +880,8 @@ export function renderTimePicker(picker: any) {
             const amSelected = time.ampm === 'am' ? 'drp__rolling-item--selected' : '';
             const pmSelected = time.ampm === 'pm' ? 'drp__rolling-item--selected' : '';
             ampmContainer.innerHTML = `
-                <div class="drp__rolling-item ${amSelected}" data-ampm="am"><span class="drp__rolling-item-text">${picker.labels.am}</span></div>
-                <div class="drp__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp__rolling-item-text">${picker.labels.pm}</span></div>
+                <div class="drp__rolling-item ${amSelected}" data-ampm="am"><span class="drp__rolling-item-text">${picker.labels.html('am')}</span></div>
+                <div class="drp__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp__rolling-item-text">${picker.labels.html('pm')}</span></div>
             `;
         }
     }
@@ -930,7 +929,7 @@ export function renderClockPicker(picker: any) {
         let ampmIndicator = '';
         if (is12h) {
             const ampm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
-            ampmIndicator = `<span class="drp__clock-header-ampm">${ampm === 'pm' ? picker.labels.pm : picker.labels.am}</span>`;
+            ampmIndicator = `<span class="drp__clock-header-ampm">${picker.labels.html(ampm === 'pm' ? 'pm' : 'am')}</span>`;
         }
         headerEl.innerHTML = `
             <button type="button" class="drp__clock-header-digit ${hoursActive}" data-clock-step="hours">${hourLabel}</button>
@@ -1102,8 +1101,8 @@ export function renderClockPicker(picker: any) {
             const amSelected = effectiveAmpm === 'am' ? 'drp__clock-ampm-button--selected' : '';
             const pmSelected = effectiveAmpm === 'pm' ? 'drp__clock-ampm-button--selected' : '';
             ampmEl.innerHTML = `
-                <button type="button" class="drp__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.labels.am}</button>
-                <button type="button" class="drp__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.labels.pm}</button>
+                <button type="button" class="drp__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.labels.html('am')}</button>
+                <button type="button" class="drp__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.labels.html('pm')}</button>
             `;
         }
     }
@@ -1250,8 +1249,8 @@ export function renderWheelPicker(picker: any) {
     // AM/PM (h12 only)
     if (is12h) {
         const items = [
-            { value: 'am', label: picker.labels.am, selected: time.ampm === 'am' },
-            { value: 'pm', label: picker.labels.pm, selected: time.ampm === 'pm' },
+            { value: 'am', label: picker.labels.html('am'), selected: time.ampm === 'am' },
+            { value: 'pm', label: picker.labels.html('pm'), selected: time.ampm === 'pm' },
         ];
         renderColumn('ampm', items, focusAmpm);
     }
@@ -1404,7 +1403,7 @@ export function updateSummary(picker: any) {
                 endDate: picker._selectedEndDate,
                 selectionMode: picker.options.selectionMode,
                 disabledDatesHandling: picker.options.disabledDatesHandling,
-                labels: picker.labels,
+                labels: picker.labels.all(),
                 isPreview: false
             });
 
@@ -1418,9 +1417,9 @@ export function updateSummary(picker: any) {
         } else {
             // Default format
             summary.innerHTML = `
-                <span class="drp__summary-count">${formatLabel(days === 1 ? picker.labels.day : picker.labels.days, { count: days })}</span>
+                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'day' : 'days', { count: days })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${formatLabel(nights === 1 ? picker.labels.night : picker.labels.nights, { count: nights })}</span>
+                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'night' : 'nights', { count: nights })}</span>
             `;
         }
     } else {
@@ -1503,7 +1502,7 @@ export function updateSummaryWithPreview(picker: any) {
                 endDate: picker.dragPreviewEnd,
                 selectionMode: picker.options.selectionMode,
                 disabledDatesHandling: picker.options.disabledDatesHandling,
-                labels: picker.labels,
+                labels: picker.labels.all(),
                 isPreview: true
             });
 
@@ -1517,10 +1516,10 @@ export function updateSummaryWithPreview(picker: any) {
         } else {
             // Default format with preview label
             summary.innerHTML = `
-                <span style="opacity: 0.7;">${picker.labels.preview}: </span>
-                <span class="drp__summary-count">${formatLabel(days === 1 ? picker.labels.day : picker.labels.days, { count: days })}</span>
+                <span style="opacity: 0.7;">${picker.labels.html('preview')}: </span>
+                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'day' : 'days', { count: days })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${formatLabel(nights === 1 ? picker.labels.night : picker.labels.nights, { count: nights })}</span>
+                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'night' : 'nights', { count: nights })}</span>
             `;
         }
     }

@@ -43,7 +43,8 @@ import {
   type Presentation,
 } from '@keenmate/web-components-core';
 import { DateRangePickerEngine } from './date-picker';
-import { resolveLabels } from './date-picker-locales';
+import { DEFAULT_LABELS } from './date-picker-locales';
+import { createLabels } from '@keenmate/web-components-core/locale';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList, toYearRange } from './converters';
 import {
   serializeFormValue, toEngineValueText, isoDate, isoDateTime, isoTime,
@@ -126,7 +127,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'disabledDatesHandling',        attribute: 'disabled-dates-handling',       converter: toEnum(DISABLED_HANDLING), on: 'update', description: 'Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`.' },
   { configKey: 'shouldHighlightDisabledInRange', attribute: 'highlight-disabled-in-range',   converter: toBool('tristate'), on: 'update', description: 'Visually mark disabled dates that fall inside a selected range.' },
   { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ default: 'auto' }), on: 'update', description: 'BCP-47 locale for the `Intl` month / weekday names and the `auto` week start, or `auto` (the page-wide `window.components.locale`, else the browser language). UI strings are `labels`.' },
-  { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws), `loading` (accessible label of the loaders). Property, or a JSON attribute: `labels=\'{"today":"Heute","days":"{count} Tage"}\'`. Month / weekday names come from `Intl` via `locale`.' },
+  { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults: `today`, `clear`, `apply`, `now`, `close`, `preview`, `day` / `days` / `night` / `nights` and `selectionCount` (`{count}` placeholder), `time`, `am`, `pm`, `hours`, `minutes`, `seconds`, `fullscreenTitle` (heading in the phone full-screen sheet; empty = none), `valueFormatError` (validation message when `getValueFormatCallback` throws), `loading` (accessible label of the loaders). Property, or a JSON attribute: `labels=\'{"today":"Heute","days":"{count} Tage"}\'`. Per key: these → the page-wide `window.components.locale.labels["web-daterangepicker"]` → English (core `/locale`; `formatLabelCallback` applies, `{count}` shows locale-formatted). Month / weekday names come from `Intl` via `locale`.' },
   { configKey: 'monthNames',                   attribute: 'month-names',                   converter: toPipeList(12), on: 'update', type: 'string[]', description: 'Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`.' },
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
   { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toYearRange(), on: 'update', type: 'string | null', description: 'Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY\'s year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one.' },
@@ -313,6 +314,10 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   /** `getValueFormatCallback` threw on the last format — the host is invalid (core setFormatError). */
   #hasFormatError = false;
   #formatError: unknown = null;
+  /** The element-level UI strings (input ✕, the format-error message) — core `/locale`, the same
+   *  resolution as the engine's: instance `labels` → page-wide → English. */
+  #labels = createLabels(this, DEFAULT_LABELS as DateRangePickerLabels, () => this.config.labels as Partial<DateRangePickerLabels> | null,
+    { getLocale: () => this.config.locale as string | null });
 
 
   constructor() {
@@ -350,7 +355,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     }
     else if ('labels' in partial && this.#hasFormatError) this.#applyFormatError();
     if ('placeholder' in partial) this.#applyPlaceholder();
-    if ('labels' in partial) this.#inputClearButton?.setAttribute('aria-label', resolveLabels(partial.labels as Partial<DateRangePickerLabels> | null).clear);
+    if ('labels' in partial) this.#inputClearButton?.setAttribute('aria-label', this.#labels.text('clear'));
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock(READONLY_ASPECTS) : this.#picker.unlock(READONLY_ASPECTS); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
     // The masks feed the derived placeholder hint (no-op for an explicit placeholder).
@@ -533,7 +538,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       const clear = document.createElement('button');
       clear.type = 'button';
       clear.className = 'drp__input-clear';
-      clear.setAttribute('aria-label', resolveLabels(this.config.labels as Partial<DateRangePickerLabels> | null).clear);
+      clear.setAttribute('aria-label', this.#labels.text('clear'));
       clear.tabIndex = -1;
       // mousedown+preventDefault so the tap doesn't blur the field first; the clear
       // runs on click and re-focuses the input.
@@ -730,7 +735,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   /** Mark the host invalid for the last format error (message = the `valueFormatError` label). */
   #applyFormatError(): void {
     const anchor = this.#inputElement && this.#inputElement.type !== 'hidden' ? this.#inputElement : undefined;
-    this.setFormatError(this.#formatError, resolveLabels(this.config.labels as Partial<DateRangePickerLabels> | null).valueFormatError, anchor);
+    this.setFormatError(this.#formatError, this.#labels.text('valueFormatError'), anchor);
   }
 
   /** The submitted value's per-date mask + separator (unset = the defaults). */
@@ -879,7 +884,12 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * the selection survives.
    */
   protected override localeChanged(): void {
-    this.#picker?.refreshLocale();
+    if (!this.#picker) return;
+    // Page-wide locale / labels: re-render in place; the time picker's static headings need
+    // the rebuild a `labels` change takes (selection carried).
+    if (!this.#picker.refreshLocale()) this.#rebuildPreservingSelection();
+    this.#inputClearButton?.setAttribute('aria-label', this.#labels.text('clear'));
+    if (this.#hasFormatError) this.#applyFormatError();
   }
 
   // ── responsive presentation (SPEC §12.9) ──────────────────────────────────

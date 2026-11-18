@@ -35,3 +35,36 @@ test('changing window.components.locale at runtime re-renders the open calendar'
     // the instance-locale picker is unaffected
     await expect(pickerById(page, 'instance')).toBeAttached();
 });
+
+// Page-wide labels (core /locale createLabels): instance `labels` → window.components.locale.labels['web-daterangepicker'] → English.
+test('page-wide labels apply live; the instance labels win key by key', async ({ page }) => {
+    await page.evaluate(() => {
+        (window as any).components.locale = { locale: 'cs-CZ', labels: { 'web-daterangepicker': { today: 'Dnes', clear: 'Vymazat' } } };
+    });
+    const p = await open(page, 'page');
+    await expect(p.locator('.drp__button--today')).toHaveText('Dnes');
+    await expect(p.locator('.drp__button--clear')).toHaveText('Vymazat');
+    await page.keyboard.press('Escape');
+
+    const mine = await open(page, 'mine');
+    await expect(mine.locator('.drp__button--today')).toHaveText('Mine');
+    await expect(mine.locator('.drp__button--clear')).toHaveText('Vymazat');
+
+    // assigned while open: the open calendar re-renders (core localeChanged())
+    await page.evaluate(() => { (window as any).components.locale = { locale: 'cs-CZ' }; });
+    await expect(mine.locator('.drp__button--clear')).toHaveText('Clear');
+    await expect(mine.locator('.drp__button--today')).toHaveText('Mine');
+});
+
+test('formatLabelCallback formats a label and gets {count} as a raw number', async ({ page }) => {
+    await page.evaluate(() => {
+        (window as any).components.locale = {
+            locale: 'cs-CZ',
+            formatLabelCallback: ({ component, key, params }: any) =>
+                key === 'selectionCount' ? `${component}:${typeof params.count}:${params.count}` : undefined,
+        };
+    });
+    const p = pickerById(page, 'multi');
+    await p.evaluate((el: any) => { el.selectedDates = [new Date(2026, 5, 10), new Date(2026, 5, 12)]; });
+    await expect(p.locator('input').first()).toHaveValue('web-daterangepicker:number:2');
+});

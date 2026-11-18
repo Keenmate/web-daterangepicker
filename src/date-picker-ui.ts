@@ -481,11 +481,11 @@ function buildFullscreenHeader(picker: any) {
     // the mask + form value, and otherwise sits offscreen behind the fixed sheet). It
     // takes over the flex-growing header slot, so it wins over a title.
     const wantsInput = !!(picker.options.isFullscreenInputShown && picker.input);
-    const fullscreenTitle = picker.labels.fullscreenTitle;
+    const fullscreenTitle = picker.labels.text('fullscreenTitle');
     const merged = !fullscreenTitle && !wantsInput;
     const { header, title, close: closeBtn } = createSheetHeader({
         title: wantsInput || merged ? null : fullscreenTitle,
-        closeLabel: picker.labels.close,
+        closeLabel: picker.labels.text('close'),
         onClose: () => close(picker),
     });
     header.classList.add('drp__fullscreen-header');
@@ -764,7 +764,7 @@ export function showLoader(picker: any, target: LoaderTarget = 'calendar'): void
     const host: HTMLElement = picker.options.hostElement ?? mount;
     const remove = renderLoader(host, container, target, {
         prefix: 'drp',
-        label: picker.labels?.loading ?? '',
+        label: picker.labels?.text('loading') ?? '',
         renderLoadingCallback: picker.options.renderLoadingCallback ?? null,
     });
     // The container moves with re-renders (reapplySummaryLoader); its remove() runs the hook's cleanup.

@@ -23,6 +23,16 @@
         <web-daterangepicker id="instance" selection-mode="single" initial-date="2026-06-15" locale="en-US"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">labels='{"today":"Mine"}' — the instance labels win over the page-wide labels, key by key</div>
+        <web-daterangepicker id="mine" selection-mode="single" initial-date="2026-06-15" labels='{"today":"Mine"}'></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">selection-mode="multiple" — the input shows labels.selectionCount ({count} as a number)</div>
+        <web-daterangepicker id="multi" selection-mode="multiple" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
     <script>
         window.components = window.components || {};
         window.components.locale = { locale: 'cs-CZ' };

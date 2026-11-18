@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — page-wide labels through core `/locale` (2026-11-18, core 1.0.0-rc25)
+- Labels resolve through core `createLabels`: instance `labels` → page-wide
+  `window.components.locale.labels['web-daterangepicker']` → English. Assigning `window.components.locale`
+  re-renders live pickers (core `localeChanged()`; the time picker rebuilds, the selection survives);
+  `formatLabelCallback` and `window.components.security.shouldEscapeLabels` apply. `{count}` is passed as a
+  number — shown locale-formatted, raw to `formatLabelCallback`. The own `resolveLabels` / `formatLabel` are gone.
+
 ### Changed — locale and paste through core (2026-11-18, core 1.0.0-rc25)
 - **Page-wide locale:** `locale="auto"` (the default) now resolves through core `/locale` — the page-wide
   `window.components.locale` first, then the browser language. `window.components.locale = { locale: 'cs-CZ' }`

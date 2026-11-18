@@ -97,7 +97,7 @@ The codebase is TypeScript, organized as a core class plus extracted operation m
 - `src/date-picker-selection.ts` — `selectDay`, `selectToday`, `clearSelection`, `commit`, range validation (`validateRangeAsync`).
 - `src/date-picker-ui.ts` — `show`/`hide`/`position`/`showMessage`/`hideMessage`. Floating UI integration for the calendar popover.
 - `src/date-picker-validation.ts` — pure date helpers (`normalizeDate`, `isDateDisabled`, `formatDateKey`).
-- `src/date-picker-locales.ts` — UI labels (`DEFAULT_LABELS` English, `resolveLabels()` — the single label-resolution seam for a future core `/locale` — and `formatLabel()` for `{count}`). Locale, week start and `Intl` weekday/month names come from core `/locale` (`DatePicker#applyLocale`, `localeChanged()` → `refreshLocale()`). No built-in language tables.
+- `src/date-picker-locales.ts` — UI labels (`DEFAULT_LABELS` English). They resolve through core `createLabels` — the engine's `labels` getter (`.text()` / `.html()`, numbers passed raw) and the element's `#labels`: instance `labels` → `window.components.locale.labels['web-daterangepicker']` → English. Locale, week start and `Intl` weekday/month names come from core `/locale` (`DatePicker#applyLocale`, `localeChanged()` → `refreshLocale()`). No built-in language tables.
 - `src/modules/click-events/` and `src/modules/scroll-events/` — small managers that own their own event subscriptions and clean up on destroy.
 
 **CSS** (`src/css/`)
