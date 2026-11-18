@@ -800,7 +800,7 @@ picker.getCustomStylesCallback = () => `
         <td><code>icon</code></td>
         <td><code>string</code></td>
         <td><code>''</code></td>
-        <td>A glyph or short text shown before the label (set as text, never HTML). An icon-only button takes its accessible name from <code>tooltip</code>.</td>
+        <td>An icon before the label (core <code>renderIcon</code>): markup (<code>&lt;svg…&gt;</code>) is inserted as-is, an ASCII name (<code>gear</code>) is masked from the page's <code>--base-icon-gear</code> token in <code>currentColor</code>, anything else (an emoji) shows as text. An icon-only button takes its accessible name from <code>tooltip</code>.</td>
       </tr>
       <tr>
         <td><code>tooltip</code></td>

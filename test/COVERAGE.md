@@ -265,6 +265,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Summary loader added in `change` handler survives commit re-render | ✓ | `imperative-feedback.spec.ts`| `imperative-feedback.html`|
 | Action-item render callbacks receive the picker context (`controller`, `element`, presentation) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `el.controller` = core `createControllerFacade`: frozen, same object across a rebuild, bound to the current engine, no internals | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
+| Action-button `icon` through core `renderIcon`: ASCII name → `.km-icon.drp__icon--<name>` (ICON_CSS), markup raw, emoji text | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `onClick` receives the action detail (`action`, `id`, `source`) | ✓    | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | Order: `beforeActionCallback` → `onClick` → built-in → `onAction` → `action` event (one detail) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `beforeActionCallback` returning `false` (async) cancels everything | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |

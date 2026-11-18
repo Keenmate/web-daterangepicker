@@ -34,6 +34,7 @@ import {
   createCustomStyles,
   createFormInputs,
   createControllerFacade,
+  ICON_CSS,
   extractConsumedCssVars,
   lintCssVars,
   getEnvironment,
@@ -326,7 +327,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     super();
     this.#shadow = this.attachShadow({ mode: 'open' });
     // §12.8: static shell CSS via one shared, cached CSSStyleSheet (per string).
-    adoptStyles(this.#shadow, styles);
+    adoptStyles(this.#shadow, styles, ICON_CSS);
   }
 
   // ── core lifecycle hooks ──────────────────────────────────────────────────

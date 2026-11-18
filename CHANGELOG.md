@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — action-button icons through core `renderIcon` (2026-11-18, core 1.0.0-rc25)
+- **BREAKING (visible):** an action item's `icon` is read by core's one icon rule (`renderIcon` + `ICON_CSS`):
+  markup (`<svg…>`, `<img…>`, `<i class="…">`) is inserted as HTML; an ASCII name (`gear`, `ok`, `x`) is a
+  masked glyph from the page's `--base-icon-<name>` token in `currentColor` (`.km-icon.drp__icon.drp__icon--<name>`,
+  nothing drawn while the token is unset); anything else (an emoji, `★`) stays text. Before, every icon was
+  set as text — an ASCII word now draws the named icon instead of the word; put a word in `text`.
+
 ### Changed — `el.controller` is core's facade (2026-11-18, core 1.0.0-rc25)
 - `el.controller` (and `controller` on every callback context / event detail) is built by core
   `createControllerFacade`: the same members, still the same object across rebuilds, but now **frozen** —

@@ -25,7 +25,7 @@ import { DEFAULT_LABELS } from './date-picker-locales';
 import { createLabels, getLocaleSettings, getMonthNames, getWeekdayNames, type Labels } from '@keenmate/web-components-core/locale';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, isImeEnter, onTextInput, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, onTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
 // Import styles for static injection (only used when injectGlobalStyles is called)
@@ -845,6 +845,10 @@ class DateRangePickerEngine {
         // Store container reference for re-rendering
         this.actionsContainer = container;
 
+        // The `.km-icon` rule for named icons, in whatever root the calendar renders in.
+        const root = container.getRootNode();
+        if (root instanceof Document || root instanceof ShadowRoot) adoptStyles(root, ICON_CSS);
+
         // Core ActionItem resolution (SPEC §12.12): get*Callback > static > built-in default.
         const ctx = this.ctx({});
         this.getActionItems().forEach((item) => {
@@ -860,12 +864,14 @@ class DateRangePickerEngine {
                 buttonEl.classList.add('drp__button--toggled');
                 buttonEl.setAttribute('aria-pressed', 'true');
             }
-            // Icon: a glyph / short text before the label (set as text, never HTML).
-            if (resolved.icon) {
+            // Icon before the label — core renderIcon (SPEC §12.33): markup (`<svg…>`) raw, an
+            // ASCII name masked from `--base-icon-<name>` (`.drp__icon--<name>`), anything else text.
+            const iconHtml = renderIcon(resolved.icon, { prefix: 'drp' });
+            if (iconHtml) {
                 const icon = document.createElement('span');
                 icon.className = 'drp__button-icon';
                 icon.setAttribute('aria-hidden', 'true');
-                icon.textContent = resolved.icon;
+                icon.innerHTML = iconHtml;
                 buttonEl.appendChild(icon);
             }
             if (resolved.text) {
@@ -3194,7 +3200,7 @@ class DateRangePickerEngine {
     static injectGlobalStyles(_force: boolean = false): void {
         // Core adoptStyles(): one cached, shared constructable sheet on the document
         // (a <style> fallback where unsupported); idempotent, so `force` is moot.
-        adoptStyles(document, styles);
+        adoptStyles(document, styles, ICON_CSS);
         drpLogger.info('Global styles adopted');
     }
 

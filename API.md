@@ -628,7 +628,7 @@ picker.addEventListener('action', (e) => {
 | `action` | `'today' \| 'now' \| 'clear' \| 'apply'` | Built-in behaviour; omit for a custom button |
 | `id` | `string` | Identifies a custom button (reported back as `detail.id`) |
 | `text` | `string` | Label (plain text) |
-| `icon` | `string` | Icon (glyph / markup) |
+| `icon` | `string` | Icon (core `renderIcon`): `<svg…>` markup raw, an ASCII name masked from `--base-icon-<name>`, anything else text |
 | `tooltip` | `string` | Tooltip text |
 | `cssClass` | `string` | Extra CSS classes |
 | `isVisible` / `isDisabled` / `isDanger` / `isToggled` | `boolean` | Static flags (`isToggled` renders `aria-pressed="true"`) |
