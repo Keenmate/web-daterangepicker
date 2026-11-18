@@ -154,6 +154,8 @@ class DateRangePickerEngine {
     private unifiedRangeDisplay?: HTMLElement;
     private unifiedRollingSelector?: HTMLElement;
     isUnifiedRollingSelectorOpen: boolean = false;
+    /** True while revealDay moves roving focus (it scrolls itself — the grid's shouldScroll stays out). */
+    isRevealingDay = false;
 
     // Floating UI tooltips
     private tooltip?: HTMLElement;
@@ -1903,6 +1905,12 @@ class DateRangePickerEngine {
                 columns: 7,
                 isSkipped: (cell) => this.isDayCellSkipped(cell),
                 onFocusItem: (cell) => this.onDayCellFocused(grid, cell),
+                // beforeScrollCallback gates the scroll: drp scrolls itself (callback, replaced
+                // options, --drp-scroll-behavior) and tells core not to. revealDay scrolls on its own.
+                shouldScroll: (cell) => {
+                    if (!this.isRevealingDay) UI.scrollDayIntoView(this, cell, 'keyboard');
+                    return false;
+                },
             });
             this.dayGridNavs.set(grid, nav);
         });

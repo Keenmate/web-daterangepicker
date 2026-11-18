@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — keyboard moves in the day grid honour `beforeScrollCallback` again (2026-11-18, core 1.0.0-rc25)
+- With real focus in the day grid, an arrow move scrolls the day into its container through the picker's own
+  scroll path (core `createRovingFocus` `shouldScroll` gate): `beforeScrollCallback` runs (`source: keyboard`),
+  `false` skips the scroll, returned options replace the defaults, `--drp-scroll-behavior` applies. Focus never
+  scrolls the page.
+
 ### Accessibility — the day grid is an ARIA grid with core roving focus (2026-11-18, core 1.0.0-rc25)
 - Each month's day matrix is a WAI-ARIA `grid` (named by the month + year), weekday names are
   `columnheader`s (`abbr` / name = the full weekday), weeks are `row`s, days are `gridcell`s with

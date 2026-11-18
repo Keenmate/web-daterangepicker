@@ -66,7 +66,18 @@ export function cleanupPositioning(picker: any): void {
  */
 export function revealDay(picker: any, day: Element | null | undefined, source: DateRangePickerScrollSource = 'keyboard'): void {
     if (!(day instanceof HTMLElement)) return;
-    picker.focusDayCell?.(day); // real focus follows when it is in the grid (roving)
+    // Real focus follows when it is in the grid (roving); the scroll is ours, just below.
+    picker.isRevealingDay = true;
+    try { picker.focusDayCell?.(day); } finally { picker.isRevealingDay = false; }
+    scrollDayIntoView(picker, day, source);
+}
+
+/**
+ * The scroll half of {@link revealDay} — also the roving grid's `shouldScroll` gate, so core's
+ * own arrow moves scroll through `beforeScrollCallback` (+ its replaced options) and
+ * `--drp-scroll-behavior` too.
+ */
+export function scrollDayIntoView(picker: any, day: HTMLElement, source: DateRangePickerScrollSource = 'keyboard'): void {
     const iso = day.dataset.date;
     const [y, m, d] = iso ? iso.split('-').map(Number) : [];
     const behavior = (getComputedStyle(day).getPropertyValue('--drp-scroll-behavior').trim() || 'auto') as ScrollBehavior;

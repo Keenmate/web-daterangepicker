@@ -94,3 +94,33 @@ test('returning false leaves the time rolls where they are', async ({ page }) =>
     await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
     expect(await p.locator('[data-time-list="hours"]').evaluate((l) => l.scrollTop)).toBe(0);
 });
+
+/** Real focus in the day grid (core roving focus): focus the tab stop, then arrow down 4 weeks. */
+async function walkDownInGrid(page: import('@playwright/test').Page): Promise<void> {
+    const p = pickerById(page, 'days');
+    await p.evaluate((el: any) => {
+        const box = document.getElementById('box')!;
+        el.shadowRoot.querySelector('.drp__days .drp__day[tabindex="0"]').focus({ preventScroll: true });
+        box.scrollTop = 0;
+    });
+    for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
+    await expect(p.locator('.drp__day:focus')).toHaveCount(1);
+}
+
+test('grid focus (roving): an arrow move reveals the day inside the box', async ({ page }) => {
+    await walkDownInGrid(page);
+    await expect.poll(() => page.locator('#box').evaluate((b) => b.scrollTop)).toBeGreaterThan(0);
+});
+
+test('grid focus (roving): beforeScrollCallback returning false stops the scroll on arrow moves', async ({ page }) => {
+    const p = pickerById(page, 'days');
+    await p.evaluate((el: any) => {
+        (window as any).__gridScrolls = 0;
+        el.beforeScrollCallback = (ctx: any) => { if (ctx.target === 'day') (window as any).__gridScrolls++; return false; };
+        return el.whenSettled();
+    });
+    await walkDownInGrid(page);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    expect(await page.evaluate(() => (window as any).__gridScrolls)).toBeGreaterThan(0);
+    expect(await page.locator('#box').evaluate((b) => b.scrollTop)).toBe(0);
+});
