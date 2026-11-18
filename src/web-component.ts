@@ -33,6 +33,7 @@ import {
   adoptStyles,
   createCustomStyles,
   createFormInputs,
+  createControllerFacade,
   extractConsumedCssVars,
   lintCssVars,
   getEnvironment,
@@ -1179,44 +1180,23 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * The public facade (`el.controller`, and `controller` on every callback context
    * and event detail). Delegates to the current engine, so it survives rebuilds;
    * applies pending property writes first (`flush`). Reads return empty values
-   * before the first build.
+   * before the first build. Core `createControllerFacade` — the object is frozen.
    */
   protected override createController(): DateRangePickerController {
-    const engine = () => {
-      this.flush();
-      return this.#picker?.getController();
-    };
-    const call = <K extends keyof DateRangePickerController>(name: K) =>
-      ((...args: unknown[]) => (engine()?.[name] as ((...a: unknown[]) => unknown) | undefined)?.(...args)) as DateRangePickerController[K];
-    return {
-      get selectedDate() { return engine()?.selectedDate ?? null; },
-      get selectedDates() { return engine()?.selectedDates ?? []; },
-      get selectedRanges() { return engine()?.selectedRanges ?? []; },
-      get selectedStartDate() { return engine()?.selectedStartDate ?? null; },
-      get selectedEndDate() { return engine()?.selectedEndDate ?? null; },
-      get selectedTime() { return engine()?.selectedTime ?? null; },
-      get selectedDatetime() { return engine()?.selectedDatetime ?? null; },
-      get isOpen() { return engine()?.isOpen ?? false; },
-      selectToday: call('selectToday'),
-      selectNow: call('selectNow'),
-      clearSelection: call('clearSelection'),
-      commit: call('commit'),
-      open: call('open'),
-      close: call('close'),
-      toggle: call('toggle'),
-      setPresentation: call('setPresentation'),
-      prevMonth: call('prevMonth'),
-      nextMonth: call('nextMonth'),
-      lock: call('lock'),
-      unlock: call('unlock'),
-      showMessage: call('showMessage'),
-      hideMessage: call('hideMessage'),
-      showSummary: call('showSummary'),
-      hideSummary: call('hideSummary'),
-      showLoader: call('showLoader'),
-      reloadMonthData: () => engine()?.reloadMonthData() ?? Promise.resolve(),
-      hideLoader: call('hideLoader'),
-    };
+    // Core facade (SPEC §12.34): frozen, methods bound to the CURRENT engine at call time (a
+    // rebuild is picked up), state read live, empty answers before the first build.
+    return createControllerFacade<DateRangePickerController>(() => { this.flush(); return this.#picker?.getController(); }, {
+      methods: [
+        'selectToday', 'selectNow', 'clearSelection', 'commit', 'open', 'close', 'toggle', 'setPresentation',
+        'prevMonth', 'nextMonth', 'lock', 'unlock', 'showMessage', 'hideMessage', 'showSummary', 'hideSummary',
+        'showLoader', 'hideLoader', 'reloadMonthData',
+      ],
+      state: {
+        selectedDate: null, selectedDates: () => [], selectedRanges: () => [], selectedStartDate: null,
+        selectedEndDate: null, selectedTime: null, selectedDatetime: null, isOpen: false,
+      },
+      emptyResults: { reloadMonthData: () => Promise.resolve() },
+    });
   }
 
   /** Presentation flags on every event detail the element emits itself (e.g. `ready`). */

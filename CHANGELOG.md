@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — `el.controller` is core's facade (2026-11-18, core 1.0.0-rc25)
+- `el.controller` (and `controller` on every callback context / event detail) is built by core
+  `createControllerFacade`: the same members, still the same object across rebuilds, but now **frozen** —
+  assigning or adding a property on it is ignored (throws in strict mode). Before the first build, reads
+  answer empty values and `reloadMonthData()` a resolved promise, as before.
+
 ### Fixed — IME-safe typed input (2026-11-18, core 1.0.0-rc25)
 - The typed date input, the `typing` open trigger, the inline ✕ visibility and the compact time pills read
   text through core `onTextInput`: half-composed IME text (Japanese / Chinese / Korean, phone suggestions) is no

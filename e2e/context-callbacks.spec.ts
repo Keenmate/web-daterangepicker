@@ -250,3 +250,25 @@ test('getMonthDataCallback set after upgrade loads the visible months; reloadMon
     expect(calls.first).toBe('HDR-A');
     expect(calls.second).toBe('HDR-B');
 });
+
+test('el.controller is the frozen core facade: same object across a rebuild, no engine internals', async ({ page }) => {
+    const p = pickerById(page, 'ctx-events');
+    const r = await p.evaluate(async (el: any) => {
+        const c = el.controller;
+        const isFrozen = Object.isFrozen(c);
+        let didThrow = false;
+        try { c.selectToday = () => {}; } catch { didThrow = true; }
+        el.visibleMonthCount = 2;             // on:'reinit' → the engine is rebuilt
+        await el.whenSettled();
+        const isSame = el.controller === c;
+        c.selectToday();                       // bound to the CURRENT engine at call time
+        return {
+            isFrozen, isSame,
+            isWriteRefused: didThrow || typeof c.selectToday === 'function',
+            hasInternals: 'renderCalendar' in c || 'options' in c,
+            start: c.selectedDate ? 'set' : null,
+            isOpenType: typeof c.isOpen,
+        };
+    });
+    expect(r).toEqual({ isFrozen: true, isSame: true, isWriteRefused: true, hasInternals: false, start: 'set', isOpenType: 'boolean' });
+});
