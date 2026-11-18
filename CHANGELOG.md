@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Accessibility — the day grid is an ARIA grid with core roving focus (2026-11-18, core 1.0.0-rc25)
+- Each month's day matrix is a WAI-ARIA `grid` (named by the month + year), weekday names are
+  `columnheader`s (`abbr` / name = the full weekday), weeks are `row`s, days are `gridcell`s with
+  `aria-selected` (picked day, range ends and the days between), `aria-current="date"` (today) and
+  `aria-disabled` (disabled days). Badge rows are `presentation`.
+- The grid is ONE tab stop (core `createRovingFocus`): Tab lands on the keyboard position (else the selected
+  day, today, the first enabled day); the arrows move REAL focus between days, disabled and neighbour-month
+  cells are skipped, Left / Right follow the writing direction. An arrow past the week or month edge,
+  PageUp / PageDown, **Shift+PageUp / Shift+PageDown (new: the same month a year back / forward)**, Home / End,
+  Ctrl+arrows, `t`, Enter / **Space (new: picks the focused day)** and Tab between month columns keep their
+  behaviour inside the grid. Picking a day or pressing Escape with focus in a floating calendar returns
+  focus to the input.
+- Unchanged: opening a floating calendar keeps focus in the input, and the keys still drive the calendar
+  from there (the highlighted day, no DOM focus). Clicking a day now focuses it (it is focusable).
+- A disabled day carries `aria-disabled="true"` — test tools that refuse to click disabled controls
+  (Playwright's actionability check) need `force` to click it.
+
 ### Changed — action-button icons through core `renderIcon` (2026-11-18, core 1.0.0-rc25)
 - **BREAKING (visible):** an action item's `icon` is read by core's one icon rule (`renderIcon` + `ICON_CSS`):
   markup (`<svg…>`, `<img…>`, `<i class="…">`) is inserted as HTML; an ASCII name (`gear`, `ok`, `x`) is a

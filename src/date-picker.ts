@@ -25,6 +25,7 @@ import { DEFAULT_LABELS } from './date-picker-locales';
 import { createLabels, getLocaleSettings, getMonthNames, getWeekdayNames, type Labels } from '@keenmate/web-components-core/locale';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
+import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
 import { adoptStyles, createPresentationContext, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, onTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 import { createClickEventManager, type ClickEventManager, type ClickSubscription } from './modules';
@@ -206,6 +207,8 @@ class DateRangePickerEngine {
     private inputListenersAbort = new AbortController();
     // Document-level keyboard navigation listener (see setupCalendarListeners).
     private onDocumentKeydown: ((e: KeyboardEvent) => void) | null = null;
+    // One core roving-focus per month day grid (`.drp__days`): ONE tab stop, the arrows move real focus.
+    private dayGridNavs = new Map<HTMLElement, RovingFocus>();
     // deactivate()/activate() state: true while the host is out of the DOM. The
     // Back entry needs no parking: the teardown releases it and a re-activation in
     // the same task (a DOM move) claims it again — core adopts the same entry.
@@ -1337,13 +1340,13 @@ class DateRangePickerEngine {
 
             monthCalendar.innerHTML = `
                 ${headerHtml}
-                <div class="drp__calendar-container">
+                <div class="drp__calendar-container" role="grid">
                     <div class="drp__rolling-selector" data-month-index="${i}">
                         <div class="drp__rolling-list" data-list="years" data-month-index="${i}"></div>
                         <div class="drp__rolling-list" data-list="months" data-month-index="${i}"></div>
                     </div>
-                    <div class="drp__weekdays"></div>
-                    <div class="drp__days" data-month-index="${i}"></div>
+                    <div class="drp__weekdays" role="row"></div>
+                    <div class="drp__days" role="rowgroup" data-month-index="${i}"></div>
                 </div>
             `;
             monthsContainer.appendChild(monthCalendar);
@@ -1864,7 +1867,159 @@ class DateRangePickerEngine {
 
         // Keyboard navigation (document-level; a named field so destroy() /
         // deactivate() can detach it)
+        // Focus in a day grid: its own listener (setupDayGridNavigation) runs the same
+        // handler before core's roving focus, so the document copy skips those keys.
         this.onDocumentKeydown = (e: KeyboardEvent) => {
+            if (this.isFromDayGrid(e)) return;
+            this.handleCalendarKeydown(e);
+        };
+        document.addEventListener('keydown', this.onDocumentKeydown);
+
+        this.setupDayGridNavigation();
+
+        // Note: Outside click handling is now managed by the clickEvents manager (see setupEventSubscriptions)
+    }
+
+    /** The key event comes from a day cell of this picker's grid (real focus in the grid). */
+    private isFromDayGrid(e: Event): boolean {
+        return e.composedPath().some(n => n instanceof HTMLElement && n.classList.contains('drp__days') && this.dayGridNavs.has(n));
+    }
+
+    /**
+     * WAI-ARIA grid (core `createRovingFocus`, SPEC §12.25): each month's `.drp__days` is ONE
+     * tab stop; plain arrows inside the month move REAL focus (Left / Right follow the writing
+     * direction, disabled / neighbour-month cells skipped). drp's own keys (month edge, PageUp /
+     * PageDown, Home / End, Enter / Space, Ctrl+arrows, t, Tab between columns) run in a keydown
+     * listener registered BEFORE core's and call `preventDefault()` — core skips handled events.
+     */
+    private setupDayGridNavigation() {
+        for (const nav of this.dayGridNavs.values()) nav.destroy();
+        this.dayGridNavs.clear();
+        this.calendar.querySelectorAll<HTMLElement>('.drp__days').forEach(grid => {
+            grid.addEventListener('keydown', (e) => this.handleDayGridKeydown(e, grid)); // before core's
+            const nav = createRovingFocus(grid, {
+                getItems: () => Array.from(grid.querySelectorAll<HTMLElement>('.drp__day')),
+                orientation: 'grid',
+                columns: 7,
+                isSkipped: (cell) => this.isDayCellSkipped(cell),
+                onFocusItem: (cell) => this.onDayCellFocused(grid, cell),
+            });
+            this.dayGridNavs.set(grid, nav);
+        });
+    }
+
+    private isDayCellSkipped(cell: HTMLElement): boolean {
+        return cell.classList.contains('drp__day--other-month') || cell.getAttribute('aria-disabled') === 'true';
+    }
+
+    /** A day cell got real focus (keys, a click, Tab): it becomes the keyboard position. */
+    private onDayCellFocused(grid: HTMLElement, cell: HTMLElement) {
+        if (cell.classList.contains('drp__day--other-month')) return;
+        const days = Array.from(grid.querySelectorAll('.drp__day:not(.drp__day--other-month)'));
+        this.activeMonthIndex = Number(grid.dataset.monthIndex) || 0;
+        this.focusedDayIndex = days.indexOf(cell);
+        this.calendar.querySelectorAll('.drp__day--focused').forEach(d => { if (d !== cell) d.classList.remove('drp__day--focused'); });
+        cell.classList.add('drp__day--focused');
+        this.setCalendarActive();
+    }
+
+    /** A day cell of this calendar has real focus. */
+    isDayGridFocused(): boolean {
+        const root = this.calendar?.getRootNode() as Document | ShadowRoot | undefined;
+        const active = root?.activeElement;
+        return active instanceof HTMLElement && active.classList.contains('drp__day') && this.calendar.contains(active);
+    }
+
+    /** Move real focus to `day` when the grid holds focus (the keyboard paths reach it through revealDay). */
+    focusDayCell(day: Element | null | undefined) {
+        if (!(day instanceof HTMLElement) || !this.isDayGridFocused()) return;
+        const grid = day.closest('.drp__days') as HTMLElement | null;
+        const nav = grid ? this.dayGridNavs.get(grid) : undefined;
+        if (nav && nav.current !== day) nav.focusItem(day);
+    }
+
+    /**
+     * After a re-render: each grid's tab stop goes to the keyboard position (active month), else
+     * the selected day, else today, else the first enabled day; `shouldRefocus` puts real focus
+     * back when the re-render removed the focused cell.
+     */
+    refreshDayGrids(shouldRefocus: boolean) {
+        for (const [grid, nav] of this.dayGridNavs) {
+            const days = Array.from(grid.querySelectorAll<HTMLElement>('.drp__day:not(.drp__day--other-month)'));
+            if (!days.length) { nav.refresh(); continue; }
+            const isActive = (Number(grid.dataset.monthIndex) || 0) === this.activeMonthIndex;
+            const enabled = days.filter(d => !this.isDayCellSkipped(d));
+            let stop: HTMLElement | undefined;
+            if (isActive && this.focusedDayIndex !== null) stop = days[Math.min(this.focusedDayIndex, days.length - 1)];
+            stop ??= enabled.find(d => d.getAttribute('aria-selected') === 'true')
+                ?? enabled.find(d => d.classList.contains('drp__day--today'))
+                ?? enabled[0] ?? days[0];
+            nav.focusItem(stop, { shouldFocus: shouldRefocus && isActive });
+        }
+    }
+
+    /** Keys pressed on a focused day cell (runs before core's roving focus). */
+    private handleDayGridKeydown(e: KeyboardEvent, grid: HTMLElement) {
+        if (e.defaultPrevented || isImeEnter(e)) return;
+        const cell = (e.target as HTMLElement | null)?.closest?.('.drp__day') as HTMLElement | null;
+        if (!cell) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+            cell.click(); // the guarded day-click path (selection lock, disabled days)
+            e.preventDefault();
+            return;
+        }
+        const isPlainArrow = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey;
+        if (isPlainArrow && this.canGridMoveWithinMonth(grid, cell, e.key)) return; // core moves the focus
+        this.handleCalendarKeydown(e); // month edge, PageUp / PageDown, Home / End, Ctrl+arrows, t, Tab …
+    }
+
+    /**
+     * Would core's grid step land on an enabled day of THIS month? Core keeps Left / Right inside the
+     * row and stops at the month edge; a week-wrapping Left / Right or a month-edge arrow stays drp's
+     * (moveFocus: next / previous enabled day, crossing into the neighbour month as before).
+     */
+    private canGridMoveWithinMonth(grid: HTMLElement, cell: HTMLElement, key: string): boolean {
+        const cells = Array.from(grid.querySelectorAll<HTMLElement>('.drp__day'));
+        const from = cells.indexOf(cell);
+        if (from === -1 || cell.classList.contains('drp__day--other-month')) return false;
+        const forward = this.isRtl() ? 'ArrowLeft' : 'ArrowRight';
+        let step: number;
+        let lo = 0;
+        let hi = cells.length - 1;
+        if (key === 'ArrowUp' || key === 'ArrowDown') {
+            step = key === 'ArrowDown' ? 7 : -7;
+        } else {
+            step = key === forward ? 1 : -1;
+            lo = from - (from % 7);
+            hi = Math.min(lo + 6, hi);
+        }
+        for (let i = from + step; i >= lo && i <= hi; i += step) {
+            if (!this.isDayCellSkipped(cells[i])) return true;
+        }
+        return false;
+    }
+
+    /** Shift+PageUp / Shift+PageDown: the same month a year back / forward, same day index. */
+    private stepYear(direction: -1 | 1) {
+        const idx = this.activeMonthIndex;
+        const current = this._monthDates[idx];
+        const year = current.getFullYear() + direction;
+        if (!Navigation.hasEnabledDaysInMonth(this, year, current.getMonth())) return;
+        const dayIndex = this.focusedDayIndex;
+        void Navigation.selectYear(this, year, idx).then(() => {
+            const grid = this.calendar.querySelector(`.drp__days[data-month-index="${idx}"]`);
+            const days = grid?.querySelectorAll('.drp__day:not(.drp__day--other-month)');
+            if (!days?.length) return;
+            this.focusedDayIndex = Math.min(dayIndex ?? 0, days.length - 1);
+            this.calendar.querySelectorAll('.drp__day--focused').forEach(d => d.classList.remove('drp__day--focused'));
+            days[this.focusedDayIndex].classList.add('drp__day--focused');
+            UI.revealDay(this, days[this.focusedDayIndex]);
+        });
+    }
+
+    /** Calendar keys: from the input / document (focus outside the grid) or from a focused day cell. */
+    private handleCalendarKeydown(e: KeyboardEvent) {
+        {
             // Only respond if calendar is visible AND active (has focus)
             if (!this.calendar.classList.contains('drp__picker--visible')) return;
             if (!this.isCalendarActive) return;
@@ -2022,6 +2177,10 @@ class DateRangePickerEngine {
                         }
                     }
                 }, 0);
+                e.preventDefault();
+            }
+            else if ((e.key === 'PageUp' || e.key === 'PageDown') && e.shiftKey) {
+                this.stepYear(e.key === 'PageUp' ? -1 : 1);
                 e.preventDefault();
             }
             else if (e.key === 'PageUp') {
@@ -2226,10 +2385,7 @@ class DateRangePickerEngine {
                 }
                 e.preventDefault();
             }
-        };
-        document.addEventListener('keydown', this.onDocumentKeydown);
-
-        // Note: Outside click handling is now managed by the clickEvents manager (see setupEventSubscriptions)
+        }
     }
 
     /**
@@ -2919,6 +3075,8 @@ class DateRangePickerEngine {
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
         if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
         this.onDocumentKeydown = null;
+        for (const nav of this.dayGridNavs.values()) nav.destroy();
+        this.dayGridNavs.clear();
 
         // Drop every input-element listener at once. The input is reused across a
         // rebuild, so leaving these attached would let a destroyed picker's open()

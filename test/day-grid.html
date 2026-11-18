@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — day grid (ARIA grid + roving focus)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>day grid</h1>
+    <p>Targeted by <code>e2e/day-grid.spec.ts</code>. June 2026 (starts on a Monday), weeks start on
+       Monday, <code>2026-06-03</code> is disabled. Today is pinned to 2026-05-22 by the harness.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">inline single</div>
+        <button id="before" type="button">before</button>
+        <web-daterangepicker id="inline" positioning-mode="inline" selection-mode="single" week-start-day="1"
+            initial-date="2026-06-15" disabled-dates="2026-06-03"></web-daterangepicker>
+        <button id="after" type="button">after</button>
+    </div>
+
+    <div class="fixture" dir="rtl">
+        <div class="fixture-label">inline single, dir="rtl"</div>
+        <web-daterangepicker id="rtl" positioning-mode="inline" selection-mode="single" week-start-day="1"
+            initial-date="2026-06-15" disabled-dates="2026-06-03"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline range</div>
+        <web-daterangepicker id="range" positioning-mode="inline" selection-mode="range" week-start-day="1"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">floating single (May 2026 = today's month)</div>
+        <web-daterangepicker id="floating" selection-mode="single" week-start-day="1"
+            initial-date="2026-05-10" placeholder="YYYY-MM-DD"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

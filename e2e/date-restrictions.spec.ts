@@ -37,7 +37,7 @@ test.describe('min-date / max-date', () => {
 
     test('clicking a disabled day does not commit a selection', async ({ page }) => {
         const p = await open(page, 'minmax');
-        await dayByDate(p, '2026-06-05').click();
+        await dayByDate(p, '2026-06-05').click({ force: true }); // aria-disabled: Playwright's actionability refuses it — the guard is what's tested
         await expect(inputOf(p)).toHaveValue('');
         // And calendar stays open.
         await expect(calendarOf(p)).toBeVisible();

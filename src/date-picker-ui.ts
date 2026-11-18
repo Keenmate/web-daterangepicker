@@ -66,6 +66,7 @@ export function cleanupPositioning(picker: any): void {
  */
 export function revealDay(picker: any, day: Element | null | undefined, source: DateRangePickerScrollSource = 'keyboard'): void {
     if (!(day instanceof HTMLElement)) return;
+    picker.focusDayCell?.(day); // real focus follows when it is in the grid (roving)
     const iso = day.dataset.date;
     const [y, m, d] = iso ? iso.split('-').map(Number) : [];
     const behavior = (getComputedStyle(day).getPropertyValue('--drp-scroll-behavior').trim() || 'auto') as ScrollBehavior;
@@ -584,7 +585,16 @@ export function close(picker: any) {
     // the full-screen overlay / keyboard / Back trap). teardownPresentationChrome()
     // runs cleanupPositioning(), which is what destroy() relies on so a rebuild while
     // open can't leak the autoUpdate loop onto a detached calendar.
+    // Focus inside the closing calendar (a picked day, Escape on a day cell) goes back to the
+    // input — before --visible drops, so the input's focus trigger doesn't reopen it.
+    const root = picker.calendar.getRootNode() as Document | ShadowRoot;
+    const hadFocusInside = !!root.activeElement && picker.calendar.contains(root.activeElement);
+
     teardownPresentationChrome(picker);
+
+    if (hadFocusInside && picker.input && !picker.input.disabled && picker.presentation === 'floating') {
+        picker.input.focus({ preventScroll: true });
+    }
 
     // Dismiss any open day/badge tooltip. On touch these are tap-opened (no hover to
     // close them), so without this an open tooltip outlives the sheet — it lingers on

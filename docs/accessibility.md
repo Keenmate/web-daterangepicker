@@ -16,18 +16,27 @@ consumers with accessibility requirements.
 
 ## Keyboard shortcuts
 
-Once the calendar is open and a day cell has focus, every primary action
-is reachable from the keyboard. The host page never has to provide its
-own keyboard handlers.
+Once the calendar is open, every primary action is reachable from the
+keyboard. The host page never has to provide its own keyboard handlers.
+The keys work in two places:
+
+- **From the input** (a floating calendar keeps focus in the input when it
+  opens): the keys move a highlighted day (`.drp__day--focused`); DOM focus
+  stays in the input, so typing keeps working.
+- **Inside the day grid** (Tab into it, or click a day; an inline calendar is
+  always reachable this way): the grid is a WAI-ARIA `grid` with ONE tab stop
+  (core `createRovingFocus`) and the keys move REAL focus between the day
+  cells. Tab leaves the grid in one step; coming back lands on the same day.
 
 ### Day navigation
 
 | Key | Action |
 |---|---|
-| ↑ / ↓ | Move up / down by one week |
-| ← / → | Move left / right by one day |
+| ↑ / ↓ | Move up / down by one week (past the month edge: the same weekday in the next / previous month) |
+| ← / → | Move left / right by one day, across the week and month edges |
 | **Ctrl** + ← / → | Previous / next month (preserves day-of-month) |
 | **PageUp** / **PageDown** | Previous / next month (preserves day-of-month) |
+| **Shift** + **PageUp** / **PageDown** | The same month a year back / forward |
 | **Home** | First day of current month — repeat to cycle backwards through months |
 | **End** | Last day of current month — repeat to cycle forwards through months |
 | **Ctrl** + **Home** | January 1st of current year — repeat for previous year |
@@ -37,11 +46,16 @@ In a right-to-left (`dir="rtl"`) context ← / → (and **Ctrl** + ← / →) fo
 visual direction, per WAI-ARIA: the grid runs right-to-left, so ← moves to the
 next day / month. The nav chevrons mirror too.
 
+Disabled days are skipped by the arrows (they stay announced, with
+`aria-disabled="true"`); so are the neighbour-month cells that fill the first
+and last week.
+
 ### Selection & lifecycle
 
 | Key | Action |
 |---|---|
 | **Enter** | Select focused day (or commit pending range in range mode) |
+| **Space** | Select the focused day (inside the day grid) |
 | **Escape** | Close calendar; with an uncommitted Apply-mode selection, silently restores the original input value |
 | **Tab** / **Shift+Tab** | Switch between month columns when multiple months are visible |
 | **T** | Jump focus to today's date |
@@ -57,7 +71,17 @@ The picker tries to keep focus in a sensible place across its lifecycle.
 
 **On calendar open (floating mode)** — focus stays on the input.
 Arrow keys press into the calendar; pressing Escape closes it without
-losing the input focus.
+losing the input focus. (The WAI-ARIA date-picker dialog pattern moves
+focus into the grid on open instead; the picker keeps the input focused
+so typing a date keeps working. Tab reaches the grid.)
+
+**Into the day grid** — Tab (or a click on a day) puts real focus on one
+day: the keyboard position, else the selected day, today, or the first
+enabled day. A re-render (month change, a pick) puts focus back on the
+day at the same position.
+
+**Closing with focus in the grid (floating mode)** — picking a day that
+closes the calendar, or Escape, returns focus to the input.
 
 **On calendar open (modal mode)** — the input is **blurred** so the
 mobile soft-keyboard collapses (otherwise the keyboard fights for the
@@ -90,21 +114,26 @@ the implementation note.
 
 ## ARIA roles & labels
 
-**Current state — minimal.** The component ships almost no explicit
-ARIA at the time of writing. Only one declaration exists:
+**The day grid** (per visible month):
 
-- `aria-hidden="true"` on the wheel-picker's center selection band
-  (decorative — hides the band from assistive tech so it doesn't get
-  announced as "image").
+| Element | Role / attributes |
+|---|---|
+| `.drp__calendar-container` | `role="grid"`, `aria-label` = month + year (locale month names) |
+| `.drp__weekdays` | `role="row"`; each weekday `role="columnheader"`, `abbr` + `aria-label` = the full weekday name |
+| `.drp__days` | `role="rowgroup"` (the roving-focus container) |
+| `.drp__date-row` | `role="row"` (one per week) |
+| `.drp__badge-row` | `role="presentation"` |
+| `.drp__day` | `role="gridcell"`, `tabindex` `0` on the one tab stop / `-1`, `aria-selected` (`true` on the picked day, range ends and the days between), `aria-current="date"` on today, `aria-disabled="true"` on disabled days |
+
+Also: `aria-hidden="true"` on the wheel-picker's center selection band
+(decorative).
 
 **Known gaps to disclose:**
 
-- The day cells have no `role="gridcell"`, no `aria-selected`, no
-  `aria-current="date"`, no `aria-label`. Screen readers traverse them
-  as plain `<div>` elements.
-- The calendar container has no `role="dialog"` (for floating /modal
-  modes) or `role="grid"` (for the day matrix). Modal mode also lacks
-  `aria-modal="true"`.
+- Day cells have no `aria-label` — a screen reader reads the day number
+  (with the grid / column context) rather than a full date.
+- The calendar container has no `role="dialog"` for the floating
+  popover.
 - There's no `aria-live` region announcing month changes, selection
   changes, or validation messages from `beforeSelectCallback`.
 - Action buttons (Today / Clear / Apply / Now) have only their visible
@@ -118,12 +147,12 @@ is on the roadmap but isn't claimed for the 1.x line.
 
 ## Screen-reader behavior
 
-Because the ARIA surface is minimal (see above), screen readers fall
-back to announcing the raw DOM. Observed behavior:
+Observed / expected behavior:
 
-**NVDA / JAWS (Windows):** day cells are announced as their text
-content (the day number). Selected days have no "selected" status
-announcement — visual `.drp__day--selected` styling is the only signal.
+**NVDA / JAWS (Windows):** with focus in the day grid, a day is
+announced as its number with its column header (weekday) and its
+selected / current-date / unavailable state from the ARIA above. From the
+input (focus not in the grid) the highlighted day is not announced.
 Range mode does not announce "1 of 5 days selected" or similar — the
 summary block (`show-summary="true"`) is announced when the
 selection commits, which carries the days/nights count.

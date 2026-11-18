@@ -7,6 +7,7 @@
 
 import { hasEnabledDaysInMonth } from './date-picker-navigation';
 import { escapeHtml } from '@keenmate/web-components-core';
+import { getWeekdayNames } from '@keenmate/web-components-core/locale';
 import { scrollOnOwn } from './date-picker-ui';
 import { hasEnabledDaysInYear } from './date-picker-validation';
 import * as Validation from './date-picker-validation';
@@ -50,6 +51,8 @@ export function parseMonthRange(range: string | undefined): { min: number, max: 
 }
 
 export function renderCalendar(picker: any) {
+    // innerHTML re-renders drop a focused day cell — put real focus back afterwards (roving grid).
+    const hadDayFocus = !!picker.isDayGridFocused?.();
     renderingLogger.debug(`[DatePicker 18] renderCalendar called, rollingSelectorOpenByColumn:`, picker.rollingSelectorOpenByColumn, `activeCol: ${picker.activeMonthIndex}`);
     renderingLogger.debug('[DatePicker 18] monthDates array:', picker._monthDates.map((d: Date, i: number) => `Col${i}: ${d.getFullYear()}-${d.getMonth()+1}`).join(', '));
 
@@ -98,6 +101,9 @@ export function renderCalendar(picker: any) {
             }
         }
     }
+
+    // One tab stop per day grid (core roving focus) + real focus back after the rebuild.
+    picker.refreshDayGrids?.(hadDayFocus);
 
     // Initialize drag listeners for range mode
     if (picker.options.selectionMode === 'range' && !picker.isDragging) {
@@ -153,6 +159,9 @@ export function renderNormalView(picker: any, monthIndex: number) {
 
         monthYear.textContent = headerText;
     }
+
+    // role="grid" name: the month + year (locale month names).
+    monthContainer.querySelector('.drp__calendar-container')?.setAttribute('aria-label', `${monthName} ${year}`);
 
     // Update unified navigation (if enabled and this is the first month change)
     if (picker.options.isUnifiedNavigationEnabled && monthIndex === 0 && picker.unifiedRangeDisplay) {
@@ -266,8 +275,11 @@ export function renderNormalView(picker: any, monthIndex: number) {
         ...picker.weekdayNames.slice(0, picker.weekStartDay)
     ];
     if (weekdays) {
+        // Column headers: `abbr` / the accessible name = the full weekday name.
+        const longNames = getWeekdayNames(picker.locale, 'long');
+        const reorderedLong = [...longNames.slice(picker.weekStartDay), ...longNames.slice(0, picker.weekStartDay)];
         weekdays.innerHTML = reorderedWeekdays
-            .map(day => `<div class="drp__weekday">${day}</div>`).join('');
+            .map((day, i) => `<div class="drp__weekday" role="columnheader" abbr="${escapeHtml(reorderedLong[i] ?? '')}" aria-label="${escapeHtml(reorderedLong[i] ?? '')}">${day}</div>`).join('');
     }
 
     // Render days
@@ -403,7 +415,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
 
         // Generate badge row if any day has a badge
         if (hasAnyBadge) {
-            html += '<div class="drp__badge-row">';
+            html += '<div class="drp__badge-row" role="presentation">';
             for (const badge of weekBadges) {
                 if (badge.text) {
                     const tooltipAttr = badge.tooltip ? ` data-tooltip="${escapeHtml(badge.tooltip)}"` : '';
@@ -417,7 +429,7 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
         }
 
         // Generate date row
-        html += '<div class="drp__date-row">';
+        html += '<div class="drp__date-row" role="row">';
         for (const dayData of week) {
             const classes = ['drp__day'];
             if (dayData.isOtherMonth) classes.push('drp__day--other-month');
@@ -545,7 +557,12 @@ export function renderDays(picker: any, monthIndex: number, date: Date) {
             // Render day cell with slot support
             // Priority: per-day slot > renderDayCallback > renderDayContentCallback > default
             const tooltipAttr = dayTooltip ? ` data-tooltip="${escapeHtml(dayTooltip)}"` : '';
-            html += `<div class="${escapeHtml(classes.join(' '))}" data-date="${dateStr}" data-day-number="${dayData.day}" data-weekday="${weekday}"${tooltipAttr}>`;
+            // ARIA gridcell: one roving tab stop (core createRovingFocus sets tabindex 0 on it).
+            const isPicked = isSelected || isStartDate || isEndDate || isInRange;
+            const ariaAttrs = ` role="gridcell" tabindex="-1" aria-selected="${isPicked}"`
+                + (picker.isToday(dayData.date) ? ' aria-current="date"' : '')
+                + (isDisabled ? ' aria-disabled="true"' : '');
+            html += `<div class="${escapeHtml(classes.join(' '))}" data-date="${dateStr}" data-day-number="${dayData.day}" data-weekday="${weekday}"${ariaAttrs}${tooltipAttr}>`;
             html += `<slot name="day-${dateStr}">${dayData.day}</slot>`;
             html += `</div>`;
         }

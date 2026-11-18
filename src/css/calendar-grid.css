@@ -100,6 +100,11 @@
 /* --------------------------------------
    Focused (keyboard navigation)
    -------------------------------------- */
+/* Real focus (roving grid) shows the same ring as the keyboard position class. */
+.drp__day:focus:not(.drp__day--focused) {
+  outline: none;
+}
+
 .drp__day--focused {
   outline: var(--drp-day-focused-outline-width) solid var(--drp-day-focused-outline);
   outline-offset: var(--drp-day-focused-outline-offset);
