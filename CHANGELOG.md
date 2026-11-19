@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   defaults are unchanged. `renderSummaryCallback`'s `ctx.labels` carries the new keys.
 - The old `clear` key fed two surfaces; it is split into `buttons.clear` (the footer button caption) and
   `ariaLabels.clear` (the input ✕'s ARIA label), both `Clear` by default.
+- One text, one key: `ariaLabels.*` stay only where nothing visible names the element — the input ✕
+  (`ariaLabels.clear`), the sheet / message ✕ (`ariaLabels.close`), the loaders (`ariaLabels.loading`); every
+  button that shows text is named by its visible text (no `aria-label`, no twin key). No key removed. An
+  `ariaLabels.<name>` nobody set follows a customized sibling with the same `<name>` (core twin fallback): a
+  translated `buttons.clear` also names the input ✕ unless `ariaLabels.clear` is set.
 - Page-wide labels are ONE flat dictionary of full keys:
   `window.components.locale.labels = { 'web-daterangepicker.buttons.today': 'Dnes' }` (the nested
   `{ 'web-daterangepicker': { … } }` shape is ignored). `formatLabelCallback` is replaced by

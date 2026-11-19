@@ -889,7 +889,7 @@ one (`web-daterangepicker.buttons.today`).
 | Key | Default | Used for |
 |---|---|---|
 | `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now` | `Today` / `Clear` / `Apply` / `Now` | built-in action buttons |
-| `ariaLabels.clear` | `Clear` | ARIA label of the input's ✕ clear button |
+| `ariaLabels.clear` | `Clear` | ARIA label of the input's ✕ clear button (icon only); left unset, it follows a customized `buttons.clear` |
 | `ariaLabels.close` | `Close` | ARIA label of the full-screen ✕ and the message ✕ |
 | `labels.preview` | `Preview` | prefix of the range summary while hovering / dragging |
 | `labels.day` / `labels.days` | `{count} day` / `{count} days` | range summary |
@@ -899,6 +899,11 @@ one (`web-daterangepicker.buttons.today`).
 | `headers.fullscreen` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
 | `errors.valueFormat` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
 | `ariaLabels.loading` | `Loading…` | accessible label (`aria-label`, `role="status"`) of every loader |
+
+`ariaLabels.*` exist only where nothing visible names the element (the ✕ icons, the loaders); a button that
+shows text is named by that text. An `ariaLabels.<name>` nobody set takes a customized sibling with the same
+`<name>` (core `/locale`), so translating `buttons.clear` also names the input ✕ — set `ariaLabels.clear` to
+give it a different text.
 
 Page-wide (every picker on the page, core `/locale`): one flat dictionary of full keys —
 `window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Dnes' } }`; the instance

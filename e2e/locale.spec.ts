@@ -50,6 +50,16 @@ test('labels: "" renders an empty label, undefined falls back to the English def
     await expect(p.locator('.drp__button--clear')).toHaveText('Clear');
 });
 
+test('labels: the input ✕ (ariaLabels.clear) follows a customized buttons.clear; its own key wins', async ({ page }) => {
+    const p = pickerById(page, 'custom-strings');
+    const clear = p.locator('.drp__input-clear');
+    await expect(clear).toHaveAttribute('aria-label', 'Clear');
+    await p.evaluate((el: any) => { el.labels = { 'buttons.clear': 'Vymazat' }; return el.whenSettled(); });
+    await expect(clear).toHaveAttribute('aria-label', 'Vymazat');
+    await p.evaluate((el: any) => { el.labels = { 'buttons.clear': 'Vymazat', 'ariaLabels.clear': 'Smazat datum' }; return el.whenSettled(); });
+    await expect(clear).toHaveAttribute('aria-label', 'Smazat datum');
+});
+
 test('labels: a content label may carry HTML; {count} values are interpolated as text', async ({ page }) => {
     const p = await open(page, 'labels-attr');
     await p.evaluate((el: any) => { el.labels = { 'labels.days': '<b class="x-days">{count}</b> days' }; return el.whenSettled(); });
