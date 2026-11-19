@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   | `hours` / `minutes` / `seconds` | `labels.hours` / `labels.minutes` / `labels.seconds` |
   | `fullscreenTitle` | `headers.fullscreen` |
   | `valueFormatError` | `errors.valueFormat` |
-  | `loading` | `messages.loading` |
+  | `loading` | `ariaLabels.loading` |
 
 ### Added — `shortcut` on action buttons (2026-11-18, core 1.0.0-rc25)
 - An `actionButtons` item takes the standard `/actions` **`shortcut`** field (`'Mod+T'`, `'Shift+C'`, `'m'`;

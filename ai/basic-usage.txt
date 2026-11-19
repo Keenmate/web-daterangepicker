@@ -532,7 +532,7 @@ ariaLabels.close, labels.preview, labels.day, labels.days, labels.night, labels.
 labels.selectionCount ({count}), labels.time, labels.am, labels.pm, labels.hours,
 labels.minutes, labels.seconds, headers.fullscreen,
 errors.valueFormat (validation message when getValueFormatCallback throws),
-messages.loading (aria-label of every loader, default 'Loading…').
+ariaLabels.loading (aria-label of every loader, default 'Loading…').
 Page-wide: ONE flat dictionary of full keys —
 window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Dnes' } };
 translateCallback({ component, key /* full */, template, params, locale }) → string | null.

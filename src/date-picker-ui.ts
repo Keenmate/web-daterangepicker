@@ -714,7 +714,7 @@ function summaryBlock(picker: any): HTMLElement | null {
  * - 'calendar' (default): full-calendar overlay (also used automatically around async gates)
  * - 'message' / 'summary': an in-block loader inside that feedback block
  *
- * The container (overlay / `.drp__inline-loader`, `role="status"` + `messages.loading` label)
+ * The container (overlay / `.drp__inline-loader`, `role="status"` + `ariaLabels.loading` label)
  * is filled by core renderLoader(): the instance `renderLoadingCallback`, else the
  * page-wide `window.components.renderLoadingCallback`, else the default `.drp__loader`.
  * `target` is the hook's `context`.
@@ -749,7 +749,7 @@ export function showLoader(picker: any, target: LoaderTarget = 'calendar'): void
     const host: HTMLElement = picker.options.hostElement ?? mount;
     const remove = renderLoader(host, container, target, {
         prefix: 'drp',
-        label: picker.labels?.text('messages.loading') ?? '',
+        label: picker.labels?.text('ariaLabels.loading') ?? '',
         renderLoadingCallback: picker.options.renderLoadingCallback ?? null,
     });
     // The container moves with re-renders (reapplySummaryLoader); its remove() runs the hook's cleanup.

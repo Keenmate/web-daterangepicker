@@ -797,7 +797,7 @@ export interface DateRangePickerLabels {
   'errors.valueFormat': string;
 
   /** Accessible label of every loader (`showLoader()`, async callbacks) — its `aria-label`. */
-  'messages.loading': string;
+  'ariaLabels.loading': string;
 }
 
 export interface DateRange {

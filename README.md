@@ -277,7 +277,7 @@ over rendering but requires sanitizing untrusted data:
 
 - `beforeSelectCallback`, `beforeMonthChangeCallback`, `beforeScrollCallback` (return values, not markup)
 - `actionButtons[].text` / `getTextCallback` (set as plain text)
-- `labels` text keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now` (button text), `ariaLabels.clear` / `ariaLabels.close` (aria-label), `headers.fullscreen`, `labels.selectionCount` (input value), `errors.valueFormat`, `messages.loading` — and `am` / `pm` where they appear in the input value
+- `labels` text keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now` (button text), `ariaLabels.clear` / `ariaLabels.close` (aria-label), `headers.fullscreen`, `labels.selectionCount` (input value), `errors.valueFormat`, `ariaLabels.loading` — and `am` / `pm` where they appear in the input value
 - `onChange`, `onOpen`, `onClose`, `onAction`, `onMonthChange`, `onReady` (event handlers)
 - `getDateMetadataCallback` (`isDisabled`, `dayClass`, `badgeClass` — CSS class names only)
 

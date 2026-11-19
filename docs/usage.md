@@ -898,7 +898,7 @@ one (`web-daterangepicker.buttons.today`).
 | `labels.time` / `labels.hours` / `labels.minutes` / `labels.seconds` / `labels.am` / `labels.pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
 | `headers.fullscreen` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
 | `errors.valueFormat` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
-| `messages.loading` | `Loading…` | accessible label (`aria-label`, `role="status"`) of every loader |
+| `ariaLabels.loading` | `Loading…` | accessible label (`aria-label`, `role="status"`) of every loader |
 
 Page-wide (every picker on the page, core `/locale`): one flat dictionary of full keys —
 `window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Dnes' } }`; the instance
