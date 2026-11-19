@@ -427,7 +427,7 @@ export interface DatePickerOptions {
    * otherwise sit behind the fixed sheet). Gets `inputmode="numeric"` so the phone
    * shows a digits keypad — the input mask supplies the separators, so no `/`/`.`
    * key is needed. Default `false`. Only affects the `fullscreen` presentation;
-   * takes over the header row, so `labels.fullscreenTitle` is not shown alongside it.
+   * takes over the header row, so the `headers.fullscreen` label is not shown alongside it.
    */
   isFullscreenInputShown?: boolean;
 
@@ -763,39 +763,41 @@ export interface DatePickerOptions {
  * interpolated where noted. Month / weekday names come from `Intl` (`locale`).
  */
 export interface DateRangePickerLabels {
-  /** Built-in action buttons. */
-  today: string;
-  clear: string;
-  apply: string;
-  now: string;
-  /** The ✕ that closes the full-screen sheet / a message (ARIA label). */
-  close: string;
+  /** Built-in action buttons (footer captions). */
+  'buttons.today': string;
+  'buttons.clear': string;
+  'buttons.apply': string;
+  'buttons.now': string;
+  /** The input's ✕ clear button (`show-clear-button`), its ARIA label. */
+  'ariaLabels.clear': string;
+  /** The ✕ that closes the full-screen sheet / a message, its ARIA label. */
+  'ariaLabels.close': string;
 
   /** Range summary: the hover/drag preview prefix and the counts (`{count}`). */
-  preview: string;
-  day: string;
-  days: string;
-  night: string;
-  nights: string;
+  'labels.preview': string;
+  'labels.day': string;
+  'labels.days': string;
+  'labels.night': string;
+  'labels.nights': string;
   /** The input text in multiple mode (`{count}`). */
-  selectionCount: string;
+  'labels.selectionCount': string;
 
-  /** Time picker (pickerMode `time` / `datetime`). */
-  time: string;
-  am: string;
-  pm: string;
-  hours: string;
-  minutes: string;
-  seconds: string;
+  /** Time picker (pickerMode `time` / `datetime`): the section caption, AM / PM, the column captions. */
+  'labels.time': string;
+  'labels.am': string;
+  'labels.pm': string;
+  'labels.hours': string;
+  'labels.minutes': string;
+  'labels.seconds': string;
 
   /** Heading in the phone full-screen sheet beside the ✕; empty = no heading. */
-  fullscreenTitle: string;
+  'headers.fullscreen': string;
 
   /** Validation message when `getValueFormatCallback` throws (the host turns invalid). */
-  valueFormatError: string;
+  'errors.valueFormat': string;
 
   /** Accessible label of every loader (`showLoader()`, async callbacks) — its `aria-label`. */
-  loading: string;
+  'messages.loading': string;
 }
 
 export interface DateRange {

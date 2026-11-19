@@ -45,11 +45,11 @@ test('the ✕ close button dismisses the full-screen sheet', async ({ page }) =>
   await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--visible/);
 });
 
-test('labels.fullscreenTitle shows a heading; labels.close is the ✕ ARIA label', async ({ page }) => {
+test('headers.fullscreen shows a heading; ariaLabels.close is the ✕ ARIA label', async ({ page }) => {
   await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
-  await host.evaluate(async (el: any) => { el.labels = { fullscreenTitle: 'Choose dates', close: 'Zavřít' }; await el.whenSettled(); el.open(); });
+  await host.evaluate(async (el: any) => { el.labels = { 'headers.fullscreen': 'Choose dates', 'ariaLabels.close': 'Zavřít' }; await el.whenSettled(); el.open(); });
   await expect(host.locator('.drp__fullscreen-title')).toHaveText('Choose dates');
   await expect(host.locator('.drp__fullscreen-close')).toHaveAttribute('aria-label', 'Zavřít');
   await expect(host.locator('.drp__picker')).not.toHaveClass(/drp__picker--fs-merged-header/);
@@ -60,7 +60,7 @@ test('the sheet header is core sheet chrome: km-sheet-* classes, masked ✕ (no 
   const host = page.locator('#picker');
   await host.waitFor();
   await host.evaluate(async (el: any) => {
-    el.labels = { fullscreenTitle: 'Choose dates' };
+    el.labels = { 'headers.fullscreen': 'Choose dates' };
     el.style.setProperty('--drp-sheet-close-size', '50px');
     await el.whenSettled();
     el.open();

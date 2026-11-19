@@ -475,7 +475,7 @@ Range mode ALWAYS submits a list of ranges (plain, split pieces, or several):
 Single json "d"; multiple json ["d1","d2"] (a range item is {"start","end"}, never a pair). Empty selection: '' (text/json), no field (array).
 
 A THROWING getValueFormatCallback → logged (DRP:SELECTION error), field submits '',
-host invalid (validity.customError, message = labels.valueFormatError) so the form
+host invalid (validity.customError, message = the errors.valueFormat label) so the form
 won't submit (`invalid` fires; <form novalidate> submits ''); event
 `value-format-error` { error, value } (twin onValueFormatError). The next successful
 format clears it. el.validity / validationMessage / checkValidity() / reportValidity().
@@ -521,19 +521,27 @@ All UI strings come from ONE `labels` object — partial, English defaults
 come from Intl for `locale` (auto = browser language) or monthNames/weekdayNames.
 
 <web-daterangepicker selection-mode="range" locale="de"
-  labels='{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'>
+  labels='{"buttons.today":"Heute","buttons.clear":"Löschen","buttons.apply":"Übernehmen","labels.days":"{count} Tage","labels.nights":"{count} Nächte"}'>
 </web-daterangepicker>
 
-el.labels = { today: 'Dnes', days: '{count} dní', fullscreenTitle: 'Vyberte termín' };
+el.labels = { 'buttons.today': 'Dnes', 'labels.days': '{count} dní', 'headers.fullscreen': 'Vyberte termín' };
 
-Keys: today, clear, apply, now, close, preview, day, days, night, nights,
-selectionCount ({count}), time, am, pm, hours, minutes, seconds, fullscreenTitle,
-valueFormatError (validation message when getValueFormatCallback throws),
-loading (aria-label of every loader, default 'Loading…').
+Keys are flat <elementType>.<name> (short, or full 'web-daterangepicker.<key>'):
+buttons.today, buttons.clear, buttons.apply, buttons.now, ariaLabels.clear (input ✕),
+ariaLabels.close, labels.preview, labels.day, labels.days, labels.night, labels.nights,
+labels.selectionCount ({count}), labels.time, labels.am, labels.pm, labels.hours,
+labels.minutes, labels.seconds, headers.fullscreen,
+errors.valueFormat (validation message when getValueFormatCallback throws),
+messages.loading (aria-label of every loader, default 'Loading…').
+Page-wide: ONE flat dictionary of full keys —
+window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Dnes' } };
+translateCallback({ component, key /* full */, template, params, locale }) → string | null.
 '' = deliberately empty (renders nothing); undefined / missing = English default.
-Content labels (preview, day(s), night(s), time, hours, minutes, seconds, am/pm in
+Content labels (labels.preview/day(s)/night(s)/time/hours/minutes/seconds/am/pm in
 the time pickers) are inserted as HTML; {count} is escaped; the rest are plain text.
-❌ customStrings, fullscreen-title  → ✅ labels / labels.fullscreenTitle
+❌ customStrings, fullscreen-title  → ✅ labels / labels['headers.fullscreen']
+❌ { today } / page shape { 'web-daterangepicker': {…} } / formatLabelCallback
+   → ✅ 'buttons.today' / flat 'web-daterangepicker.buttons.today' / translateCallback
 
 LOADERS
 -------

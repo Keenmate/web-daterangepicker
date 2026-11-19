@@ -891,8 +891,8 @@ export function renderTimePicker(picker: any) {
             const amSelected = time.ampm === 'am' ? 'drp__rolling-item--selected' : '';
             const pmSelected = time.ampm === 'pm' ? 'drp__rolling-item--selected' : '';
             ampmContainer.innerHTML = `
-                <div class="drp__rolling-item ${amSelected}" data-ampm="am"><span class="drp__rolling-item-text">${picker.labels.html('am')}</span></div>
-                <div class="drp__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp__rolling-item-text">${picker.labels.html('pm')}</span></div>
+                <div class="drp__rolling-item ${amSelected}" data-ampm="am"><span class="drp__rolling-item-text">${picker.labels.html('labels.am')}</span></div>
+                <div class="drp__rolling-item ${pmSelected}" data-ampm="pm"><span class="drp__rolling-item-text">${picker.labels.html('labels.pm')}</span></div>
             `;
         }
     }
@@ -940,7 +940,7 @@ export function renderClockPicker(picker: any) {
         let ampmIndicator = '';
         if (is12h) {
             const ampm = time.ampm ?? (focusHour >= 12 ? 'pm' : 'am');
-            ampmIndicator = `<span class="drp__clock-header-ampm">${picker.labels.html(ampm === 'pm' ? 'pm' : 'am')}</span>`;
+            ampmIndicator = `<span class="drp__clock-header-ampm">${picker.labels.html(ampm === 'pm' ? 'labels.pm' : 'labels.am')}</span>`;
         }
         headerEl.innerHTML = `
             <button type="button" class="drp__clock-header-digit ${hoursActive}" data-clock-step="hours">${hourLabel}</button>
@@ -1112,8 +1112,8 @@ export function renderClockPicker(picker: any) {
             const amSelected = effectiveAmpm === 'am' ? 'drp__clock-ampm-button--selected' : '';
             const pmSelected = effectiveAmpm === 'pm' ? 'drp__clock-ampm-button--selected' : '';
             ampmEl.innerHTML = `
-                <button type="button" class="drp__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.labels.html('am')}</button>
-                <button type="button" class="drp__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.labels.html('pm')}</button>
+                <button type="button" class="drp__clock-ampm-button ${amSelected}" data-clock-ampm="am">${picker.labels.html('labels.am')}</button>
+                <button type="button" class="drp__clock-ampm-button ${pmSelected}" data-clock-ampm="pm">${picker.labels.html('labels.pm')}</button>
             `;
         }
     }
@@ -1260,8 +1260,8 @@ export function renderWheelPicker(picker: any) {
     // AM/PM (h12 only)
     if (is12h) {
         const items = [
-            { value: 'am', label: picker.labels.html('am'), selected: time.ampm === 'am' },
-            { value: 'pm', label: picker.labels.html('pm'), selected: time.ampm === 'pm' },
+            { value: 'am', label: picker.labels.html('labels.am'), selected: time.ampm === 'am' },
+            { value: 'pm', label: picker.labels.html('labels.pm'), selected: time.ampm === 'pm' },
         ];
         renderColumn('ampm', items, focusAmpm);
     }
@@ -1430,9 +1430,9 @@ export function updateSummary(picker: any) {
         renderSlot(summary, () => callbackData ? picker.options.renderSummaryCallback(callbackData) : null, {
             renderDefault: (c) => {
                 c.innerHTML = `
-                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'day' : 'days', { count: days })}</span>
+                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'labels.day' : 'labels.days', { count: days })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'night' : 'nights', { count: nights })}</span>
+                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'labels.night' : 'labels.nights', { count: nights })}</span>
             `;
             },
         });
@@ -1532,10 +1532,10 @@ export function updateSummaryWithPreview(picker: any) {
         renderSlot(summary, () => callbackData ? picker.options.renderSummaryCallback(callbackData) : null, {
             renderDefault: (c) => {
                 c.innerHTML = `
-                <span style="opacity: 0.7;">${picker.labels.html('preview')}: </span>
-                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'day' : 'days', { count: days })}</span>
+                <span style="opacity: 0.7;">${picker.labels.html('labels.preview')}: </span>
+                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'labels.day' : 'labels.days', { count: days })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'night' : 'nights', { count: nights })}</span>
+                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'labels.night' : 'labels.nights', { count: nights })}</span>
             `;
             },
         });

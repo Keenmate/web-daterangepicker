@@ -37,28 +37,32 @@
       <label>German (locale="de")</label>
       <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
         locale="de" positioning-mode="inline"
-        labels='{"today":"Heute","clear":"Löschen"}'></web-daterangepicker>
+        labels='{"buttons.today":"Heute","buttons.clear":"Löschen"}'></web-daterangepicker>
     </div>
     <div class="form-group">
       <label>French (locale="fr")</label>
       <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
         locale="fr" positioning-mode="inline"
-        labels='{"today":"Aujourd&apos;hui","clear":"Effacer"}'></web-daterangepicker>
+        labels='{"buttons.today":"Aujourd&apos;hui","buttons.clear":"Effacer"}'></web-daterangepicker>
     </div>
     <div class="form-group">
       <label>Spanish (locale="es")</label>
       <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
         locale="es" positioning-mode="inline"
-        labels='{"today":"Hoy","clear":"Limpiar"}'></web-daterangepicker>
+        labels='{"buttons.today":"Hoy","buttons.clear":"Limpiar"}'></web-daterangepicker>
     </div>
   </div>
 
   <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker locale="de"
-labels='{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'&gt;&lt;/web-daterangepicker&gt;
+labels='{"buttons.today":"Heute","buttons.clear":"Löschen","buttons.apply":"Übernehmen","labels.days":"{count} Tage","labels.nights":"{count} Nächte"}'&gt;&lt;/web-daterangepicker&gt;
 
-// or as a property — keys: today, clear, apply, now, close, preview, day, days,
-// night, nights, selectionCount, time, am, pm, hours, minutes, seconds, fullscreenTitle
-el.labels = { today: 'Heute', days: '{count} Tage' };</code></pre></div>
+// or as a property — flat &lt;elementType&gt;.&lt;name&gt; keys: buttons.today / clear / apply / now,
+// ariaLabels.clear / close, labels.preview / day / days / night / nights / selectionCount,
+// labels.time / am / pm / hours / minutes / seconds, headers.fullscreen, errors.valueFormat, messages.loading
+el.labels = { 'buttons.today': 'Heute', 'labels.days': '{count} Tage' };
+
+// page-wide, every picker: ONE flat dictionary of full keys
+window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Heute' } };</code></pre></div>
 </div>
 
 <!-- week-start-day -->
@@ -179,7 +183,7 @@ month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|�
       week-start-day="1"
       month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
       weekday-names="Ne|Po|Út|St|Čt|Pá|So"
-      labels='{"today":"Dnes","clear":"Vymazat","day":"{count} den","days":"{count} dní","night":"{count} noc","nights":"{count} nocí"}'
+      labels='{"buttons.today":"Dnes","buttons.clear":"Vymazat","labels.day":"{count} den","labels.days":"{count} dní","labels.night":"{count} noc","labels.nights":"{count} nocí"}'
       positioning-mode="inline"></web-daterangepicker>
   </div>
 </div>

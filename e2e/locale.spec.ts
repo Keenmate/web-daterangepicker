@@ -44,7 +44,7 @@ test('labels overrides individual button labels (Today → "Jump"); the rest sta
 
 test('labels: "" renders an empty label, undefined falls back to the English default', async ({ page }) => {
     const p = pickerById(page, 'custom-strings');
-    await p.evaluate((el: any) => { el.labels = { today: '', clear: undefined }; return el.whenSettled(); });
+    await p.evaluate((el: any) => { el.labels = { 'buttons.today': '', 'buttons.clear': undefined }; return el.whenSettled(); });
     await p.evaluate((el: any) => el.open());
     await expect(p.locator('.drp__button--today')).toHaveText('');
     await expect(p.locator('.drp__button--clear')).toHaveText('Clear');
@@ -52,7 +52,7 @@ test('labels: "" renders an empty label, undefined falls back to the English def
 
 test('labels: a content label may carry HTML; {count} values are interpolated as text', async ({ page }) => {
     const p = await open(page, 'labels-attr');
-    await p.evaluate((el: any) => { el.labels = { days: '<b class="x-days">{count}</b> days' }; return el.whenSettled(); });
+    await p.evaluate((el: any) => { el.labels = { 'labels.days': '<b class="x-days">{count}</b> days' }; return el.whenSettled(); });
     await p.evaluate((el: any) => el.open());
     await p.locator('.drp__day[data-date="2026-06-10"]').click();
     await p.locator('.drp__day[data-date="2026-06-13"]').click();
@@ -70,7 +70,7 @@ test('labels JSON attribute: {count} placeholders in the range summary, live upd
     await p.locator('.drp__day[data-date="2026-06-13"]').click();
     await expect(p.locator('.drp__summary')).toContainText('4 Tage');
     await expect(p.locator('.drp__summary')).toContainText('3 Nächte');
-    await p.evaluate((el: any) => { el.labels = { days: '{count} dní', nights: '{count} nocí' }; return el.whenSettled(); });
+    await p.evaluate((el: any) => { el.labels = { 'labels.days': '{count} dní', 'labels.nights': '{count} nocí' }; return el.whenSettled(); });
     await p.evaluate((el: any) => el.open());
     await expect(p.locator('.drp__summary')).toContainText('4 dní');
     expect(await p.evaluate((el: any) => el.selectedRanges.length)).toBe(1);

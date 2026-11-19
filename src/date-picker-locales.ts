@@ -9,26 +9,29 @@
 import type { DateRangePickerLabels } from './types';
 
 /** Built-in English UI labels. Resolved and `{count}`-interpolated by core `createLabels` (`DateRangePickerEngine#labels`):
- *  instance `labels` → page-wide `window.components.locale.labels['web-daterangepicker']` → these. */
+ *  instance `labels` (short `buttons.today` or full `web-daterangepicker.buttons.today` keys) → the page-wide flat
+ *  dictionary `window.components.locale.labels['web-daterangepicker.buttons.today']` → these. Keys are flat
+ *  `<elementType>.<name>`. */
 export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
-  today: 'Today',
-  clear: 'Clear',
-  apply: 'Apply',
-  now: 'Now',
-  close: 'Close',
-  preview: 'Preview',
-  day: '{count} day',
-  days: '{count} days',
-  night: '{count} night',
-  nights: '{count} nights',
-  selectionCount: '{count} selection(s)',
-  time: 'Time',
-  am: 'AM',
-  pm: 'PM',
-  hours: 'Hours',
-  minutes: 'Minutes',
-  seconds: 'Seconds',
-  fullscreenTitle: '',
-  valueFormatError: 'The value could not be formatted.',
-  loading: 'Loading…',
+  'buttons.today': 'Today',
+  'buttons.clear': 'Clear',
+  'buttons.apply': 'Apply',
+  'buttons.now': 'Now',
+  'ariaLabels.clear': 'Clear',
+  'ariaLabels.close': 'Close',
+  'labels.preview': 'Preview',
+  'labels.day': '{count} day',
+  'labels.days': '{count} days',
+  'labels.night': '{count} night',
+  'labels.nights': '{count} nights',
+  'labels.selectionCount': '{count} selection(s)',
+  'labels.time': 'Time',
+  'labels.am': 'AM',
+  'labels.pm': 'PM',
+  'labels.hours': 'Hours',
+  'labels.minutes': 'Minutes',
+  'labels.seconds': 'Seconds',
+  'headers.fullscreen': '',
+  'errors.valueFormat': 'The value could not be formatted.',
+  'messages.loading': 'Loading…',
 });

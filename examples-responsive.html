@@ -301,7 +301,7 @@ web-daterangepicker {
   <p>
     Pair it with <code>fullscreen-autofocus</code> to pop that keypad on open for a type-first flow,
     or leave autofocus off and let users tap the header field when they want to type. The header
-    input takes over the row, so it's shown instead of <code>labels.fullscreenTitle</code>.
+    input takes over the row, so it's shown instead of the <code>headers.fullscreen</code> label.
   </p>
 
   <label class="toggle-label"><input type="checkbox" id="hdrinput-fs-preview"> Preview as full-screen (desktop)</label>
@@ -324,23 +324,23 @@ web-daterangepicker {
 </div>
 
 <!-- ============================================================ -->
-<!-- RS09. labels.fullscreenTitle — header heading (mobile §4)   -->
+<!-- RS09. headers.fullscreen label — header heading (mobile §4) -->
 <!-- ============================================================ -->
 <div class="card">
-  <h2>RS09 · Full-Screen: header heading (<code>labels.fullscreenTitle</code>)</h2>
+  <h2>RS09 · Full-Screen: header heading (<code>headers.fullscreen</code> label)</h2>
   <p>
-    The full-screen header shows just a close (✕) button by default. Set the <code>fullscreenTitle</code> label
+    The full-screen header shows just a close (✕) button by default. Set the <code>headers.fullscreen</code> label
     for a heading beside it — useful to label what the user is picking.
   </p>
 
   <label class="toggle-label"><input type="checkbox" id="titled-fs-preview"> Preview as full-screen (desktop)</label>
   <div class="form-group">
     <label>With a title</label>
-    <web-daterangepicker id="titled" selection-mode="range" labels='{"fullscreenTitle":"Choose your dates"}' placeholder="Titled full-screen"></web-daterangepicker>
+    <web-daterangepicker id="titled" selection-mode="range" labels='{"headers.fullscreen":"Choose your dates"}' placeholder="Titled full-screen"></web-daterangepicker>
   </div>
 
   <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker
-labels='{"fullscreenTitle":"Choose your dates"}'&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
+labels='{"headers.fullscreen":"Choose your dates"}'&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- ============================================================ -->

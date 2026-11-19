@@ -148,7 +148,7 @@ picker.addEventListener('open', () => console.log('opened'));
 picker.addEventListener('close', () => console.log('closed'));
 
 // UI strings: one partial `labels` object over English defaults (months/weekdays come from Intl via `locale`)
-picker.labels = { today: 'Heute', days: '{count} Tage' };
+picker.labels = { 'buttons.today': 'Heute', 'labels.days': '{count} Tage' };
 ```
 
 Using the engine class (`DateRangePickerEngine`) directly (without the custom
@@ -268,7 +268,7 @@ over rendering but requires sanitizing untrusted data:
 | `renderDayContentCallback` | Day cells (innerHTML) | HTML injection |
 | `getDateMetadataCallback` (`badgeText`, `dayTooltip`) | Badges / tooltips (innerHTML) | HTML injection |
 | `renderSummaryCallback` | Summary display (innerHTML) | HTML injection |
-| `labels` content keys: `preview`, `day` / `days`, `night` / `nights`, `time`, `hours`, `minutes`, `seconds`, `am` / `pm` | Summary and time-picker headers / buttons (innerHTML) | HTML injection — developer-supplied strings; `{count}` values are escaped |
+| `labels` content keys: `labels.preview`, `labels.day` / `labels.days`, `labels.night` / `labels.nights`, `labels.time`, `labels.hours`, `labels.minutes`, `labels.seconds`, `labels.am` / `labels.pm` | Summary and time-picker headers / buttons (innerHTML) | HTML injection — developer-supplied strings; `{count}` values are escaped |
 | `getMonthHeaderCallback` | Month headers (innerHTML) | HTML injection |
 | `getUnifiedHeaderCallback` | Unified header (innerHTML) | HTML injection |
 | `getCustomStylesCallback` / `custom-styles`, page-wide `window.components['web-daterangepicker'].customStyles` / `.getCustomStylesCallback` | Style tag (textContent) | CSS injection |
@@ -277,7 +277,7 @@ over rendering but requires sanitizing untrusted data:
 
 - `beforeSelectCallback`, `beforeMonthChangeCallback`, `beforeScrollCallback` (return values, not markup)
 - `actionButtons[].text` / `getTextCallback` (set as plain text)
-- `labels` text keys: `today` / `clear` / `apply` / `now` (button text), `close` (aria-label), `fullscreenTitle`, `selectionCount` (input value) — and `am` / `pm` where they appear in the input value
+- `labels` text keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now` (button text), `ariaLabels.clear` / `ariaLabels.close` (aria-label), `headers.fullscreen`, `labels.selectionCount` (input value), `errors.valueFormat`, `messages.loading` — and `am` / `pm` where they appear in the input value
 - `onChange`, `onOpen`, `onClose`, `onAction`, `onMonthChange`, `onReady` (event handlers)
 - `getDateMetadataCallback` (`isDisabled`, `dayClass`, `badgeClass` — CSS class names only)
 

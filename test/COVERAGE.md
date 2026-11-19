@@ -192,7 +192,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `locale="auto"` detects from browser (de-DE / en-US)          | ✓      | `locale.spec.ts`             | `locale.html`             |
 | Explicit `locale="de"` / `"fr"` / etc.                        | ✓      | `locale.spec.ts`             | `locale.html`             |
 | Page-wide `window.components.locale` localizes pickers without `locale`; instance wins; runtime change re-renders | ✓ | `page-locale.spec.ts` | `page-locale.html` |
-| Page-wide labels (`window.components.locale.labels['web-daterangepicker']`) apply live, instance `labels` win per key; `formatLabelCallback` gets `{count}` raw | ✓ | `page-locale.spec.ts` | `page-locale.html` |
+| Page-wide labels (flat `window.components.locale.labels['web-daterangepicker.<key>']`) apply live, instance `labels` win per key; `translateCallback` gets the full key + `{count}` raw | ✓ | `page-locale.spec.ts` | `page-locale.html` |
 | Paste: core `readPasteText`, cleaned + masked (synthetic ClipboardEvent, clipboard stubbed) | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
 | IME composition: core `onTextInput` / `isImeEnter` — no mask while composing, masked on `compositionend`; composing keydown not filtered | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
 | `labels` overrides individual UI strings (property + JSON attribute, `{count}`, live update); `locale` only changes Intl names | ✓      | `locale.spec.ts`             | `locale.html`             |
@@ -290,7 +290,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Range → ISO interval; split range → each sub-range            | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | `value-format` json / array; `getValueFormatCallback`         | ✓      | `form-association.spec.ts`   | `form-association.html`   |
 | Range mode = list of ranges: json `[{start,end}]`, array one `name[]` per range, round-trip of several ranges | ✓ | `form-association.spec.ts` | `form-association.html` |
-| Throwing `getValueFormatCallback` → `''`, `validity.customError` + `labels.valueFormatError` message (live label change), `value-format-error` + twin, submit blocked (`invalid`), `novalidate` submits `''`, recovery | ✓ | `form-association.spec.ts` | `form-association.html` |
+| Throwing `getValueFormatCallback` → `''`, `validity.customError` + `errors.valueFormat` label message (live label change), `value-format-error` + twin, submit blocked (`invalid`), `novalidate` submits `''`, recovery | ✓ | `form-association.spec.ts` | `form-association.html` |
 | `el.value` = submitted value (string / `string[]` for array); `value-format-mask` + `value-separator` (text / json / array / multiple / datetime), parse back, live change | ✓ | `form-association.spec.ts` | `form-association.html` |
 
 ## 18. Lock / readonly
@@ -360,7 +360,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | `open` / `close` events + `onOpen` / `onClose` fire once per transition; no `select` event | ✓ | `events-api.spec.ts` | `events-api.html` |
 | `<fieldset disabled>` disables the input (core `isEffectivelyDisabled`); the fieldset never writes `isDisabled` | ✓ | `events-api.spec.ts` | `events-api.html` |
 | `disabled` attribute → `isDisabled = false` re-enables (reflects); fieldset toggle while own attribute set | ✓ | `events-api.spec.ts` | `events-api.html` |
-| `labels.fullscreenTitle` heading + `labels.close` ✕ ARIA label | ✓ | `presentation-phone.spec.ts` | `presentation.html` |
+| `headers.fullscreen` heading + `ariaLabels.close` ✕ ARIA label | ✓ | `presentation-phone.spec.ts` | `presentation.html` |
 | `defer` holds the build; attribute removal / core `release()` builds once; `ready` never re-fires (reinit, reconnect); `ready` attribute / `isReady` / `whenReady()` / `:state(ready)`; `destroy()` tears down + inert | ✓ | `defer-ready.spec.ts` | `defer-ready.html` |
 | DOM move keeps input value, form value, a half-picked range; no second `ready` | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |
 | DOM move keeps the committed selection state + open state (D1, FINDINGS #16, fixed) | ✓ | `lifecycle.spec.ts` | `lifecycle.html` |

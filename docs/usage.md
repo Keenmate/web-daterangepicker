@@ -123,7 +123,7 @@ use camelCase (`selectionMode`).
 | `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Where the calendar lives: `inline` = embedded block (no input), `floating` = opens from the input. How a floating picker opens is `presentation`. (The former `'modal'` value is `presentation="modal"`.) |
 | `presentation` | `'auto' \| 'floating' \| 'modal' \| 'fullscreen'` | `'auto'` | How a **floating** picker opens (SPEC §12.9). `auto`: **phone** (touch, shorter viewport side < 600px) → full-screen overlay; **tablet** (touch, ≥ 600px) → centered modal; **desktop** (mouse) → anchored popover. A concrete value forces that presentation on every device (`modal` = centered overlay with backdrop; `fullscreen` previews the phone sheet on desktop). Ignored by `inline`. Tune per device class with [responsive rules](#responsive-rules). |
 | `fullscreen-autofocus` | `boolean` | `false` | Phone full-screen only: focus the input on open (pops the soft keyboard). Default off — the sheet opens with the calendar visible, keyboard closed. |
-| `show-fullscreen-input` | `boolean` | `false` | Phone full-screen only: move the input into the sheet header (numeric keypad). The heading (`labels.fullscreenTitle`) is not shown alongside it. |
+| `show-fullscreen-input` | `boolean` | `false` | Phone full-screen only: move the input into the sheet header (numeric keypad). The heading (the `headers.fullscreen` label) is not shown alongside it. |
 | `show-summary` | `boolean` | `true` | Show range-mode days/nights summary block. `false` = omit entirely (no empty-div jump). |
 | `input-size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'` | `'md'` | Input field size (floating mode only) |
 | `name` | `string` | — | HTML form field name. Set it to submit the selection in a `<form>` (see [Form integration](#form-integration)) |
@@ -152,7 +152,7 @@ picker.disabledDates = ['2026-06-13', '2026-06-14'];
 picker.specialDates  = [{ date: '2026-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }];
 
 // UI strings (partial over the English defaults) — see "Labels (i18n)"
-picker.labels = { today: 'Jump', clear: 'Wipe', days: '{count} dní' };
+picker.labels = { 'buttons.today': 'Jump', 'buttons.clear': 'Wipe', 'labels.days': '{count} dní' };
 picker.monthNames    = ['01','02','03','04','05','06','07','08','09','10','11','12'];
 ```
 
@@ -264,7 +264,7 @@ picker.renderLoadingCallback = ({ context, containerElement }) => {
 | `action` | `DateRangePickerActionEventDetail` (`{ action, id, item, source, sourceEvent, triggerElement, dataset, … }`) | An action button (built-ins included) or an HTML `data-action` trigger was activated. `action` is the built-in name (`today` / `now` / `clear` / `apply`) or `'custom'`; `id` identifies a custom item; `source` is `'action-buttons' \| 'message' \| 'summary' \| 'calendar'`; `dataset` holds the trigger's other `data-*` attributes (camelCase). Fires after the item's `onClick`, before the built-in behaviour. |
 | `month-change` | `MonthChangeEventDetail` (`{ monthIndex, year, month, visibleMonths }`) | The visible month(s) changed (any navigation) |
 | `ready` | `ReadyEventDetail` (`{ controller, element }`) | The picker was built for the first time (core; see `defer` / `release()`); the host gets the `ready` attribute and `:state(ready)` |
-| `value-format-error` | `ValueFormatErrorEventDetail` (`{ error, value }`) | `getValueFormatCallback` threw: the field submits `''` and the host is invalid (`labels.valueFormatError`) until the next successful format. `value` = the ISO selection snapshot. See [Form integration](#form-integration) |
+| `value-format-error` | `ValueFormatErrorEventDetail` (`{ error, value }`) | `getValueFormatCallback` threw: the field submits `''` and the host is invalid (the `errors.valueFormat` label) until the next successful format. `value` = the ISO selection snapshot. See [Form integration](#form-integration) |
 
 Every detail also carries `controller` (the public facade, same as
 `el.controller`) and `element` (the host) — both non-enumerable, so
@@ -371,7 +371,7 @@ An empty selection submits `''` (`text` / `json`) or no field at all (`array`).
 
 - **A throwing `getValueFormatCallback` makes the control invalid.** The error is
   logged (`DRP:SELECTION`, error level), the field submits `''`, and the host gets
-  `validity.customError` with the `labels.valueFormatError` message (default "The
+  `validity.customError` with the `errors.valueFormat` label as the message (default "The
   value could not be formatted.") — the form refuses to submit (`invalid` fires
   instead of `submit`; a `<form novalidate>` submits `''`). A `value-format-error`
   event fires with `{ error, value }` (`value` = the ISO selection snapshot; twin
@@ -882,34 +882,45 @@ and weekday names are not labels: they come from `Intl` for `locale` (`auto` = t
 browser language), or from `monthNames` / `weekdayNames`. There are no built-in
 translations.
 
+Keys are flat `<elementType>.<name>` (the Keenmate-wide shape: `buttons.*`, `ariaLabels.*`, `labels.*`,
+`headers.*`, `errors.*`, `messages.*`). The instance `labels` takes the short key (`buttons.today`) or the full
+one (`web-daterangepicker.buttons.today`).
+
 | Key | Default | Used for |
 |---|---|---|
-| `today` / `clear` / `apply` / `now` | `Today` / `Clear` / `Apply` / `Now` | built-in action buttons (`clear` is also the input ✕'s ARIA label) |
-| `close` | `Close` | ARIA label of the full-screen ✕ and the message ✕ |
-| `preview` | `Preview` | prefix of the range summary while hovering / dragging |
-| `day` / `days` | `{count} day` / `{count} days` | range summary |
-| `night` / `nights` | `{count} night` / `{count} nights` | range summary |
-| `selectionCount` | `{count} selection(s)` | the input text in multiple mode |
-| `time` / `hours` / `minutes` / `seconds` / `am` / `pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
-| `fullscreenTitle` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
-| `valueFormatError` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
-| `loading` | `Loading…` | accessible label (`aria-label`, `role="status"`) of every loader |
+| `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now` | `Today` / `Clear` / `Apply` / `Now` | built-in action buttons |
+| `ariaLabels.clear` | `Clear` | ARIA label of the input's ✕ clear button |
+| `ariaLabels.close` | `Close` | ARIA label of the full-screen ✕ and the message ✕ |
+| `labels.preview` | `Preview` | prefix of the range summary while hovering / dragging |
+| `labels.day` / `labels.days` | `{count} day` / `{count} days` | range summary |
+| `labels.night` / `labels.nights` | `{count} night` / `{count} nights` | range summary |
+| `labels.selectionCount` | `{count} selection(s)` | the input text in multiple mode |
+| `labels.time` / `labels.hours` / `labels.minutes` / `labels.seconds` / `labels.am` / `labels.pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
+| `headers.fullscreen` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
+| `errors.valueFormat` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
+| `messages.loading` | `Loading…` | accessible label (`aria-label`, `role="status"`) of every loader |
+
+Page-wide (every picker on the page, core `/locale`): one flat dictionary of full keys —
+`window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Dnes' } }`; the instance
+`labels` wins key by key. `window.components.locale.translateCallback({ component, key, template, params, locale })`
+(full `key`; return a string, or `null` / `undefined` = not mine) plugs in ICU / i18next; it is never asked for a
+key the instance set.
 
 `''` is a deliberate empty label (renders nothing); a missing / `undefined` key falls back to
-the English default. Content labels (`preview`, `day(s)`, `night(s)`, `time`, `hours`,
-`minutes`, `seconds`, `am` / `pm` in the time pickers) are inserted as HTML — never pass
+the English default. Content labels (`labels.preview`, `labels.day(s)`, `labels.night(s)`, `labels.time`,
+`labels.hours`, `labels.minutes`, `labels.seconds`, `labels.am` / `labels.pm` in the time pickers) are inserted as HTML — never pass
 untrusted text; the `{count}` value is escaped. The others (button text, ARIA labels,
-`fullscreenTitle`, `selectionCount` in the input) are plain text. See the README's
+`headers.fullscreen`, `labels.selectionCount` in the input) are plain text. See the README's
 HTML Injection (XSS) notice.
 
 ```html
 <web-daterangepicker selection-mode="range" locale="de"
-  labels='{"today":"Heute","clear":"Löschen","apply":"Übernehmen","days":"{count} Tage","nights":"{count} Nächte"}'>
+  labels='{"buttons.today":"Heute","buttons.clear":"Löschen","buttons.apply":"Übernehmen","labels.days":"{count} Tage","labels.nights":"{count} Nächte"}'>
 </web-daterangepicker>
 ```
 
 ```js
-picker.labels = { today: 'Dnes', days: '{count} dní', fullscreenTitle: 'Vyberte termín' };
+picker.labels = { 'buttons.today': 'Dnes', 'labels.days': '{count} dní', 'headers.fullscreen': 'Vyberte termín' };
 ```
 
 ### Locking (read-only)

@@ -494,11 +494,11 @@ function buildFullscreenHeader(picker: any) {
     // the mask + form value, and otherwise sits offscreen behind the fixed sheet). It
     // takes over the flex-growing header slot, so it wins over a title.
     const wantsInput = !!(picker.options.isFullscreenInputShown && picker.input);
-    const fullscreenTitle = picker.labels.text('fullscreenTitle');
+    const fullscreenTitle = picker.labels.text('headers.fullscreen');
     const merged = !fullscreenTitle && !wantsInput;
     const { header, title, close: closeBtn } = createSheetHeader({
         title: wantsInput || merged ? null : fullscreenTitle,
-        closeLabel: picker.labels.text('close'),
+        closeLabel: picker.labels.text('ariaLabels.close'),
         onClose: () => close(picker),
     });
     header.classList.add('drp__fullscreen-header');
@@ -714,7 +714,7 @@ function summaryBlock(picker: any): HTMLElement | null {
  * - 'calendar' (default): full-calendar overlay (also used automatically around async gates)
  * - 'message' / 'summary': an in-block loader inside that feedback block
  *
- * The container (overlay / `.drp__inline-loader`, `role="status"` + `labels.loading`)
+ * The container (overlay / `.drp__inline-loader`, `role="status"` + `messages.loading` label)
  * is filled by core renderLoader(): the instance `renderLoadingCallback`, else the
  * page-wide `window.components.renderLoadingCallback`, else the default `.drp__loader`.
  * `target` is the hook's `context`.
@@ -749,7 +749,7 @@ export function showLoader(picker: any, target: LoaderTarget = 'calendar'): void
     const host: HTMLElement = picker.options.hostElement ?? mount;
     const remove = renderLoader(host, container, target, {
         prefix: 'drp',
-        label: picker.labels?.text('loading') ?? '',
+        label: picker.labels?.text('messages.loading') ?? '',
         renderLoadingCallback: picker.options.renderLoadingCallback ?? null,
     });
     // The container moves with re-renders (reapplySummaryLoader); its remove() runs the hook's cleanup.

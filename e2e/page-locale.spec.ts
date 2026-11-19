@@ -36,10 +36,10 @@ test('changing window.components.locale at runtime re-renders the open calendar'
     await expect(pickerById(page, 'instance')).toBeAttached();
 });
 
-// Page-wide labels (core /locale createLabels): instance `labels` → window.components.locale.labels['web-daterangepicker'] → English.
+// Page-wide labels (core /locale createLabels): instance `labels` → the flat window.components.locale.labels['web-daterangepicker.<key>'] → English.
 test('page-wide labels apply live; the instance labels win key by key', async ({ page }) => {
     await page.evaluate(() => {
-        (window as any).components.locale = { locale: 'cs-CZ', labels: { 'web-daterangepicker': { today: 'Dnes', clear: 'Vymazat' } } };
+        (window as any).components.locale = { locale: 'cs-CZ', labels: { 'web-daterangepicker.buttons.today': 'Dnes', 'web-daterangepicker.buttons.clear': 'Vymazat' } };
     });
     const p = await open(page, 'page');
     await expect(p.locator('.drp__button--today')).toHaveText('Dnes');
@@ -56,12 +56,12 @@ test('page-wide labels apply live; the instance labels win key by key', async ({
     await expect(mine.locator('.drp__button--today')).toHaveText('Mine');
 });
 
-test('formatLabelCallback formats a label and gets {count} as a raw number', async ({ page }) => {
+test('translateCallback formats a label and gets {count} as a raw number', async ({ page }) => {
     await page.evaluate(() => {
         (window as any).components.locale = {
             locale: 'cs-CZ',
-            formatLabelCallback: ({ component, key, params }: any) =>
-                key === 'selectionCount' ? `${component}:${typeof params.count}:${params.count}` : undefined,
+            translateCallback: ({ component, key, params }: any) =>
+                key === 'web-daterangepicker.labels.selectionCount' ? `${component}:${typeof params.count}:${params.count}` : undefined,
         };
     });
     const p = pickerById(page, 'multi');

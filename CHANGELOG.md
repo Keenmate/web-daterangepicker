@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — BREAKING: flat `<elementType>.<name>` label keys (2026-11-19, core 1.0.0-rc25)
+- Every `labels` key is now flat `<elementType>.<name>` (the Keenmate-wide shape, core `/locale`). The instance
+  `labels` takes the short key (`buttons.today`) or the full one (`web-daterangepicker.buttons.today`); English
+  defaults are unchanged. `renderSummaryCallback`'s `ctx.labels` carries the new keys.
+- The old `clear` key fed two surfaces; it is split into `buttons.clear` (the footer button caption) and
+  `ariaLabels.clear` (the input ✕'s ARIA label), both `Clear` by default.
+- Page-wide labels are ONE flat dictionary of full keys:
+  `window.components.locale.labels = { 'web-daterangepicker.buttons.today': 'Dnes' }` (the nested
+  `{ 'web-daterangepicker': { … } }` shape is ignored). `formatLabelCallback` is replaced by
+  `translateCallback({ component, key /* full key */, template, params, locale })`.
+
+  | Old key | New key |
+  |---|---|
+  | `today` / `apply` / `now` | `buttons.today` / `buttons.apply` / `buttons.now` |
+  | `clear` | `buttons.clear` (footer button) + `ariaLabels.clear` (input ✕) |
+  | `close` | `ariaLabels.close` |
+  | `preview` | `labels.preview` |
+  | `day` / `days` / `night` / `nights` | `labels.day` / `labels.days` / `labels.night` / `labels.nights` |
+  | `selectionCount` | `labels.selectionCount` |
+  | `time` / `am` / `pm` | `labels.time` / `labels.am` / `labels.pm` |
+  | `hours` / `minutes` / `seconds` | `labels.hours` / `labels.minutes` / `labels.seconds` |
+  | `fullscreenTitle` | `headers.fullscreen` |
+  | `valueFormatError` | `errors.valueFormat` |
+  | `loading` | `messages.loading` |
+
 ### Added — `shortcut` on action buttons (2026-11-18, core 1.0.0-rc25)
 - An `actionButtons` item takes the standard `/actions` **`shortcut`** field (`'Mod+T'`, `'Shift+C'`, `'m'`;
   `Mod` = ⌘ on Apple, Ctrl elsewhere). The button shows it as a keycap after its label

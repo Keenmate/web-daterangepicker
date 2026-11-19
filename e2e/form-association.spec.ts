@@ -463,15 +463,15 @@ test("a throwing getValueFormatCallback submits '', turns the host invalid and e
     expect(await formValue(page, 'fe', 'when')).toBe('OK:2026-06-15');
 });
 
-test('a labels.valueFormatError override is the validation message', async ({ page }) => {
+test('an errors.valueFormat label override is the validation message', async ({ page }) => {
     const p = page.locator('#picker-err');
     const message = await p.evaluate(async (el: any) => {
-        el.labels = { valueFormatError: 'Datum nelze odeslat.' };
+        el.labels = { 'errors.valueFormat': 'Datum nelze odeslat.' };
         el.getValueFormatCallback = () => { throw new Error('boom'); };
         await el.whenSettled();
         const first = el.validationMessage;
         // A label change while invalid updates the message.
-        el.labels = { valueFormatError: 'Neplatné datum.' };
+        el.labels = { 'errors.valueFormat': 'Neplatné datum.' };
         await el.whenSettled();
         return [first, el.validationMessage];
     });

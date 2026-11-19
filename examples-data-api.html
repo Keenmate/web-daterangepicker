@@ -1568,8 +1568,8 @@ const picker = new DateRangePickerEngine(inputElement, {
   locale: 'de-DE' | 'auto',                       // Intl month/weekday names; default 'auto' (browser)
   weekStartDay: 0 | 1 | 'auto',                    // Default: 'auto'
   labels: {                                        // UI strings (partial; English defaults)
-    today: 'Heute',
-    days: '{count} Tage',
+    'buttons.today': 'Heute',                      // flat &lt;elementType&gt;.&lt;name&gt; keys
+    'labels.days': '{count} Tage',
     // ... see DateRangePickerLabels / DEFAULT_LABELS for all keys
   },
   monthNames: ['Jan', 'Feb', ...],                 // Custom month names

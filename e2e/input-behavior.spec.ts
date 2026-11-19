@@ -205,6 +205,13 @@ test('clear button: range mode clears both halves', async ({ page }) => {
     await expect(clearOf(p)).not.toHaveClass(/drp__input-clear--visible/);
 });
 
+test('clear button: its ARIA label is ariaLabels.clear, separate from the footer caption buttons.clear', async ({ page }) => {
+    const p = pickerById(page, 'iso');
+    await expect(clearOf(p)).toHaveAttribute('aria-label', 'Clear');
+    await p.evaluate((el: any) => { el.labels = { 'ariaLabels.clear': 'Vymazat pole' }; return el.whenSettled(); });
+    await expect(clearOf(p)).toHaveAttribute('aria-label', 'Vymazat pole');
+});
+
 // =============================================================================
 // progressive parsing: the calendar follows valid typed segments
 // =============================================================================

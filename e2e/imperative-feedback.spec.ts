@@ -158,7 +158,7 @@ test('showLoader() is single-instance per target — a second call does not stac
 // Shared loader (core renderLoader): default look, a11y, page + instance hooks
 // =============================================================================
 
-test('the default loader is the contract .drp__loader; the container is role=status + labels.loading', async ({ page }) => {
+test('the default loader is the contract .drp__loader; the container is role=status + the messages.loading label', async ({ page }) => {
     const p = pickerById(page, 'feedback');
 
     await p.evaluate((el: any) => el.showLoader('summary'));
@@ -176,8 +176,8 @@ test('the default loader is the contract .drp__loader; the container is role=sta
     expect(style.mask).toContain('data:image/svg+xml');
     expect(parseFloat(style.w)).toBeGreaterThan(0);
 
-    // labels.loading localizes the accessible label
-    await p.evaluate((el: any) => { el.hideLoader('summary'); el.labels = { loading: 'Lädt…' }; });
+    // messages.loading localizes the accessible label
+    await p.evaluate((el: any) => { el.hideLoader('summary'); el.labels = { 'messages.loading': 'Lädt…' }; });
     await p.evaluate(async (el: any) => { await el.whenSettled(); el.showLoader(); });
     await expect(calendarOf(p).locator('.drp__loader-overlay')).toHaveAttribute('aria-label', 'Lädt…');
 });
