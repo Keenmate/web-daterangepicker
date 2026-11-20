@@ -187,8 +187,8 @@ export function open(picker: any) {
     }
 
     // Already visible — skip. Without this guard, repeated open() calls (e.g., focus
-    // fires after mousedown on the same click) overwrite originalInputValue with the
-    // already-pending value and leak the autoUpdate cleanup function.
+    // fires after mousedown on the same click) re-sync from the input and leak
+    // the autoUpdate cleanup function.
     if (picker.calendar.classList.contains('drp__picker--visible')) {
         // The tap's later triggers (mousedown/click) re-set openViaPointer after the
         // pointerdown already opened + armed; clear it so it can't linger to a later
@@ -209,12 +209,6 @@ export function open(picker: any) {
     }
 
     uiLogger.debug('open() - adding visible class');
-
-    // Store original input value if Apply button is required (for restore on close without Apply)
-    if (picker.stagesSelection() && picker.input) {
-        picker.originalInputValue = picker.input.value;
-        uiLogger.debug('open() - stored original input value:', picker.originalInputValue);
-    }
 
     // Snapshot wall-clock so renderTimePicker has a stable "now" for uncommitted
     // fields. Without this, real-time-seconds advance between renders pulls the
@@ -623,19 +617,20 @@ export function close(picker: any) {
     // Closed without Apply / commit(): discard the staged change — selection AND text.
     if (picker.stagesSelection() && picker.pendingSelection && picker.input) {
         uiLogger.debug('close() - discarding the staged selection');
-        // Multiple mode keeps no committed snapshot: restore the text captured on open.
-        if (picker.options.selectionMode === 'multiple' && picker.originalInputValue !== null) {
-            picker.input.value = picker.originalInputValue;
-        }
         // Restore committed selection state
+        const restoreRanges = () => (picker.committedRanges || []).map((r: any) => ({
+            start: new Date(r.start),
+            end: new Date(r.end)
+        }));
         if (picker.options.selectionMode === 'range') {
             picker._selectedStartDate = picker.committedStartDate;
             picker._selectedEndDate = picker.committedEndDate;
             // Restore the committed multi-range result (empty for a plain range).
-            picker._selectedRanges = (picker.committedRanges || []).map((r: any) => ({
-                start: new Date(r.start),
-                end: new Date(r.end)
-            }));
+            picker._selectedRanges = restoreRanges();
+        } else if (picker.options.selectionMode === 'multiple') {
+            // The committed dates + ranges (a pick toggles _selectedDates in place).
+            picker._selectedDates = (picker.committedDates || []).map((d: Date) => new Date(d));
+            picker._selectedRanges = restoreRanges();
         } else if (picker.options.selectionMode === 'single') {
             picker._selectedDate = picker.committedDate;
         }
@@ -646,7 +641,7 @@ export function close(picker: any) {
         // The text follows the committed selection — what commit() / the value setter
         // wrote. Not the text captured on open: a change staged while the calendar was
         // closed (✕, emptied / typed text) is already in it then.
-        if (picker.options.selectionMode !== 'multiple') picker.syncInputFromSelection();
+        picker.syncInputFromSelection();
         uiLogger.debug('close() - reverted selection state');
     }
 

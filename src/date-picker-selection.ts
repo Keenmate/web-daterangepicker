@@ -988,6 +988,13 @@ export function storeCommittedSnapshot(picker: any) {
             start: new Date(r.start),
             end: new Date(r.end)
         }));
+    } else if (picker.options.selectionMode === 'multiple') {
+        // Copies: a multiple-mode pick toggles _selectedDates in place.
+        picker.committedDates = picker._selectedDates.map((d: Date) => new Date(d));
+        picker.committedRanges = picker._selectedRanges.map((r: DateRange) => ({
+            start: new Date(r.start),
+            end: new Date(r.end)
+        }));
     } else if (picker.options.selectionMode === 'single') {
         picker.committedDate = picker._selectedDate;
     }

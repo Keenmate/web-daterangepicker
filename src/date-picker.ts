@@ -86,11 +86,11 @@ class DateRangePickerEngine {
     wheelScrollLock: boolean = false;
 
     // State for deferred commit when Apply button is required
-    originalInputValue: string | null = null; // Stores input value when calendar opens (for restore on close without Apply)
     private committedDate: Date | null = null; // Last committed single date
     private committedStartDate: Date | null = null; // Last committed range start
     private committedEndDate: Date | null = null; // Last committed range end
-    private committedRanges: DateRange[] = []; // Last committed multi-range result (range mode); empty for a plain single range
+    private committedRanges: DateRange[] = []; // Last committed multi-range result (range mode; multiple mode's ranges); empty for a plain single range
+    private committedDates: Date[] = []; // Last committed individual dates (multiple mode)
     private committedTime: SelectedTime | null = null; // Last committed time parts (time/datetime modes)
     private _isDisabled = false; // host disabled (setDisabled), applied as `inert` on the calendar
     private _controller?: DateRangePickerController; // Memoized imperative facade (getController())
@@ -2842,6 +2842,9 @@ class DateRangePickerEngine {
             this.input.value = '';
         }
 
+        // A programmatic selection is committed (like the value setter): closing
+        // without Apply reverts to it, not to an older snapshot.
+        Selection.storeCommittedSnapshot(this);
         this.renderCalendar();
         this.updateSummary();
     }
@@ -2887,6 +2890,7 @@ class DateRangePickerEngine {
         // Write the input text like a pick does, so the next open() (which re-syncs
         // from the input) keeps the assigned dates (FINDINGS #25).
         if (this.options.selectionMode === 'multiple') this.writeMultipleInputText();
+        Selection.storeCommittedSnapshot(this); // programmatic = committed (see selectedRanges)
         this.renderCalendar();
         this.updateSummary();
     }
@@ -2906,6 +2910,7 @@ class DateRangePickerEngine {
         } else if (this.input) {
             this.input.value = '';
         }
+        Selection.storeCommittedSnapshot(this); // programmatic = committed (see selectedRanges)
         this.renderCalendar();
         this.updateSummary();
     }
@@ -2937,6 +2942,7 @@ class DateRangePickerEngine {
             const composed = this.selectedDatetime;
             this.input.value = composed ? this.formatDate(composed) : '';
         }
+        Selection.storeCommittedSnapshot(this); // programmatic = committed (see selectedRanges)
         this.renderCalendar();
         this.updateSummary();
     }

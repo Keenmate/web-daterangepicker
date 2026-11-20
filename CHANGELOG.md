@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — multiple mode: closing without Apply discards the staged days (2026-11-20)
+- **`selection-mode="multiple"` with `commit-mode="apply"` / `"manual"`: closing without Apply / `commit()` now
+  restores the committed dates / ranges** (documented rule: closing without commit discards) — before, the toggled
+  days stayed selected (and were committed by the next Apply). The text ("N selection(s)"), the ✕ and the reopened
+  calendar follow the committed set, also for a change staged while the calendar was closed (✕, emptied text).
+- A programmatic `selectedDates` / `selectedRanges` / `selectedDate` / `selectedTime` / `selectedDatetime`
+  assignment is the committed selection a later discard returns to (like `value`) — before, a discard reverted to
+  the selection committed before the assignment.
+
 ### Fixed — a discarded staged change restores the input text (2026-11-20)
 - **`commit-mode="apply"` / `"manual"`: closing without Apply / `commit()` now restores the input TEXT too** —
   an emptied text / ✕ clear or a typed date that is discarded shows the committed value again (placeholder and

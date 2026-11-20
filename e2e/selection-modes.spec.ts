@@ -129,7 +129,7 @@ test.describe('multiple mode', () => {
 // =============================================================================
 
 test.describe('Apply button (range mode)', () => {
-    test('Escape before Apply restores the originalInputValue', async ({ page }) => {
+    test('Escape before Apply restores the committed input text', async ({ page }) => {
         const p = await open(page, 'range-apply');
 
         // Seed an existing value, reopen, then make a different pending selection.
