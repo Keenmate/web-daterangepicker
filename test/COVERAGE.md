@@ -193,6 +193,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Explicit `locale="de"` / `"fr"` / etc.                        | ✓      | `locale.spec.ts`             | `locale.html`             |
 | Page-wide `window.components.locale` localizes pickers without `locale`; instance wins; runtime change re-renders | ✓ | `page-locale.spec.ts` | `page-locale.html` |
 | Page-wide labels (flat `window.components.locale.labels['web-daterangepicker.<key>']`) apply live, instance `labels` win per key; `translateCallback` gets the full key + `{count}` raw | ✓ | `page-locale.spec.ts` | `page-locale.html` |
+| Element `translateCallback` beats the page-wide one, `null` passes on, instance `labels` win; a change re-renders live | ✓ | `page-locale.spec.ts` | `page-locale.html` |
 | Paste: core `readPasteText`, cleaned + masked (synthetic ClipboardEvent, clipboard stubbed) | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
 | IME composition: core `onTextInput` / `isImeEnter` — no mask while composing, masked on `compositionend`; composing keydown not filtered | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
 | `labels` overrides individual UI strings (property + JSON attribute, `{count}`, live update); `locale` only changes Intl names | ✓      | `locale.spec.ts`             | `locale.html`             |

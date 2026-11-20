@@ -2,6 +2,7 @@ import type {
   ComponentContext, PresentationContext, RenderLoaderCallback, RenderIconCallback, Presentation, ResponsiveMap, ResponsiveCallback, SlotResult,
 } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
+import type { TranslateCallback } from '@keenmate/web-components-core/locale';
 import type { Placement } from '@keenmate/web-components-core/positioning';
 import type { FormValueSelection } from './form-value';
 
@@ -639,6 +640,15 @@ export interface DatePickerOptions {
   locale?: string | 'auto';
   /** UI strings (partial; English defaults for the rest). See {@link DateRangePickerLabels}. */
   labels?: Partial<DateRangePickerLabels> | null;
+
+  /**
+   * This picker's own label translator (core `/locale`, SPEC §12.24): asked for every label key the
+   * instance `labels` did not set, BEFORE the page-wide `window.components.locale.translateCallback`.
+   * `ctx` = `{ component, key, template, params, locale }` (`key` is the full key); return a string, or
+   * `null` / `undefined` = not mine (the page-wide callback, then the page dictionary / English).
+   */
+  translateCallback?: TranslateCallback | null;
+
   /** Custom month names (exactly 12, index 0 = January). Overrides locale names. Example: ['Jan', … , 'Dec']. */
   monthNames?: string[];
   /** Custom weekday names (exactly 7, index 0 = Sunday … 6 = Saturday, always — weekStartDay only rotates the display). Overrides locale names. */

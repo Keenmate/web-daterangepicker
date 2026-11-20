@@ -911,6 +911,15 @@ Page-wide (every picker on the page, core `/locale`): one flat dictionary of ful
 (full `key`; return a string, or `null` / `undefined` = not mine) plugs in ICU / i18next; it is never asked for a
 key the instance set.
 
+One picker needs no page setup: its own `translateCallback` property (same signature) is asked first, then the
+page-wide one — `null` / `undefined` passes the key on. A key the instance `labels` set never reaches either; any
+other key (its `template` from the page dictionary, else English) goes to `el.translateCallback` →
+`window.components.locale.translateCallback` → the default `{name}` formatting. Changing it re-renders the labels.
+
+```javascript
+picker.translateCallback = ({ key, params }) => key === 'web-daterangepicker.labels.days' ? i18n.t('days', params) : null;
+```
+
 `''` is a deliberate empty label (renders nothing); a missing / `undefined` key falls back to
 the English default. Content labels (`labels.preview`, `labels.day(s)`, `labels.night(s)`, `labels.time`,
 `labels.hours`, `labels.minutes`, `labels.seconds`, `labels.am` / `labels.pm` in the time pickers) are inserted as HTML — never pass

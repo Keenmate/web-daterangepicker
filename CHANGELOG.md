@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `translateCallback` (2026-11-20)
+- **New input `translateCallback(ctx)`** (property, `on: 'update'`): this picker's own label translator (core
+  `/locale` `createLabels`). Asked for every label key the instance `labels` did not set, BEFORE the page-wide
+  `window.components.locale.translateCallback` — one picker needs no page setup. `ctx` = `{ component, key (full),
+  template, params, locale }`; return a string, or `null` / `undefined` = not mine (the page-wide callback decides).
+  Changing it re-renders the labels like a `labels` change (the time picker headings rebuild, selection kept).
+- The engine (`DatePickerOptions.translateCallback`) passes it to `createLabels` (`getTranslateCallback`), so an
+  engine without the element asks it too. `LabelTranslateContext` / `TranslateCallback` types are re-exported.
+
 ### Added — `renderIconCallback` (2026-11-20)
 - **New input `renderIconCallback(name, ctx)`** (property, `on: 'update'`): this element's own icon hook (core
   `renderIcon`, SPEC §12.33). Asked for an action-button `icon` string that is not markup and not a built-in name,

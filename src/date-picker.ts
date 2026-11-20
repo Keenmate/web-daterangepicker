@@ -235,7 +235,8 @@ class DateRangePickerEngine {
     // Internationalization
     locale: string = 'en';
     /**
-     * The UI strings (core `/locale`, SPEC §12.24): instance `labels` → page-wide
+     * The UI strings (core `/locale`, SPEC §12.24): instance `labels` → the own
+     * `translateCallback` → the page-wide one → page-wide
      * flat `window.components.locale.labels['web-daterangepicker.<key>']` → English. Read per render,
      * so a `labels` / page-wide change shows on the next render. `.text()` for
      * textContent / attributes, `.html()` for innerHTML; numbers passed raw.
@@ -245,7 +246,12 @@ class DateRangePickerEngine {
             this.options.hostElement ?? this.input ?? document.documentElement,
             DEFAULT_LABELS as DateRangePickerLabels,
             () => this.options.labels,
-            { tag: 'web-daterangepicker', getLocale: () => this.locale },
+            {
+                tag: 'web-daterangepicker',
+                getLocale: () => this.locale,
+                // The element's own translateCallback (also for an engine without a host element).
+                getTranslateCallback: () => this.options.translateCallback,
+            },
         );
     }
     private labelsApi?: Labels<DateRangePickerLabels>;
@@ -292,6 +298,7 @@ class DateRangePickerEngine {
             shouldHighlightDisabledInRange: options.shouldHighlightDisabledInRange ?? true,
             locale: options.locale || 'auto',
             labels: options.labels ?? null,
+            translateCallback: options.translateCallback ?? null,
             monthNames: options.monthNames,
             weekdayNames: options.weekdayNames,
             renderSummaryCallback: options.renderSummaryCallback,
@@ -731,7 +738,7 @@ class DateRangePickerEngine {
         }
         // The time picker's static headings (Time / Hours / AM…) are built once with
         // the calendar — new labels there need a rebuild (the host carries the selection).
-        if (changed('labels') && this.options.pickerMode !== 'date') {
+        if ((changed('labels') || changed('translateCallback')) && this.options.pickerMode !== 'date') {
             return false;
         }
 
@@ -757,7 +764,7 @@ class DateRangePickerEngine {
         // so this just updates content/classes/inline styles.
         this.renderCalendar();
         // Labels feed the summary text and the message ✕ (outside the re-rendered grid).
-        if (has('labels')) {
+        if (has('labels') || has('translateCallback')) {
             this.updateSummary();
             this.calendar.querySelector('.drp__message-close')?.setAttribute('aria-label', this.labels.text('ariaLabels.close'));
         }

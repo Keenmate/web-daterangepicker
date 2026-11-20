@@ -68,3 +68,29 @@ test('translateCallback formats a label and gets {count} as a raw number', async
     await p.evaluate((el: any) => { el.selectedDates = [new Date(2026, 5, 10), new Date(2026, 5, 12)]; });
     await expect(p.locator('input').first()).toHaveValue('web-daterangepicker:number:2');
 });
+
+// The element's own translateCallback (core createLabels reads host.translateCallback): asked before the page-wide
+// one; `null` passes the key on; the instance `labels` beat both. A change re-renders the labels.
+test('the element translateCallback beats the page one; null passes on; instance labels win', async ({ page }) => {
+    await page.evaluate(() => {
+        (window as any).components.locale = {
+            locale: 'cs-CZ',
+            translateCallback: ({ key }: any) => key.startsWith('web-daterangepicker.buttons.') ? `Page:${key.slice(20)}` : undefined,
+        };
+    });
+    const el = pickerById(page, 'mine');
+    // null for everything → the page callback decides; buttons.today is the instance labels' (Mine)
+    await el.evaluate((e: any) => { e.translateCallback = () => null; return e.whenSettled(); });
+    const p = await open(page, 'mine');
+    await expect(p.locator('.drp__button--clear')).toHaveText('Page:buttons.clear');
+    await expect(p.locator('.drp__button--today')).toHaveText('Mine');
+
+    // the element answers buttons.clear (and buttons.today — never asked, the instance set it): it wins, live
+    await el.evaluate((e: any) => {
+        e.translateCallback = ({ component, key }: any) =>
+            key === `${component}.buttons.clear` || key === `${component}.buttons.today` ? 'Element' : null;
+        return e.whenSettled();
+    });
+    await expect(p.locator('.drp__button--clear')).toHaveText('Element');
+    await expect(p.locator('.drp__button--today')).toHaveText('Mine');
+});
