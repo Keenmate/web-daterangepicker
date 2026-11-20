@@ -18,7 +18,8 @@ GETDATEMETADATA CALLBACK
 ------------------------
 Return metadata for each date cell.
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     // Return a DayMetadata object
     return {
@@ -54,7 +55,8 @@ BADGE SYSTEM
 ------------
 Small badge in top-right corner of day cell.
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const availability = checkRooms(date);
 
@@ -106,7 +108,8 @@ DAY CELL STYLING
 ----------------
 Add CSS classes to entire day cell:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const status = getStatus(date);
 
@@ -160,7 +163,8 @@ const availability = {
   '2025-11-19': { rooms: 10, status: 'available' }
 };
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const avail = availability[dateStr];
@@ -207,7 +211,8 @@ const pricing = {
   '2025-11-23': 200
 };
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const price = pricing[dateStr];
@@ -234,7 +239,8 @@ const events = {
   '2025-12-25': { name: 'Christmas', type: 'holiday' }
 };
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const event = events[dateStr];
@@ -257,7 +263,8 @@ Complete control over day cell HTML.
 
 CRITICAL: JavaScript API ONLY
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   renderDayContentCallback: (data) => {
     // data: DayRenderContext interface
     // Return HTMLElement or null
@@ -311,7 +318,8 @@ CUSTOM DAY RENDERING EXAMPLE
 -----------------------------
 Multi-line cell content:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   renderDayContentCallback: (data) => {
     const availability = getAvailability(data.date);
 
@@ -416,7 +424,8 @@ GETCUSTOMSTYLES CALLBACK
 Inject CSS into Shadow DOM (receives the picker context; the no-JS twin is the
 `custom-styles` attribute - the callback wins when both are set):
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getCustomStylesCallback: (ctx) => {
     return `
       /* Custom badge styles */
@@ -447,7 +456,8 @@ COMBINING CALLBACKS
 -------------------
 Use multiple callbacks together:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const data = getData(date);
     return {
@@ -517,7 +527,8 @@ WEB COMPONENT LIMITATIONS
 All rendering callbacks are properties (or engine options), never attributes.
 
 ✅ Works:
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => { ... }
 });
 

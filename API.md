@@ -8,19 +8,18 @@ Complete API documentation for the Web Date Range Picker component.
 
 1. [Package Exports](#package-exports)
 2. [Web Component Attributes](#web-component-attributes)
-3. [DatePicker Options](#datepicker-options)
-4. [Public Methods](#public-methods)
-5. [Events & Event Detail](#events--event-detail)
-6. [Debugging & Logging](#debugging--logging)
-7. [CSS Classes](#css-classes)
-8. [CSS Custom Properties](#css-custom-properties)
-9. [TypeScript Interfaces](#typescript-interfaces)
-10. [Keyboard Navigation](#keyboard-navigation)
-11. [Property Accessors](#property-accessors)
-12. [Browser Support](#browser-support)
-13. [Advanced Usage Examples](#advanced-usage-examples)
-14. [Known Limitations](#known-limitations)
-15. [Migration Guide](#migration-guide)
+3. [Public Methods](#public-methods)
+4. [Events & Event Detail](#events--event-detail)
+5. [Debugging & Logging](#debugging--logging)
+6. [CSS Classes](#css-classes)
+7. [CSS Custom Properties](#css-custom-properties)
+8. [TypeScript Interfaces](#typescript-interfaces)
+9. [Keyboard Navigation](#keyboard-navigation)
+10. [Property Accessors](#property-accessors)
+11. [Browser Support](#browser-support)
+12. [Advanced Usage Examples](#advanced-usage-examples)
+13. [Known Limitations](#known-limitations)
+14. [Migration Guide](#migration-guide)
 
 ---
 
@@ -38,7 +37,7 @@ import '@keenmate/web-daterangepicker';
 import '@keenmate/web-daterangepicker/style.css';
 
 // Import TypeScript types
-import type { DatePickerOptions, DateRange, DecoratedDate } from '@keenmate/web-daterangepicker';
+import type { DateRangePickerConfig, DateRange, DecoratedDate } from '@keenmate/web-daterangepicker';
 ```
 
 ### CSS Customization
@@ -249,87 +248,6 @@ The `disabled-dates-handling` attribute controls behavior when selecting ranges 
 
 ---
 
-## DatePicker Options
-
-When instantiating the engine (`DateRangePickerEngine`) directly (not using web component — advanced use), pass these options. The web component automatically converts attributes to options.
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `selectionMode` | `'single' \| 'range'` | `'single'` | Selection mode |
-| `calendarPlacement` | `Placement` | `'bottom-start'` | Popover placement (core `/positioning`) |
-| `visibleMonthsCount` | `number` | `1` or `2` | Number of months to display |
-| `dateFormatMask` | `string` | `'YYYY-MM-DD'` | Date format pattern |
-| `calendarOpenTrigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How calendar is triggered: `'focus'` (on input focus), `'typing'` (when typing starts), `'manual'` (button/code only) |
-| `onChange` | `(detail: ChangeEventDetail) => void` | `undefined` | Fires when a selection is committed, with the standardized detail (same payload as the element's `change` event) |
-| `onAction` | `(detail: DateRangePickerActionEventDetail) => void` | `undefined` | Fires when an action button / `data-action` trigger is activated (the element's `action` event) |
-| `onMonthChange` | `(detail: MonthChangeEventDetail) => void` | `undefined` | Fires after month navigation (the element's `month-change` event) |
-| `container` | `HTMLElement` | `document.body` | Where to append calendar (for web component, uses shadow root) |
-| `positioningMode` | `'inline' \| 'floating'` | `'floating'` | Display mode |
-| `monthLayout` | `'horizontal' \| 'grid'` | `'horizontal'` | Multi-month layout mode |
-| `gridRows` | `number` | `undefined` | Grid rows count |
-| `gridColumns` | `number` | `undefined` | Grid columns count |
-| `weekStartDay` | `'auto' \| 0-6` | `'auto'` | Week start day |
-| `minDate` | `Date \| string` | `undefined` | Minimum selectable date |
-| `maxDate` | `Date \| string` | `undefined` | Maximum selectable date |
-| `disabledDates` | `(Date \| string)[]` | `undefined` | Array of specific dates to disable |
-| `disabledWeekdays` | `number[]` | `undefined` | Array of weekdays to disable (0=Sunday, 6=Saturday) |
-| `specialDates` | `DecoratedDate[]` | `undefined` | Array of special dates with custom styling/labels |
-| `dateMember` | `string` | `'date'` | Property name in `specialDates` objects containing the date value |
-| `badgeTextMember` | `string` | `'badgeText'` | Property name in `specialDates` objects containing badge text |
-| `badgeClassMember` | `string` | `'badgeClass'` | Property name in `specialDates` objects containing badge CSS class |
-| `dayClassMember` | `string` | `'dayClass'` | Property name in `specialDates` objects containing day CSS class |
-| `badgeTooltipMember` | `string` | `'badgeTooltip'` | Property name in `specialDates` objects containing badge tooltip |
-| `dayTooltipMember` | `string` | `'dayTooltip'` | Property name in `specialDates` objects containing day tooltip |
-| `isDisabledMember` | `string` | `'isDisabled'` | Property name in `specialDates` objects containing disabled flag |
-| `getDateMetadataCallback` | `(ctx: DayContext) => DayMetadata \| null` | `undefined` | Custom function to provide date styling/labels |
-| `disabledDatesHandling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual'` | `'allow'` | Range behavior over disabled dates |
-| `shouldHighlightDisabledInRange` | `boolean` | `true` | Highlight disabled dates in range |
-| `locale` | `string \| 'auto'` | `'auto'` | Locale for UI strings and Intl date formatting. Built-in: `'en'`, `'de'`, `'fr'`, `'es'` |
-| `customStrings` | `Partial<LocaleStrings>` | `undefined` | Override built-in UI strings (Today, Clear, Apply, etc.) |
-| `monthNames` | `string[]` | locale-based | Override month names. 12 strings, indexed by month: `[0]`=January … `[11]`=December |
-| `weekdayNames` | `string[]` | locale-based | Override weekday header labels. 7 strings, indexed by day-of-week: `[0]`=Sunday … `[6]`=Saturday (`weekStartDay` only rotates the display, not this mapping) |
-| `renderSummaryCallback` | `(ctx: SummaryContext) => string` | `undefined` | Render the summary display (receives all selection data + picker context, returns HTML string) |
-| `beforeSelectCallback` | `(ctx: BeforeSelectContext) => BeforeSelectResult \| Promise<…>` | `undefined` | Intercept a selection: nothing = accept, `false` = reject, `Date` / `DateRange` / `DateRange[]` = adjust, `null` = clear |
-| `beforeMonthChangeCallback` | `(ctx: MonthChangeContext) => void \| false \| Promise<…>` | `undefined` | `false` blocks the navigation |
-| `getMonthDataCallback` | `(ctx: MonthChangeContext) => MonthDataResult \| null \| Promise<…>` | `undefined` | Bulk-load `metadata` / `monthHeaders` for the visible range |
-| `actionButtons` | `(DateRangePickerActionItem \| 'today' \| 'now' \| 'clear' \| 'apply')[]` | built-ins | Footer action buttons (see [Action Buttons](#action-buttons)) |
-| `beforeActionCallback` | `(detail: DateRangePickerActionEventDetail) => void \| false \| Promise<…>` | `undefined` | `false` cancels an action click |
-
-### Example Usage
-
-```javascript
-const picker = new DateRangePickerEngine(inputElement, {
-  selectionMode: 'range',
-  dateFormatMask: 'DD/MM/YYYY',
-  visibleMonthsCount: 2,
-  weekStartDay: 1, // Monday
-  disabledWeekdays: [0, 6], // Weekends
-  specialDates: [
-    { date: '2025-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }
-  ],
-  onChange: (detail) => {
-    console.log('Selected:', detail.dateRange);
-  }
-});
-
-// Spanish localization with custom strings
-const pickerES = new DateRangePickerEngine(inputElement, {
-  selectionMode: 'single',
-  locale: 'es',
-  dateFormatMask: 'YYYY-MM-DD',
-  customStrings: {
-    today: 'Hoy',
-    clear: 'Borrar',
-    preview: 'Previsualización'
-  },
-  onChange: (detail) => {
-    console.log('Fecha seleccionada:', detail.date);
-  }
-});
-```
-
----
-
 ## Public Methods
 
 ### Web Component Methods
@@ -420,16 +338,6 @@ const { controller } = el;
 if (!controller.getSelectedRange()) controller.selectToday();
 controller.showMessage('Pick a check-out date', { variant: 'info', autoHideMs: 3000 });
 ```
-
-### Advanced: `DateRangePickerEngine`
-
-The internal engine is exported as `DateRangePickerEngine` for advanced
-standalone use (an input without the custom element — see
-[`docs/usage.md`](./docs/usage.md#javascript-instantiation-daterangepickerengine-class)).
-Its methods are internal and may change between releases; prefer the element
-and `el.controller`. Engine options follow [DatePicker Options](#datepicker-options);
-`onChange`, `onAction` and `onMonthChange` receive the same details as the
-element's events.
 
 ---
 
@@ -1278,14 +1186,13 @@ picker.classList.add('theme-green');
 
 ## TypeScript Interfaces
 
-### DatePickerOptions
+### DateRangePickerConfig
 
-The full option interface lives in `src/types.ts` (`DatePickerOptions`); the
-web component maps its attributes/properties onto it. The callback and event
-members:
+The element's configuration (`el.config`; every input is also a typed property on
+the element) lives in `src/types.ts` (`DateRangePickerConfig`). The callback members:
 
 ```typescript
-interface DatePickerOptions {
+interface DateRangePickerConfig {
   // … layout / format / restriction / member-mapping options …
 
   // Per-day data & rendering
@@ -1307,11 +1214,6 @@ interface DatePickerOptions {
   // Action buttons
   actionButtons?: (DateRangePickerActionItem | 'today' | 'now' | 'clear' | 'apply')[];
   beforeActionCallback?: (detail: DateRangePickerActionEventDetail) => void | false | Promise<void | false>;
-
-  // Engine notifications (the element re-emits these as events)
-  onChange?: (detail: ChangeEventDetail) => void;
-  onAction?: (detail: DateRangePickerActionEventDetail) => void;
-  onMonthChange?: (detail: MonthChangeEventDetail) => void;
 }
 ```
 
@@ -1494,30 +1396,6 @@ interface DayMetadata {
 
 Returned by `getDateMetadataCallback` to provide custom styling/labels for specific dates.
 
-### LocaleStrings
-
-```typescript
-interface LocaleStrings {
-  // Button labels
-  today: string;
-  clear: string;
-  apply: string;
-
-  // Summary text
-  preview: string;
-  day: string;
-  days: string;
-  night: string;
-  nights: string;
-
-  // Time picker (used when pickerMode is 'time' or 'datetime')
-  time: string;   // Label above the time rolls
-  now: string;    // "Now" button label
-  am: string;     // AM/PM column label for the 12-hour roll
-  pm: string;
-}
-```
-
 ### SummaryContext
 
 Argument of `renderSummaryCallback`.
@@ -1545,7 +1423,7 @@ interface SummaryContext extends PickerContext {
   // Context
   selectionMode: 'single' | 'range' | 'multiple';
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
-  localeStrings: LocaleStrings;
+  labels: DateRangePickerLabels; // the resolved UI labels ({count} templates)
 
   // Preview flag (true when dragging)
   isPreview?: boolean;
@@ -1900,36 +1778,22 @@ The derived hint (no explicit `placeholder`): date mode — the date hint (doubl
 
 Both masks of a pair must describe the same structure, just with different language tokens.
 
-#### Custom String Overrides
+#### UI string overrides (`labels`)
 
 ```javascript
 const picker = document.querySelector('web-daterangepicker');
 
-// Override specific strings while keeping rest of locale
-picker.customStrings = {
-  today: 'Ahora',          // Custom "Today"
-  clear: 'Borrar todo',    // Custom "Clear"
-  apply: 'Confirmar'       // Custom "Apply"
-  // Other strings inherited from locale
+// Partial: the keys you set win, the rest keep the English defaults
+picker.labels = {
+  'buttons.today': 'Ahora',
+  'buttons.clear': 'Borrar todo',
+  'buttons.apply': 'Confirmar',
+  'labels.days': '{count} días',
 };
-
-// Or on the engine (advanced standalone use):
-const engine = new DateRangePickerEngine(input, {
-  locale: 'es',
-  customStrings: {
-    today: 'Ahora',
-    preview: 'Vista previa personalizada'
-  }
-});
 ```
 
-**Available strings:**
-- `today` - Today button
-- `clear` - Clear button
-- `apply` - Apply button (range mode)
-- `preview` - Preview label in summary
-- `day` / `days` - Day count (singular/plural)
-- `night` / `nights` - Night count (singular/plural)
+Keys are flat `<elementType>.<name>` (`buttons.*`, `labels.*`, `ariaLabels.*`, …) — see
+`DateRangePickerLabels` / `DEFAULT_LABELS` for the full list.
 
 #### Complete Spanish Example
 
@@ -1955,23 +1819,16 @@ const engine = new DateRangePickerEngine(input, {
 </script>
 ```
 
-#### Complete German Example with Custom Strings
+#### Complete German Example with Labels
 
-```javascript
-const picker = new DateRangePickerEngine(inputElement, {
-  selectionMode: 'single',
-  locale: 'de',
-  dateFormatMask: 'DD.MM.YYYY',
-  customStrings: {
-    today: 'Jetzt',
-    clear: 'Zurücksetzen',
-    preview: 'Vorschau'
-  },
-  weekStartDay: 1, // Monday (automatically detected for 'de', but can override)
-  onChange: (detail) => {
-    console.log('Ausgewähltes Datum:', detail.date);
-  }
-});
+```html
+<web-daterangepicker id="german-picker" locale="de" date-format-mask="DD.MM.YYYY" week-start-day="1"></web-daterangepicker>
+
+<script>
+  const picker = document.getElementById('german-picker');
+  picker.labels = { 'buttons.today': 'Jetzt', 'buttons.clear': 'Zurücksetzen', 'labels.preview': 'Vorschau' };
+  picker.addEventListener('change', (e) => console.log('Ausgewähltes Datum:', e.detail.date));
+</script>
 ```
 
 #### What Gets Localized
@@ -2086,7 +1943,7 @@ The callback receives a context with the following properties (plus `controller`
 | `endDate` | `Date \| null` | Always | End date of selection |
 | `selectionMode` | `'single' \| 'range' \| 'multiple'` | Always | Current selection mode |
 | `disabledDatesHandling` | `string` | Always | Current disabled handling mode |
-| `localeStrings` | `LocaleStrings` | Always | Localized UI strings |
+| `labels` | `DateRangePickerLabels` | Always | The resolved UI labels (`{count}` templates) |
 | `isPreview` | `boolean` | Always | True when dragging (preview) |
 | `dateRanges` | `DateRange[]` | Split mode | Array of separate ranges |
 | `dates` | `Date[]` | Individual/Split mode | Array of selected dates |

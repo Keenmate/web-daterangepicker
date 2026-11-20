@@ -124,14 +124,15 @@ Callbacks are reactive properties — they can be set before or after the
 element upgrades/connects. To avoid an upgrade-then-restyle flash, add the
 `defer` attribute, wire everything, then call el.release().
 
-JAVASCRIPT API (Full Control)
-------------------------------
-Import and instantiate:
+JAVASCRIPT API (Properties)
+---------------------------
+Every attribute is also a camelCase property on the element (the element is the
+whole API — the internal engine is not exported):
 
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+import '@keenmate/web-daterangepicker';
 
-const inputElement = document.querySelector('#my-input');
-const picker = new DateRangePickerEngine(inputElement, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'single',
   minDate: '2025-01-01',
   maxDate: '2025-12-31',
@@ -154,7 +155,8 @@ Select one date:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'single',
   onChange: (detail) => {
     console.log('Date:', detail.date); // Date object
@@ -176,7 +178,8 @@ Select start and end dates:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'range',
   visibleMonthCount: 2,
   onChange: (detail) => {
@@ -373,8 +376,8 @@ npm install @keenmate/web-daterangepicker
 // Import in your app
 import '@keenmate/web-daterangepicker';
 
-// Or import specific exports
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+// Or import specific exports (types, logging, DEFAULT_LABELS)
+import { DEFAULT_LABELS, enableLogging } from '@keenmate/web-daterangepicker';
 
 AUTO-REGISTRATION
 -----------------

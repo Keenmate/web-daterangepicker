@@ -1,35 +1,10 @@
 <meta name="kmwc:title" content="🔨 Data &amp; API">
-<meta name="kmwc:subtitle" content="Instantiate pickers in JavaScript, drive them with the public API, and wire up advanced data-driven behaviors">
+<meta name="kmwc:subtitle" content="Create pickers in JavaScript, drive them with the public API, and wire up advanced data-driven behaviors">
 
 <link rel="stylesheet" href="examples-local.css">
 
 <style>
-  /* The DateRangePickerEngine *class* renders its calendar into LIGHT DOM (unlike the
-     <web-daterangepicker> element, which is shadow-isolated). So this page's global
-     `* { margin:0; padding:0 }` reset (once the old shared stylesheet, unlayered) leaked straight into the
-     calendar and flattens all of the component's own spacing. The component declares
-     that spacing inside `@layer component`, and an UNLAYERED page rule (the reset)
-     beats any layer regardless of specificity — so without this the fullscreen sheet
-     has no content gutter, the nav/✕ buttons hug the edges, and the floating/inline
-     calendars look cramped too. `revert-layer`, scoped to the picker subtree, defers
-     margin/padding on those elements back down to the component's own layers (and to
-     the UA default where the component sets nothing). Shadow-DOM pages are unaffected:
-     the reset never crosses the boundary, and `.drp__picker` doesn't exist in their
-     light DOM, so this rule is a harmless no-op there. */
-  .drp__picker,
-  .drp__picker * {
-    margin: revert-layer;
-    padding: revert-layer;
-  }
-
-  /* The real light-DOM <input> elements the DateRangePickerEngine class attaches to
-     (this page demonstrates JS instantiation against plain inputs). The kit styles the
-     field; this only makes it full width. */
-  .demo-input {
-    width: 100%;
-  }
-
-  /* Kept bespoke: the JS-instantiation demos assign this class by name in
+  /* Kept bespoke: the JS-creation demos assign this class by name in
      script (output.className = 'output-box') and it appears verbatim in the
      code samples, so it can't be renamed to a shared class. It's the small
      per-demo result panel, on the kit's output colours. */
@@ -72,274 +47,180 @@
 <!-- ===== GETTING STARTED ===== -->
 
 <div class="card">
-  <h2>DA01 · Why Use JavaScript Instantiation?</h2>
-  <p>While the web component approach (<code>&lt;web-daterangepicker&gt;</code>) is convenient for static configurations,
-  JavaScript instantiation is useful when:</p>
+  <h2>DA01 · Creating Pickers in JavaScript</h2>
+  <p>The <code>&lt;web-daterangepicker&gt;</code> element is the whole API — create it with
+  <code>document.createElement</code>, set its camelCase properties (every attribute has one, and every
+  callback is a property), listen to its events, and append it. This is useful when:</p>
   <ul>
     <li>You need to create pickers dynamically based on user actions or data</li>
-    <li>You're working with existing HTML inputs that can't be replaced</li>
     <li>You prefer a programmatic API over HTML attributes</li>
-    <li>You need to attach pickers to inputs created by other frameworks</li>
+    <li>You need to mount pickers into markup created by other frameworks</li>
   </ul>
 
-  <div class="note warning">
-    <strong>⚠️ Important:</strong> When using JavaScript instantiation, you must create a regular
-    <code>&lt;input type="text"&gt;</code> element first, then pass it to the <code>DateRangePickerEngine</code>
-    constructor. The class will attach the calendar functionality to your existing input.
-  </div>
-</div>
-
-<!-- CSS Requirements -->
-<div class="card">
-  <h2>DA02 · Critical: CSS Requirements</h2>
-  <p><strong>Unlike the web component approach, the <code>DateRangePickerEngine</code> class does NOT automatically inject styles.</strong>
-  You MUST import the CSS separately, or you'll see an unstyled matrix of day numbers.</p>
-
-  <div class="note warning">
-    <strong>🚨 Common Mistake:</strong> If you only see plain numbers in a grid without any styling,
-    you forgot to import the CSS! This is the #1 issue when using JavaScript instantiation.
-  </div>
-
-  <h3>Method 1: Import CSS in JavaScript (Recommended for Bundlers)</h3>
-  <div class="code-block" data-language="js"><pre><code>// When using a bundler (Webpack, Vite, Rollup, etc.)
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-import '@keenmate/web-daterangepicker/dist/style.css';
-
-const picker = new DateRangePickerEngine(inputElement, options);</code></pre></div>
-
-  <h3>Method 2: Link CSS in HTML (For CDN or Simple Setups)</h3>
-  <div class="code-block" data-language="html"><pre><code>&lt;!-- In your HTML &lt;head&gt; --&gt;
-&lt;link rel="stylesheet" href="./node_modules/@keenmate/web-daterangepicker/dist/style.css"&gt;
-
-&lt;script type="module"&gt;
-  import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-  const picker = new DateRangePickerEngine(inputElement, options);
-&lt;/script&gt;</code></pre></div>
-
-  <h3>Method 3: Import CSS Source (For Custom Builds)</h3>
-  <div class="code-block" data-language="js"><pre><code>// If you want to customize variables or build from source
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-import '@keenmate/web-daterangepicker/src/css/main.css';
-
-const picker = new DateRangePickerEngine(inputElement, options);</code></pre></div>
-
-  <h3>Method 4: Programmatic Injection (Alternative)</h3>
-  <div class="code-block" data-language="js"><pre><code>// Inject styles programmatically (no CSS import needed!)
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-
-// Inject styles once before creating any pickers
-DateRangePickerEngine.injectGlobalStyles();
-
-// Now create your pickers
-const picker = new DateRangePickerEngine(inputElement, options);</code></pre></div>
-
   <div class="note info">
-    <strong>💡 Why is this necessary?</strong><br>
-    The web component (<code>&lt;web-daterangepicker&gt;</code>) uses Shadow DOM and injects styles automatically
-    into its isolated scope. The <code>DateRangePickerEngine</code> class doesn't use Shadow DOM - it creates
-    calendar elements in the regular DOM, so it expects global CSS to be loaded separately.
-  </div>
-
-  <div class="note info">
-    <strong>📝 Note:</strong> This page uses <strong>Method 3</strong> (CSS source import) in development mode with Vite.
-    Check the source code to see the implementation.
+    <strong>💡 Styles:</strong> the element injects its own styles into its shadow root — no CSS import needed.
+    Properties can be set before or after the element is appended; a burst of assignments is applied as one
+    rebuild.
   </div>
 </div>
 
 <!-- ===== CREATING PICKERS ===== -->
 
-<!-- Example 1: Basic Single Date Picker -->
 <div class="card">
-  <h2>DA03 · Basic Single Date Picker</h2>
-  <p>Create a simple single-date picker with default options.</p>
+  <h2>DA02 · Basic Single Date Picker</h2>
+  <p>Create a simple single-date picker.</p>
 
   <div class="form-group">
-    <label for="input-1">Select a Date</label>
-    <input type="text" id="input-1" class="demo-input" placeholder="YYYY-MM-DD">
+    <div id="host-1"></div>
     <div id="output-1" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>import {
-  DateRangePickerEngine, observeEnvironment, classifyDevice
-} from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>import '@keenmate/web-daterangepicker';
 
-const inputElement = document.getElementById('input-1');
-
-const picker = new DateRangePickerEngine(inputElement, {
+const picker = document.createElement('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'single',
   dateFormatMask: 'YYYY-MM-DD',
-  onChange: (detail) => {
-    // Single mode: detail.date is the selected Date
-    console.log('Selected date:', detail.date);
-    // Get formatted value from the input element
-    document.getElementById('output-1').textContent =
-      `Selected: ${inputElement.value}`;
-  }
+  placeholder: 'YYYY-MM-DD',
 });
+picker.addEventListener('change', (e) => {
+  // Single mode: e.detail.date is the selected Date
+  document.getElementById('output-1').textContent = `Selected: ${e.detail.formattedValue}`;
+});
+document.getElementById('host-1').append(picker);
 
-// The &lt;web-daterangepicker&gt; element adapts its presentation to the
-// device automatically; the raw class does not. Without this, the
-// calendar stays a floating popover on phones and overlaps the page.
-// Mirror the element's ladder: phone → fullscreen, tablet → modal,
-// desktop → floating. observeEnvironment fires now and on every flip.
-const BY_DEVICE = { mobile: 'fullscreen', tablet: 'modal', desktop: 'floating' };
-observeEnvironment(env => picker.setPresentation(BY_DEVICE[classifyDevice(env)]));</code></pre></div>
+// Phone → full-screen sheet, tablet → modal, desktop → popover: automatic
+// (the `presentation` input, default 'auto').</code></pre></div>
 </div>
 
-<!-- Example 2: Date Range Picker -->
 <div class="card">
-  <h2>DA04 · Date Range Picker with Multiple Months</h2>
-  <p>Create a range picker with 2 visible months and custom configuration.</p>
+  <h2>DA03 · Date Range Picker with Multiple Months</h2>
+  <p>Create a range picker with 2 visible months.</p>
 
   <div class="form-group">
-    <label for="input-2">Select Date Range</label>
-    <input type="text" id="input-2" class="demo-input" placeholder="Start Date - End Date">
+    <div id="host-2"></div>
     <div id="output-2" class="output-box">No range selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-
-const inputElement = document.getElementById('input-2');
-
-const picker = new DateRangePickerEngine(inputElement, {
+  <div class="code-block" data-language="js"><pre><code>const picker = document.createElement('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'range',
   visibleMonthCount: 2,
   monthLayout: 'horizontal',
   dateFormatMask: 'YYYY-MM-DD',
+  placeholder: 'Start Date - End Date',
+  // Event twin: onChange receives the same detail as the `change` event
   onChange: (detail) => {
-    // Range mode: detail.dateRange is { start: Date, end: Date }
     const { start, end } = detail.dateRange;
     const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
-
     document.getElementById('output-2').innerHTML =
       `Start: ${start.toLocaleDateString()}&lt;br&gt;` +
       `End: ${end.toLocaleDateString()}&lt;br&gt;` +
       `Nights: ${nights}`;
-  }
-});</code></pre></div>
+  },
+});
+document.getElementById('host-2').append(picker);</code></pre></div>
 </div>
 
-<!-- Example 4: Different Formats -->
 <div class="card">
-  <h2>DA05 · Different Date Formats</h2>
+  <h2>DA04 · Different Date Formats</h2>
   <p>Create pickers with various date format masks.</p>
 
   <div class="grid">
     <div class="form-group">
-      <label for="input-4a">European Format (DD.MM.YYYY)</label>
-      <input type="text" id="input-4a" class="demo-input" placeholder="DD.MM.YYYY">
+      <label>European Format (DD.MM.YYYY)</label>
+      <div id="host-4a"></div>
       <div id="output-4a" class="output-box">No date selected</div>
     </div>
 
     <div class="form-group">
-      <label for="input-4b">US Format (MM/DD/YYYY)</label>
-      <input type="text" id="input-4b" class="demo-input" placeholder="MM/DD/YYYY">
+      <label>US Format (MM/DD/YYYY)</label>
+      <div id="host-4b"></div>
       <div id="output-4b" class="output-box">No date selected</div>
     </div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>// European format
-const pickerEU = new DateRangePickerEngine(document.getElementById('input-4a'), {
-  selectionMode: 'single',
-  dateFormatMask: 'DD.MM.YYYY',
-  onChange: (detail) => {
-    document.getElementById('output-4a').textContent =
-      `Selected: ${detail.formattedValue}`;
-  }
-});
+  <div class="code-block" data-language="js"><pre><code>function createPicker(hostId, outputId, dateFormatMask) {
+  const picker = document.createElement('web-daterangepicker');
+  Object.assign(picker, {
+    selectionMode: 'single',
+    dateFormatMask,
+    placeholder: dateFormatMask,
+    onChange: (detail) => {
+      document.getElementById(outputId).textContent = `Selected: ${detail.formattedValue}`;
+    },
+  });
+  document.getElementById(hostId).append(picker);
+  return picker;
+}
 
-// US format
-const pickerUS = new DateRangePickerEngine(document.getElementById('input-4b'), {
-  selectionMode: 'single',
-  dateFormatMask: 'MM/DD/YYYY',
-  onChange: (detail) => {
-    document.getElementById('output-4b').textContent =
-      `Selected: ${detail.formattedValue}`;
-  }
-});</code></pre></div>
+const pickerEU = createPicker('host-4a', 'output-4a', 'DD.MM.YYYY');
+const pickerUS = createPicker('host-4b', 'output-4b', 'MM/DD/YYYY');</code></pre></div>
 </div>
 
-<!-- Example 3: With Date Restrictions -->
 <div class="card">
-  <h2>DA06 · With Date Restrictions</h2>
-  <p>Configure min/max dates, disabled weekends, and specific disabled dates.</p>
+  <h2>DA05 · With Date Restrictions</h2>
+  <p>Configure min/max dates, disabled weekends, and specific disabled dates (weekends disabled, limited to the current month).</p>
 
   <div class="form-group">
-    <label for="input-3">Business Days Only</label>
-    <input type="text" id="input-3" class="demo-input" placeholder="YYYY-MM-DD">
-    <small>Weekends disabled, limited to current month</small>
+    <div id="host-3"></div>
     <div id="output-3" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-
-const today = new Date();
+  <div class="code-block" data-language="js"><pre><code>const today = new Date();
 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-const inputElement = document.getElementById('input-3');
-
-const picker = new DateRangePickerEngine(inputElement, {
+const picker = document.createElement('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'single',
   dateFormatMask: 'YYYY-MM-DD',
   minDate: firstDay,
   maxDate: lastDay,
   disabledWeekdays: [0, 6], // Disable Sunday (0) and Saturday (6)
   disabledDates: [
-    new Date(today.getFullYear(), today.getMonth(), 25) // Christmas
+    new Date(today.getFullYear(), today.getMonth(), 25)
   ],
   onChange: (detail) => {
     document.getElementById('output-3').textContent =
       `Selected business day: ${detail.formattedValue}`;
-  }
-});</code></pre></div>
+  },
+});
+document.getElementById('host-3').append(picker);</code></pre></div>
 </div>
 
-<!-- Example 5: Inline Calendar (No Input) -->
 <div class="card">
-  <h2>DA07 · Inline Calendar (No Input Field)</h2>
-  <p>Create a standalone calendar without an input field.</p>
+  <h2>DA06 · Inline Calendar</h2>
+  <p>An always-visible calendar instead of a popover.</p>
 
   <div class="form-group">
-    <label>Inline Calendar</label>
-    <div id="inline-container"></div>
+    <div id="host-5"></div>
     <div id="output-5" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-
-// For inline mode, pass null as the input element
-const picker = new DateRangePickerEngine(null, {
+  <div class="code-block" data-language="js"><pre><code>const picker = document.createElement('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'single',
   positioningMode: 'inline',
-  container: document.getElementById('inline-container'),
   onChange: (detail) => {
-    // Single mode: detail.date is the selected Date
     document.getElementById('output-5').textContent =
       `Selected: ${detail.date.toLocaleDateString()}`;
-  }
-});</code></pre></div>
-
-  <div class="note info">
-    <strong>💡 Tip:</strong> When using <code>positioningMode: 'inline'</code>, pass <code>null</code>
-    as the first argument and specify a <code>container</code> in the options.
-  </div>
+  },
+});
+document.getElementById('host-5').append(picker);</code></pre></div>
 </div>
 
-<!-- Example 6: Grid Layout -->
 <div class="card">
-  <h2>DA08 · Grid Layout (2×3)</h2>
+  <h2>DA07 · Grid Layout (2×3)</h2>
   <p>Display 6 months in a grid layout for easier navigation.</p>
 
   <div class="form-group">
-    <label for="input-6">Grid Layout Picker</label>
-    <input type="text" id="input-6" class="demo-input" placeholder="YYYY-MM-DD">
+    <div id="host-6"></div>
     <div id="output-6" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-
-const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
+  <div class="code-block" data-language="js"><pre><code>const picker = document.createElement('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'single',
   visibleMonthCount: 6,
   monthLayout: 'grid',
@@ -347,15 +228,14 @@ const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
   gridColumns: 3,
   dateFormatMask: 'YYYY-MM-DD',
   onChange: (detail) => {
-    document.getElementById('output-6').textContent =
-      `Selected: ${detail.formattedValue}`;
-  }
-});</code></pre></div>
+    document.getElementById('output-6').textContent = `Selected: ${detail.formattedValue}`;
+  },
+});
+document.getElementById('host-6').append(picker);</code></pre></div>
 </div>
 
-<!-- Example 7: Dynamic Creation -->
 <div class="card">
-  <h2>DA09 · Dynamic Creation</h2>
+  <h2>DA08 · Dynamic Creation</h2>
   <p>Create pickers on-the-fly based on user actions.</p>
 
   <button id="add-picker-btn" class="mt-1">
@@ -364,55 +244,42 @@ const picker = new DateRangePickerEngine(document.getElementById('input-6'), {
 
   <div id="dynamic-pickers"></div>
 
-  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-
-let pickerCount = 0;
+  <div class="code-block" data-language="js"><pre><code>let pickerCount = 0;
 
 document.getElementById('add-picker-btn').addEventListener('click', () => {
   pickerCount++;
 
-  // Create container
   const container = document.createElement('div');
   container.style.marginBottom = '1rem';
 
-  // Create label
   const label = document.createElement('label');
   label.textContent = `Date Picker #${pickerCount}`;
   label.style.display = 'block';
   label.style.marginBottom = '0.5rem';
 
-  // Create input
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'demo-input';
-  input.placeholder = 'YYYY-MM-DD';
-
-  // Create output
   const output = document.createElement('div');
   output.className = 'output-box';
   output.textContent = 'No date selected';
 
-  // Assemble
-  container.appendChild(label);
-  container.appendChild(input);
-  container.appendChild(output);
-  document.getElementById('dynamic-pickers').appendChild(container);
-
-  // Initialize picker
-  const picker = new DateRangePickerEngine(input, {
+  const picker = document.createElement('web-daterangepicker');
+  Object.assign(picker, {
     selectionMode: 'single',
     dateFormatMask: 'YYYY-MM-DD',
+    placeholder: 'YYYY-MM-DD',
     onChange: (detail) => {
       output.textContent = `Selected: ${detail.formattedValue}`;
-    }
+    },
   });
+
+  container.append(label, picker, output);
+  document.getElementById('dynamic-pickers').append(container);
 });</code></pre></div>
 </div>
 
 <!-- ===== ADVANCED CONFIGURATION ===== -->
 
 <div class="card">
-  <h2>DA10 · Rolling Selector Constraints (Year/Month Picker)</h2>
+  <h2>DA09 · Rolling Selector Constraints (Year/Month Picker)</h2>
   <p>Configure which years and months appear in the rolling selector, and automatically disable unavailable options based on minDate/maxDate.</p>
   <div class="grid">
     <div class="form-group">
@@ -493,7 +360,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 </div>
 
 <div class="card">
-  <h2>DA11 · Range Selection Modes (over disabled dates)</h2>
+  <h2>DA10 · Range Selection Modes (over disabled dates)</h2>
   <div class="grid">
     <div class="form-group">
       <label>Allow Mode (default)</label>
@@ -552,7 +419,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 </div>
 
 <div class="card">
-  <h2>DA12 · Week-Snapping Selection (<code>beforeSelectCallback</code> → <code>DateRange[]</code>)</h2>
+  <h2>DA11 · Week-Snapping Selection (<code>beforeSelectCallback</code> → <code>DateRange[]</code>)</h2>
   <p>
     A <code>beforeSelectCallback</code> that rewrites the raw selection into
     whole weeks. For every week the selection touches, it counts the selected
@@ -576,7 +443,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 </div>
 
 <div class="card">
-  <h2>DA13 · Custom Summary Formatting</h2>
+  <h2>DA12 · Custom Summary Formatting</h2>
   <p>Use the <code>renderSummaryCallback</code> option to completely customize the summary display below the calendar.</p>
   <div class="grid">
     <div class="form-group">
@@ -626,7 +493,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 </div>
 
 <div class="card">
-  <h2>DA14 · Position Control</h2>
+  <h2>DA13 · Position Control</h2>
   <p>Control where the popup appears relative to the input field.</p>
   <div class="grid">
     <div class="form-group">
@@ -690,7 +557,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
 <!-- Section 1: Show/Hide/Toggle Methods -->
 <section class="card">
   <div>
-    <h2>DA15 · Show/Hide/Toggle Methods</h2>
+    <h2>DA14 · Show/Hide/Toggle Methods</h2>
     <p class="description">
       Control calendar visibility programmatically. These methods are useful for external triggers,
       keyboard shortcuts, or conditional UI flows.
@@ -760,7 +627,7 @@ console.log('Calendar open?', picker.isOpen);
 <!-- Section 2: Get/Set Input Value -->
 <section class="card">
   <div>
-    <h2>DA16 · Get/Set Input Value</h2>
+    <h2>DA15 · Get/Set Input Value</h2>
     <p class="description">
       Read and write the formatted input value. The format follows the <code>date-format-mask</code> attribute.
       For range mode, use " - " separator (space-dash-space).
@@ -828,7 +695,7 @@ rangePicker.value = '';</code></pre></div>
 <!-- Section 3: Clear Selection -->
 <section class="card">
   <div>
-    <h2>DA17 · Clear Selection</h2>
+    <h2>DA16 · Clear Selection</h2>
     <p class="description">
       Clear the current selection and reset the picker to its initial state.
       This clears both the input value and internal date state.
@@ -886,7 +753,7 @@ picker.value = '2025-12-25';</code></pre></div>
 <!-- Section 4: Reactive Properties (selectedDate, selectedRanges) -->
 <section class="card">
   <div>
-    <h2>DA18 · Reactive Properties (selectedDate, selectedRanges)</h2>
+    <h2>DA17 · Reactive Properties (selectedDate, selectedRanges)</h2>
     <p class="description">
       Access and modify selection using Date objects. These properties are reactive and trigger
       re-rendering and events when changed.
@@ -962,7 +829,7 @@ rangePicker.selectedRanges = [];</code></pre></div>
 <!-- Section 5: Calendar State (isOpen) -->
 <section class="card">
   <div>
-    <h2>DA19 · Calendar State (isOpen)</h2>
+    <h2>DA18 · Calendar State (isOpen)</h2>
     <p class="description">
       Read the current calendar visibility state. This is useful for conditional logic,
       UI synchronization, or analytics tracking.
@@ -1023,7 +890,7 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre></div>
 <!-- Section 6: Controller Access -->
 <section class="card">
   <div>
-    <h2>DA20 · Controller Access (<code>el.controller</code>)</h2>
+    <h2>DA19 · Controller Access (<code>el.controller</code>)</h2>
     <p class="description">
       <code>el.controller</code> is the picker's public facade — a stable surface for reading the
       selection and driving the picker. It is the same object every callback context and event
@@ -1076,7 +943,7 @@ console.log('Months to show:', component.visibleMonthCount);</code></pre></div>
 </section>
 
 <div class="card">
-  <h2>DA21 · Programmatic API</h2>
+  <h2>DA20 · Programmatic API</h2>
   <div class="form-group">
     <label>API Demo</label>
     <web-daterangepicker id="api-demo" selection-mode="range"></web-daterangepicker>
@@ -1117,7 +984,7 @@ picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);</
 <!-- Section 7: Booking desk — confirm & lock (scoped read-only) -->
 <section class="card">
   <div>
-    <h2>DA22 · Booking desk — confirm &amp; lock (scoped read-only)</h2>
+    <h2>DA21 · Booking desk — confirm &amp; lock (scoped read-only)</h2>
     <p class="description">
       Freeze user interaction while keeping the value <strong>readable</strong> (unlike
       <code>disabled</code>, which greys the input out). Each day shows its <strong>nightly rate</strong>
@@ -1251,7 +1118,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
 <!-- Section 8: Confirm & close — validate before dismissing (floating) -->
 <section class="card">
   <div>
-    <h2>DA23 · Confirm &amp; close — validate before dismissing</h2>
+    <h2>DA22 · Confirm &amp; close — validate before dismissing</h2>
     <p class="description">
       A custom <strong>Confirm</strong> button that runs your own logic <em>before</em> the calendar
       closes. A <strong>custom</strong> action button never auto-closes the picker, so the callback is
@@ -1339,7 +1206,7 @@ picker.actionButtons = [
 <!-- Section 10: Integration Patterns -->
 <section class="card">
   <div>
-    <h2>DA24 · Integration Patterns</h2>
+    <h2>DA23 · Integration Patterns</h2>
     <p class="description">
       Common patterns for integrating the date picker with forms, frameworks, and application state.
     </p>
@@ -1496,7 +1363,7 @@ const manager = new DateRangeManager();</code></pre></div>
 <!-- ===== REFERENCE ===== -->
 
 <div class="card">
-  <h2>DA25 · Keyboard Shortcuts</h2>
+  <h2>DA24 · Keyboard Shortcuts</h2>
   <ul>
     <li><strong>↑ ↓</strong> - Navigate up/down by week</li>
     <li><strong>← →</strong> - Navigate left/right by day</li>
@@ -1513,14 +1380,14 @@ const manager = new DateRangeManager();</code></pre></div>
   </ul>
 </div>
 
-<!-- Example 8: All Options Reference -->
+<!-- Property reference -->
 <div class="card">
-  <h2>DA26 · Complete Options Reference</h2>
-  <p>All available options you can pass to the DateRangePickerEngine constructor.</p>
+  <h2>DA25 · Complete Property Reference</h2>
+  <p>The element's configuration properties (each attribute's camelCase twin, plus the property-only callbacks), set in one go.</p>
 
-  <div class="code-block" data-language="js"><pre><code>import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('web-daterangepicker');
 
-const picker = new DateRangePickerEngine(inputElement, {
+Object.assign(picker, {
   // Selection
   selectionMode: 'single' | 'range',               // Default: 'single'
 
@@ -1536,7 +1403,6 @@ const picker = new DateRangePickerEngine(inputElement, {
   // Positioning
   positioningMode: 'floating' | 'inline',          // Default: 'floating'
   calendarPlacement: 'bottom-start',               // Default: 'bottom-start' or 'bottom' for grid
-  container: document.body,                        // Default: document.body
 
   // Trigger
   calendarOpenTrigger: 'focus' | 'typing' | 'manual', // Default: 'focus'
@@ -1654,7 +1520,7 @@ const picker = new DateRangePickerEngine(inputElement, {
 <!-- Section 9: Complete API Reference -->
 <section class="card">
   <div>
-    <h2>DA27 · Complete API Reference</h2>
+    <h2>DA26 · Complete API Reference</h2>
     <p class="description">
       Full reference of all public methods, properties, and events available on the
       <code>&lt;web-daterangepicker&gt;</code> component.
@@ -1963,127 +1829,79 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
   <!-- SCRIPTS                                                       -->
   <!-- ============================================================= -->
 
-  <!-- JS-instantiation demos (DateRangePickerEngine class against plain inputs) -->
+  <!-- JS-creation demos (document.createElement + properties) -->
   <script type="module">
-    import { DateRangePickerEngine, observeEnvironment, classifyDevice } from './src/index.ts';
-    // IMPORTANT: Import styles globally for DateRangePickerEngine class to work
-    import './src/css/main.css';
+    import './src/index.ts';
 
-    // Device-adaptive presentation for the raw DateRangePickerEngine class.
-    // The <web-daterangepicker> element does this automatically, but the class
-    // does NOT: a floating picker stays a floating popover on every device, so on
-    // a phone the calendar overlaps the content below it (the output box and code
-    // block) instead of opening as a clean full-screen sheet. Mirror the element's
-    // ladder here — phone → fullscreen, tablet → modal, desktop → floating — by
-    // reacting to the same environment signal the component reacts to.
-    const PRESENTATION_BY_DEVICE = { mobile: 'fullscreen', tablet: 'modal', desktop: 'floating' };
-    const makeAdaptive = (picker) => {
-      // Fires immediately with the current device, then again on each device flip.
-      // setPresentation() records the mode when the calendar is closed and swaps it
-      // live when it's open, so a resize across a breakpoint is handled either way.
-      observeEnvironment((env) => picker.setPresentation(PRESENTATION_BY_DEVICE[classifyDevice(env)]));
+    const mount = (hostId, props) => {
+      const picker = document.createElement('web-daterangepicker');
+      Object.assign(picker, props);
+      document.getElementById(hostId).append(picker);
       return picker;
     };
 
-    // Example 1: Basic Single Date Picker
-    const input1 = document.getElementById('input-1');
-    const picker1 = makeAdaptive(new DateRangePickerEngine(input1, {
-      selectionMode: 'single',
-      dateFormatMask: 'YYYY-MM-DD',
-      onChange: (detail) => {
-        // Single mode: detail.date is the selected Date
-        document.getElementById('output-1').textContent =
-          `Selected: ${input1.value}`;
-      }
-    }));
+    // Basic single date picker
+    mount('host-1', { selectionMode: 'single', dateFormatMask: 'YYYY-MM-DD', placeholder: 'YYYY-MM-DD' })
+      .addEventListener('change', (e) => {
+        document.getElementById('output-1').textContent = `Selected: ${e.detail.formattedValue}`;
+      });
 
-    // Example 2: Date Range Picker
-    const picker2 = makeAdaptive(new DateRangePickerEngine(document.getElementById('input-2'), {
-      selectionMode: 'range',
-      visibleMonthCount: 2,
-      monthLayout: 'horizontal',
-      dateFormatMask: 'YYYY-MM-DD',
+    // Date range picker
+    mount('host-2', {
+      selectionMode: 'range', visibleMonthCount: 2, monthLayout: 'horizontal',
+      dateFormatMask: 'YYYY-MM-DD', placeholder: 'Start Date - End Date',
       onChange: (detail) => {
-        // In range mode, detail.dateRange is { start: Date, end: Date }
         const { start, end } = detail.dateRange;
         const nights = Math.floor((end - start) / (1000 * 60 * 60 * 24));
-
         document.getElementById('output-2').innerHTML =
           `Start: ${start.toLocaleDateString()}<br>` +
           `End: ${end.toLocaleDateString()}<br>` +
           `Nights: ${nights}`;
-      }
-    }));
-
-    // Example 3: With Date Restrictions
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    const input3 = document.getElementById('input-3');
-    const picker3 = makeAdaptive(new DateRangePickerEngine(input3, {
-      selectionMode: 'single',
-      dateFormatMask: 'YYYY-MM-DD',
-      minDate: firstDay,
-      maxDate: lastDay,
-      disabledWeekdays: [0, 6],
-      onChange: (detail) => {
-        document.getElementById('output-3').textContent =
-          `Selected business day: ${input3.value}`;
-      }
-    }));
-
-    // Example 4: Different Formats
-    const input4a = document.getElementById('input-4a');
-    const picker4a = makeAdaptive(new DateRangePickerEngine(input4a, {
-      selectionMode: 'single',
-      dateFormatMask: 'DD.MM.YYYY',
-      onChange: (detail) => {
-        document.getElementById('output-4a').textContent =
-          `Selected: ${input4a.value}`;
-      }
-    }));
-
-    const input4b = document.getElementById('input-4b');
-    const picker4b = makeAdaptive(new DateRangePickerEngine(input4b, {
-      selectionMode: 'single',
-      dateFormatMask: 'MM/DD/YYYY',
-      onChange: (detail) => {
-        document.getElementById('output-4b').textContent =
-          `Selected: ${input4b.value}`;
-      }
-    }));
-
-    // Example 5: Inline Calendar
-    const picker5 = new DateRangePickerEngine(null, {
-      selectionMode: 'single',
-      positioningMode: 'inline',
-      container: document.getElementById('inline-container'),
-      onChange: (detail) => {
-        // Single mode: detail.date is the selected Date
-        document.getElementById('output-5').textContent =
-          `Selected: ${detail.date.toLocaleDateString()}`;
-      }
+      },
     });
 
-    // Example 6: Grid Layout
-    const input6 = document.getElementById('input-6');
-    const picker6 = makeAdaptive(new DateRangePickerEngine(input6, {
-      selectionMode: 'single',
-      visibleMonthCount: 6,
-      monthLayout: 'grid',
-      gridRows: 2,
-      gridColumns: 3,
+    // Different formats
+    for (const [suffix, dateFormatMask] of [['4a', 'DD.MM.YYYY'], ['4b', 'MM/DD/YYYY']]) {
+      mount(`host-${suffix}`, {
+        selectionMode: 'single', dateFormatMask, placeholder: dateFormatMask,
+        onChange: (detail) => {
+          document.getElementById(`output-${suffix}`).textContent = `Selected: ${detail.formattedValue}`;
+        },
+      });
+    }
+
+    // Date restrictions
+    const today = new Date();
+    mount('host-3', {
+      selectionMode: 'single', dateFormatMask: 'YYYY-MM-DD',
+      minDate: new Date(today.getFullYear(), today.getMonth(), 1),
+      maxDate: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+      disabledWeekdays: [0, 6],
+      disabledDates: [new Date(today.getFullYear(), today.getMonth(), 25)],
+      onChange: (detail) => {
+        document.getElementById('output-3').textContent = `Selected business day: ${detail.formattedValue}`;
+      },
+    });
+
+    // Inline calendar
+    mount('host-5', {
+      selectionMode: 'single', positioningMode: 'inline',
+      onChange: (detail) => {
+        document.getElementById('output-5').textContent = `Selected: ${detail.date.toLocaleDateString()}`;
+      },
+    });
+
+    // Grid layout
+    mount('host-6', {
+      selectionMode: 'single', visibleMonthCount: 6, monthLayout: 'grid', gridRows: 2, gridColumns: 3,
       dateFormatMask: 'YYYY-MM-DD',
       onChange: (detail) => {
-        document.getElementById('output-6').textContent =
-          `Selected: ${input6.value}`;
-      }
-    }));
+        document.getElementById('output-6').textContent = `Selected: ${detail.formattedValue}`;
+      },
+    });
 
-    // Example 7: Dynamic Creation
+    // Dynamic creation
     let pickerCount = 0;
-
     document.getElementById('add-picker-btn').addEventListener('click', () => {
       pickerCount++;
 
@@ -2096,27 +1914,18 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
       label.style.marginBottom = '0.5rem';
       label.style.fontWeight = '600';
 
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'demo-input';
-      input.placeholder = 'YYYY-MM-DD';
-
       const output = document.createElement('div');
       output.className = 'output-box';
       output.textContent = 'No date selected';
 
-      container.appendChild(label);
-      container.appendChild(input);
-      container.appendChild(output);
-      document.getElementById('dynamic-pickers').appendChild(container);
+      const picker = document.createElement('web-daterangepicker');
+      Object.assign(picker, {
+        selectionMode: 'single', dateFormatMask: 'YYYY-MM-DD', placeholder: 'YYYY-MM-DD',
+        onChange: (detail) => { output.textContent = `Selected: ${detail.formattedValue}`; },
+      });
 
-      const picker = makeAdaptive(new DateRangePickerEngine(input, {
-        selectionMode: 'single',
-        dateFormatMask: 'YYYY-MM-DD',
-        onChange: (detail) => {
-          output.textContent = `Selected: ${input.value}`;
-        }
-      }));
+      container.append(label, picker, output);
+      document.getElementById('dynamic-pickers').append(container);
     });
   </script>
 

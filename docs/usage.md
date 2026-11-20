@@ -8,7 +8,6 @@ page see the README quick start; for theming see
 
 ## Contents
 
-- [JavaScript instantiation (`DateRangePickerEngine` class)](#javascript-instantiation-daterangepickerengine-class)
 - [Attributes](#attributes)
 - [Properties](#properties)
 - [Methods](#methods)
@@ -30,70 +29,10 @@ page see the README quick start; for theming see
   - [Responsive rules](#responsive-rules)
 - [Range selection modes](#range-selection-modes)
 
-## JavaScript instantiation (`DateRangePickerEngine` class)
-
-The internal engine is exported as `DateRangePickerEngine` for advanced
-standalone use (no custom element, no Shadow DOM). Prefer the
-`<web-daterangepicker>` element — callbacks and events there carry the
-public `controller` facade, and the engine's own methods are not a
-stable API:
-
-```ts
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-// IMPORTANT: import CSS separately — the web component auto-injects,
-// the class doesn't.
-import '@keenmate/web-daterangepicker/dist/style.css';
-
-const inputElement = document.getElementById('my-input');
-
-const picker = new DateRangePickerEngine(inputElement, {
-  selectionMode: 'range',
-  visibleMonthCount: 2,
-  dateFormatMask: 'YYYY-MM-DD',
-  onChange: (detail) => {
-    // Range mode: detail.dateRange is { start: Date, end: Date }
-    console.log('Range:', detail.dateRange.start, 'to', detail.dateRange.end);
-  }
-});
-```
-
-### ⚠️ CSS requirements
-
-Unlike the web component, the `DateRangePickerEngine` class does **not**
-automatically inject styles. You must load the CSS separately or you'll
-see an unstyled calendar. Pick one:
-
-**Option 1 — import CSS in JavaScript (recommended):**
-```ts
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-import '@keenmate/web-daterangepicker/dist/style.css';
-```
-
-**Option 2 — link CSS in HTML:**
-```html
-<link rel="stylesheet" href="./node_modules/@keenmate/web-daterangepicker/dist/style.css">
-```
-
-**Option 3 — programmatic injection:**
-```ts
-import { DateRangePickerEngine } from '@keenmate/web-daterangepicker';
-
-DateRangePickerEngine.injectGlobalStyles();  // once, before creating pickers
-
-const picker = new DateRangePickerEngine(inputElement, options);
-```
-
-**Why?** The web component uses Shadow DOM and injects styles into its
-isolated scope automatically. The `DateRangePickerEngine` class creates
-calendar elements in the regular DOM, so it expects global CSS to be
-loaded separately.
-
-See [`examples-data-api.html`](../examples-data-api.html) for complete code samples and configuration options.
-
 ## Attributes
 
-HTML attributes use kebab-case (`selection-mode`); JavaScript options
-use camelCase (`selectionMode`).
+HTML attributes use kebab-case (`selection-mode`); the matching element
+properties use camelCase (`selectionMode`).
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|

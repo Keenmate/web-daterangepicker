@@ -21,9 +21,7 @@ display. The single best file to skim when you first see the component.
 
 ### Data & API — [`examples-data-api.html`](../examples-data-api.html)
 
-Everything programmatic in one place. Using the engine class
-(`DateRangePickerEngine`) directly without the `<web-daterangepicker>` custom element
-(every callback wired up, explicit CSS-loading recipe); the instance
+Everything programmatic in one place: the instance
 methods (`open()` / `close()` / `toggle()`, `commit()`,
 `clearSelection()`, the `value` property), reactive property accessors, the lock/unlock API,
 and the advanced configuration recipes moved out of Basic — rolling

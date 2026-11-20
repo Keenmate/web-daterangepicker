@@ -151,10 +151,6 @@ picker.addEventListener('close', () => console.log('closed'));
 picker.labels = { 'buttons.today': 'Heute', 'labels.days': '{count} Tage' };
 ```
 
-Using the engine class (`DateRangePickerEngine`) directly (without the custom
-element) is supported for advanced use — see [`docs/usage.md`](./docs/usage.md#javascript-instantiation-daterangepickerengine-class)
-for the CSS-loading caveats.
-
 ### Presentation
 
 `positioning-mode` says **where** the calendar lives (`inline` block, or `floating` — opens

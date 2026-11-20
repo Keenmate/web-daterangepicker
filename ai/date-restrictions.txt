@@ -24,13 +24,15 @@ Set hard boundaries:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   minDate: '2025-01-01',  // String or Date object
   maxDate: '2025-12-31'
 });
 
 // Or with Date objects
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   minDate: new Date(2025, 0, 1),   // Jan 1, 2025
   maxDate: new Date(2025, 11, 31)  // Dec 31, 2025
 });
@@ -51,7 +53,8 @@ Disable recurring days of week:
 </web-daterangepicker>
 
 // JavaScript API (array of numbers)
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   disabledWeekdays: [0, 6]  // 0=Sunday, 6=Saturday
 });
 
@@ -86,7 +89,8 @@ picker.disabledDates = [
 </script>
 
 // JavaScript API
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   disabledDates: [
     '2025-01-01',
     '2025-12-25',
@@ -101,7 +105,8 @@ const holidays = [
   new Date(2025, 11, 26)
 ];
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   disabledDates: holidays
 });
 
@@ -122,9 +127,9 @@ GETDATEMETADATACALLBACK CALLBACK
 ---------------------------------
 Complex logic for disabling dates:
 
-CRITICAL: JavaScript API ONLY (pass in constructor)
-✅ CORRECT: Pass in options during new DateRangePickerEngine()
-❌ WRONG: Set as property after creation
+CRITICAL: Property only (no attribute) — reactive, set it before or after upgrade
+✅ CORRECT: el.getDateMetadataCallback = (ctx) => ...
+❌ WRONG: get-date-metadata-callback="..." (not an attribute)
 
 // JavaScript API
 const bookings = [
@@ -132,7 +137,8 @@ const bookings = [
   { start: new Date(2025, 6, 1), end: new Date(2025, 6, 10) }
 ];
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     // Return metadata object to disable, null to enable
     const isBooked = bookings.some(booking =>
@@ -173,7 +179,8 @@ Return metadata for each date (styling + disabling):
 
 CRITICAL: JavaScript API ONLY
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const dateStr = date.toISOString().split('T')[0];
     const availability = checkAvailability(dateStr);
@@ -217,7 +224,8 @@ COMBINING RESTRICTIONS
 ----------------------
 All restrictions stack (AND logic):
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   // 1. Only future dates
   minDate: new Date(),
 
@@ -279,7 +287,8 @@ Disabled dates automatically get CSS class:
 
 Custom styling with dayClass:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     if (isFullyBooked(date)) {
       return {
@@ -377,7 +386,8 @@ DEBUGGING
 ---------
 Log disabled date checks:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   getDateMetadataCallback: ({ date }) => {
     const shouldDisable = checkIfDisabled(date);
     const result = shouldDisable ? { isDisabled: true } : null;

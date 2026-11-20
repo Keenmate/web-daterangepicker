@@ -26,7 +26,8 @@ Set via attribute or option:
 </web-daterangepicker>
 
 // JavaScript API
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'range',
   disabledDatesHandling: 'allow',
   disabledWeekdays: [0, 6]
@@ -310,7 +311,8 @@ COMBINING WITH RESTRICTIONS
 ----------------------------
 Works with all restriction types:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'range',
   disabledDatesHandling: 'allow',
 
@@ -330,7 +332,8 @@ PRICING EXAMPLE (allow mode)
 -----------------------------
 Charge only for enabled days:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'range',
   disabledDatesHandling: 'allow',
   disabledWeekdays: [0, 6]
@@ -353,7 +356,8 @@ MULTI-SEGMENT EXAMPLE (split mode)
 -----------------------------------
 Book separate continuous periods:
 
-const picker = new DateRangePickerEngine(input, {
+const picker = document.querySelector('web-daterangepicker');
+Object.assign(picker, {
   selectionMode: 'range',
   disabledDatesHandling: 'split',
   disabledWeekdays: [0, 6]

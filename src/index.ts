@@ -8,9 +8,8 @@ import { logging } from './logger';
 // Export the web component
 export { WebDaterangepickerElement } from './web-component';
 
-// The internal engine, for advanced standalone use (no element). Not part of the
-// callback / event surface — contexts expose the public `controller` facade.
-export { DateRangePickerEngine } from './date-picker';
+// The engine behind the element (`./date-picker`) is INTERNAL — it only draws the same
+// UI without the custom element, so the element is the API (rulebook C-CA-37).
 
 // The built-in English UI labels (the defaults `labels` overrides key by key).
 export { DEFAULT_LABELS } from './date-picker-locales';

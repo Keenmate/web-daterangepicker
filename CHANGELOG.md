@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed — BREAKING: `DateRangePickerEngine` is no longer exported (2026-11-21)
+- **`DateRangePickerEngine` is no longer exported: it only drew the same UI without the custom element.
+  Use `<web-daterangepicker>`** (`document.createElement('web-daterangepicker')` + its properties / events —
+  every engine option the element supports is an element property of the same name). The engine stays the
+  element's internal implementation (rulebook C-CA-37). Docs, `ai/` files and the Data & API example page now
+  show the element; the stale engine-options / `customStrings` sections are gone from API.md (UI strings are
+  `labels`).
+
 ### Changed — a staged change is discarded on leaving the field / Escape (2026-11-21)
 - **`commit-mode="apply"` / `"manual"`: a staged change (a typed date, an emptied text / ✕ clear, a calendar pick)
   is now DISCARDED when the focus leaves the field (Tab / a click elsewhere) or on Escape — also while the calendar
