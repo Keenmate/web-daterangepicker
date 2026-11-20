@@ -98,7 +98,7 @@ use camelCase (`selectionMode`).
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `selection-mode` | `'single' \| 'range'` | `'single'` | Single date or date-range selection |
-| `date-format-mask` | `string` | `'YYYY-MM-DD'` | Date format (`YYYY-MM-DD`, `DD.MM.YYYY`, `MM/DD/YYYY`, …) |
+| `date-format-mask` | `string` | unset = the locale format | The SHOWN date format (`YYYY-MM-DD`, `DD.MM.YYYY`, `MM/DD/YYYY`, `DD. MM. YYYY`, …) — also how typed / `value` text is parsed. Unset: the page-wide `window.components.locale.dateFormat` when set, else derived from `Intl` for the effective `locale` (see [Shown date format](#shown-date-format)). Set `YYYY-MM-DD` to keep ISO |
 | `visible-month-count` | `number` | `1` (single), `2` (range) | Number of months to display |
 | `calendar-open-trigger` | `'focus' \| 'typing' \| 'manual'` | `'focus'` | How the calendar opens (focus = on input focus, typing = when user types, manual = programmatic only) |
 | `value` | `string` | — | Initial / default value (like a native input's `defaultValue`): parsed into the selection on build and restored by `form.reset()`. The `value` **property** sets the current value without writing the attribute. |
@@ -872,6 +872,34 @@ picker.hideMessage();
 - `data-action="custom" data-id="…"` — fires the `action` event with `action: 'custom'`, `id` from `data-id`, `source: 'message'` (or `'summary'` / `'calendar'`), `triggerElement`, and the remaining `data-*` attributes in `detail.dataset`.
 - `data-action="today" | "now" | "clear" | "apply"` — runs that built-in, then fires the `action` event.
 - The message's own ✕ close button is internal and fires nothing; to dismiss from your own button, handle its `action` event and call `hideMessage()`.
+
+### Shown date format
+
+With no `date-format-mask`, the input shows the date the way the locale writes it (core `/locale`
+`getLocaleSettings().dateFormat`): the page-wide `window.components.locale.dateFormat` when the page set
+one, else derived from `Intl` for the effective locale — the element's `locale`, else the page-wide
+`window.components.locale.locale`, else the browser language.
+
+| Locale | Shown | Locale | Shown |
+|---|---|---|---|
+| `cs`, `sk` | `17. 11. 2026` | `de`, `pl`, `ru` | `17.11.2026` |
+| `en-US` | `11/17/2026` | `en-GB`, `fr`, `es` | `17/11/2026` |
+| `nl` | `17-11-2026` | `ja`, `zh` | `2026/11/17` |
+| `sv`, `lt`, `en-CA` | `2026-11-17` | `ko`, `hu` | `2026. 11. 17.` |
+
+An explicit `date-format-mask` always wins. A locale change (the `locale` attribute, the page-wide locale,
+the browser language) re-writes the shown text in the new format; typing follows it too (the mask's
+separator key is accepted, single digits are padded, spaces in the mask are optional when typing). The
+submitted value (`value-format` / `value-format-mask`) stays ISO either way.
+
+```html
+<web-daterangepicker locale="cs"></web-daterangepicker>                <!-- 17. 11. 2026 -->
+<web-daterangepicker date-format-mask="YYYY-MM-DD"></web-daterangepicker> <!-- always ISO -->
+<script>
+  window.components = window.components || {};
+  window.components.locale = { dateFormat: 'DD.MM.YYYY' }; // every picker without its own mask
+</script>
+```
 
 ### Labels (i18n)
 

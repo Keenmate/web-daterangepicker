@@ -13,8 +13,9 @@
     <p>Targeted by <code>e2e/input-behavior.spec.ts</code>.</p>
 
     <div class="fixture">
-        <div class="fixture-label">default YYYY-MM-DD format, manual trigger so typing doesn't open</div>
+        <div class="fixture-label">YYYY-MM-DD format (explicit — unset follows the locale), manual trigger so typing doesn't open</div>
         <web-daterangepicker id="iso" selection-mode="single"
+            date-format-mask="YYYY-MM-DD"
             calendar-open-trigger="manual"></web-daterangepicker>
     </div>
 
@@ -28,12 +29,13 @@
     <div class="fixture">
         <div class="fixture-label">range mode — start and end separated by " - "</div>
         <web-daterangepicker id="range" selection-mode="range"
+            date-format-mask="YYYY-MM-DD"
             calendar-open-trigger="manual"></web-daterangepicker>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">progressive parsing — opens on focus at June 2026; typed segments move the calendar</div>
-        <web-daterangepicker id="progressive" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+        <web-daterangepicker id="progressive" selection-mode="single" date-format-mask="YYYY-MM-DD" initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
     <script>

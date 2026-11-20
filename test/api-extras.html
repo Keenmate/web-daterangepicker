@@ -14,19 +14,19 @@
 
     <div class="fixture">
         <div class="fixture-label">selectedDate setter (single mode)</div>
-        <web-daterangepicker id="single-setter" selection-mode="single"
+        <web-daterangepicker date-format-mask="YYYY-MM-DD" id="single-setter" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">selectedRanges setter (range mode)</div>
-        <web-daterangepicker id="range-setter" selection-mode="range"
+        <web-daterangepicker date-format-mask="YYYY-MM-DD" id="range-setter" selection-mode="range"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
     <div class="fixture">
         <div class="fixture-label">showMessage / hideMessage</div>
-        <web-daterangepicker id="messages" selection-mode="single"
+        <web-daterangepicker date-format-mask="YYYY-MM-DD" id="messages" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
@@ -46,13 +46,13 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">single mode — placeholder auto-derives from default date-format-mask</div>
-        <web-daterangepicker id="single-default" selection-mode="single"></web-daterangepicker>
+        <div class="fixture-label">single mode — placeholder auto-derives from the locale date format (no date-format-mask, locale="de")</div>
+        <web-daterangepicker locale="de" id="single-default" selection-mode="single"></web-daterangepicker>
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">range mode — placeholder hint is doubled around " - " (default date-format-mask)</div>
-        <web-daterangepicker id="range-hint-default" selection-mode="range"></web-daterangepicker>
+        <div class="fixture-label">range mode — placeholder hint is doubled around " - " (the locale date format, locale="de")</div>
+        <web-daterangepicker locale="de" id="range-hint-default" selection-mode="range"></web-daterangepicker>
     </div>
 
     <div class="fixture">
@@ -64,30 +64,30 @@
 
     <div class="fixture">
         <div class="fixture-label">range mode — explicit placeholder wins verbatim (not doubled)</div>
-        <web-daterangepicker id="range-placeholder-wins" selection-mode="range"
+        <web-daterangepicker date-format-mask="YYYY-MM-DD" id="range-placeholder-wins" selection-mode="range"
             placeholder="Vyberte rozsah"></web-daterangepicker>
     </div>
 
     <form id="api-form">
         <div class="fixture">
             <div class="fixture-label">form-associated setters: single / range / multiple (name = when / span / days)</div>
-            <web-daterangepicker id="api-single" name="when" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
-            <web-daterangepicker id="api-range" name="span" selection-mode="range" initial-date="2026-06-15"></web-daterangepicker>
-            <web-daterangepicker id="api-multi" name="days" selection-mode="multiple" initial-date="2026-06-15"></web-daterangepicker>
+            <web-daterangepicker date-format-mask="YYYY-MM-DD" id="api-single" name="when" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+            <web-daterangepicker date-format-mask="YYYY-MM-DD" id="api-range" name="span" selection-mode="range" initial-date="2026-06-15"></web-daterangepicker>
+            <web-daterangepicker date-format-mask="YYYY-MM-DD" id="api-multi" name="days" selection-mode="multiple" initial-date="2026-06-15"></web-daterangepicker>
         </div>
         <div class="fixture">
             <div class="fixture-label">value setter + clearSelection (name = val)</div>
-            <web-daterangepicker id="api-value" name="val" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+            <web-daterangepicker date-format-mask="YYYY-MM-DD" id="api-value" name="val" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
         </div>
         <div class="fixture">
             <div class="fixture-label">declared default value="2026-06-10" (name = def) — form.reset() restores it</div>
-            <web-daterangepicker id="api-default" name="def" selection-mode="single" value="2026-06-10" initial-date="2026-06-15"></web-daterangepicker>
+            <web-daterangepicker date-format-mask="YYYY-MM-DD" id="api-default" name="def" selection-mode="single" value="2026-06-10" initial-date="2026-06-15"></web-daterangepicker>
         </div>
     </form>
 
     <div class="fixture">
         <div class="fixture-label">toggle() / open() idempotence / setRollingItemAlignment</div>
-        <web-daterangepicker id="api-toggle" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
+        <web-daterangepicker date-format-mask="YYYY-MM-DD" id="api-toggle" selection-mode="single" initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
     <pre data-testid="api-extras-log"></pre>

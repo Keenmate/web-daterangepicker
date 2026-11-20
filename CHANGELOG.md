@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — BREAKING: an unset `date-format-mask` follows the locale (2026-11-20)
+- **BREAKING (visible): with no `date-format-mask`, the shown date is the browser's format for the effective
+  locale, no longer a fixed `YYYY-MM-DD`.** The mask comes from core `/locale` `getLocaleSettings().dateFormat`:
+  the page-wide `window.components.locale.dateFormat` when the page set one, else derived from `Intl` for the
+  element `locale` → page locale → browser language (`cs` → `17. 11. 2026`, `de` → `17.11.2026`, `en-US` →
+  `11/17/2026`, `en-GB` → `17/11/2026`). Set `date-format-mask="YYYY-MM-DD"` (or page-wide
+  `window.components.locale.dateFormat = 'YYYY-MM-DD'`) to keep ISO. An explicit mask always wins; the submitted
+  value (`value-format` / `value-format-mask`) is unchanged (ISO).
+- The `date-format-mask` input is now nullable (no default); the derived placeholder hint follows the effective
+  mask. A locale change (`locale`, the page-wide locale, `languagechange`) re-writes the shown text and the hint.
+- The mask engine takes any literal text around the parts: multi-character / spaced separators and a leading or
+  trailing literal (`DD. MM. YYYY`, `YYYY. MM. DD.`, `DD.MM.YYYY г.`) format, type (the separator key, auto-pad,
+  the literal inserted after each complete part) and parse (`value` / typed text; the literal text between the
+  digit groups is lenient — `17.11.2026` reads in a `DD. MM. YYYY` field). A `datetime` value whose date holds
+  spaces (`17. 11. 2026 14:30`) parses too. `maxLength` is now the real full-date length (`D.M.YYYY` was short).
+- The engine exposes the effective mask as `dateFormatMask` (getter); `DatePickerOptions.dateFormatMask` is
+  `string | null`.
+
 ### Added — `translateCallback` (2026-11-20)
 - **New input `translateCallback(ctx)`** (property, `on: 'update'`): this picker's own label translator (core
   `/locale` `createLabels`). Asked for every label key the instance `labels` did not set, BEFORE the page-wide

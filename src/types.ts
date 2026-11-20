@@ -358,10 +358,14 @@ export interface DatePickerOptions {
   visibleMonthCount?: number;
   /**
    * The SHOWN date text (the input) — and what typed / `value` text is parsed with. Tokens:
-   * YYYY/YY, MM/M, DD/D with any separators. Default: 'YYYY-MM-DD'. The submitted form value is
-   * follows `value-format` / `value-format-mask` (default ISO), independent of this mask.
+   * YYYY/YY, MM/M, DD/D with any separators (any literal text before / between / after them,
+   * e.g. `DD. MM. YYYY`). Unset (`null`) = the locale's own format through core `/locale`:
+   * the page-wide `window.components.locale.dateFormat` when set, else derived from `Intl` for
+   * the effective locale (`cs` → `DD. MM. YYYY`, `en-US` → `MM/DD/YYYY`, `en-GB` → `DD/MM/YYYY`).
+   * The submitted form value follows `value-format` / `value-format-mask` (default ISO),
+   * independent of this mask.
    */
-  dateFormatMask?: string;
+  dateFormatMask?: string | null;
   /**
    * When the calendar opens. Default: `focus`.
    *
@@ -826,7 +830,10 @@ export interface DateRange {
 
 export interface FormatOptions {
   format: string;
+  /** The typeable separator key (first visible character between the first two parts), e.g. `.` for `DD. MM. YYYY`. */
   separator: string;
+  /** Literal text before the first part, between parts 1–2, between parts 2–3, and after the last part. */
+  literals: [string, string, string, string];
   parts: {
     year?: { index: number; length: number };
     month?: { index: number; length: number };

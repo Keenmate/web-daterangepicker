@@ -47,7 +47,7 @@ import {
 } from '@keenmate/web-components-core';
 import { DateRangePickerEngine } from './date-picker';
 import { DEFAULT_LABELS } from './date-picker-locales';
-import { createLabels } from '@keenmate/web-components-core/locale';
+import { createLabels, getLocaleSettings } from '@keenmate/web-components-core/locale';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList, toYearRange } from './converters';
 import {
   serializeFormValue, toEngineValueText, isoDate, isoDateTime, isoTime,
@@ -117,7 +117,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'isSummaryShown',               attribute: 'show-summary',                  converter: toBool('tristate'), on: 'reinit', description: 'Show the range summary (day/night counts) block.' },
 
   // ── In-place (→ update): the engine patches these without a rebuild ───────
-  { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ default: 'YYYY-MM-DD' }), on: 'update', description: 'The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any separators). Not the submitted value — see `value-format` / `value-format-mask`. Not the placeholder hint — see `placeholder-format-mask`.' },
+  { configKey: 'dateFormatMask',               attribute: 'date-format-mask',              converter: toText({ isNullable: true }), on: 'update', description: 'The SHOWN date text: how the selected date is written into the input, and how typed / `value` text is parsed (YYYY/YY, MM/M, DD/D with any literal text around them, e.g. `DD. MM. YYYY`). Unset = the locale format (core `/locale`): the page-wide `window.components.locale.dateFormat` when set, else derived from `Intl` for the effective `locale` (`cs` → `DD. MM. YYYY`, `de` → `DD.MM.YYYY`, `en-US` → `MM/DD/YYYY`, `en-GB` → `DD/MM/YYYY`); a locale change re-writes the shown text. Set `YYYY-MM-DD` to keep ISO. Not the submitted value — see `value-format` / `value-format-mask`. Not the placeholder hint — see `placeholder-format-mask`.' },
   { configKey: 'placeholderFormatMask',        attribute: 'placeholder-format-mask',       converter: toText({ isNullable: true }), on: 'update', description: 'The date part of the input PLACEHOLDER hint (when no explicit `placeholder`) — a localized form of the mask, e.g. `dd.mm.rrrr`; unset falls back to `date-format-mask`. Only the hint: the shown text follows `date-format-mask`, the submitted value `value-format`. `range` mode doubles it around " - " (`dd.mm.rrrr - dd.mm.rrrr`); `datetime` appends the time hint (`placeholder-time-format-mask`).' },
   { configKey: 'isUnifiedHeaderInteractive',   attribute: 'unified-header-interactive',    converter: toBool('default-false'), on: 'update', description: 'Make the unified grid header clickable (opens the rolling selector).' },
   { configKey: 'calendarPlacement',            attribute: 'calendar-placement',            converter: toEnum(PLACEMENTS, { isNullable: true }), on: 'update', description: 'Where the floating calendar opens next to the input: `top` | `right` | `bottom` | `left`, each optionally `-start` / `-end` (flips when it doesn\'t fit). Unset = `bottom-start`. Read at each open.' },
@@ -170,7 +170,7 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
 
   // ── Element-level attributes (NON-picker; handled by this element) ────────
   { configKey: 'defaultValue',                 attribute: 'value',                         converter: toText({ isNullable: true, isEmptyAllowed: true }), on: 'update', description: 'The initial / default value — like a native input\'s `value` attribute (`defaultValue`): parsed into the selection on build and whenever the attribute changes, and restored by `form.reset()`. Accepts the submitted form (`value-format` / `value-format-mask` / `value-separator`), the displayed form (`date-format-mask` / `time-format-mask`) or ISO: `2026-06-10`, a range as two dates with any separator between them (`2026-06-10 - 2026-06-14`, `2026-06-10/2026-06-14`, `2026-06-10 to 2026-06-14`, en dash, …), multiple dates `,`-joined, `14:30`, `2026-06-10 14:30`. An unparseable value warns and leaves the selection empty. Not reflected — the `value` PROPERTY sets the current value without touching the attribute.' },
-  { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / date-format-mask (`YYYY-MM-DD`), doubled in `range` mode (`YYYY-MM-DD - YYYY-MM-DD`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
+  { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / the shown date mask (`date-format-mask`, unset = the locale format, e.g. `DD.MM.YYYY`), doubled in `range` mode (`DD.MM.YYYY - DD.MM.YYYY`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
   { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction — the floating calendar does not open, an inline calendar is inert and greyed — not focusable, not submitted; calls from code keep working). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Read-only, like a native input (core SPEC §6.4): the user cannot change the value — no day / time picks, typing, Today / Now / Clear / Apply or action buttons, and the floating calendar does not open — but the input stays focusable, an inline calendar can still be browsed month to month, and the value is submitted. Calls from code (`value`, `selectedDate`, `el.controller`, …) keep working. Reflects. Locks the aspects `selection`, `actions`, `open`; use `lock()` / `lockedAspects` for other combinations.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toEnum(INPUT_SIZES, { default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating only).' },
@@ -366,8 +366,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock(READONLY_ASPECTS) : this.#picker.unlock(READONLY_ASPECTS); this.#updateInputClear(); }
     if ('inputSize' in partial) this.#applyInputSizeStyles();
     // The masks feed the derived placeholder hint (no-op for an explicit placeholder).
-    if ('placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
-      || 'dateFormatMask' in partial || 'timeFormatMask' in partial) this.#applyPlaceholder();
+    // (`locale` too: an unset date mask follows it.)
+    const isPlaceholderChange = 'placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
+      || 'dateFormatMask' in partial || 'timeFormatMask' in partial || 'locale' in partial;
     if ('getCustomStylesCallback' in partial || 'customStyles' in partial) this.#customStyles?.refresh();
     if ('presentation' in partial && this.#picker) {
       // Presentation policy changed at runtime — the environment observable won't
@@ -388,6 +389,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       // The engine refuses a structural key in place → rebuild, carrying the selection.
       if (!this.#picker.updateOptions(pickerPartial as Partial<DatePickerOptions>)) this.#rebuildPreservingSelection();
     }
+    // After the picker patch: the hint reads the picker's effective date mask.
+    if (isPlaceholderChange) this.#applyPlaceholder();
   }
 
   /**
@@ -815,13 +818,21 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // mirroring the committed form — "YYYY-MM-DD - YYYY-MM-DD"); time → the time
     // hint; datetime → date hint + ' ' + time hint (the committed form again).
     const pickerMode = (this.config.pickerMode as string) ?? 'date';
-    const dateHint = (this.config.placeholderFormatMask as string | null)
-      ?? (this.config.dateFormatMask as string | null) ?? 'YYYY-MM-DD';
+    const dateHint = (this.config.placeholderFormatMask as string | null) ?? this.#shownDateMask();
     const timeHint = (this.config.placeholderTimeFormatMask as string | null)
       ?? (this.config.timeFormatMask as string | null) ?? 'HH:mm';
     if (pickerMode === 'time') input.placeholder = timeHint;
     else if (pickerMode === 'datetime') input.placeholder = `${dateHint} ${timeHint}`;
     else input.placeholder = (this.config.selectionMode as string) === 'range' ? `${dateHint} - ${dateHint}` : dateHint;
+  }
+
+  /**
+   * The effective SHOWN date mask: `date-format-mask` when set, else the locale's (core
+   * `/locale`: page-wide `dateFormat`, else derived from `Intl`) — the picker's own when built.
+   */
+  #shownDateMask(): string {
+    return this.#picker?.dateFormatMask
+      ?? getLocaleSettings({ locale: this.config.locale as string, dateFormat: (this.config.dateFormatMask as string | null) || undefined }).dateFormat;
   }
 
   #applyInputSizeStyles(): void {
@@ -895,6 +906,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // Page-wide locale / labels: re-render in place; the time picker's static headings need
     // the rebuild a `labels` change takes (selection carried).
     if (!this.#picker.refreshLocale()) this.#rebuildPreservingSelection();
+    // An unset date mask follows the locale — the derived hint too.
+    this.#applyPlaceholder();
     this.#inputClearButton?.setAttribute('aria-label', this.#labels.text('ariaLabels.clear'));
     if (this.#hasFormatError) this.#applyFormatError();
   }

@@ -35,7 +35,7 @@ import styles from './css/main.css?inline';
 class DateRangePickerEngine {
     input: HTMLInputElement | null;
     options: Required<DatePickerOptions>;
-    formatInfo: FormatOptions;
+    formatInfo!: FormatOptions;
     /** Parsed time format mask, only populated when pickerMode is 'time' or 'datetime'. */
     timeFormatOptions!: TimeFormatOptions;
     _previousInputValue: string;
@@ -265,7 +265,7 @@ class DateRangePickerEngine {
             selectionMode: options.selectionMode || 'single',
             calendarPlacement: options.calendarPlacement || (options.monthLayout === 'grid' ? 'bottom' : 'bottom-start'),
             visibleMonthCount: options.visibleMonthCount || (options.selectionMode === 'range' ? 2 : 1),
-            dateFormatMask: options.dateFormatMask || 'YYYY-MM-DD',
+            dateFormatMask: options.dateFormatMask || null,
             calendarOpenTrigger: options.calendarOpenTrigger || 'focus',
             overlayGroup: options.overlayGroup || undefined,
             onChange: options.onChange || undefined,
@@ -398,16 +398,13 @@ class DateRangePickerEngine {
             }
         }
 
-        // Initialize internationalization
+        // Initialize internationalization (also resolves the shown date mask → formatInfo)
         this.applyLocale();
         drpLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
+        drpLogger.debug('Format info:', this.formatInfo);
 
         // Normalize date restrictions
         this.initializeDateRestrictions();
-
-        // Parse format to understand structure
-        this.formatInfo = this.parseFormat(this.options.dateFormatMask);
-        drpLogger.debug('Format info:', this.formatInfo);
 
         // Parse time format for time / datetime modes. Always parse (even in date mode)
         // so the field is populated for any later picker-mode flip via updateOptions.
@@ -665,12 +662,19 @@ class DateRangePickerEngine {
      * Resolve the locale-derived state through core `/locale` (SPEC §12.24): the
      * `locale` input → page-wide `window.components.locale` → the browser language;
      * the week start likewise (`weekStartDay` input → page-wide → the locale's own);
-     * month / weekday names from `Intl` unless given explicitly.
+     * month / weekday names from `Intl` unless given explicitly; the shown date mask
+     * likewise (`dateFormatMask` → page-wide `dateFormat` → the locale's `Intl` pattern).
+     * Returns `true` when the effective date mask changed (not on the first call) — the
+     * caller rewrites the input text in the new form.
      */
-    private applyLocale(): void {
+    private applyLocale(): boolean {
         const weekStartDay = this.options.weekStartDay;
         const settings = getLocaleSettings(
-            { locale: this.options.locale, weekStartDay: typeof weekStartDay === 'number' ? weekStartDay : undefined },
+            {
+                locale: this.options.locale,
+                weekStartDay: typeof weekStartDay === 'number' ? weekStartDay : undefined,
+                dateFormat: this.options.dateFormatMask || undefined,
+            },
             this.options.hostElement,
         );
         this.locale = settings.locale;
@@ -678,6 +682,18 @@ class DateRangePickerEngine {
         this.weekdayNames = this.options.weekdayNames || getWeekdayNames(this.locale, 'short');
         this.monthNames = this.options.monthNames || getMonthNames(this.locale, 'long');
         drpLogger.debug('Locale:', this.locale, 'Week start:', this.weekStartDay, 'Weekdays:', this.weekdayNames, 'Months:', this.monthNames);
+        const previous = this.formatInfo?.format;
+        if (previous === settings.dateFormat) return false;
+        this.formatInfo = this.parseFormat(settings.dateFormat);
+        return previous !== undefined;
+    }
+
+    /**
+     * The effective SHOWN date mask: `dateFormatMask` when set, else the locale's
+     * (page-wide `window.components.locale.dateFormat`, else derived from `Intl`).
+     */
+    get dateFormatMask(): string {
+        return this.formatInfo.format;
     }
 
     /**
@@ -688,8 +704,9 @@ class DateRangePickerEngine {
      * need a rebuild — the caller rebuilds, carrying the selection (same as a `labels` change).
      */
     refreshLocale(): boolean {
-        this.applyLocale();
+        const isMaskChanged = this.applyLocale();
         if (this.options.pickerMode !== 'date') return false;
+        if (isMaskChanged) this.syncInputFromSelection();
         this.renderCalendar();
         this.updateSummary();
         this.calendar.querySelector('.drp__message-close')?.setAttribute('aria-label', this.labels.text('ariaLabels.close'));
@@ -752,9 +769,10 @@ class DateRangePickerEngine {
 
         // Refresh derived state where touched.
         // `auto` follows the locale, so a locale change moves the week start too.
-        if (has('locale') || has('monthNames') || has('weekdayNames') || has('weekStartDay')) this.applyLocale();
-        if (has('dateFormatMask')) {
-            this.formatInfo = this.parseFormat(this.options.dateFormatMask);
+        // The shown date mask follows the locale when `dateFormatMask` is unset; a new
+        // effective mask rewrites the input text in the new form.
+        if (has('locale') || has('monthNames') || has('weekdayNames') || has('weekStartDay') || has('dateFormatMask')) {
+            if (this.applyLocale()) this.syncInputFromSelection();
         }
         if (has('minDate') || has('maxDate') || has('disabledDates') || has('specialDates') || has('dateMember')) {
             this.initializeDateRestrictions();
@@ -2465,40 +2483,39 @@ class DateRangePickerEngine {
 
     // Helper methods
     parseFormat(formatString: string): FormatOptions {
-        // Parse format string like "YYYY-MM-DD" or "DD.MM.YYYY"
-        // Returns structure with positions and separator
+        // Tokens YYYY / YY, MM / M, DD / D in any order; everything around them is literal
+        // text kept verbatim ("DD.MM.YYYY", "MM/DD/YYYY", "DD. MM. YYYY", "YYYY. MM. DD.").
         const parts: FormatOptions['parts'] = {};
-        let separator = '';
+        const literals: FormatOptions['literals'] = ['', '', '', ''];
+        let index = 0;
+        let last = 0;
+        for (const m of formatString.matchAll(/YYYY|YY|MM|M|DD|D/g)) {
+            if (index > 2) break;
+            literals[index] = formatString.slice(last, m.index);
+            last = m.index! + m[0].length;
+            const token = m[0];
+            if (token[0] === 'Y') parts.year = { index, length: token.length };
+            else if (token[0] === 'M') parts.month = { index, length: 2 }; // Always 2 digits for consistency
+            else parts.day = { index, length: 2 };
+            index++;
+        }
+        literals[index] = formatString.slice(last);
 
-        // Detect separator
-        if (formatString.includes('-')) separator = '-';
-        else if (formatString.includes('/')) separator = '/';
-        else if (formatString.includes('.')) separator = '.';
+        // The typeable separator key: the first visible character between parts 1 and 2
+        // (skipping spaces and bidi marks — "DD. MM. YYYY" → ".").
+        const separator = [...literals[1]].find((c) => !/[\s\p{Cf}]/u.test(c)) ?? literals[1].charAt(0);
+        // A fully typed date: every literal plus the digits of each part.
+        const digits = (parts.year?.length ?? 0) + (parts.month ? 2 : 0) + (parts.day ? 2 : 0);
+        const maxLength = literals.slice(0, index + 1).join('').length + digits;
 
-        // Split by separator
-        const segments = formatString.split(separator);
-
-        segments.forEach((segment, index) => {
-            if (segment === 'YYYY' || segment === 'YY') {
-                parts.year = { index, length: segment.length };
-            } else if (segment === 'MM' || segment === 'M') {
-                parts.month = { index, length: 2 }; // Always 2 digits for consistency
-            } else if (segment === 'DD' || segment === 'D') {
-                parts.day = { index, length: 2 }; // Always 2 digits for consistency
-            }
-        });
-
-        return {
-            format: formatString,
-            separator,
-            parts,
-            maxLength: formatString.length
-        };
+        return { format: formatString, separator, literals, parts, maxLength };
     }
 
     /**
-     * Parse one date written in the configured `dateFormatMask` (e.g. `10.06.2026`)
-     * or as ISO `YYYY-MM-DD`. Strict: every part present and the date real.
+     * Parse one date written in the shown date mask's part order (e.g. `10.06.2026` for
+     * `DD.MM.YYYY`) or as ISO `YYYY-MM-DD`. Strict on the parts (three digit groups, the
+     * year complete, the date real); lenient on the literal text between them, so
+     * `17.11.2026` reads in a `DD. MM. YYYY` field.
      */
     parseDateText(text: string): Date | null {
         const t = text.trim();
@@ -2507,10 +2524,10 @@ class DateRangePickerEngine {
             const date = new Date(y, m - 1, d);
             return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d ? date : null;
         };
-        const { separator, parts } = this.formatInfo;
-        if (separator && parts.year && parts.month && parts.day) {
-            const segs = t.split(separator);
-            if (segs.length === 3 && segs.every((s) => /^\d+$/.test(s))) {
+        const { parts } = this.formatInfo;
+        if (parts.year && parts.month && parts.day) {
+            const segs = /^\D{0,4}(\d+)\D{1,4}(\d+)\D{1,4}(\d+)\D{0,4}$/.exec(t)?.slice(1);
+            if (segs) {
                 const ys = segs[parts.year.index];
                 const isYearComplete = ys.length === parts.year.length;
                 const y = parts.year.length === 2 ? 2000 + Number(ys) : Number(ys);
@@ -2528,15 +2545,20 @@ class DateRangePickerEngine {
      * whitespace may surround the pair. Returns the two dates in written order.
      */
     findDatePair(text: string): [Date, Date] | null {
-        // A date token: three digit groups joined by one repeated separator, so
-        // `2026-06-10/2026-06-14` splits into two tokens at the `/`.
-        const tokens = [...text.matchAll(/\d+([-./])\d+\1\d+/g)];
+        // A date token: three digit groups joined by one repeated separator (1–3
+        // non-digits: `-`, `.`, `/`, `. `), so `2026-06-10/2026-06-14` splits into two
+        // tokens at the `/`; a mask's trailing literal (`2026. 11. 17.`) is left between.
+        const tokens = [...text.matchAll(/\d+(\D{1,3}?)\d+\1\d+/g)];
         if (tokens.length !== 2) return null;
         const [t1, t2] = tokens;
         const before = text.slice(0, t1.index);
         const between = text.slice(t1.index! + t1[0].length, t2.index);
         const after = text.slice(t2.index! + t2[0].length);
-        if (before.trim() || after.trim() || /\d/.test(between) || !between.length) return null;
+        // Around the pair: whitespace, or the mask's own leading / trailing literal (`.`, ` г.`).
+        const { literals } = this.formatInfo;
+        if (before.trim() && before.trim() !== literals[0].trim()) return null;
+        if (after.trim() && after.trim() !== literals[3].trim()) return null;
+        if (/\d/.test(between) || !between.length) return null;
         const a = this.parseDateText(t1[0]);
         const b = this.parseDateText(t2[0]);
         return a && b ? [a, b] : null;
@@ -2598,7 +2620,9 @@ class DateRangePickerEngine {
                 time = this.parseTimeText(value);
                 isValid = !!time;
             } else if (pm === 'datetime') {
-                const m = /^(\S+)[T\s]+(.+)$/.exec(value);
+                // The date in the shown mask may hold spaces (`17. 11. 2026 14:30`): the
+                // time is the trailing `H:mm[:ss][ marker]`.
+                const m = /^(.*?\S)[T\s]+(\d{1,2}[:.]\d{2}(?:[:.]\d{2})?(?:\s*\S+)?)$/.exec(value);
                 date = m ? this.parseDateText(m[1]) : null;
                 time = m ? this.parseTimeText(m[2]) : null;
                 isValid = !!date && !!time;
@@ -2657,22 +2681,18 @@ class DateRangePickerEngine {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
 
-        // Use configured format
-        const { separator, parts } = this.formatInfo;
-        const values: (string | number)[] = [];
-
-        // Build array in correct order
+        // The shown mask: its literals around the parts, in the mask's order.
+        const { literals, parts } = this.formatInfo;
+        let datePart = literals[0];
         for (let i = 0; i < 3; i++) {
             if (parts.year && parts.year.index === i) {
-                values.push(parts.year.length === 2 ? String(year).slice(-2) : year);
+                datePart += (parts.year.length === 2 ? String(year).slice(-2) : String(year)) + literals[i + 1];
             } else if (parts.month && parts.month.index === i) {
-                values.push(month);
+                datePart += month + literals[i + 1];
             } else if (parts.day && parts.day.index === i) {
-                values.push(day);
+                datePart += day + literals[i + 1];
             }
         }
-
-        const datePart = values.join(separator);
 
         // Time mode: time only. Datetime mode: date + space + time. Date mode: date only.
         // Time portion is sourced from this._selectedTime — `date` only supplies Y/M/D.

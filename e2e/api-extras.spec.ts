@@ -117,16 +117,17 @@ test('an explicit placeholder attribute wins over placeholder-format-mask', asyn
 
 // a plain single date picker auto-derives the format hint from date-format-mask
 // (no explicit placeholder / placeholder-format-mask needed).
-test('single mode: placeholder auto-derives from the default date-format-mask', async ({ page }) => {
+// No date-format-mask: the hint is the locale's own format (locale="de" → DD.MM.YYYY).
+test('single mode: placeholder auto-derives from the locale date format (no date-format-mask)', async ({ page }) => {
     const p = pickerById(page, 'single-default');
-    await expect(inputOf(p)).toHaveAttribute('placeholder', 'YYYY-MM-DD');
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'DD.MM.YYYY');
 });
 
 // range mode doubles the format hint around " - " so the placeholder shows the
 // user must type BOTH a start and an end date.
-test('range mode: placeholder doubles the default date-format-mask hint', async ({ page }) => {
+test('range mode: placeholder doubles the locale date format hint (no date-format-mask)', async ({ page }) => {
     const p = pickerById(page, 'range-hint-default');
-    await expect(inputOf(p)).toHaveAttribute('placeholder', 'YYYY-MM-DD - YYYY-MM-DD');
+    await expect(inputOf(p)).toHaveAttribute('placeholder', 'DD.MM.YYYY - DD.MM.YYYY');
 });
 
 test('range mode: placeholder doubles the localized placeholder-format-mask hint', async ({ page }) => {

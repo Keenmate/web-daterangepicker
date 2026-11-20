@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — shown date format follows the locale (unset date-format-mask)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 360px; }
+    </style>
+</head>
+<body>
+    <h1>shown date format follows the locale</h1>
+    <p>Targeted by <code>e2e/locale-date-format.spec.ts</code>. No <code>date-format-mask</code> = the locale's
+        format through core <code>/locale</code> (page-wide <code>dateFormat</code>, else <code>Intl</code>).</p>
+
+    <div class="fixture">
+        <div class="fixture-label">locale="cs" — no mask</div>
+        <web-daterangepicker id="cs" selection-mode="single" locale="cs" value="2026-11-17"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">locale="en-US" — no mask</div>
+        <web-daterangepicker id="us" selection-mode="single" locale="en-US" value="2026-11-17"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">locale="en-GB" — no mask</div>
+        <web-daterangepicker id="gb" selection-mode="single" locale="en-GB" value="2026-11-17"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">locale="de" — no mask, range</div>
+        <web-daterangepicker id="de-range" selection-mode="range" locale="de" value="2026-11-17/2026-11-20"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">locale="cs" date-format-mask="YYYY-MM-DD" — the explicit mask wins</div>
+        <web-daterangepicker id="explicit" selection-mode="single" locale="cs" date-format-mask="YYYY-MM-DD" value="2026-11-17"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">empty — typing target (locale set by the test)</div>
+        <web-daterangepicker id="typing" selection-mode="single" locale="en-US"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">empty range — typing target (locale set by the test)</div>
+        <web-daterangepicker id="typing-range" selection-mode="range" locale="cs"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">datetime, locale="cs" — no mask</div>
+        <web-daterangepicker id="cs-datetime" picker-mode="datetime" locale="cs" value="2026-11-17 14:30"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

@@ -23,6 +23,12 @@
         </script>
     </div>
 
+    <script>
+        // The specs read the shown text as ISO: pin the page-wide shown date format (an
+        // unset date-format-mask follows the locale — core /locale `dateFormat`).
+        window.components = window.components || {};
+        window.components.locale = { ...(window.components.locale || {}), dateFormat: 'YYYY-MM-DD' };
+    </script>
     <script type="module" src="/src/index.ts"></script>
 </body>
 </html>

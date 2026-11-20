@@ -22,7 +22,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 // =============================================================================
-// default YYYY-MM-DD
+// YYYY-MM-DD (set explicitly — an unset mask follows the locale)
 // =============================================================================
 
 test('YYYY-MM-DD: typing a full year segment eagerly appends the separator', async ({ page }) => {

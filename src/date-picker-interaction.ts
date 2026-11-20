@@ -510,6 +510,13 @@ export function findNearestEnabledDate(picker: any, targetDate: Date, preferredD
 
 // === INPUT MASKING ===
 
+const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Every character the shown mask writes around the date parts (`.` and ` ` for `DD. MM. YYYY`). */
+function maskLiteralChars(picker: any): string {
+    return [...new Set((picker.formatInfo.literals as string[]).join(''))].join('');
+}
+
 export function handleInputMask(picker: any, event: Event) {
     const input = event.target as HTMLInputElement;
     const currentValue = input.value;
@@ -519,12 +526,12 @@ export function handleInputMask(picker: any, event: Event) {
     const previousValue = picker._previousInputValue || '';
     const wasDeleting = currentValue.length < previousValue.length;
 
-    const { separator } = picker.formatInfo;
+    const literalChars = escapeRegExp(maskLiteralChars(picker));
 
     // For range mode, handle " - " separator
     if (picker.options.selectionMode === 'range') {
-        // Keep digits, date separators, and allow '-' with spaces
-        const cleanValue = currentValue.replace(new RegExp(`[^0-9${separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\- ]`, 'g'), '');
+        // Keep digits, the mask's literal characters, and allow '-' with spaces
+        const cleanValue = currentValue.replace(new RegExp(`[^0-9${literalChars}\\- ]`, 'g'), '');
 
         // Apply range mask
         const formatted = applyRangeMask(picker, cleanValue);
@@ -556,8 +563,8 @@ export function handleInputMask(picker: any, event: Event) {
             input.setSelectionRange(newCursorPos, newCursorPos);
         }
     } else {
-        // Single date mode - original logic
-        const cleanValue = currentValue.replace(new RegExp(`[^0-9${separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`, 'g'), '');
+        // Single date mode
+        const cleanValue = currentValue.replace(new RegExp(`[^0-9${literalChars}]`, 'g'), '');
         const formatted = applyMask(picker, cleanValue);
 
         if (formatted !== currentValue) {
@@ -565,15 +572,16 @@ export function handleInputMask(picker: any, event: Event) {
 
             let newCursorPos = currentCursorPos;
 
-            if (wasDeleting) {
-                newCursorPos = currentCursorPos;
-            } else if (formatted.length > currentValue.length && formatted[currentCursorPos] === separator) {
-                newCursorPos = currentCursorPos + 1;
-            } else if (formatted.length > currentValue.length) {
-                const oldSeparatorsBefore = (currentValue.substring(0, currentCursorPos).match(new RegExp(separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
-                const newSeparatorsBefore = (formatted.substring(0, currentCursorPos).match(new RegExp(separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
-                const separatorDiff = newSeparatorsBefore - oldSeparatorsBefore;
-                newCursorPos = currentCursorPos + separatorDiff;
+            if (!wasDeleting && formatted.length > currentValue.length) {
+                // Keep the caret after the same digit, then step over the literal text
+                // the mask just inserted (`17` → `17. ` puts the caret after the space).
+                const digitsBefore = currentValue.substring(0, currentCursorPos).replace(/\D/g, '').length;
+                let pos = 0;
+                for (let seen = 0; pos < formatted.length && seen < digitsBefore; pos++) {
+                    if (/\d/.test(formatted[pos])) seen++;
+                }
+                while (pos < formatted.length && !/\d/.test(formatted[pos])) pos++;
+                newCursorPos = pos;
             }
 
             input.setSelectionRange(newCursorPos, newCursorPos);
@@ -588,10 +596,10 @@ export function handleInputMask(picker: any, event: Event) {
 }
 
 export function applyMask(picker: any, value: string): string {
-    const { separator, parts, maxLength } = picker.formatInfo;
+    const { literals, parts, maxLength } = picker.formatInfo;
 
-    // Remove existing separators for clean processing
-    const digitsOnly = value.replace(new RegExp(separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '');
+    // Remove the literal text for clean processing
+    const digitsOnly = value.replace(/\D/g, '');
 
     // Calculate segment lengths
     const yearLen = parts.year ? parts.year.length : 4;
@@ -610,12 +618,13 @@ export function applyMask(picker: any, value: string): string {
 
         if (!segmentValue) break;
 
+        if (i === 0) result += literals[0];
         result += segmentValue;
         digitIndex += segmentValue.length;
 
-        // Add separator after this segment (except after last segment)
-        if (i < segments.length - 1 && segmentValue.length === segment.length) {
-            result += separator;
+        // A complete segment gets the literal after it (the mask's trailing one after the last)
+        if (segmentValue.length === segment.length) {
+            result += literals[i + 1];
         }
     }
 
@@ -686,6 +695,8 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
     if (isImeEnter(event)) return; // the IME confirming / choosing a candidate — not ours
     const { key, ctrlKey, metaKey } = event;
     const { separator } = picker.formatInfo;
+    // Any character the mask writes (`.` / ` ` for `DD. MM. YYYY`) may be typed.
+    const isLiteralKey = key.length === 1 && maskLiteralChars(picker).includes(key);
 
     // If calendar is open, let document handler deal with navigation keys —
     // except plain Home/End that should first move the caret in a typed input.
@@ -717,7 +728,7 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
         // Find the start of the current segment (after last separator or start of string)
         let segmentStart = 0;
         for (let i = cursorPos - 1; i >= 0; i--) {
-            if (currentValue[i] === separator || currentValue[i] === ' ') {
+            if (!/\d/.test(currentValue[i])) {
                 segmentStart = i + 1;
                 break;
             }
@@ -754,12 +765,12 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
 
     // For range mode, also allow space and '-' (for " - ")
     if (picker.options.selectionMode === 'range') {
-        if (!/^\d$/.test(key) && key !== separator && key !== ' ' && key !== '-') {
+        if (!/^\d$/.test(key) && !isLiteralKey && key !== ' ' && key !== '-') {
             event.preventDefault();
         }
     } else {
-        // For single mode, allow only digits and separator
-        if (!/^\d$/.test(key) && key !== separator) {
+        // For single mode, allow only digits and the mask's literal characters
+        if (!/^\d$/.test(key) && !isLiteralKey) {
             event.preventDefault();
         }
     }
@@ -769,10 +780,8 @@ export function handlePaste(picker: any, event: ClipboardEvent) {
     event.preventDefault();
 
     const pastedText = readPasteText(event);
-    const { separator } = picker.formatInfo;
-
-    // Clean pasted content: keep only digits and separators
-    const cleaned = pastedText.replace(new RegExp(`[^0-9${separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`, 'g'), '');
+    // Clean pasted content: keep only digits and the mask's literal characters
+    const cleaned = pastedText.replace(new RegExp(`[^0-9${escapeRegExp(maskLiteralChars(picker))}]`, 'g'), '');
 
     // Apply mask to cleaned content
     const formatted = applyMask(picker, cleaned);
@@ -864,9 +873,13 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
     // Helper to parse a single date string and update calendar.
     // dateType: 'single', 'start', or 'end'.
     // Returns true when a COMPLETE, valid date was parsed and applied.
-    const { separator, parts, maxLength } = picker.formatInfo;
+    const { parts } = picker.formatInfo;
 
-    const segments = value.split(separator);
+    // The digit groups in written order — the literal text between them may be anything
+    // (`17. 11. 2026`, `11/17/2026`, or `17.11.2026` typed without the mask's spaces).
+    const segments: string[] = value.match(/\d+/g) ?? [];
+    // More than one date's worth of digits (e.g. range text left over after a mode flip) is no single date.
+    if (segments.length > 3) return false;
     let year: number | null = null;
     let month: number | null = null;
     let day: number | null = null;

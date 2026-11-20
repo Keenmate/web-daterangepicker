@@ -488,8 +488,13 @@ Weekdays only:
 Future dates only:
 <web-daterangepicker min-date="2025-11-21"></web-daterangepicker>
 
-European format:
+Shown date format: no date-format-mask = the locale's own format (core /locale dateFormat:
+page-wide window.components.locale.dateFormat, else Intl for locale → page locale → browser):
+<web-daterangepicker locale="cs"></web-daterangepicker>       <!-- 17. 11. 2026 -->
+<web-daterangepicker locale="en-US"></web-daterangepicker>    <!-- 11/17/2026 -->
+An explicit mask always wins (keep ISO with date-format-mask="YYYY-MM-DD"):
 <web-daterangepicker date-format-mask="DD/MM/YYYY"></web-daterangepicker>
+A locale change re-writes the shown text. The submitted value stays ISO.
 
 Hotel booking (2 months):
 <web-daterangepicker
