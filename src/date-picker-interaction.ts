@@ -704,6 +704,13 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
         picker.commit();
         return;
     }
+    // Escape with the calendar closed discards a change staged for Apply / commit() (an open
+    // calendar: its own Escape closes it, and closing discards). One level per press.
+    if (key === 'Escape' && !picker.calendar.classList.contains('drp__picker--visible') && picker.discardStaged()) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
     // Any character the mask writes (`.` / ` ` for `DD. MM. YYYY`) may be typed.
     const isLiteralKey = key.length === 1 && maskLiteralChars(picker).includes(key);
 

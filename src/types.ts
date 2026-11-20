@@ -259,7 +259,7 @@ export type DateRangePickerActionEventDetail = ActionEventDetail<PickerContext, 
  * Engine options the element wires itself (event bridges, host, controller, writing
  * direction, mount container) — not element inputs.
  */
-type EngineOnlyOption = 'onChange' | 'onAction' | 'onMonthChange' | 'onOpen' | 'onClose'
+type EngineOnlyOption = 'onChange' | 'onAction' | 'onMonthChange' | 'onOpen' | 'onClose' | 'onDiscard'
   | 'hostElement' | 'controller' | 'isRtl' | 'container';
 
 /**
@@ -395,6 +395,12 @@ export interface DatePickerOptions {
   /** Engine-level twin of the `close` event: the calendar popover closed (any reason). */
   onClose?: (detail: CloseEventDetail) => void;
   /**
+   * Internal: a change staged for `commit()` was discarded (close without commit,
+   * Escape, focus left the field) — the input text was rewritten programmatically.
+   * The element refreshes its ✕ from it.
+   */
+  onDiscard?: () => void;
+  /**
    * Internal: the host element and its controller, so contexts and details carry
    * them. Set by `<web-daterangepicker>`; a standalone engine falls back to its
    * input / calendar element and its own controller.
@@ -449,8 +455,11 @@ export interface DatePickerOptions {
    * - `manual` — picks are only STAGED; nothing is written until the app calls
    *   `commit()` (e.g. from a custom action button). No built-in Apply button.
    *
-   * In `apply` / `manual`, closing without `commit()` (`close()`, Escape, outside click)
-   * discards the staged pick.
+   * In `apply` / `manual`, a staged change (a pick, a typed date, a clear) is discarded —
+   * selection and text back to the committed value, no `change` — on closing without
+   * `commit()` (`close()`, Escape, outside click), on Escape in the input with the calendar
+   * closed, and when the focus leaves the field (the input + its calendar and the calendar's
+   * controls; a click whose own handler calls `commit()` runs first).
    */
   commitMode?: 'selection' | 'apply' | 'manual';
 

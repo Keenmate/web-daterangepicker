@@ -576,3 +576,136 @@ test('multiple-manual: commit() commits the picked days', async ({ page }) => {
     expect(committed[0]).toContain('2026-06-15');
     expect(await changes(page, 'multiple-manual')).toHaveLength(1);
 });
+
+// ── leaving the field / Escape discards a staged change (apply / manual) ─────────
+// User decision 2026-11-20: a staged change (typed date, ✕ / emptied text, calendar pick)
+// is discarded when the focus leaves the component (Tab / click elsewhere — the calendar
+// and its controls are part of it) or on Escape, also with the calendar CLOSED. Discard =
+// the committed selection, text and ✕ again, no `change`.
+
+type Stage = 'typed' | 'clear' | 'pick';
+type Leave = 'tab' | 'click' | 'escape';
+
+/** Seed 2026-06-15 as committed, then stage a change to 2026-06-20 / empty. */
+async function stageChange(p: Locator, kind: Stage, isOpen: boolean) {
+    await seed(p, '2026-06-15');
+    if (isOpen) {
+        await textInput(p).click();
+        await expect(calendar(p)).toBeVisible();
+    } else {
+        await openAndClose(p);
+    }
+    if (kind === 'typed') {
+        await textInput(p).press('ControlOrMeta+a');
+        await textInput(p).pressSequentially('20260620');
+        await expect(textInput(p)).toHaveValue('2026-06-20');
+        if (isOpen) await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp__day--selected/);
+    } else if (kind === 'clear') {
+        await inputClear(p).click();
+        await expect(textInput(p)).toHaveValue('');
+    } else {
+        await dayByDate(p, '2026-06-20').click();
+        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp__day--selected/);
+    }
+    expect(await value(p)).toBe('2026-06-15'); // staged, not committed
+}
+
+async function leaveField(page: Page, id: string, how: Leave) {
+    if (how === 'escape') {
+        await page.keyboard.press('Escape');
+    } else if (how === 'click') {
+        await page.locator('h1').click(); // a non-focusable spot outside
+    } else {
+        // Tab until the focus reaches the plain button after the picker (the calendar's
+        // own controls come first while it is open — they are not "leaving").
+        for (let i = 0; i < 40; i++) {
+            if (await page.evaluate(() => document.activeElement?.id) === `next-${id}`) break;
+            await page.keyboard.press('Tab');
+        }
+        await expect(page.locator(`#next-${id}`)).toBeFocused();
+    }
+}
+
+async function expectDiscarded(page: Page, p: Locator, id: string, name: string) {
+    await expect(textInput(p)).toHaveValue('2026-06-15');
+    await expect(inputClear(p)).toHaveClass(/drp__input-clear--visible/);
+    expect(await value(p)).toBe('2026-06-15');
+    expect(await formValue(page, name)).toEqual(['2026-06-15']);
+    expect(await changes(page, id)).toEqual([]);
+    // The calendar (still open, or reopened) shows the committed day, not the discarded one.
+    if (!(await calendar(p).isVisible())) await textInput(p).click();
+    await expect(dayByDate(p, '2026-06-15')).toHaveClass(/drp__day--selected/);
+    await expect(dayByDate(p, '2026-06-20')).not.toHaveClass(/drp__day--selected/);
+    expect(await changes(page, id)).toEqual([]);
+}
+
+const LEAVE_CASES: [Stage, boolean][] = [
+    ['typed', true], ['typed', false], ['clear', true], ['clear', false], ['pick', true],
+];
+
+for (const [id, name] of [['single-apply', 'singleApply'], ['single-manual', 'singleManual']] as const) {
+    for (const [kind, isOpen] of LEAVE_CASES) {
+        for (const how of ['tab', 'click', 'escape'] as const) {
+            test(`${id}: ${kind}, calendar ${isOpen ? 'open' : 'closed'} — ${how} discards the staged change`, async ({ page }) => {
+                const p = pickerById(page, id);
+                await stageChange(p, kind, isOpen);
+                await leaveField(page, id, how);
+                await expectDiscarded(page, p, id, name);
+            });
+        }
+    }
+
+    test(`${id}: moving into the calendar and its year / month selector keeps the staged change`, async ({ page }) => {
+        const p = pickerById(page, id);
+        await stageChange(p, 'typed', true);
+        await textInput(p).press('Tab'); // into the calendar
+        await expect(textInput(p)).not.toBeFocused();
+        await p.locator('.drp__month-year').first().click();
+        await expect(p.locator('.drp__rolling-selector--visible').first()).toBeVisible();
+        await p.locator('.drp__month-year').first().click();
+        await expect(p.locator('.drp__rolling-selector--visible')).toHaveCount(0);
+        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp__day--selected/);
+        await expect(textInput(p)).toHaveValue('2026-06-20');
+        expect(await value(p)).toBe('2026-06-15');
+    });
+}
+
+test('single-apply: a staged pick — the Apply button click still commits it', async ({ page }) => {
+    const p = pickerById(page, 'single-apply');
+    await stageChange(p, 'pick', true);
+    await p.locator('.drp__button--apply').click();
+    await expect(calendar(p)).toBeHidden();
+    await expect.poll(() => value(p)).toBe('2026-06-20');
+    await expect(textInput(p)).toHaveValue('2026-06-20');
+    expect(await formValue(page, 'singleApply')).toEqual(['2026-06-20']);
+    expect(await changes(page, 'single-apply')).toEqual(['2026-06-20']);
+});
+
+test('single-apply: a typed date, calendar closed — Enter still commits it', async ({ page }) => {
+    const p = pickerById(page, 'single-apply');
+    await stageChange(p, 'typed', false);
+    await textInput(p).press('Enter');
+    await expect.poll(() => value(p)).toBe('2026-06-20');
+    expect(await changes(page, 'single-apply')).toEqual(['2026-06-20']);
+});
+
+test('single-manual: commit() before leaving commits — leaving afterwards keeps it', async ({ page }) => {
+    const p = pickerById(page, 'single-manual');
+    await stageChange(p, 'typed', false);
+    await p.evaluate((el: any) => el.commit());
+    await expect.poll(() => value(p)).toBe('2026-06-20');
+    await leaveField(page, 'single-manual', 'tab');
+    await expect(textInput(p)).toHaveValue('2026-06-20');
+    expect(await value(p)).toBe('2026-06-20');
+    expect(await changes(page, 'single-manual')).toEqual(['2026-06-20']);
+});
+
+test('single-manual: an app button whose click calls commit() commits the staged change', async ({ page }) => {
+    const p = pickerById(page, 'single-manual');
+    await stageChange(p, 'typed', true);
+    await page.locator('#commit-single-manual').click();
+    await expect.poll(() => value(p)).toBe('2026-06-20');
+    await expect(textInput(p)).toHaveValue('2026-06-20');
+    expect(await formValue(page, 'singleManual')).toEqual(['2026-06-20']);
+    expect(await changes(page, 'single-manual')).toEqual(['2026-06-20']);
+});

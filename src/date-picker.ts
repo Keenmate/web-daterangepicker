@@ -133,6 +133,37 @@ class DateRangePickerEngine {
         this.isCalendarActive = false;
     };
 
+    // Leaving the field discards a staged change (commit-mode apply / manual): the field is
+    // the input, its wrapper (the ✕), the calendar and the day tooltip. A focusout / an
+    // outside press schedules the check; while a pointer is down it waits for the release,
+    // so the press's own click runs first (an app's commit() button, the Apply button).
+    private isPointerDown = false;
+    private isLastPointerDownInside = false;
+    private isLeaveCheckWaitingForPointer = false;
+    private isLeaveCheckPointerInsideIgnored = false;
+    private leaveCheckTimer: ReturnType<typeof setTimeout> | null = null;
+    private readonly onDocumentPointerDown = (e: PointerEvent) => {
+        this.isPointerDown = true;
+        this.isLastPointerDownInside = this.isInsideField(e.composedPath());
+        // A press outside while the focus already sits outside (e.g. on the page after a
+        // press on the calendar's padding) — no focusout follows, so check here.
+        if (!this.isLastPointerDownInside) this.scheduleLeaveCheck(false);
+    };
+    private readonly onDocumentPointerUp = () => {
+        this.isPointerDown = false;
+        if (this.isLeaveCheckWaitingForPointer) {
+            this.isLeaveCheckWaitingForPointer = false;
+            this.startLeaveCheckTimer();
+        }
+    };
+    private readonly onFieldFocusOut = (e: FocusEvent) => {
+        const to = e.relatedTarget as Node | null;
+        if (to && this.isInsideField([to])) return; // input <-> calendar <-> its controls
+        // No new focus target: a window switch (the focus stays - checked later) or a press
+        // on a non-focusable spot (the calendar's padding = not leaving).
+        this.scheduleLeaveCheck(!to);
+    };
+
     // Scoped read-only lock state. Empty = fully interactive. See date-picker-lock.ts.
     private _lockedAspects: Set<LockAspect> = new Set();
 
@@ -273,6 +304,7 @@ class DateRangePickerEngine {
             onMonthChange: options.onMonthChange || undefined,
             onOpen: options.onOpen || undefined,
             onClose: options.onClose || undefined,
+            onDiscard: options.onDiscard || undefined,
             hostElement: options.hostElement || undefined,
             controller: options.controller || undefined,
             isRtl: options.isRtl || undefined,
@@ -532,6 +564,7 @@ class DateRangePickerEngine {
         // Only attach input listeners if we have an input element
         if (this.input) {
             this.attachInputListeners();
+            this.listenForLeave(true);
 
             // Parse any pre-filled value in the input
             if (this.input.value) {
@@ -1663,9 +1696,13 @@ class DateRangePickerEngine {
         signal.addEventListener('abort', stopMask, { once: true });
         this.input.addEventListener('keydown', (e) => this.handleKeydown(e), { signal });
         this.input.addEventListener('paste', (e) => this.handlePaste(e), { signal });
+        this.input.addEventListener('focusout', this.onFieldFocusOut, { signal });
     }
 
     attachCalendarListeners() {
+        // Focus leaving the calendar (Tab out of a day / its controls) may leave the field.
+        this.calendar.addEventListener('focusout', this.onFieldFocusOut);
+
         // Delegate focusin for compact pills so Tab into a pill auto-enters edit
         // mode. Without this, Tab moves focus to the next pill (a plain <button>)
         // and typing does nothing until the user also clicks. focusin bubbles
@@ -3079,6 +3116,7 @@ class DateRangePickerEngine {
         this.isSuspended = true;
 
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        this.listenForLeave(false);
         if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
         this.hideTooltip();
 
@@ -3100,6 +3138,7 @@ class DateRangePickerEngine {
         this.isSuspended = false;
 
         document.addEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        this.listenForLeave(true);
         if (this.onDocumentKeydown) document.addEventListener('keydown', this.onDocumentKeydown);
 
         const isOpen = this.options.positioningMode !== 'inline' &&
@@ -3122,6 +3161,7 @@ class DateRangePickerEngine {
 
         // Stop listening for cross-picker activation broadcasts + keyboard navigation
         document.removeEventListener(DateRangePickerEngine.ACTIVE_EVENT, this.onAnotherPickerActivated);
+        this.listenForLeave(false);
         if (this.onDocumentKeydown) document.removeEventListener('keydown', this.onDocumentKeydown);
         this.onDocumentKeydown = null;
         for (const nav of this.dayGridNavs.values()) nav.destroy();
@@ -3163,6 +3203,83 @@ class DateRangePickerEngine {
     // UI methods - wrappers for pure functions
     open() { return UI.open(this); }
     close() { return UI.close(this); }
+    /** Discard a change staged for Apply / `commit()` (no-op without one); returns whether one was discarded. */
+    discardStaged(): boolean { return UI.discardStaged(this); }
+
+    /** Whether an event path touches the field: input, its wrapper (the ✕), calendar, day tooltip, an external trigger. */
+    private isInsideField(path: EventTarget[]): boolean {
+        const parts: (Node | null | undefined)[] = [
+            this.input, this.input?.closest('.drp__input-wrapper'), this.calendar, this.dayTooltipElement,
+        ];
+        return path.some(t => {
+            if (!(t instanceof Node)) return false;
+            if (parts.some(p => p && p.contains(t))) return true;
+            return t instanceof Element && !!t.closest('[data-calendar-button]');
+        });
+    }
+
+    /** Whether the focus is in the field (input / calendar) — also true while the window is in the background. */
+    private isFocusInsideField(): boolean {
+        const roots = new Set<Node>();
+        if (this.input) roots.add(this.input.getRootNode());
+        if (this.calendar) roots.add(this.calendar.getRootNode());
+        for (const root of roots) {
+            let active = (root as Document | ShadowRoot).activeElement as Element | null | undefined;
+            while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+            if (active && this.isInsideField([active])) return true;
+        }
+        return false;
+    }
+
+    private hasStagedChange(): boolean {
+        return this.stagesSelection() && this.pendingSelection != null && !!this.input;
+    }
+
+    /** Check — once the current press / focus move settles — whether the focus left the field. */
+    private scheduleLeaveCheck(isPointerInsideIgnored: boolean): void {
+        if (!this.hasStagedChange()) return;
+        this.isLeaveCheckPointerInsideIgnored = isPointerInsideIgnored;
+        if (this.isPointerDown) {
+            this.isLeaveCheckWaitingForPointer = true;
+            return;
+        }
+        this.startLeaveCheckTimer();
+    }
+
+    private startLeaveCheckTimer(): void {
+        if (this.leaveCheckTimer) clearTimeout(this.leaveCheckTimer);
+        // A macrotask: after the click of the press that moved the focus.
+        this.leaveCheckTimer = setTimeout(() => {
+            this.leaveCheckTimer = null;
+            this.runLeaveCheck();
+        }, 0);
+    }
+
+    private runLeaveCheck(): void {
+        if (!this.hasStagedChange() || this.isSuspended || !this.input?.isConnected) return;
+        if (this.isFocusInsideField()) return;
+        if (this.isLeaveCheckPointerInsideIgnored && this.isLastPointerDownInside) return;
+        drpLogger.debug('Focus left the field - discarding the staged change');
+        UI.discardStaged(this);
+    }
+
+    /** The document-level press tracking for the leave check (on while active with an input). */
+    private listenForLeave(isOn: boolean): void {
+        if (!this.input) return;
+        if (isOn) {
+            document.addEventListener('pointerdown', this.onDocumentPointerDown, true);
+            document.addEventListener('pointerup', this.onDocumentPointerUp, true);
+            document.addEventListener('pointercancel', this.onDocumentPointerUp, true);
+            return;
+        }
+        document.removeEventListener('pointerdown', this.onDocumentPointerDown, true);
+        document.removeEventListener('pointerup', this.onDocumentPointerUp, true);
+        document.removeEventListener('pointercancel', this.onDocumentPointerUp, true);
+        if (this.leaveCheckTimer) clearTimeout(this.leaveCheckTimer);
+        this.leaveCheckTimer = null;
+        this.isLeaveCheckWaitingForPointer = false;
+        this.isPointerDown = false;
+    }
     /**
      * Swap the runtime presentation (`floating` | `modal` | `fullscreen`) in place —
      * no rebuild, selection preserved. Driven by the web component's device

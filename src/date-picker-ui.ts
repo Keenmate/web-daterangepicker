@@ -580,6 +580,54 @@ export function setPresentation(picker: any, next: 'floating' | 'modal' | 'fulls
     if (next === 'floating') position(picker);
 }
 
+/**
+ * Discard a change staged for Apply / `commit()` (`commit-mode` apply / manual): the
+ * selection goes back to the committed snapshot and the text follows it — no `select` /
+ * `change`. Run by close() (closing without commit), by Escape in the input with the
+ * calendar closed, and when the focus leaves the field (input + calendar). No-op without
+ * a staged change. Returns whether something was discarded.
+ */
+export function discardStaged(picker: any, { shouldRender = true }: { shouldRender?: boolean } = {}): boolean {
+    if (!picker.stagesSelection() || picker.pendingSelection == null || !picker.input) return false;
+    uiLogger.debug('discarding the staged selection');
+    // Restore committed selection state
+    const restoreRanges = () => (picker.committedRanges || []).map((r: any) => ({
+        start: new Date(r.start),
+        end: new Date(r.end)
+    }));
+    if (picker.options.selectionMode === 'range') {
+        picker._selectedStartDate = picker.committedStartDate;
+        picker._selectedEndDate = picker.committedEndDate;
+        // Restore the committed multi-range result (empty for a plain range).
+        picker._selectedRanges = restoreRanges();
+    } else if (picker.options.selectionMode === 'multiple') {
+        // The committed dates + ranges (a pick toggles _selectedDates in place).
+        picker._selectedDates = (picker.committedDates || []).map((d: Date) => new Date(d));
+        picker._selectedRanges = restoreRanges();
+    } else if (picker.options.selectionMode === 'single') {
+        picker._selectedDate = picker.committedDate;
+    }
+    // Time/datetime modes also revert the per-field time selection.
+    if (picker.options.pickerMode !== 'date') {
+        picker._selectedTime = picker.committedTime ? { ...picker.committedTime } : null;
+    }
+    picker.pendingSelection = null;
+    picker.hoverPreviewEnd = null;
+    // The text follows the committed selection — what commit() / the value setter
+    // wrote. Not the text captured on open: a change staged while the calendar was
+    // closed (✕, emptied / typed text) is already in it then.
+    picker.syncInputFromSelection();
+    picker._previousInputValue = picker.input.value;
+    // An open calendar (manual mode keeps it open on an outside click) shows the
+    // committed selection again; close() renders on its own.
+    if (shouldRender && !picker.isFirstRender) {
+        picker.renderCalendar();
+        updateSummary(picker);
+    }
+    picker.options.onDiscard?.();
+    return true;
+}
+
 export function close(picker: any) {
     // Skip for inline mode (always visible)
     if (picker.options.positioningMode === 'inline') return;
@@ -615,35 +663,7 @@ export function close(picker: any) {
     picker.hoverPreviewEnd = null;
 
     // Closed without Apply / commit(): discard the staged change — selection AND text.
-    if (picker.stagesSelection() && picker.pendingSelection && picker.input) {
-        uiLogger.debug('close() - discarding the staged selection');
-        // Restore committed selection state
-        const restoreRanges = () => (picker.committedRanges || []).map((r: any) => ({
-            start: new Date(r.start),
-            end: new Date(r.end)
-        }));
-        if (picker.options.selectionMode === 'range') {
-            picker._selectedStartDate = picker.committedStartDate;
-            picker._selectedEndDate = picker.committedEndDate;
-            // Restore the committed multi-range result (empty for a plain range).
-            picker._selectedRanges = restoreRanges();
-        } else if (picker.options.selectionMode === 'multiple') {
-            // The committed dates + ranges (a pick toggles _selectedDates in place).
-            picker._selectedDates = (picker.committedDates || []).map((d: Date) => new Date(d));
-            picker._selectedRanges = restoreRanges();
-        } else if (picker.options.selectionMode === 'single') {
-            picker._selectedDate = picker.committedDate;
-        }
-        // Time/datetime modes also revert the per-field time selection.
-        if (picker.options.pickerMode !== 'date') {
-            picker._selectedTime = picker.committedTime ? { ...picker.committedTime } : null;
-        }
-        // The text follows the committed selection — what commit() / the value setter
-        // wrote. Not the text captured on open: a change staged while the calendar was
-        // closed (✕, emptied / typed text) is already in it then.
-        picker.syncInputFromSelection();
-        uiLogger.debug('close() - reverted selection state');
-    }
+    discardStaged(picker, { shouldRender: false });
 
     // Clear pending selection when calendar closes
     picker.pendingSelection = null;

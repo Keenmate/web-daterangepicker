@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — a staged change is discarded on leaving the field / Escape (2026-11-21)
+- **`commit-mode="apply"` / `"manual"`: a staged change (a typed date, an emptied text / ✕ clear, a calendar pick)
+  is now DISCARDED when the focus leaves the field (Tab / a click elsewhere) or on Escape — also while the calendar
+  is closed.** Discard = the same path as closing without commit: selection, input text, ✕ and placeholder back to
+  the committed value, no `change`. Before, a change staged with the calendar closed stayed staged (and was
+  committed by a later Apply / `commit()`). The field is the input + its calendar: moving the focus into the
+  calendar, its controls, the year / month selectors or the Apply button is not leaving, and the Apply button
+  still applies. A click whose own handler calls `commit()` (an app's button) commits before the discard runs.
+  Unchanged: Enter = Apply in `apply`; `manual` commits only via `commit()`; `selection` commits at once.
+
 ### Fixed — multiple mode: closing without Apply discards the staged days (2026-11-20)
 - **`selection-mode="multiple"` with `commit-mode="apply"` / `"manual"`: closing without Apply / `commit()` now
   restores the committed dates / ranges** (documented rule: closing without commit discards) — before, the toggled

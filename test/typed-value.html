@@ -13,7 +13,9 @@
     <p>Targeted by <code>e2e/typed-value.spec.ts</code>. A valid date typed into the
        input becomes the value on Enter / Tab (blur) — the same commit path as a
        calendar pick: <code>el.value</code>, the submitted form value and
-       <code>change</code>. Masks are explicit (an unset one follows the locale).</p>
+       <code>change</code>. Masks are explicit (an unset one follows the locale).
+       In commit-mode apply / manual a staged change is discarded when the focus leaves
+       the field (the plain "next" buttons are the Tab / click targets) or on Escape.</p>
 
     <form id="f">
         <div class="fixture">
@@ -38,12 +40,16 @@
             <div class="fixture-label">single, commit-mode apply</div>
             <web-daterangepicker id="single-apply" name="singleApply" selection-mode="single"
                 commit-mode="apply" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+            <button type="button" id="next-single-apply">next (plain button)</button>
         </div>
 
         <div class="fixture">
             <div class="fixture-label">single, commit-mode manual</div>
+            <button type="button" id="commit-single-manual"
+                onclick="document.getElementById('single-manual').commit()">commit() (above: the calendar opens below)</button>
             <web-daterangepicker id="single-manual" name="singleManual" selection-mode="single"
                 commit-mode="manual" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+            <button type="button" id="next-single-manual">next (plain button)</button>
         </div>
 
         <div class="fixture">
