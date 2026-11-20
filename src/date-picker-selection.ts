@@ -21,7 +21,7 @@ function isDateRange(v: unknown): v is DateRange {
  * `null` = clear. A message the callback showed (via `ctx.controller.showMessage`)
  * stays visible — reported back as `message` so callers don't hide it.
  */
-async function callBeforeSelectCallback(
+export async function callBeforeSelectCallback(
     picker: any,
     selection: Date | DateRange
 ): Promise<{

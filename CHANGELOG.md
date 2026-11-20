@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — a typed single date becomes the value (2026-11-20)
+- **Typing a complete, valid single date into the input now commits it like a day click**: `el.value`, the
+  submitted form field and `change` follow (before, the calendar showed the date but the value stayed empty
+  after Enter / Tab). `beforeSelectCallback` runs for it (adjust / reject), as it already did for a typed range.
+  In `commit-mode="apply"` / `"manual"` the typed date is staged like a clicked one, so Apply / `commit()`
+  commits it (before, they committed nothing); Enter in the input confirms a staged pick in `apply` (= Apply).
+  An incomplete or impossible date (`2026-02-30`) changes nothing.
+
 ### Changed — BREAKING: an unset `date-format-mask` follows the locale (2026-11-20)
 - **BREAKING (visible): with no `date-format-mask`, the shown date is the browser's format for the effective
   locale, no longer a fixed `YYYY-MM-DD`.** The mask comes from core `/locale` `getLocaleSettings().dateFormat`:

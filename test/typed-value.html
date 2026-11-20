@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — typed date becomes the value</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>typed date → value</h1>
+    <p>Targeted by <code>e2e/typed-value.spec.ts</code>. A valid date typed into the
+       input becomes the value on Enter / Tab (blur) — the same commit path as a
+       calendar pick: <code>el.value</code>, the submitted form value and
+       <code>change</code>. Masks are explicit (an unset one follows the locale).</p>
+
+    <form id="f">
+        <div class="fixture">
+            <div class="fixture-label">single, commit-mode selection (default)</div>
+            <web-daterangepicker id="single" name="single" selection-mode="single"
+                date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+        </div>
+
+        <div class="fixture">
+            <div class="fixture-label">single, DD.MM.YYYY, calendar-open-trigger manual</div>
+            <web-daterangepicker id="single-eu" name="singleEu" selection-mode="single"
+                date-format-mask="DD.MM.YYYY" calendar-open-trigger="manual"></web-daterangepicker>
+        </div>
+
+        <div class="fixture">
+            <div class="fixture-label">range, commit-mode selection (default)</div>
+            <web-daterangepicker id="range" name="range" selection-mode="range"
+                date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+        </div>
+
+        <div class="fixture">
+            <div class="fixture-label">single, commit-mode apply</div>
+            <web-daterangepicker id="single-apply" name="singleApply" selection-mode="single"
+                commit-mode="apply" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+        </div>
+
+        <div class="fixture">
+            <div class="fixture-label">single, commit-mode manual</div>
+            <web-daterangepicker id="single-manual" name="singleManual" selection-mode="single"
+                commit-mode="manual" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+        </div>
+
+        <div class="fixture">
+            <div class="fixture-label">range, commit-mode manual</div>
+            <web-daterangepicker id="range-manual" name="rangeManual" selection-mode="range"
+                commit-mode="manual" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+        </div>
+
+        <div class="fixture">
+            <div class="fixture-label">datetime (commit-mode apply by default)</div>
+            <web-daterangepicker id="datetime" name="datetime" selection-mode="single"
+                picker-mode="datetime" date-format-mask="YYYY-MM-DD"
+                time-format-mask="HH:mm"></web-daterangepicker>
+        </div>
+
+        <button type="button" id="after">after</button>
+    </form>
+
+    <script>
+        window.__changes = {};
+        document.addEventListener('change', (e) => {
+            if (!(e instanceof CustomEvent) || e.target.localName !== 'web-daterangepicker') return;
+            (window.__changes[e.target.id] ||= []).push(e.detail.formattedValue);
+        });
+        window.__formValue = (name) => new FormData(document.getElementById('f')).getAll(name);
+    </script>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

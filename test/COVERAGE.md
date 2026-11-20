@@ -109,6 +109,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Input mask: progressive auto-format as user types             | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Custom `date-format-mask` (YYYY-MM-DD, DD.MM.YYYY, etc.)      | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
 | Progressive parsing: calendar follows valid typed segments    | ✓      | `input-behavior.spec.ts`     | `input-behavior.html`     |
+| Typed date → value: single / range commit (`el.value`, form field, one `change`), DD.MM.YYYY, incomplete / impossible = no change, beforeSelectCallback adjust / reject, apply (Enter = Apply, Apply button) / manual (`commit()`) staging; datetime typing = fixme (not implemented) | ✓ | `typed-value.spec.ts` | `typed-value.html` |
 | `input-size` variants (xs, sm, md, lg, xl)                    | ✓      | `sizing-theming.spec.ts`     | `sizing-theming.html`     |
 | `placeholder-format-mask` fills placeholder when no explicit one | ✓   | `api-extras.spec.ts`         | `api-extras.html`         |
 

@@ -117,7 +117,7 @@ use camelCase (`selectionMode`).
 | `placeholder-format-mask` | `string` | Same as `date-format-mask` | Only the input placeholder hint (when no explicit `placeholder`) — a localized form of the mask (`'dd/mm/aaaa'` Spanish, `'tt.mm.jjjj'` German, …). Doubled around ` - ` in `range` mode. The shown text and parsing follow `date-format-mask`; the submitted value is ISO (`value-format`). |
 | `placeholder-time-format-mask` | `string` | Same as `time-format-mask` | The time part of the placeholder hint: alone in `time` mode, after the date hint (`date + ' ' + time`) in `datetime` mode. |
 | `highlight-disabled-in-range` | `boolean` | `true` | Highlight disabled dates within a selected range. `false` = only highlight enabled dates. |
-| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | When a pick is **committed** (written + `change`). `selection` = every completed pick is written; `apply` = picks are staged until the built-in Apply button; `manual` = picks are only staged until the app calls `commit()` (no built-in button). Closing is separate (next rows); closing without `commit()` discards a staged pick |
+| `commit-mode` | `'selection' \| 'apply' \| 'manual'` | `'selection'` (`'apply'` for time/datetime and `multiple` mode) | When a pick is **committed** (written + `change`). `selection` = every completed pick is written; `apply` = picks are staged until the built-in Apply button; `manual` = picks are only staged until the app calls `commit()` (no built-in button). A complete date typed into the input is a pick like a day click (written at once in `selection`, staged otherwise; Enter in the input = Apply in `apply`). Closing is separate (next rows); closing without `commit()` discards a staged pick |
 | `close-on-select` | `boolean` | `true` | Close when a pick completes in `commit-mode="selection"`. `false` keeps the calendar open while every pick is still written (booking.com flow) |
 | `close-on-outside-click` | `boolean` | `true` (`false` in `commit-mode="manual"`) | Close on a click outside the floating calendar / on the modal backdrop. Escape and `close()` always close |
 | `positioning-mode` | `'inline' \| 'floating'` | `'floating'` | Where the calendar lives: `inline` = embedded block (no input), `floating` = opens from the input. How a floating picker opens is `presentation`. (The former `'modal'` value is `presentation="modal"`.) |
@@ -711,7 +711,7 @@ When a `DateRange[]` is returned:
 - The read-only envelope accessors `selectedStartDate` / `selectedEndDate` span the first range's start through the last range's end.
 - Assigning `picker.selectedRanges = [...]` directly in range mode renders identically — the callback path and the programmatic setter share the same multi-range machinery.
 - Starting a fresh range selection clears the multi-range result back to a single contiguous range.
-- The callback fires the same way whichever way a range is completed — **clicking, dragging, or typing** the second date into the input. (Typing a single date in single mode still doesn't run the callback.)
+- The callback fires the same way whichever way a range is completed — **clicking, dragging, or typing** the second date into the input. Typing a complete single date in single mode runs it too (a returned `Date` adjusts the typed date, `false` rejects it).
 
 **Example — minimum-nights validation with error display:**
 

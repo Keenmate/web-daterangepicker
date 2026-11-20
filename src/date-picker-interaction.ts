@@ -5,7 +5,7 @@
  * and input masking.
  */
 
-import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, formatRangeInput } from './date-picker-selection';
+import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, formatRangeInput, callBeforeSelectCallback } from './date-picker-selection';
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
@@ -695,6 +695,15 @@ export function handleKeydown(picker: any, event: KeyboardEvent) {
     if (isImeEnter(event)) return; // the IME confirming / choosing a candidate — not ours
     const { key, ctrlKey, metaKey } = event;
     const { separator } = picker.formatInfo;
+    // Enter in the input confirms a staged pick in `commit-mode="apply"` — the Apply
+    // button's job (a typed date is staged like a clicked one). `manual` leaves
+    // committing to the app's `commit()`.
+    if (key === 'Enter' && picker.options.commitMode === 'apply' && picker.hasPendingSelection) {
+        event.preventDefault();
+        event.stopPropagation();
+        picker.commit();
+        return;
+    }
     // Any character the mask writes (`.` / ` ` for `DD. MM. YYYY`) may be typed.
     const isLiteralKey = key.length === 1 && maskLiteralChars(picker).includes(key);
 
@@ -866,7 +875,14 @@ export function updateCalendarFromInput(picker: any) {
     // Single mode or range without separator yet
     // Use helper to parse and update
     const dateType = picker.options.selectionMode === 'range' ? 'start' : 'single';
-    parseAndUpdateSingleDate(picker, value, dateType);
+    const before: Date | null = picker._selectedDate;
+    const isComplete = parseAndUpdateSingleDate(picker, value, dateType);
+    // A complete single date is a pick — commit it like a day click (single mode
+    // mirrors the typed-range path above). Re-typing the date already selected
+    // (or a digit past the mask) is no new pick.
+    if (dateType === 'single' && isComplete && !(before && picker.isSameDay(before, picker._selectedDate))) {
+        void commitTypedSingle(picker, picker._selectedDate);
+    }
 }
 
 export function parseAndUpdateSingleDate(picker: any, value: string, dateType: string = 'single'): boolean {
@@ -963,6 +979,39 @@ export function parseAndUpdateSingleDate(picker: any, value: string, dateType: s
         }
     }
     return false;
+}
+
+/**
+ * A typed single date just became complete — the same commit as a day click
+ * (`selectDay`): beforeSelectCallback (reject / adjust), then written + `change` in
+ * `commit-mode="selection"`, or staged for Apply / `commit()` otherwise. The
+ * calendar stays open (the user is in the input, like the typed range).
+ */
+async function commitTypedSingle(picker: any, date: Date) {
+    const result = await callBeforeSelectCallback(picker, date);
+    // The text moved on while the callback ran — the newer input wins.
+    if (!picker._selectedDate || !picker.isSameDay(picker._selectedDate, date)) return;
+    if (!result.isValid) {
+        picker._selectedDate = null;
+        picker.renderCalendar();
+        return;
+    }
+    if (!result.message) hideMessage(picker);
+
+    const finalDate = result.adjustedDate || date;
+    picker._selectedDate = finalDate;
+    if (!picker.isSameDay(finalDate, date) && picker.input) {
+        // The adjusted date replaces the typed text (staged too — it's what's selected).
+        picker.input.value = picker.formatDate(finalDate);
+        picker._previousInputValue = picker.input.value;
+    }
+
+    if (picker.stagesSelection()) {
+        picker.pendingSelection = finalDate;
+    } else if (picker.options.onChange) {
+        picker.options.onChange(picker.buildSelectDetail(finalDate));
+    }
+    picker.renderCalendar();
 }
 
 /**
