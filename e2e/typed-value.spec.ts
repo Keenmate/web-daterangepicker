@@ -372,3 +372,95 @@ test('single: beforeSelectCallback returning null clears the committed value (on
     expect(await formValue(page, 'single')).toEqual(['']);
     expect(await changes(page, 'single')).toEqual(['']);
 });
+
+// ── a discarded staged change restores the input TEXT (apply / manual) ──────────
+// Closing without Apply / commit() reverts the selection AND the text (+ the ✕) to the
+// committed value — also when the change was staged while the calendar was closed
+// (re-focusing reopens it; the next close is the discard).
+
+const inputClear = (p: Locator) => p.locator('.drp__input-clear');
+
+async function expectRestored(page: Page, p: Locator, id: string, name: string) {
+    await expect(calendar(p)).toBeHidden();
+    await expect(textInput(p)).toHaveValue('2026-06-15');
+    await expect(inputClear(p)).toHaveClass(/drp__input-clear--visible/);
+    expect(await value(p)).toBe('2026-06-15');
+    expect(await formValue(page, name)).toEqual(['2026-06-15']);
+    expect(await changes(page, id)).toEqual([]);
+}
+
+/** Open, then Escape: the calendar is closed, focus stays in the input. */
+async function openAndClose(p: Locator) {
+    await textInput(p).click();
+    await expect(calendar(p)).toBeVisible();
+    await textInput(p).press('Escape');
+    await expect(calendar(p)).toBeHidden();
+}
+
+/** Reopen (if the change left it closed), then close without committing. */
+async function discard(p: Locator) {
+    if (!(await calendar(p).isVisible())) await textInput(p).click();
+    await expect(calendar(p)).toBeVisible();
+    await textInput(p).press('Escape');
+}
+
+for (const [id, name] of [['single-apply', 'singleApply'], ['single-manual', 'singleManual']] as const) {
+    test(`${id}: emptied text, calendar open — discarded on close restores the text`, async ({ page }) => {
+        const p = pickerById(page, id);
+        await seed(p, '2026-06-15');
+        await emptyText(p);
+        await expect(calendar(p)).toBeVisible();
+        await expect(textInput(p)).toHaveValue('');
+        await discard(p);
+        await expectRestored(page, p, id, name);
+    });
+
+    test(`${id}: the ✕, calendar closed — discarded on the next close restores the text`, async ({ page }) => {
+        const p = pickerById(page, id);
+        await seed(p, '2026-06-15');
+        await openAndClose(p);
+        await inputClear(p).click();
+        await expect(textInput(p)).toHaveValue('');
+        await expect(inputClear(p)).not.toHaveClass(/drp__input-clear--visible/);
+        await discard(p);
+        await expectRestored(page, p, id, name);
+    });
+
+    test(`${id}: emptied text, calendar closed — discarded on the next close restores the text`, async ({ page }) => {
+        const p = pickerById(page, id);
+        await seed(p, '2026-06-15');
+        await openAndClose(p);
+        await textInput(p).press('ControlOrMeta+a');
+        await textInput(p).press('Backspace');
+        await expect(textInput(p)).toHaveValue('');
+        await discard(p);
+        await expectRestored(page, p, id, name);
+    });
+
+    test(`${id}: typed date, calendar open — discarded on close shows the committed date again`, async ({ page }) => {
+        const p = pickerById(page, id);
+        await seed(p, '2026-06-15');
+        await textInput(p).click();
+        await expect(calendar(p)).toBeVisible();
+        await textInput(p).press('ControlOrMeta+a');
+        await textInput(p).pressSequentially('20260620');
+        await expect(dayByDate(p, '2026-06-20')).toHaveClass(/drp__day--selected/);
+        await discard(p);
+        await expectRestored(page, p, id, name);
+    });
+
+    test(`${id}: typed date, calendar closed — discarded on the next close shows the committed date again`, async ({ page }) => {
+        const p = pickerById(page, id);
+        await seed(p, '2026-06-15');
+        await openAndClose(p);
+        await textInput(p).press('ControlOrMeta+a');
+        await textInput(p).pressSequentially('20260620');
+        await expect(textInput(p)).toHaveValue('2026-06-20');
+        await discard(p);
+        await expectRestored(page, p, id, name);
+        // Reopening shows the committed date selected, not the discarded one.
+        await textInput(p).click();
+        await expect(dayByDate(p, '2026-06-15')).toHaveClass(/drp__day--selected/);
+        await expect(dayByDate(p, '2026-06-20')).not.toHaveClass(/drp__day--selected/);
+    });
+}

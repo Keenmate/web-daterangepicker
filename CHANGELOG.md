@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — a discarded staged change restores the input text (2026-11-20)
+- **`commit-mode="apply"` / `"manual"`: closing without Apply / `commit()` now restores the input TEXT too** —
+  an emptied text / ✕ clear or a typed date that is discarded shows the committed value again (placeholder and
+  ✕ follow it). Before, the selection was restored but the text stayed as typed (blank) when the change was
+  staged while the calendar was closed (the text captured on the next open was the staged one).
+
 ### Fixed — clearing is a change (2026-11-20)
 - **Emptying the input text, the footer Clear and the input ✕ now commit the cleared value**: `el.value` and the
   submitted form field become empty and `change` fires once (`formattedValue: ''`, no date fields) — before,

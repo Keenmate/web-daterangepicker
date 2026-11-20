@@ -620,11 +620,11 @@ export function close(picker: any) {
     picker.isCalendarActive = false; // Deactivate calendar when hidden
     picker.hoverPreviewEnd = null;
 
-    // Restore original input value and selection state if closed without Apply
+    // Closed without Apply / commit(): discard the staged change — selection AND text.
     if (picker.stagesSelection() && picker.pendingSelection && picker.input) {
-        uiLogger.debug('close() - restoring original input value:', picker.originalInputValue);
-        // Restore input value
-        if (picker.originalInputValue !== null) {
+        uiLogger.debug('close() - discarding the staged selection');
+        // Multiple mode keeps no committed snapshot: restore the text captured on open.
+        if (picker.options.selectionMode === 'multiple' && picker.originalInputValue !== null) {
             picker.input.value = picker.originalInputValue;
         }
         // Restore committed selection state
@@ -643,6 +643,10 @@ export function close(picker: any) {
         if (picker.options.pickerMode !== 'date') {
             picker._selectedTime = picker.committedTime ? { ...picker.committedTime } : null;
         }
+        // The text follows the committed selection — what commit() / the value setter
+        // wrote. Not the text captured on open: a change staged while the calendar was
+        // closed (✕, emptied / typed text) is already in it then.
+        if (picker.options.selectionMode !== 'multiple') picker.syncInputFromSelection();
         uiLogger.debug('close() - reverted selection state');
     }
 

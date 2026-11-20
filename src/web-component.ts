@@ -607,7 +607,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     cfg.onAction = (detail: DateRangePickerActionEventDetail) => this.emit('action', detail);
     cfg.onMonthChange = (detail: MonthChangeEventDetail) => this.emit('month-change', detail);
     cfg.onOpen = (detail: OpenEventDetail) => this.emit('open', detail);
-    cfg.onClose = (detail: CloseEventDetail) => this.emit('close', detail);
+    cfg.onClose = (detail: CloseEventDetail) => {
+      // A discarded staged change restored the input text — the ✕ follows it.
+      this.#updateInputClear();
+      this.emit('close', detail);
+    };
     // Contexts carry THIS element and its (rebuild-proof) controller, not the engine's.
     cfg.hostElement = this;
     cfg.controller = this.controller;
