@@ -332,6 +332,9 @@ function createCalendarPopover(picker: any, isAnchored: boolean) {
         // External trigger buttons and the day / badge tooltip don't count as outside.
         getInsideElements: () => [
             picker.dayTooltipElement,
+            // The element's input wrapper (its ✕ clear button): a press there is no outside
+            // click — closing would discard the clear it just staged (apply / manual).
+            picker.input?.closest('.drp__input-wrapper') ?? null,
             ...(typeof document !== 'undefined' ? Array.from(document.querySelectorAll('[data-calendar-button]')) : []),
         ],
         shouldCloseOnScroll: () => picker.closesOnScroll(),

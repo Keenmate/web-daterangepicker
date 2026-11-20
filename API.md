@@ -442,7 +442,7 @@ The web component dispatches the following events. All bubble; none are
 
 | Event Name | Detail | Description |
 |------------|--------|-------------|
-| `change` | `ChangeEventDetail` | The selection was committed (the value changed): every completed pick in `commit-mode="selection"`, on Apply / `commit()` in `apply` / `manual` |
+| `change` | `ChangeEventDetail` | The selection was committed (the value changed): every completed pick in `commit-mode="selection"`, on Apply / `commit()` in `apply` / `manual`. A clear by the user (emptied text, the footer Clear, the input ✕, `beforeSelectCallback` returning `null`) is a change too — no date fields, `formattedValue: ''`; none when already empty |
 | `action` | `DateRangePickerActionEventDetail` | An action button (built-ins too) or an HTML `data-action` trigger was activated — see [Action Buttons](#action-buttons) |
 | `month-change` | `MonthChangeEventDetail` | The visible month(s) changed (any navigation; not when a `value` assignment or a form reset moves them — those are silent) |
 | `ready` | `ReadyEventDetail` | The picker was built for the first time (once per element; deferred elements fire on `release()` / `defer` removal) |

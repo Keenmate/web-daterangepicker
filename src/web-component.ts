@@ -580,11 +580,13 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     btn.classList.toggle('drp__input-clear--visible', show);
   }
 
-  /** Clear the selection + input value, refresh the submitted value, and refocus. */
+  /**
+   * The ✕: a clear by the user — the same commit path as the footer Clear / emptied
+   * text (written + `change`, or staged in apply / manual mode). Refocuses the input.
+   */
   #clearInput(): void {
-    this.#picker?.clearSelection();
+    this.#picker?.clearByUser();
     if (this.#inputElement) this.#inputElement.value = '';
-    this.#refreshFormValue();
     this.#updateInputClear();
     this.#inputElement?.focus();
   }
@@ -623,6 +625,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     const picker = this.#picker;
     // Deferred until Apply — don't fire yet (commit() re-invokes onChange later).
     if (picker && picker.stagesSelection() && picker.hasPendingSelection) return;
+    // A clear (no date fields) of a value that is already empty is no change — e.g. a
+    // staged pick cleared again before Apply, with nothing committed before it.
+    if (this.#isClearDetail(detail) && this.#formValues.every((v) => v === '')) return;
 
     // `detail` is the canonical payload the core built via buildSelectDetail() — the
     // SAME object the public `onChange` twin receives (date(s)/range(s) plus the
@@ -639,6 +644,12 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     }
 
     this.#emitChange(detail);
+  }
+
+  /** A `change` detail for a clear (`buildSelectDetail(null)`): no date fields, empty text. */
+  #isClearDetail(detail: ChangeEventDetail): boolean {
+    return detail.formattedValue === '' && detail.date == null && detail.dateRange == null &&
+      !detail.dateRanges?.length && !detail.dates?.length;
   }
 
   /**

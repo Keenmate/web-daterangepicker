@@ -89,7 +89,8 @@ export async function callBeforeSelectCallback(
 
     const value = gate.value;
     if (value === null) {
-        picker.clearSelection();
+        // `null` = clear: a clear is a change like any other (committed / staged).
+        clearByUser(picker);
         return { isValid: false, message };
     }
     if (!isRange && value instanceof Date) {
@@ -559,6 +560,40 @@ export function clearSelection(picker: any) {
 }
 
 /**
+ * `pendingSelection` marker for a staged clear (apply / manual): `commit()` turns it
+ * into an empty `onChange`, closing without commit reverts like any staged pick.
+ */
+export const STAGED_CLEAR: unique symbol = Symbol('staged-clear');
+
+/** Whether the picker holds any selection (date, range, dates or a time part). */
+function hasAnySelection(picker: any): boolean {
+    const t = picker._selectedTime;
+    return !!(
+        picker._selectedDate || picker._selectedStartDate || picker._selectedEndDate ||
+        picker._selectedRanges.length || picker._selectedDates.length ||
+        (t && (t.hour != null || t.minute != null || t.second != null))
+    );
+}
+
+/**
+ * A clear by the USER (emptied input text, the footer Clear, the input ✕, a
+ * beforeSelectCallback returning `null`): the same commit path as a pick —
+ * `onChange` with an empty selection in `commit-mode="selection"`, staged for
+ * Apply / `commit()` otherwise. Clearing what is already empty is no change.
+ * (The programmatic `clearSelection()` stays silent, like the value setters.)
+ */
+export function clearByUser(picker: any) {
+    const hadValue = hasAnySelection(picker) || picker.pendingSelection != null;
+    clearSelection(picker);
+    if (!hadValue) return;
+    if (picker.stagesSelection()) {
+        picker.pendingSelection = STAGED_CLEAR;
+    } else if (picker.options.onChange) {
+        picker.options.onChange(picker.buildSelectDetail(null));
+    }
+}
+
+/**
  * Ensure picker._selectedTime exists with all fields null. Each select* helper
  * then fills in the field the user clicked. Null fields stay null so the
  * renderer knows not to highlight that roll.
@@ -984,7 +1019,7 @@ export function commit(picker: any) {
     // Fire the deferred callback once the committed snapshot is stored, so the
     // listener (and the host's form value) reads the committed state.
     if (pending && picker.options.onChange) {
-        picker.options.onChange(picker.buildSelectDetail(pending));
+        picker.options.onChange(picker.buildSelectDetail(pending === STAGED_CLEAR ? null : pending));
     }
 
     // Always close on Apply (inline mode never closes; floating and modal both close)

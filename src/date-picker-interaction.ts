@@ -5,7 +5,7 @@
  * and input masking.
  */
 
-import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, formatRangeInput, callBeforeSelectCallback } from './date-picker-selection';
+import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, formatRangeInput, callBeforeSelectCallback, clearByUser } from './date-picker-selection';
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
@@ -830,8 +830,8 @@ export function updateCalendarFromInput(picker: any) {
     interactionLogger.debug('updateCalendarFromInput - value:', value);
 
     if (!value) {
-        // Input is empty - clear selection to sync with empty input
-        picker.clearSelection();
+        // Input is empty — the user cleared it: a clear is a change (committed / staged).
+        clearByUser(picker);
         picker.renderCalendar();
         return;
     }
@@ -856,6 +856,9 @@ export function updateCalendarFromInput(picker: any) {
 
         if (startValue !== null) {
             interactionLogger.debug('Range parts - start:', startValue, 'end:', endValue);
+            const beforeStart: Date | null = picker._selectedStartDate;
+            const beforeEnd: Date | null = picker._selectedEndDate;
+            const beforeRanges = picker._selectedRanges;
             const startComplete = parseAndUpdateSingleDate(picker, startValue, 'start');
             let endComplete = false;
             if (endValue) {
@@ -866,6 +869,16 @@ export function updateCalendarFromInput(picker: any) {
             // Both endpoints fully typed → run the validation gate (callback +
             // adjustedRanges), matching the click / drag commit paths.
             if (startComplete && endComplete && picker._selectedStartDate && picker._selectedEndDate) {
+                // The text re-parsed to the range already selected (opening the calendar
+                // syncs from the input, a digit past the mask) — no new pick: keep its
+                // committed result (multi-range / split) and fire nothing, like the single path.
+                if (beforeStart && beforeEnd &&
+                    picker.isSameDay(beforeStart, picker._selectedStartDate) &&
+                    picker.isSameDay(beforeEnd, picker._selectedEndDate)) {
+                    picker._selectedRanges = beforeRanges;
+                    picker.renderCalendar();
+                    return;
+                }
                 void commitTypedRange(picker);
             }
             return;

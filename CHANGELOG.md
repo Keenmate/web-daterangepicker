@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — clearing is a change (2026-11-20)
+- **Emptying the input text, the footer Clear and the input ✕ now commit the cleared value**: `el.value` and the
+  submitted form field become empty and `change` fires once (`formattedValue: ''`, no date fields) — before,
+  only the selection was cleared and `el.value` / the form kept the old value with no `change` (the ✕ refreshed
+  the form value but fired no `change`). A `beforeSelectCallback` returning `null` clears the same way. In
+  `commit-mode="apply"` / `"manual"` the clear is staged like a pick (Apply / Enter / `commit()` commit it,
+  closing without commit restores the value); clearing an already empty value fires nothing. The ✕ no longer
+  counts as an outside click (it closed the calendar, discarding a staged clear).
+- **Opening the calendar on a committed range no longer fires `change`** (the input's range text was re-parsed
+  and re-committed on every open).
+
 ### Fixed — a typed single date becomes the value (2026-11-20)
 - **Typing a complete, valid single date into the input now commits it like a day click**: `el.value`, the
   submitted form field and `change` follow (before, the calendar showed the date but the value stayed empty

@@ -1209,11 +1209,13 @@ class DateRangePickerEngine {
      * {@link formatDate}; the web component prefers the input's live display string
      * when it re-emits (except for the multi-piece joined forms, which it keeps).
      */
-    buildSelectDetail(selection: Date | DateRange | DateRange[] | Date[]): ChangeEventDetail {
+    buildSelectDetail(selection: Date | DateRange | DateRange[] | Date[] | null): ChangeEventDetail {
         return this.ctx(this.buildSelectFields(selection));
     }
 
-    private buildSelectFields(selection: Date | DateRange | DateRange[] | Date[]): Omit<ChangeEventDetail, keyof PickerContext> {
+    private buildSelectFields(selection: Date | DateRange | DateRange[] | Date[] | null): Omit<ChangeEventDetail, keyof PickerContext> {
+        // A clear: no date fields, empty text.
+        if (selection === null) return { formattedValue: '' };
         const formatRange = (r: DateRange) => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`;
 
         // Single date.
@@ -3041,7 +3043,7 @@ class DateRangePickerEngine {
     private runBuiltInAction(action: DateRangePickerAction | 'custom'): void {
         if (action === 'today') this.selectToday();
         else if (action === 'now') this.selectNow();
-        else if (action === 'clear') this.clearSelection();
+        else if (action === 'clear') this.clearByUser();
         else if (action === 'apply') this.commit();
     }
 
@@ -3306,6 +3308,8 @@ class DateRangePickerEngine {
     async selectDay(dayElement: HTMLElement) { return await Selection.selectDay(this, dayElement); }
     selectToday() { return Selection.selectToday(this); }
     clearSelection() { return Selection.clearSelection(this); }
+    /** Internal: a clear by the user (Clear button, input ✕, emptied text) — commits or stages an empty value. */
+    clearByUser() { return Selection.clearByUser(this); }
     /** Commit the staged selection (what the Apply button / `commit-mode="manual"` app does). */
     commit() { return Selection.commit(this); }
 

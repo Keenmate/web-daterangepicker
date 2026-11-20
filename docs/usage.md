@@ -258,7 +258,7 @@ picker.renderLoadingCallback = ({ context, containerElement }) => {
 
 | Event | Detail | Description |
 |---|---|---|
-| `change` | `ChangeEventDetail` (`{ date?, dateRange?, dates?, dateRanges?, formattedValue, … }`) | The selection was committed — every completed pick in `commit-mode="selection"`, on Apply / `commit()` otherwise |
+| `change` | `ChangeEventDetail` (`{ date?, dateRange?, dates?, dateRanges?, formattedValue, … }`) | The selection was committed — every completed pick in `commit-mode="selection"`, on Apply / `commit()` otherwise. A clear by the user (emptied text, the footer Clear, the input ✕, `beforeSelectCallback` returning `null`) is a change too: no date fields, `formattedValue: ''` (staged like a pick in `apply` / `manual`; none when already empty) |
 | `open` | `OpenEventDetail` (context only) | The calendar popover opened (not in inline mode) |
 | `close` | `CloseEventDetail` (context only) | The calendar popover closed (any reason; a staged pick is already discarded) |
 | `action` | `DateRangePickerActionEventDetail` (`{ action, id, item, source, sourceEvent, triggerElement, dataset, … }`) | An action button (built-ins included) or an HTML `data-action` trigger was activated. `action` is the built-in name (`today` / `now` / `clear` / `apply`) or `'custom'`; `id` identifies a custom item; `source` is `'action-buttons' \| 'message' \| 'summary' \| 'calendar'`; `dataset` holds the trigger's other `data-*` attributes (camelCase). Fires after the item's `onClick`, before the built-in behaviour. |
