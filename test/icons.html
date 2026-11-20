@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — icons (core renderIcon)</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 340px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <h1>icons (core renderIcon)</h1>
+    <p>Targeted by <code>e2e/icons.spec.ts</code>. Action-button icon strings go through core
+    <code>renderIcon</code>: markup, built-in name (mask), the element's <code>renderIconCallback</code>,
+    the page-wide <code>window.components.renderIconCallback</code>, icon-font class list, text.</p>
+
+    <div class="fixture">
+        <div class="fixture-label">action-button icons (buttons assigned by the spec)</div>
+        <web-daterangepicker id="icons" selection-mode="single"
+            positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+</body>
+</html>

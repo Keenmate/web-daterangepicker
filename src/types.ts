@@ -1,5 +1,5 @@
 import type {
-  ComponentContext, PresentationContext, RenderLoaderCallback, Presentation, ResponsiveMap, ResponsiveCallback, SlotResult,
+  ComponentContext, PresentationContext, RenderLoaderCallback, RenderIconCallback, Presentation, ResponsiveMap, ResponsiveCallback, SlotResult,
 } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 import type { Placement } from '@keenmate/web-components-core/positioning';
@@ -663,6 +663,15 @@ export interface DatePickerOptions {
    * cleanup. Unset = the page hook, else the default `.drp__loader` (SPEC §12.14 of core).
    */
   renderLoadingCallback?: RenderLoaderCallback | null;
+
+  /**
+   * Map an action item's `icon` name to markup (core `renderIcon`, SPEC §12.33): asked
+   * after the built-in names (`check`, `close`, … — reserved, never sent here) and before
+   * the page-wide `window.components.renderIconCallback`. Return markup, `''` for no icon,
+   * or `null` / `undefined` for "not mine" (the page hook, then the icon-font / text rules
+   * decide). `ctx.item` is the action item.
+   */
+  renderIconCallback?: RenderIconCallback | null;
 
   /**
    * Callback to customize unified header range display text

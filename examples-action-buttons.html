@@ -701,7 +701,7 @@ picker.actionButtons = [
 <!-- 13. Icons in Buttons -->
 <div class="card">
   <h2>AB14 · Icons in Buttons (Font Awesome)</h2>
-  <p>Button <code>text</code> is plain text (it is never parsed as HTML), so icon-font icons come from CSS: give the button a class with <code>cssClass</code> and draw the glyph in a <code>::before</code> pseudo-element. Works with Font Awesome or any icon font. For a plain glyph or emoji, set <code>icon: '★'</code> instead — it renders as <code>.drp__button-icon</code> before the label.</p>
+  <p>Button <code>text</code> is plain text (it is never parsed as HTML), so icon-font icons come from CSS: give the button a class with <code>cssClass</code> and draw the glyph in a <code>::before</code> pseudo-element. Works with Font Awesome or any icon font. Or set <code>icon</code> directly: a class list (<code>icon: 'fa-solid fa-star'</code>) renders an icon-font <code>&lt;i class="drp__icon …"&gt;</code>, a built-in name (<code>'check'</code>, <code>'close'</code>) the masked base glyph, a glyph or emoji (<code>'★'</code>) text, <code>&lt;svg…&gt;</code> markup as is — all in <code>.drp__button-icon</code> before the label. Any other name goes to the element's <code>renderIconCallback</code> (then <code>window.components.renderIconCallback</code>) first.</p>
 
   <div class="note info">
     <strong>Note:</strong> The calendar lives in Shadow DOM, so the icon rules go in through <code>getCustomStylesCallback</code> (or the <code>custom-styles</code> attribute). Load the icon font's stylesheet in the page <code>&lt;head&gt;</code> too: <code>@font-face</code> rules only take effect at document level.

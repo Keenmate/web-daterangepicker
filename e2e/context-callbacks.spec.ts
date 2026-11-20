@@ -273,18 +273,18 @@ test('el.controller is the frozen core facade: same object across a rebuild, no 
     expect(r).toEqual({ isFrozen: true, isSame: true, isWriteRefused: true, hasInternals: false, start: 'set', isOpenType: 'boolean' });
 });
 
-test('icon: an ASCII name is a masked core icon (drp__icon--<name>), markup is inserted, other text stays text', async ({ page }) => {
+test('icon: a built-in name is a masked core icon (drp__icon--<name>), markup is inserted, other text stays text', async ({ page }) => {
     const p = pickerById(page, 'ctx-events');
     await p.evaluate((el: any) => {
         el.actionButtons = [
-            { id: 'named', text: 'NAMED', icon: 'gear' },
+            { id: 'named', text: 'NAMED', icon: 'settings' },
             { id: 'svg', text: 'SVG', icon: '<svg class="x-svg" viewBox="0 0 1 1"></svg>' },
             { id: 'glyph', text: 'GLYPH', icon: '★' },
         ];
         return el.whenSettled();
     });
     const named = p.locator('.drp__button[data-id="named"] .drp__button-icon > .km-icon');
-    await expect(named).toHaveClass(/drp__icon--gear/);
+    await expect(named).toHaveClass(/drp__icon--settings/);
     expect(await named.evaluate((n) => getComputedStyle(n).display)).toBe('inline-block'); // ICON_CSS adopted
     await expect(p.locator('.drp__button[data-id="svg"] .drp__button-icon > svg.x-svg')).toHaveCount(1);
     await expect(p.locator('.drp__button[data-id="glyph"] .drp__button-icon')).toHaveText('★');

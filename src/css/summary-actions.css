@@ -88,6 +88,14 @@
   border: var(--drp-button-border-hover-full);
 }
 
+/* The rendered icon (core renderIcon: masked built-in .km-icon, or an icon-font <i>):
+   never squeezed by the button's flex row, sized by the button's font. */
+.drp__icon {
+  flex: none;
+  font-size: inherit;
+  line-height: 1;
+}
+
 /* Icon + label (action items with `icon`) */
 .drp__button-icon + .drp__button-label {
   margin-inline-start: var(--drp-spacing-xs, 0.25rem);

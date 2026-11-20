@@ -296,6 +296,7 @@ class DateRangePickerEngine {
             weekdayNames: options.weekdayNames,
             renderSummaryCallback: options.renderSummaryCallback,
             renderLoadingCallback: options.renderLoadingCallback ?? null,
+            renderIconCallback: options.renderIconCallback ?? null,
             beforeSelectCallback: options.beforeSelectCallback,
             beforeMonthChangeCallback: options.beforeMonthChangeCallback,
             beforeScrollCallback: options.beforeScrollCallback,
@@ -882,9 +883,16 @@ class DateRangePickerEngine {
                 buttonEl.classList.add('drp__button--toggled');
                 buttonEl.setAttribute('aria-pressed', 'true');
             }
-            // Icon before the label — core renderIcon (SPEC §12.33): markup (`<svg…>`) raw, an
-            // ASCII name masked from `--base-icon-<name>` (`.drp__icon--<name>`), anything else text.
-            const iconHtml = renderIcon(resolved.icon, { prefix: 'drp' });
+            // Icon before the label — core renderIcon (SPEC §12.33): markup (`<svg…>`) raw, a
+            // built-in name masked from `--base-icon-<name>` (`.drp__icon--<name>`), then the
+            // element's `renderIconCallback`, the page-wide one, an icon-font class list
+            // (`<i class="drp__icon fa-solid …">`), anything else text.
+            const iconHtml = renderIcon(resolved.icon, {
+                prefix: 'drp',
+                host: this.options.hostElement ?? null,
+                renderIconCallback: this.options.renderIconCallback ?? null,
+                context: { item: resolved },
+            });
             if (iconHtml) {
                 const icon = document.createElement('span');
                 icon.className = 'drp__button-icon';

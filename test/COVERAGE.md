@@ -228,6 +228,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | HTML `data-action="custom" data-id` in `showMessage` → `action` (`source: 'message'`, `dataset`) | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | Internal controls (nav arrows) do not fire `action`           | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `onChange` twin receives the detail (same object as `change`) | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
+| Action-button icons (core `renderIcon`): built-in mask, icon-font `<i class="drp__icon …">`, element `renderIconCallback` beats the page hook, `null` falls through, built-ins never reach a hook, re-render on change | ✓ | `icons.spec.ts` | `icons.html` |
 | `month-change` event after navigation (`visibleMonths`)       | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 
 ## 14. Visual states

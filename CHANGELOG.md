@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — `renderIconCallback` (2026-11-20)
+- **New input `renderIconCallback(name, ctx)`** (property, `on: 'update'`): this element's own icon hook (core
+  `renderIcon`, SPEC §12.33). Asked for an action-button `icon` string that is not markup and not a built-in name,
+  BEFORE the page-wide `window.components.renderIconCallback` — one picker needs no page setup. Return markup
+  (`''` = no icon), or `null` / `undefined` = not mine (the page hook decides). `ctx` = `{ component, element,
+  prefix: 'drp', item }` (both hooks get it now; the page hook used to get no `element` / item). Changing it
+  re-renders the action bar in place.
+- `.drp__icon` rule (`flex: none`, font size inherited) so an icon-font `<i>` sits like the masked built-in glyph.
+
+### Changed — the core icon order (2026-11-20)
+- **BREAKING: a one-word icon that is NOT a built-in name is now an icon-font class, not a mask** (core rc25).
+  Action-button `icon` / `getIconCallback` strings resolve: markup (`<…`) → raw; a built-in name (`check`, `close`,
+  `settings`, `delete`, … — core `BUILT_IN_ICON_NAMES`, the `--base-icon-*` glyphs) → masked `.km-icon`, never sent
+  to a hook; the element's `renderIconCallback`, then the page-wide one; ASCII class names → `<i class="drp__icon
+  fa-solid fa-star" aria-hidden="true">`; anything else → escaped text. Before, `'star'` rendered a
+  `--base-icon-star` mask; now it renders `<i class="drp__icon star">`. Use a built-in name, markup, or map the name
+  in `renderIconCallback`.
+
 ### Changed — BREAKING: flat `<elementType>.<name>` label keys (2026-11-19, core 1.0.0-rc25)
 - Every `labels` key is now flat `<elementType>.<name>` (the Keenmate-wide shape, core `/locale`). The instance
   `labels` takes the short key (`buttons.today`) or the full one (`web-daterangepicker.buttons.today`); English

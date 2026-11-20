@@ -628,7 +628,7 @@ picker.addEventListener('action', (e) => {
 | `action` | `'today' \| 'now' \| 'clear' \| 'apply'` | Built-in behaviour; omit for a custom button |
 | `id` | `string` | Identifies a custom button (reported back as `detail.id`) |
 | `text` | `string` | Label (plain text) |
-| `icon` | `string` | Icon (core `renderIcon`): `<svg…>` markup raw, an ASCII name masked from `--base-icon-<name>`, anything else text |
+| `icon` | `string` | Icon (core `renderIcon`), first match wins: `<svg…>` markup raw; a built-in name (`check`, `close`, `settings`, … — core `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>`; the element's `renderIconCallback`, then the page-wide `window.components.renderIconCallback`; ASCII class names (`fa-solid fa-star`) → `<i class="drp__icon fa-solid fa-star">` (an icon font); anything else text |
 | `tooltip` | `string` | Tooltip text |
 | `shortcut` | `string` | Key chord in the core `/actions` syntax (`'Mod+T'`, `'Shift+C'`, `'m'`; `Mod` = ⌘ on Apple, Ctrl elsewhere): shown as a `<kbd class="drp__button-shortcut">` keycap (core `formatShortcut`) and runs the button while the picker is open and keyboard-active. A plain key (no Ctrl / Alt / Meta) is skipped while typing in the input. Single chord only |
 | `cssClass` | `string` | Extra CSS classes |
@@ -637,6 +637,17 @@ picker.addEventListener('action', (e) => {
 | `getClassCallback` | `(ctx: PickerContext) => string \| string[]` | Dynamic classes |
 | `getIsVisibleCallback` / `getIsDisabledCallback` / `getIsToggledCallback` | `(ctx: PickerContext) => boolean` | Dynamic flags |
 | `onClick` | `(detail: DateRangePickerActionEventDetail) => void \| Promise<void>` | Click handler (any button, built-ins too); awaited — the button is busy meanwhile |
+
+**Icon hook.** A name that is not markup and not built-in goes to the element's own
+`renderIconCallback(name, ctx)` first, then the page-wide
+`window.components.renderIconCallback` — return markup (`''` = no icon) or `null` /
+`undefined` for "not mine". Built-in names never reach a hook. `ctx` = `{ component,
+element, prefix: 'drp', item }`.
+
+```javascript
+picker.renderIconCallback = (name) => name === 'rocket' ? '<svg …>…</svg>' : null;
+picker.actionButtons = [{ id: 'go', text: 'Go', icon: 'rocket' }];
+```
 
 Render-time callbacks (`get*Callback`) receive the **picker context**
 (`controller`, `element`, presentation flags) and are re-evaluated whenever the
@@ -1697,6 +1708,7 @@ The web component provides convenient property accessors for JavaScript:
 | `renderDayContentCallback` | `(ctx: DayContext) => string \| Node \| null \| undefined \| false` | Read/Write | Content added after the day number (core `renderSlot`, in a `display: contents` `.drp__day-extra` box). A string is HTML, a Node is mounted, `null` / `undefined` draws the default (the number only), `false` hides the content of the cell (number included). Property-only. |
 | `renderSummaryCallback` | `(ctx: SummaryContext) => string \| Node \| null \| undefined \| false` | Read/Write | Render the range summary (core `renderSlot`). A string is HTML, a Node is mounted, `null` / `undefined` draws the default (`N days, N nights`), `false` hides the summary. Property-only. |
 | `renderLoadingCallback` | `(ctx: LoaderRenderContext) => void \| (() => void)` | Read/Write | Draw every loader (`showLoader()` targets, the one around async callbacks): fill `ctx.containerElement` (`ctx.context` = `calendar` \| `message` \| `summary`), optionally return a cleanup. Beats the page-wide `window.components.renderLoadingCallback`; unset = that, else the default `.drp__loader` (the shared `--base-loader-*` contract). Property-only. |
+| `renderIconCallback` | `(name: string, ctx: IconRenderContext) => string \| null \| undefined` | Read/Write | Map an action-button `icon` name to markup (core `renderIcon`). Asked after the built-in names (`check`, `close`, … — reserved, never sent here) and before the page-wide `window.components.renderIconCallback`. Return markup, an empty string for no icon, or `null` / `undefined` for "not mine" (the page hook, then an icon-font class list → `<i class="drp__icon …">`, else text). `ctx` = `{ component, element, prefix, item }`. Property-only. |
 | `getUnifiedHeaderCallback` | `(ctx: UnifiedHeaderContext) => string` | Read/Write | Render the unified grid header label. |
 | `getMonthHeaderCallback` | `(ctx: MonthHeaderContext) => string` | Read/Write | Render a per-column month header label. |
 | `getCustomStylesCallback` | `(ctx: PickerContext) => string \| null` | Read/Write | Return a CSS string injected into the Shadow DOM (core `createCustomStyles`, after the page-wide `window.components['web-daterangepicker'].customStyles` layer, so it overrides it). Wins over `custom-styles` when both are set. An `@import` is also linked in the document head (fonts). Raw CSS: never pass untrusted input. Property-only. |
