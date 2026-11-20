@@ -1,11 +1,235 @@
 <meta name="kmwc:title" content="🌍 Localization &amp; Custom Names">
-<meta name="kmwc:subtitle" content="Intl locales, UI <code>labels</code>, week-start-day, and full control over month &amp; weekday names">
+<meta name="kmwc:subtitle" content="The shared localization page — instance <code>labels</code>, the page-wide dictionary, <code>translateCallback</code>, screen-reader twins, <code>locale</code> date formatting and <code>shouldEscapeLabels</code> — then week start and custom month / weekday names">
 
-<link rel="stylesheet" href="examples-local.css">
+<div class="note">
+  Every UI string goes through core <code>/locale</code>. Keys are flat <code>&lt;elementType&gt;.&lt;name&gt;</code>
+  (<code>buttons.today</code>, <code>labels.days</code>, <code>ariaLabels.clear</code>, …) — the full list is the
+  <code>labels</code> property in <code>API.md</code>. Per key: the instance <code>labels</code> (short or full
+  <code>web-daterangepicker.</code> key) → the element's own <code>translateCallback</code> → the page-wide
+  <code>translateCallback</code> → the page dictionary <code>window.components.locale.labels</code> → the built-in English.
+  The page-wide toggles (LO08, LO09, LO11, LO12) are <strong>page-wide</strong>: they change every picker on this page, on purpose.
+</div>
+
+<!-- ============================================================= -->
+<!-- LO01 · Instance labels                                        -->
+<!-- ============================================================= -->
+<div class="card">
+  <h2>LO01 · Instance <code>labels</code></h2>
+  <p>Override texts on ONE element with the <code>labels</code> property (or a JSON <code>labels</code> attribute). A short
+    key (<code>buttons.today</code>, <code>labels.days</code>) and a full key (<code>web-daterangepicker.buttons.clear</code>)
+    both work; every key you leave out stays English. <code>{count}</code> is interpolated (locale-formatted). The
+    neighbour picker is untouched.</p>
+  <div class="controls">
+    <label><input type="checkbox" id="lo01-labels" checked> instance <code>labels</code> on the first picker</label>
+  </div>
+  <div class="demo-area">
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label class="demo-label">With <code>labels</code></label>
+        <web-daterangepicker id="lo01" selection-mode="range" show-summary positioning-mode="inline"
+          visible-month-count="1" value="2026-06-10 - 2026-06-14"></web-daterangepicker>
+      </div>
+      <div class="form-group">
+        <label class="demo-label">Without (English)</label>
+        <web-daterangepicker id="lo01-plain" selection-mode="range" show-summary positioning-mode="inline"
+          visible-month-count="1" value="2026-06-10 - 2026-06-14"></web-daterangepicker>
+      </div>
+    </div>
+    <div class="output"><div class="output-label">rendered strings</div><pre id="lo01-out"></pre></div>
+  </div>
+  <div class="code-block" data-language="js"><pre><code>el.labels = {
+  'buttons.today': 'Dnes',                          // short key
+  'labels.days': '{count} dní',
+  'web-daterangepicker.buttons.clear': 'Vymazat',   // full key
+};
+// or declaratively
+&lt;web-daterangepicker labels='{"buttons.today":"Dnes","labels.days":"{count} dní"}'&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
+</div>
+
+<!-- ============================================================= -->
+<!-- LO08 · Page-wide dictionary                                    -->
+<!-- ============================================================= -->
+<div class="card">
+  <h2>LO08 · Page-wide dictionary</h2>
+  <p>One flat dictionary on <code>window.components.locale.labels</code> — the app's translation JSON as loaded, full keys
+    <code>'web-daterangepicker.&lt;elementType&gt;.&lt;name&gt;'</code>, other components' keys side by side — translates
+    every picker on the page at once. Assigning <code>window.components.locale</code> re-renders the live pickers (selection
+    kept). Keys an instance set itself (LO01) still win.</p>
+  <div class="controls">
+    <label><input type="checkbox" id="lo08-dict"> page dictionary (Czech)</label>
+  </div>
+  <div class="demo-area">
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label class="demo-label">Range</label>
+        <web-daterangepicker id="lo08a" selection-mode="range" show-summary positioning-mode="inline"
+          visible-month-count="1" value="2026-06-10 - 2026-06-14"></web-daterangepicker>
+      </div>
+      <div class="form-group">
+        <label class="demo-label">Date + time</label>
+        <web-daterangepicker id="lo08b" picker-mode="datetime" positioning-mode="inline"
+          value="2026-06-15 14:30"></web-daterangepicker>
+      </div>
+    </div>
+    <div class="output"><div class="output-label">rendered strings</div><pre id="lo08-out"></pre></div>
+  </div>
+  <div class="code-block" data-language="js"><pre><code>// e.g. const labels = await (await fetch('/i18n/cs.json')).json();
+window.components.locale = {
+  labels: {
+    'web-daterangepicker.buttons.today': 'Dnes',
+    'web-daterangepicker.buttons.clear': 'Vymazat',
+    'web-daterangepicker.buttons.now': 'Teď',
+    'web-daterangepicker.labels.day': '{count} den',
+    'web-daterangepicker.labels.days': '{count} dní',
+    'web-daterangepicker.labels.night': '{count} noc',
+    'web-daterangepicker.labels.nights': '{count} nocí',
+    'web-daterangepicker.labels.time': 'Čas',
+    'web-multiselect.placeholders.search': 'Hledat…',   // other components share the same JSON
+  },
+};</code></pre></div>
+</div>
+
+<!-- ============================================================= -->
+<!-- LO09 · translateCallback                                       -->
+<!-- ============================================================= -->
+<div class="card">
+  <h2>LO09 · <code>translateCallback</code></h2>
+  <p>An app with its own i18n (i18next, FormatJS, …) answers keys through a callback instead of a dictionary. It gets
+    <code>{ component, key, template, params, locale }</code> — <code>key</code> is the full
+    <code>web-daterangepicker.&lt;elementType&gt;.&lt;name&gt;</code> — and returns the text, or <code>null</code> = not mine.
+    The element's own <code>translateCallback</code> is asked first (German, only <code>buttons.today</code> here); its
+    <code>null</code> passes the key on to the page-wide one (a small Slovak i18next-like lookup). A key the instance
+    <code>labels</code> set (the second picker's <code>buttons.today</code>) is never sent to any callback.</p>
+  <div class="controls">
+    <label><input type="checkbox" id="lo09-page"> page-wide <code>translateCallback</code> (Slovak)</label>
+    <label><input type="checkbox" id="lo09-own"> first picker's own <code>translateCallback</code> (German)</label>
+  </div>
+  <div class="demo-area">
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label class="demo-label">Own callback</label>
+        <web-daterangepicker id="lo09a" selection-mode="range" show-summary positioning-mode="inline"
+          visible-month-count="1" value="2026-06-10 - 2026-06-14"></web-daterangepicker>
+      </div>
+      <div class="form-group">
+        <label class="demo-label">Instance <code>buttons.today</code></label>
+        <web-daterangepicker id="lo09b" selection-mode="range" show-summary positioning-mode="inline"
+          visible-month-count="1" value="2026-06-10 - 2026-06-14"
+          labels='{"buttons.today":"Instance wins"}'></web-daterangepicker>
+      </div>
+    </div>
+    <div class="output"><div class="output-label">rendered strings</div><pre id="lo09-out"></pre></div>
+  </div>
+  <div class="code-block" data-language="js"><pre><code>// an i18next-like lookup: a dictionary + t(key, params)
+const sk = {
+  'web-daterangepicker.buttons.today': 'Dnes',
+  'web-daterangepicker.buttons.clear': 'Vymazať',
+  'web-daterangepicker.labels.days': '{{count}} dní',
+};
+const t = (key, params) =&gt; sk[key]?.replace(/\{\{(\w+)\}\}/g, (_, p) =&gt; params?.[p] ?? '');
+const exists = (key) =&gt; key in sk;
+
+// page-wide — every component on the page
+window.components.locale = { translateCallback: ({ key, params }) =&gt; (exists(key) ? t(key, params) : null) };
+
+// one element — asked BEFORE the page-wide callback; null = not mine
+el.translateCallback = ({ key }) =&gt; (key === 'web-daterangepicker.buttons.today' ? 'Heute' : null);</code></pre></div>
+</div>
+
+<!-- ============================================================= -->
+<!-- LO10 · Screen-reader name / tooltip follow                     -->
+<!-- ============================================================= -->
+<div class="card">
+  <h2>LO10 · Screen-reader name / tooltip follow</h2>
+  <p>An <code>ariaLabels.x</code> / <code>tooltips.x</code> nobody set takes the first customized key of the same
+    <code>&lt;name&gt;</code>, so translating one string of a pair translates its twin. Here: translate only the footer
+    caption <code>buttons.clear</code> — the input's inline ✕ button is named by <code>ariaLabels.clear</code>, which
+    nobody set, and it follows. The box below reads the ✕'s <code>aria-label</code> from the shadow root. (The picker has
+    no <code>tooltips.*</code> keys; <code>ariaLabels.close</code> has no visible twin.)</p>
+  <div class="controls">
+    <label><input type="checkbox" id="lo10-clear"> translate <code>buttons.clear</code> only</label>
+  </div>
+  <div class="demo-area">
+    <label class="demo-label">A floating picker with a value (the ✕ shows at the input's end)</label>
+    <web-daterangepicker id="lo10" value="2026-06-15" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
+    <div class="output"><div class="output-label">accessible name of the input ✕ button</div><pre id="lo10-out"></pre></div>
+  </div>
+  <div class="code-block" data-language="js"><pre><code>el.labels = { 'buttons.clear': 'Vymazat' };
+// → footer button "Vymazat" AND the input ✕ aria-label "Vymazat" (ariaLabels.clear was never set)
+// an explicitly set ariaLabels.clear always wins over the twin</code></pre></div>
+</div>
+
+<!-- ============================================================= -->
+<!-- LO11 · locale + formatting                                     -->
+<!-- ============================================================= -->
+<div class="card">
+  <h2>LO11 · <code>locale</code> + formatting</h2>
+  <p>The element's language — the <code>locale</code> input → the page <code>window.components.locale.locale</code> →
+    the browser — drives the <strong>shown date format</strong> (with no <code>date-format-mask</code>:
+    <code>cs</code> <code>15. 06. 2026</code>, <code>de</code> <code>15.06.2026</code>, <code>en-US</code>
+    <code>06/15/2026</code>; a page-wide <code>window.components.locale.dateFormat</code> or an explicit mask wins; the
+    submitted value stays ISO), the <code>Intl</code> <strong>month / weekday names</strong>, the <strong>week start</strong>
+    under <code>week-start-day="auto"</code> and the numbers in <code>{count}</code> labels.</p>
+  <div class="controls"><strong class="muted">page locale</strong>
+    <label><input type="radio" name="lo11-locale" value="" checked> unset (browser)</label>
+    <label><input type="radio" name="lo11-locale" value="cs-CZ"> cs-CZ</label>
+    <label><input type="radio" name="lo11-locale" value="de-DE"> de-DE</label>
+    <label><input type="radio" name="lo11-locale" value="en-US"> en-US</label>
+    <label><input type="radio" name="lo11-locale" value="en-GB"> en-GB</label>
+  </div>
+  <div class="demo-area">
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label class="demo-label"><code>locale="fr"</code> (its own — ignores the page)</label>
+        <web-daterangepicker id="lo11a" locale="fr" value="2026-06-15"></web-daterangepicker>
+        <web-daterangepicker id="lo11a-cal" locale="fr" week-start-day="auto" positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+      </div>
+      <div class="form-group">
+        <label class="demo-label">No <code>locale</code> (page → browser)</label>
+        <web-daterangepicker id="lo11b" value="2026-06-15"></web-daterangepicker>
+        <web-daterangepicker id="lo11b-cal" week-start-day="auto" positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
+      </div>
+    </div>
+    <div class="output"><div class="output-label">shown date · month · first weekday column</div><pre id="lo11-out"></pre></div>
+  </div>
+  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker locale="fr" value="2026-06-15"&gt;&lt;/web-daterangepicker&gt;   &lt;!-- 15/06/2026 · juin · lun. --&gt;
+&lt;script&gt;
+  window.components.locale = { locale: 'cs-CZ' };                            // every picker without its own locale
+  window.components.locale = { locale: 'cs-CZ', dateFormat: 'YYYY-MM-DD' };   // one page-wide shown format
+&lt;/script&gt;
+&lt;web-daterangepicker date-format-mask="DD.MM.YYYY"&gt;&lt;/web-daterangepicker&gt;   &lt;!-- an explicit mask always wins --&gt;</code></pre></div>
+</div>
+
+<!-- ============================================================= -->
+<!-- LO12 · shouldEscapeLabels                                      -->
+<!-- ============================================================= -->
+<div class="card">
+  <h2>LO12 · <code>shouldEscapeLabels</code></h2>
+  <p>Labels rendered as HTML (the summary <code>labels.day(s)</code> / <code>labels.night(s)</code> /
+    <code>labels.preview</code>, the time-picker captions) are templates: the template's own <code>&lt;b&gt;</code> renders
+    bold, while a <code>{param}</code> is DATA and always escaped (a typed <code>&lt;i&gt;Ann&lt;/i&gt;</code> would show
+    its tags as text — here the only param is the number <code>{count}</code>). With
+    <code>window.components.security.shouldEscapeLabels</code> the whole label is text: the template's <code>&lt;b&gt;</code>
+    shows as characters too (for apps whose translators must not inject markup). Buttons and aria names are always text.</p>
+  <div class="controls">
+    <label><input type="checkbox" id="lo12-escape"> <code>shouldEscapeLabels</code></label>
+  </div>
+  <div class="demo-area">
+    <label class="demo-label"><code>labels.days</code> = <code>&lt;b&gt;{count}&lt;/b&gt; days</code></label>
+    <web-daterangepicker id="lo12" selection-mode="range" show-summary positioning-mode="inline"
+      visible-month-count="1" value="2026-06-10 - 2026-06-14"
+      labels='{"labels.days":"<b>{count}</b> days"}'></web-daterangepicker>
+    <div class="output"><div class="output-label">the summary: markup → shown text</div><pre id="lo12-out"></pre></div>
+  </div>
+  <div class="code-block" data-language="js"><pre><code>el.labels = { 'labels.days': '&lt;b&gt;{count}&lt;/b&gt; days' };
+// → &lt;b&gt;5&lt;/b&gt; days   (bold)
+window.components.security = { shouldEscapeLabels: true };
+// → &amp;lt;b&amp;gt;5&amp;lt;/b&amp;gt; days   (the whole label is text)</code></pre></div>
+</div>
 
 <div class="note info">
-  <strong>Two override surfaces:</strong> the <code>month-names</code> and <code>weekday-names</code>
-  <strong>HTML attributes</strong> take a pipe-delimited (<code>|</code>) list, and the
+  <strong>Component extras below (LO02–LO07): week start and custom names.</strong> The <code>month-names</code> and
+  <code>weekday-names</code> <strong>HTML attributes</strong> take a pipe-delimited (<code>|</code>) list, and the
   <code>monthNames</code> / <code>weekdayNames</code> <strong>JS properties</strong> take a string array.
   When both are set, the property wins.
 </div>
@@ -16,53 +240,6 @@
   <code>Date.getMonth()</code>), and <code>weekday-names</code> is <strong>always authored Sunday-first</strong>:
   <code>[0]</code>=Sunday … <code>[6]</code>=Saturday (matches <code>Date.getDay()</code>).
   <code>week-start-day</code> only <em>rotates the display</em> — you never re-order the list.
-</div>
-
-<!-- Built-in locales -->
-<div class="card">
-  <h2>LO01 · Locales + labels</h2>
-  <p>The <code>locale</code> attribute drives the <code>Intl</code>-based month/weekday names for any
-    BCP-47 locale (<code>auto</code> = the browser language). The UI strings (buttons, summary, time
-    picker) are <strong>not</strong> bundled per language: they come from one <code>labels</code> object —
-    a partial override of the English defaults, as a property or a JSON attribute. <code>{count}</code>
-    is interpolated in the summary counts.</p>
-
-  <div class="grid" style="--grid-min: 320px; --grid-gap: 1.5rem">
-    <div class="form-group">
-      <label>English (locale="en")</label>
-      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-        locale="en" positioning-mode="inline"></web-daterangepicker>
-    </div>
-    <div class="form-group">
-      <label>German (locale="de")</label>
-      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-        locale="de" positioning-mode="inline"
-        labels='{"buttons.today":"Heute","buttons.clear":"Löschen"}'></web-daterangepicker>
-    </div>
-    <div class="form-group">
-      <label>French (locale="fr")</label>
-      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-        locale="fr" positioning-mode="inline"
-        labels='{"buttons.today":"Aujourd&apos;hui","buttons.clear":"Effacer"}'></web-daterangepicker>
-    </div>
-    <div class="form-group">
-      <label>Spanish (locale="es")</label>
-      <web-daterangepicker selection-mode="single" initial-date="2026-06-15"
-        locale="es" positioning-mode="inline"
-        labels='{"buttons.today":"Hoy","buttons.clear":"Limpiar"}'></web-daterangepicker>
-    </div>
-  </div>
-
-  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker locale="de"
-labels='{"buttons.today":"Heute","buttons.clear":"Löschen","buttons.apply":"Übernehmen","labels.days":"{count} Tage","labels.nights":"{count} Nächte"}'&gt;&lt;/web-daterangepicker&gt;
-
-// or as a property — flat &lt;elementType&gt;.&lt;name&gt; keys: buttons.today / clear / apply / now,
-// ariaLabels.clear / close, labels.preview / day / days / night / nights / selectionCount,
-// labels.time / am / pm / hours / minutes / seconds, headers.fullscreen, errors.valueFormat, ariaLabels.loading
-el.labels = { 'buttons.today': 'Heute', 'labels.days': '{count} Tage' };
-
-// page-wide, every picker: ONE flat dictionary of full keys
-window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Heute' } };</code></pre></div>
 </div>
 
 <!-- week-start-day -->
@@ -232,11 +409,121 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
 </div>
 
 <script type="module">
+  const $ = (id) => document.getElementById(id);
+
   // No whenDefined() needed — pre-upgrade properties are lifted on connect.
-  const el = document.getElementById('js-names');
-  el.monthNames = [
+  const jsNames = $('js-names');
+  jsNames.monthNames = [
     'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
     'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'
   ];
-  el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];
+  jsNames.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];
+
+  // ── Page-wide state: window.components.locale is ONE object (assigning replaces it), so every
+  //    page-wide toggle (LO08 dictionary, LO09 callback, LO11 locale) composes it from here.
+  const page = { labels: null, translateCallback: null, locale: '' };
+  const applyPage = () => {
+    const next = {};
+    if (page.labels) next.labels = page.labels;
+    if (page.translateCallback) next.translateCallback = page.translateCallback;
+    if (page.locale) next.locale = page.locale;
+    window.components.locale = next;
+    refreshAll();
+  };
+
+  // ── Readouts: what the shadow root actually renders.
+  const sr = (id) => $(id).shadowRoot;
+  const buttons = (id) => [...(sr(id)?.querySelectorAll('.drp__button') ?? [])].map((b) => b.textContent.trim()).join(' / ') || '(none)';
+  const summary = (id) => sr(id)?.querySelector('.drp__summary')?.textContent.replace(/\s+/g, ' ').trim() || '(none)';
+  const timeLabel = (id) => sr(id)?.querySelector('.drp__time-label')?.textContent.trim() ?? '(none)';
+  const month = (id) => sr(id)?.querySelector('.drp__month-year')?.textContent.trim() ?? '(none)';
+  const firstWeekday = (id) => sr(id)?.querySelector('.drp__weekdays')?.textContent.trim().split(/\s+/)[0] ?? '(none)';
+  const shown = (id) => sr(id)?.querySelector('input.drp__input')?.value ?? '(none)';
+  const clearName = (id) => sr(id)?.querySelector('.drp__input-clear')?.getAttribute('aria-label') ?? '(none)';
+  const settle = async () => {
+    await Promise.all([...document.querySelectorAll('web-daterangepicker')].map((el) => el.whenSettled?.()));
+    await new Promise((r) => requestAnimationFrame(() => r()));
+  };
+  const write = (id, lines) => { $(id).textContent = lines.join('\n'); };
+
+  async function refreshAll() {
+    await settle();
+    write('lo01-out', [
+      `#lo01        buttons: ${buttons('lo01')}   summary: ${summary('lo01')}`,
+      `#lo01-plain  buttons: ${buttons('lo01-plain')}   summary: ${summary('lo01-plain')}`,
+    ]);
+    write('lo08-out', [
+      `#lo08a  buttons: ${buttons('lo08a')}   summary: ${summary('lo08a')}`,
+      `#lo08b  buttons: ${buttons('lo08b')}   time caption: ${timeLabel('lo08b')}`,
+    ]);
+    write('lo09-out', [
+      `#lo09a  buttons: ${buttons('lo09a')}   summary: ${summary('lo09a')}`,
+      `#lo09b  buttons: ${buttons('lo09b')}   summary: ${summary('lo09b')}`,
+    ]);
+    write('lo10-out', [`aria-label: ${clearName('lo10')}`]);
+    write('lo11-out', [
+      `locale="fr"  shown: ${shown('lo11a')}   month: ${month('lo11a-cal')}   week starts: ${firstWeekday('lo11a-cal')}`,
+      `page         shown: ${shown('lo11b')}   month: ${month('lo11b-cal')}   week starts: ${firstWeekday('lo11b-cal')}`,
+    ]);
+    const count = sr('lo12')?.querySelector('.drp__summary-count');
+    write('lo12-out', count
+      ? [`markup: ${count.innerHTML.trim()}`, `text:   ${count.textContent.trim()}`]
+      : ['(no summary)']);
+  }
+
+  // ── LO01 · instance labels.
+  const LO01_LABELS = {
+    'buttons.today': 'Dnes',
+    'labels.days': '{count} dní',
+    'labels.nights': '{count} nocí',
+    'web-daterangepicker.buttons.clear': 'Vymazat',
+  };
+  const lo01 = () => { $('lo01').labels = $('lo01-labels').checked ? LO01_LABELS : undefined; refreshAll(); };
+  $('lo01-labels').addEventListener('change', lo01);
+  lo01();
+
+  // ── LO08 · page dictionary.
+  const CS = {
+    'web-daterangepicker.buttons.today': 'Dnes',
+    'web-daterangepicker.buttons.clear': 'Vymazat',
+    'web-daterangepicker.buttons.now': 'Teď',
+    'web-daterangepicker.labels.day': '{count} den',
+    'web-daterangepicker.labels.days': '{count} dní',
+    'web-daterangepicker.labels.night': '{count} noc',
+    'web-daterangepicker.labels.nights': '{count} nocí',
+    'web-daterangepicker.labels.time': 'Čas',
+    'web-multiselect.placeholders.search': 'Hledat…',
+  };
+  $('lo08-dict').addEventListener('change', (e) => { page.labels = e.target.checked ? CS : null; applyPage(); });
+
+  // ── LO09 · translateCallback.
+  const sk = {
+    'web-daterangepicker.buttons.today': 'Dnes',
+    'web-daterangepicker.buttons.clear': 'Vymazať',
+    'web-daterangepicker.labels.days': '{{count}} dní',
+  };
+  const t = (key, params) => sk[key].replace(/\{\{(\w+)\}\}/g, (_, p) => String(params?.[p] ?? ''));
+  const pageTranslate = ({ key, params }) => (key in sk ? t(key, params) : null);
+  const ownTranslate = ({ key }) => (key === 'web-daterangepicker.buttons.today' ? 'Heute' : null);
+  $('lo09-page').addEventListener('change', (e) => { page.translateCallback = e.target.checked ? pageTranslate : null; applyPage(); });
+  $('lo09-own').addEventListener('change', (e) => { $('lo09a').translateCallback = e.target.checked ? ownTranslate : undefined; refreshAll(); });
+
+  // ── LO10 · twin follow.
+  $('lo10-clear').addEventListener('change', (e) => {
+    $('lo10').labels = e.target.checked ? { 'buttons.clear': 'Vymazat' } : undefined;
+    refreshAll();
+  });
+
+  // ── LO11 · page locale.
+  for (const radio of document.querySelectorAll('input[name="lo11-locale"]')) {
+    radio.addEventListener('change', (e) => { page.locale = e.target.value; applyPage(); });
+  }
+
+  // ── LO12 · shouldEscapeLabels.
+  $('lo12-escape').addEventListener('change', (e) => {
+    window.components.security = { shouldEscapeLabels: e.target.checked };
+    refreshAll();
+  });
+
+  refreshAll();
 </script>

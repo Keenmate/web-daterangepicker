@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Docs — the shared localization page (2026-11-21)
+- **`examples-localization.html` — the shared localization page**: the six shared sections first (LO01 instance
+  `labels`, LO08 page-wide dictionary, LO09 `translateCallback`, LO10 screen-reader name follow, LO11 `locale` +
+  date formatting / names / week start, LO12 `shouldEscapeLabels`) with live readouts, then the picker extras
+  (LO02–LO07, codes unchanged). New `e2e/examples.spec.ts` smoke test for the page.
+
 ### Removed — BREAKING: `DateRangePickerEngine` is no longer exported (2026-11-21)
 - **`DateRangePickerEngine` is no longer exported: it only drew the same UI without the custom element.
   Use `<web-daterangepicker>`** (`document.createElement('web-daterangepicker')` + its properties / events —
