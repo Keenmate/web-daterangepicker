@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — the page-wide icon hook repaints live pickers (2026-11-22)
+- **Assigning `window.components.renderIconCallback` after a picker rendered repaints its action-button icons**
+  (core `iconsChanged()` hook, rulebook C-CA-40) — in place: the selection, the shown months and an open calendar
+  stay. Load order between the page's icon setup and the component no longer matters.
+
 ### Changed — `locale` is unset by default (2026-11-21)
 - **The `locale` input defaults to unset (`el.locale` reads `null`) instead of `'auto'`** (rulebook C-CA-38, the
   shape every Keenmate component shares). Unset = the page-wide `window.components.locale.locale`, else the browser

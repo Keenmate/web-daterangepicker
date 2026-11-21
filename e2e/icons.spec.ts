@@ -1,4 +1,4 @@
-import { test, expect, pickerById } from './fixtures';
+import { test, expect, pickerById, dayByDate } from './fixtures';
 
 /**
  * Action-button icons are data read by core `renderIcon` (SPEC §12.33): markup raw, a built-in name masked (no hook
@@ -77,4 +77,43 @@ test('changing renderIconCallback re-renders the action bar in place', async ({ 
     await expect(icon(page, 'word').locator('b.late')).toHaveCount(1);
     await p.evaluate((el: any) => { el.renderIconCallback = null; });
     await expect(icon(page, 'word').locator('i.drp__icon.star')).toHaveCount(1);
+});
+
+test.describe('page-wide renderIconCallback assigned after render (core iconsChanged, C-CA-40)', () => {
+    test.afterEach(async ({ page }) => {
+        await page.evaluate(() => { (window as any).components.renderIconCallback = null; });
+    });
+
+    test('inline: the icons repaint, the selection stays', async ({ page }) => {
+        await setButtons(page);
+        const p = pickerById(page, 'icons');
+        await p.evaluate((el: any) => { el.selectedDate = new Date(2026, 5, 18); return el.whenSettled(); });
+        await expect(icon(page, 'word').locator('i.drp__icon.star')).toHaveCount(1);
+        await page.evaluate(() => {
+            (window as any).components.renderIconCallback = (name: string) => (name === 'star' ? '<b data-test-icon>x</b>' : null);
+        });
+        await expect(icon(page, 'word').locator('b[data-test-icon]')).toHaveCount(1);
+        await expect(dayByDate(p, '2026-06-18')).toHaveClass(/drp__day--selected/);
+        // Cleared again → back to the icon-font class.
+        await page.evaluate(() => { (window as any).components.renderIconCallback = null; });
+        await expect(icon(page, 'word').locator('i.drp__icon.star')).toHaveCount(1);
+    });
+
+    test('floating: an open calendar stays open and keeps the selection', async ({ page }) => {
+        const p = pickerById(page, 'icons-floating');
+        await p.evaluate((el: any, buttons) => {
+            el.actionButtons = buttons;
+            el.selectedDate = new Date(2026, 5, 18);
+            return el.whenSettled().then(() => el.open());
+        }, BUTTONS);
+        await expect.poll(() => p.evaluate((el: any) => el.isOpen)).toBe(true);
+        const word = p.locator('.drp__button[data-id="word"] .drp__button-icon');
+        await expect(word.locator('i.drp__icon.star')).toHaveCount(1);
+        await page.evaluate(() => {
+            (window as any).components.renderIconCallback = (name: string) => (name === 'star' ? '<b data-test-icon>x</b>' : null);
+        });
+        await expect(word.locator('b[data-test-icon]')).toHaveCount(1);
+        expect(await p.evaluate((el: any) => el.isOpen)).toBe(true);
+        await expect(dayByDate(p, '2026-06-18')).toHaveClass(/drp__day--selected/);
+    });
 });

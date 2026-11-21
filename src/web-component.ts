@@ -929,6 +929,18 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if (this.#hasFormatError) this.#applyFormatError();
   }
 
+  // ── page-wide icon hook (core `iconsChanged`, SPEC §12.33) ────────────────
+
+  /**
+   * `window.components.renderIconCallback` changed after the picker rendered (core hook —
+   * overriding opts in). The action-button icons are the only `renderIcon` output; the
+   * in-place re-render repaints them (the action bar is re-rendered with the calendar) —
+   * no rebuild, so selection, navigation and an open calendar survive.
+   */
+  protected override iconsChanged(): void {
+    this.#picker?.renderCalendar();
+  }
+
   // ── responsive presentation (SPEC §12.9) ──────────────────────────────────
 
   /**

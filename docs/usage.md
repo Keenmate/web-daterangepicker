@@ -24,6 +24,7 @@ page see the README quick start; for theming see
   - [Month navigation & bulk metadata loading (`beforeMonthChangeCallback` / `getMonthDataCallback`)](#month-navigation--bulk-metadata-loading-beforemonthchangecallback--getmonthdatacallback)
   - [Scrolling (`beforeScrollCallback`)](#scrolling-beforescrollcallback)
   - [Messages & actions](#messages--actions)
+  - [Action-button icons](#action-button-icons)
   - [Labels (i18n)](#labels-i18n)
   - [Locking (read-only)](#locking-read-only)
   - [Responsive rules](#responsive-rules)
@@ -812,6 +813,17 @@ picker.hideMessage();
 - `data-action="custom" data-id="…"` — fires the `action` event with `action: 'custom'`, `id` from `data-id`, `source: 'message'` (or `'summary'` / `'calendar'`), `triggerElement`, and the remaining `data-*` attributes in `detail.dataset`.
 - `data-action="today" | "now" | "clear" | "apply"` — runs that built-in, then fires the `action` event.
 - The message's own ✕ close button is internal and fires nothing; to dismiss from your own button, handle its `action` event and call `hideMessage()`.
+
+### Action-button icons
+
+A footer button's `icon` (`actionButtons`) goes through core `renderIcon`: markup raw, a built-in name
+(`check`, `close`, …) as a masked glyph, then the element's `renderIconCallback`, the page-wide
+`window.components.renderIconCallback` (`null` = "not mine"), an icon-font class list
+(`<i class="drp__icon fa-solid fa-flag">`), anything else as text. Changing
+`window.components.renderIconCallback` later repaints the icons (selection and an open calendar stay).
+An icon font's CSS must reach the shadow root — load it through `customStyles` / the page-wide
+`window.components['web-daterangepicker'].customStyles` (an `@import` is hoisted to the document head so
+its `@font-face` loads; see [theming](theming.md)).
 
 ### Shown date format
 
