@@ -94,3 +94,42 @@ test('the element translateCallback beats the page one; null passes on; instance
     await expect(p.locator('.drp__button--clear')).toHaveText('Element');
     await expect(p.locator('.drp__button--today')).toHaveText('Mine');
 });
+
+// A callback context's ctx.labels is core createLabelsView: only { text, html } over the full chain — the element's
+// translateCallback, the page-wide one, numbers locale-formatted (cs-CZ), the instance labels win.
+test('renderSummaryCallback ctx.labels: element + page translateCallback, locale numbers, instance labels win', async ({ page }) => {
+    await page.evaluate(() => {
+        (window as any).components.locale = {
+            locale: 'cs-CZ',
+            translateCallback: ({ key, params }: any) => key === 'web-daterangepicker.labels.nights' ? `Page ${params.count} nocí` : undefined,
+        };
+    });
+    const el = pickerById(page, 'summary');
+    await el.evaluate((e: any) => {
+        e.translateCallback = ({ key, params }: any) => key === 'web-daterangepicker.labels.days' ? `Element ${params.count} dní` : null;
+        e.renderSummaryCallback = (ctx: any) => {
+            (window as any).__labelsKeys = Object.keys(ctx.labels).sort();
+            (window as any).__labelsFrozen = Object.isFrozen(ctx.labels);
+            return `<span class="x-days">${ctx.labels.html('labels.days', { count: ctx.days })}</span>`
+                + `<span class="x-nights">${ctx.labels.html('labels.nights', { count: ctx.nights })}</span>`
+                + `<span class="x-count">${ctx.labels.text('labels.selectionCount', { count: 1500 })}</span>`;
+        };
+        return e.whenSettled();
+    });
+    const p = await open(page, 'summary');
+    await p.locator('.drp__day[data-date="2026-06-10"]').click();
+    await p.locator('.drp__day[data-date="2026-06-13"]').click();
+    const summary = p.locator('.drp__summary');
+    await expect(summary.locator('.x-days')).toHaveText('Element 4 dní');
+    await expect(summary.locator('.x-nights')).toHaveText('Page 3 nocí');
+    // the default {count} formatting goes through the locale (cs-CZ groups with a (narrow) no-break space)
+    await expect(summary.locator('.x-count')).toHaveText(/^1\s500 selection\(s\)$/);
+    expect(await page.evaluate(() => (window as any).__labelsKeys)).toEqual(['html', 'text']);
+    expect(await page.evaluate(() => (window as any).__labelsFrozen)).toBe(true);
+
+    // the instance labels win over both callbacks
+    await el.evaluate((e: any) => { e.labels = { 'labels.days': 'Mine {count}' }; return e.whenSettled(); });
+    await el.evaluate((e: any) => e.open());
+    await expect(summary.locator('.x-days')).toHaveText('Mine 4');
+    await expect(summary.locator('.x-nights')).toHaveText('Page 3 nocí');
+});

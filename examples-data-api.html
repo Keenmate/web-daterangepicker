@@ -2349,17 +2349,17 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
             ) + 1;
             const disabledCount = totalDaysInRange - data.days;
 
-            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.labels.html('labels.preview')}: </span>` : '';
 
             return `
               ${prefix}
               <div style="font-size: 0.9em;">
                 <div><strong>${data.dateRanges.length}</strong> separate periods</div>
-                <div style="opacity: 0.7; font-size: 0.85em;">${data.days} ${data.localeStrings.days} total (${disabledCount} disabled)</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })} total (${disabledCount} disabled)</div>
               </div>
             `;
           } else if (data.dateRanges && data.dateRanges.length === 1) {
-            return `${data.days} ${data.localeStrings.days}, ${data.nights} ${data.localeStrings.nights}`;
+            return `${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })}, ${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}`;
           }
           return '';
         };
@@ -2408,7 +2408,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
             ) + 1;
             const disabledCount = totalDaysInRange - data.days;
 
-            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.labels.html('labels.preview')}: </span>` : '';
 
             return `
               ${prefix}
@@ -2501,12 +2501,12 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
         summaryPricing.renderSummaryCallback = (data) => {
           const pricePerNight = 150;
           const total = data.nights * pricePerNight;
-          const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+          const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.labels.html('labels.preview')}: </span>` : '';
 
           return `
             ${prefix}
             <div style="display: flex; justify-content: space-between; width: 100%; gap: 1rem;">
-              <span>${data.nights} ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
+              <span>${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}</span>
               <span style="font-weight: bold; color: var(--kmwc-success-color);">${total}</span>
             </div>
           `;
@@ -2517,7 +2517,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
       if (summaryWeekdays) {
         summaryWeekdays.renderSummaryCallback = (data) => {
           if (data.enabledDates && data.disabledDates) {
-            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.labels.html('labels.preview')}: </span>` : '';
 
             return `
               ${prefix}
@@ -2527,7 +2527,7 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
               </div>
             `;
           }
-          return `${data.days} ${data.localeStrings.days}`;
+          return `${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })}`;
         };
       }
 
@@ -2535,17 +2535,17 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
       if (summarySplit) {
         summarySplit.renderSummaryCallback = (data) => {
           if (data.dateRanges && data.dateRanges.length > 1) {
-            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+            const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.labels.html('labels.preview')}: </span>` : '';
 
             return `
               ${prefix}
               <div style="font-size: 0.9em;">
                 <div><strong>${data.dateRanges.length}</strong> separate periods</div>
-                <div style="opacity: 0.7; font-size: 0.85em;">${data.days} ${data.localeStrings.days} total</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })} total</div>
               </div>
             `;
           } else {
-            return `${data.days} ${data.localeStrings.days}, ${data.nights} ${data.localeStrings.nights}`;
+            return `${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })}, ${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}`;
           }
         };
       }
@@ -2553,12 +2553,11 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
       const summaryNights = document.getElementById('summary-nights');
       if (summaryNights) {
         summaryNights.renderSummaryCallback = (data) => {
-          const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.localeStrings.preview}: </span>` : '';
+          const prefix = data.isPreview ? `<span style="opacity: 0.7;">${data.labels.html('labels.preview')}: </span>` : '';
 
           return `
             ${prefix}
-            <strong style="font-size: 1.1em; color: var(--kmwc-info-color);">${data.nights}</strong>
-            <span> ${data.nights === 1 ? data.localeStrings.night : data.localeStrings.nights}</span>
+            <strong style="font-size: 1.1em; color: var(--kmwc-info-color);">${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}</strong>
           `;
         };
       }

@@ -1852,7 +1852,7 @@ The `renderSummaryCallback` property allows you to completely customize the summ
 // <web-daterangepicker selection-mode="range">
 const picker = document.querySelector('web-daterangepicker');
 picker.renderSummaryCallback = (ctx) => {
-  return `<strong>${ctx.nights}</strong> ${ctx.nights === 1 ? ctx.localeStrings.night : ctx.localeStrings.nights}`;
+  return `<strong>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</strong>`;
 };
 ```
 
@@ -1867,7 +1867,7 @@ picker.renderSummaryCallback = (ctx) => {
 
   return `
     <div style="display: flex; justify-content: space-between; width: 100%;">
-      <span>${ctx.nights} ${ctx.nights === 1 ? ctx.localeStrings.night : ctx.localeStrings.nights}</span>
+      <span>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</span>
       <span style="font-weight: bold;">$${total}</span>
     </div>
   `;
@@ -1885,12 +1885,12 @@ picker.renderSummaryCallback = (ctx) => {
     return `
       <div>
         <div>${ctx.dateRanges.length} separate periods</div>
-        <div>${ctx.days} ${ctx.localeStrings.days} total</div>
+        <div>${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })} total</div>
       </div>
     `;
   } else {
     // Single range
-    return `${ctx.days} ${ctx.localeStrings.days}, ${ctx.nights} ${ctx.localeStrings.nights}`;
+    return `${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })}, ${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}`;
   }
 };
 ```
@@ -1909,7 +1909,7 @@ picker.renderSummaryCallback = (ctx) => {
       </div>
     `;
   }
-  return `${ctx.days} ${ctx.localeStrings.days}`;
+  return `${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })}`;
 };
 ```
 
@@ -1920,13 +1920,13 @@ picker.renderSummaryCallback = (ctx) => {
 const picker = document.querySelector('web-daterangepicker');
 picker.renderSummaryCallback = (ctx) => {
   const prefix = ctx.isPreview ?
-    `<span style="opacity: 0.7;">${ctx.localeStrings.preview}: </span>` : '';
+    `<span style="opacity: 0.7;">${ctx.labels.html('labels.preview')}: </span>` : '';
 
   return `
     ${prefix}
-    <span>${ctx.days} ${ctx.days === 1 ? ctx.localeStrings.day : ctx.localeStrings.days}</span>
+    <span>${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })}</span>
     <span>, </span>
-    <span>${ctx.nights} ${ctx.nights === 1 ? ctx.localeStrings.night : ctx.localeStrings.nights}</span>
+    <span>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</span>
   `;
 };
 ```
@@ -1943,7 +1943,7 @@ The callback receives a context with the following properties (plus `controller`
 | `endDate` | `Date \| null` | Always | End date of selection |
 | `selectionMode` | `'single' \| 'range' \| 'multiple'` | Always | Current selection mode |
 | `disabledDatesHandling` | `string` | Always | Current disabled handling mode |
-| `labels` | `DateRangePickerLabels` | Always | The resolved UI labels (`{count}` templates) |
+| `labels` | `LabelsView<DateRangePickerLabels>` | Always | `labels.text(key, params)` / `labels.html(key, params)` (core `createLabelsView`) — the full chain: instance `labels`, the element's and the page-wide `translateCallback`, page-wide labels, English; numbers locale-formatted. E.g. `ctx.labels.html('labels.days', { count: ctx.days })` |
 | `isPreview` | `boolean` | Always | True when dragging (preview) |
 | `dateRanges` | `DateRange[]` | Split mode | Array of separate ranges |
 | `dates` | `Date[]` | Individual/Split mode | Array of selected dates |

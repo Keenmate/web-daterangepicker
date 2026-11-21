@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — BREAKING: `renderSummaryCallback`'s `ctx.labels` is `{ text, html }` (2026-11-21)
+- **`ctx.labels` in a callback context (`renderSummaryCallback`'s `SummaryContext`) is now core
+  `createLabelsView(labels)`: a frozen `{ text(key, params), html(key, params) }`** over the full chain — instance
+  `labels`, the element's and the page-wide `translateCallback`, page-wide labels, English — with numbers
+  locale-formatted (rulebook core-adoption.md). Before, it was the plain resolved-template object, so a callback
+  skipped both `translateCallback`s and had to fill `{count}` itself. Type: `DateRangePickerLabels` →
+  `LabelsView<DateRangePickerLabels>`.
+  ```js
+  // before
+  ctx.labels['labels.days'].replace('{count}', ctx.days)
+  // after
+  ctx.labels.html('labels.days', { count: ctx.days })   // innerHTML (params escaped); .text() for plain text
+  ```
+- Fixed: the custom-summary demos on the Data & API page and in API.md read the long-gone `ctx.localeStrings.*`
+  (threw / rendered `undefined`); they now use `ctx.labels.html('labels.days', { count })` etc.
+
 ### Docs — the shared localization page (2026-11-21)
 - **`examples-localization.html` — the shared localization page**: the six shared sections first (LO01 instance
   `labels`, LO08 page-wide dictionary, LO09 `translateCallback`, LO10 screen-reader name follow, LO11 `locale` +

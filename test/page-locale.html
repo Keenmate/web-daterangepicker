@@ -33,6 +33,11 @@
         <web-daterangepicker id="multi" selection-mode="multiple" initial-date="2026-06-15"></web-daterangepicker>
     </div>
 
+    <div class="fixture">
+        <div class="fixture-label">selection-mode="range" — a custom renderSummaryCallback reads ctx.labels.text() / .html() (core createLabelsView)</div>
+        <web-daterangepicker id="summary" selection-mode="range" initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
     <script>
         window.components = window.components || {};
         window.components.locale = { locale: 'cs-CZ' };

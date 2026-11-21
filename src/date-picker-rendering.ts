@@ -1415,7 +1415,7 @@ export function updateSummary(picker: any) {
                 endDate: picker._selectedEndDate,
                 selectionMode: picker.options.selectionMode,
                 disabledDatesHandling: picker.options.disabledDatesHandling,
-                labels: picker.labels.all(),
+                labels: picker.labelsView,
                 isPreview: false
             });
 
@@ -1517,7 +1517,7 @@ export function updateSummaryWithPreview(picker: any) {
                 endDate: picker.dragPreviewEnd,
                 selectionMode: picker.options.selectionMode,
                 disabledDatesHandling: picker.options.disabledDatesHandling,
-                labels: picker.labels.all(),
+                labels: picker.labelsView,
                 isPreview: true
             });
 

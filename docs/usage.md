@@ -887,6 +887,15 @@ other key (its `template` from the page dictionary, else English) goes to `el.tr
 picker.translateCallback = ({ key, params }) => key === 'web-daterangepicker.labels.days' ? i18n.t('days', params) : null;
 ```
 
+A callback context carries the same chain as `ctx.labels` (core `createLabelsView`) — only
+`ctx.labels.text(key, params)` (plain text) and `ctx.labels.html(key, params)` (for innerHTML, params escaped),
+never the plain label object; numbers in `params` are locale-formatted:
+
+```javascript
+picker.renderSummaryCallback = (ctx) =>
+  `<strong>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</strong>`;
+```
+
 `''` is a deliberate empty label (renders nothing); a missing / `undefined` key falls back to
 the English default. Content labels (`labels.preview`, `labels.day(s)`, `labels.night(s)`, `labels.time`,
 `labels.hours`, `labels.minutes`, `labels.seconds`, `labels.am` / `labels.pm` in the time pickers) are inserted as HTML — never pass

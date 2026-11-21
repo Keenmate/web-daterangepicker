@@ -2,7 +2,7 @@ import type {
   ComponentContext, PresentationContext, RenderLoaderCallback, RenderIconCallback, Presentation, ResponsiveMap, ResponsiveCallback, SlotResult,
 } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
-import type { TranslateCallback } from '@keenmate/web-components-core/locale';
+import type { LabelsView, TranslateCallback } from '@keenmate/web-components-core/locale';
 import type { Placement } from '@keenmate/web-components-core/positioning';
 import type { FormValueSelection } from './form-value';
 
@@ -993,8 +993,13 @@ export interface SummaryContext extends PickerContext {
   // Context
   selectionMode: 'single' | 'range' | 'multiple';
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
-  /** The resolved UI labels. */
-  labels: DateRangePickerLabels;
+  /**
+   * The UI labels as core `LabelsView`: `ctx.labels.text(key, params)` (plain text) /
+   * `ctx.labels.html(key, params)` (escaped for innerHTML) — the full chain (instance `labels`,
+   * the element's and the page-wide `translateCallback`, page-wide labels, English), numbers
+   * locale-formatted. E.g. `ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })`.
+   */
+  labels: LabelsView<DateRangePickerLabels>;
 
   // Preview flag (true when dragging)
   isPreview?: boolean;

@@ -22,7 +22,7 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
 import { DEFAULT_LABELS } from './date-picker-locales';
-import { createLabels, getLocaleSettings, getMonthNames, getWeekdayNames, type Labels } from '@keenmate/web-components-core/locale';
+import { createLabels, createLabelsView, getLocaleSettings, getMonthNames, getWeekdayNames, type Labels, type LabelsView } from '@keenmate/web-components-core/locale';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
@@ -286,6 +286,15 @@ class DateRangePickerEngine {
         );
     }
     private labelsApi?: Labels<DateRangePickerLabels>;
+    /**
+     * What a callback context exposes as `ctx.labels` (core `createLabelsView`): frozen
+     * `{ text(key, params), html(key, params) }` over the full chain above — never the plain
+     * `labels.all()` object. Created once per engine.
+     */
+    get labelsView(): LabelsView<DateRangePickerLabels> {
+        return this.labelsViewApi ??= createLabelsView(this.labels);
+    }
+    private labelsViewApi?: LabelsView<DateRangePickerLabels>;
     weekdayNames: string[] = [];
     monthNames: string[] = [];
 
