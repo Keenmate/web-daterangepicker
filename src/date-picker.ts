@@ -975,7 +975,7 @@ class DateRangePickerEngine {
             }
             // `shortcut` (the `/actions` syntax): a keycap formatted for the platform (core
             // formatShortcut), and the chord runs the button while the picker is open
-            // (runActionShortcut).
+            // (handleActionShortcut).
             if (resolved.shortcut) {
                 const keycap = document.createElement('kbd');
                 keycap.className = 'drp__button-shortcut';
@@ -2096,7 +2096,7 @@ class DateRangePickerEngine {
      * picker is open and keyboard-active. A plain-key shortcut (no Ctrl / Alt / Meta) is skipped while
      * typing in a field (`isTypingTarget` — the picker's own input). Disabled / hidden buttons don't run.
      */
-    private runActionShortcut(e: KeyboardEvent): boolean {
+    private handleActionShortcut(e: KeyboardEvent): boolean {
         if (e.defaultPrevented || this.actionButtonShortcuts.size === 0) return false;
         const isPlainKey = !e.ctrlKey && !e.altKey && !e.metaKey;
         if (isPlainKey && isTypingTarget(e)) return false;
@@ -2116,7 +2116,7 @@ class DateRangePickerEngine {
             if (!this.calendar.classList.contains('drp__picker--visible')) return;
             if (!this.isCalendarActive) return;
             if (isImeEnter(e)) return; // the IME confirming a candidate in the typed input
-            if (this.runActionShortcut(e)) return; // an action button's `shortcut` beats the built-in keys
+            if (this.handleActionShortcut(e)) return; // an action button's `shortcut` beats the built-in keys
 
             drpLogger.debug('Keydown', e.key, 'Ctrl:', e.ctrlKey, 'Meta:', e.metaKey, 'Shift:', e.shiftKey, 'Alt:', e.altKey);
 
