@@ -22,20 +22,7 @@
   max-width: var(--drp-tooltip-max-width);
   word-wrap: break-word;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--drp-transition-normal) var(--drp-easing-snappy);
-}
-
-.drp__tooltip--visible {
-  opacity: 1;
-}
-
-/* core createTooltip mounts the tooltip and marks it visible in one go: fade in from 0
-   (a hidden tooltip is removed at once — no fade-out) */
-@starting-style {
-  .drp__tooltip--visible {
-    opacity: 0;
-  }
+  /* Fade in / out: core createTooltip (TOOLTIP_CSS, --base-duration-fast). */
 }
 
 /* Tooltip arrow */

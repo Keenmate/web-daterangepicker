@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — tooltips fade out through core (2026-11-22)
+- The local tooltip fade rules (`opacity` / `transition` on `.drp__tooltip`, the `--visible` and `@starting-style`
+  rules) are gone: core `createTooltip` now fades the tooltip in AND out (`km-tooltip--hiding`, `--base-duration-fast`,
+  follows `motion`) and sets `data-placement` on it.
+
 ### Added — the page-wide icon hook repaints live pickers (2026-11-22)
 - **Assigning `window.components.renderIconCallback` after a picker rendered repaints its action-button icons**
   (core `iconsChanged()` hook, rulebook C-CA-40) — in place: the selection, the shown months and an open calendar
@@ -193,8 +198,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `getBadgeTooltipCallback` unchanged). Same classes (`.drp__tooltip`, `--visible`, `-arrow`; the HTML now sits
   in a `.drp__tooltip-content` box), `--drp-tooltip-*` variables, shown at once (no delay) as before. Touch: a tap
   toggles a badge's tooltip (core `shouldToggleOnTap`), days show none on hover-less devices — as before.
-- Differences: the tooltip element is mounted only while shown (not kept hidden in the container); fade-in kept
-  (`@starting-style`), a hidden tooltip is removed at once (no fade-out); it follows its day while shown
+- Differences: the tooltip element is mounted only while shown (not kept hidden in the container); it fades in
+  and out through core (`TOOLTIP_CSS`, `--base-duration-fast`; `data-placement` carries the resolved side); it follows its day while shown
   (autoUpdate). The engine's internal `showTooltip(element, html)` is removed (`hideTooltip()` stays).
 
 ### Changed — render callbacks through core `renderSlot` (2026-11-18, core 1.0.0-rc25)
