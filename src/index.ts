@@ -47,7 +47,7 @@ export type { ResponsiveContext } from '@keenmate/web-components-core';
 
 // Export types
 export type {
-    DatePickerOptions, DateRange, FormatOptions, MonthDisplay,
+    DateRange, FormatOptions, MonthDisplay,
     // Element config + responsive rules (core SPEC §6.7)
     DateRangePickerConfig, DateRangePickerResponsiveMap, DateRangePickerResponsiveCallback, Presentation,
     // Shared callback/event context vocabulary

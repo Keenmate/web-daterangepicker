@@ -256,40 +256,6 @@ export type DateRangePickerActionItem = ActionItem<PickerContext, DateRangePicke
 export type DateRangePickerActionEventDetail = ActionEventDetail<PickerContext, DateRangePickerAction>;
 
 /**
- * Engine options the element wires itself (event bridges, host, controller, writing
- * direction, mount container) — not element inputs.
- */
-type EngineOnlyOption = 'onChange' | 'onAction' | 'onMonthChange' | 'onOpen' | 'onClose' | 'onDiscard'
-  | 'hostElement' | 'controller' | 'isRtl' | 'container';
-
-/**
- * The `<web-daterangepicker>` element's configuration (`el.config`, and every input
- * as a typed property on the element): exactly the input rows — the engine options
- * minus the engine-only wiring, plus the element-level inputs (form value, input
- * shell, presentation, custom styles). Keys are the inputs' configKeys.
- */
-export interface DateRangePickerConfig extends Omit<DatePickerOptions, EngineOnlyOption> {
-  /** How a `floating` picker opens: `auto` (device ladder) | `floating` | `modal` | `fullscreen`. */
-  presentation?: Presentation;
-  /** The initial / default value (the `value` attribute). */
-  defaultValue?: string | null;
-  placeholder?: string | null;
-  isDisabled?: boolean;
-  isReadonly?: boolean;
-  /** `xs` | `sm` | `md` | `lg` | `xl`. */
-  inputSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  name?: string | null;
-  valueFormat?: 'text' | 'json' | 'array';
-  valueFormatMask?: string | null;
-  valueSeparator?: string | null;
-  getValueFormatCallback?: ((ctx: FormValueSelection & PickerContext) => string) | null;
-  placeholderFormatMask?: string | null;
-  placeholderTimeFormatMask?: string | null;
-  customStyles?: string | null;
-  getCustomStylesCallback?: ((ctx: PickerContext) => string | null) | null;
-}
-
-/**
  * Responsive rules map for `<web-daterangepicker>` (core SPEC §6.7):
  * `{ device?, breakpoint? }`, each axis keyed `mobile` / `tablet` / `desktop` → partial
  * config (`device` = core `classifyDevice`, `breakpoint` = window width; device wins). Set it page-wide (`window.components.responsive`), per tag
@@ -304,7 +270,13 @@ export type DateRangePickerResponsiveCallback = ResponsiveCallback<DateRangePick
 export type PickerMode = 'date' | 'time' | 'datetime';
 export type TimeDisplay = 'rolls' | 'clock' | 'wheel' | 'compact';
 
-export interface DatePickerOptions {
+/**
+ * The `<web-daterangepicker>` element's configuration (`el.config`, and every input
+ * as a typed property on the element): exactly the input rows — the picker options
+ * plus the element-level inputs (form value, input shell, presentation, custom
+ * styles). Keys are the inputs' configKeys.
+ */
+export interface DateRangePickerConfig {
   /**
    * What the picker selects. Default: `single`.
    *
@@ -381,39 +353,6 @@ export interface DatePickerOptions {
    * group, in which every ungrouped overlay coordinates.
    */
   overlayGroup?: string;
-  /**
-   * Engine-level twin of the `change` event (the element bridges it): a selection was
-   * committed. Receives the {@link ChangeEventDetail} — the same object `change` carries.
-   */
-  onChange?: (detail: ChangeEventDetail) => void;
-  /** Engine-level twin of the `action` event (the element bridges it). */
-  onAction?: (detail: DateRangePickerActionEventDetail) => void;
-  /** Engine-level twin of the `month-change` event (the element bridges it). */
-  onMonthChange?: (detail: MonthChangeEventDetail) => void;
-  /** Engine-level twin of the `open` event: the calendar popover opened (floating / modal). */
-  onOpen?: (detail: OpenEventDetail) => void;
-  /** Engine-level twin of the `close` event: the calendar popover closed (any reason). */
-  onClose?: (detail: CloseEventDetail) => void;
-  /**
-   * Internal: a change staged for `commit()` was discarded (close without commit,
-   * Escape, focus left the field) — the input text was rewritten programmatically.
-   * The element refreshes its ✕ from it.
-   */
-  onDiscard?: () => void;
-  /**
-   * Internal: the host element and its controller, so contexts and details carry
-   * them. Set by `<web-daterangepicker>`; a standalone engine falls back to its
-   * input / calendar element and its own controller.
-   */
-  hostElement?: HTMLElement;
-  controller?: DateRangePickerController;
-  /**
-   * Internal: whether the picker is laid out right-to-left (the element passes core's
-   * `isRtl`). ArrowLeft / ArrowRight (and Ctrl+arrows) follow the visual direction.
-   * A standalone engine falls back to the calendar's computed `direction`.
-   */
-  isRtl?: () => boolean;
-  container?: HTMLElement; // Where to append the calendar (default: document.body)
   /**
    * Where the calendar lives. Default: `floating`.
    *
@@ -579,7 +518,7 @@ export interface DatePickerOptions {
 
   // Custom rendering
   /** Return a CSS string injected into the Shadow DOM (e.g. classes used by renderDayCallback). */
-  getCustomStylesCallback?: (ctx: PickerContext) => string | null;
+  getCustomStylesCallback?: ((ctx: PickerContext) => string | null) | null;
 
   /**
    * Full replacement of a day cell's content (core `renderSlot`). The result:
@@ -788,6 +727,71 @@ export interface DatePickerOptions {
    * }
    */
   getMonthDataCallback?: (ctx: MonthChangeContext) => MonthDataResult | null | void | Promise<MonthDataResult | null | void>;
+
+  // ── Element-level inputs (not passed to the internal engine) ──
+  /** How a `floating` picker opens: `auto` (device ladder) | `floating` | `modal` | `fullscreen`. */
+  presentation?: Presentation;
+  /** The initial / default value (the `value` attribute). */
+  defaultValue?: string | null;
+  placeholder?: string | null;
+  isDisabled?: boolean;
+  isReadonly?: boolean;
+  /** `xs` | `sm` | `md` | `lg` | `xl`. */
+  inputSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  name?: string | null;
+  valueFormat?: 'text' | 'json' | 'array';
+  valueFormatMask?: string | null;
+  valueSeparator?: string | null;
+  getValueFormatCallback?: ((ctx: FormValueSelection & PickerContext) => string) | null;
+  placeholderFormatMask?: string | null;
+  placeholderTimeFormatMask?: string | null;
+  customStyles?: string | null;
+}
+
+/** Element-level inputs the internal engine does not take. */
+type ElementOnlyInput = 'presentation' | 'defaultValue' | 'placeholder' | 'isDisabled' | 'isReadonly'
+  | 'inputSize' | 'name' | 'valueFormat' | 'valueFormatMask' | 'valueSeparator' | 'getValueFormatCallback'
+  | 'placeholderFormatMask' | 'placeholderTimeFormatMask' | 'customStyles';
+
+/**
+ * INTERNAL (not exported from the package): the engine's options — the picker inputs
+ * plus the wiring the element sets itself (event bridges, host, controller, writing
+ * direction, mount container).
+ */
+export interface DatePickerOptions extends Omit<DateRangePickerConfig, ElementOnlyInput> {
+  /**
+   * Engine-level twin of the `change` event (the element bridges it): a selection was
+   * committed. Receives the {@link ChangeEventDetail} — the same object `change` carries.
+   */
+  onChange?: (detail: ChangeEventDetail) => void;
+  /** Engine-level twin of the `action` event (the element bridges it). */
+  onAction?: (detail: DateRangePickerActionEventDetail) => void;
+  /** Engine-level twin of the `month-change` event (the element bridges it). */
+  onMonthChange?: (detail: MonthChangeEventDetail) => void;
+  /** Engine-level twin of the `open` event: the calendar popover opened (floating / modal). */
+  onOpen?: (detail: OpenEventDetail) => void;
+  /** Engine-level twin of the `close` event: the calendar popover closed (any reason). */
+  onClose?: (detail: CloseEventDetail) => void;
+  /**
+   * Internal: a change staged for `commit()` was discarded (close without commit,
+   * Escape, focus left the field) — the input text was rewritten programmatically.
+   * The element refreshes its ✕ from it.
+   */
+  onDiscard?: () => void;
+  /**
+   * Internal: the host element and its controller, so contexts and details carry
+   * them. Set by `<web-daterangepicker>`; a standalone engine falls back to its
+   * input / calendar element and its own controller.
+   */
+  hostElement?: HTMLElement;
+  controller?: DateRangePickerController;
+  /**
+   * Internal: whether the picker is laid out right-to-left (the element passes core's
+   * `isRtl`). ArrowLeft / ArrowRight (and Ctrl+arrows) follow the visual direction.
+   * A standalone engine falls back to the calendar's computed `direction`.
+   */
+  isRtl?: () => boolean;
+  container?: HTMLElement; // Where to append the calendar (default: document.body)
 }
 
 /**

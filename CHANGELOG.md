@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — BREAKING (types only): `DatePickerOptions` is no longer exported (2026-11-22)
+- **The `DatePickerOptions` type is gone from the package exports** — it named the internal engine (internal since
+  38d76b4). `DateRangePickerConfig` is now self-contained (every input as a typed key, no engine-named base type);
+  use it instead (`Partial<DateRangePickerConfig>` for a subset). Runtime behaviour is unchanged.
+
 ### Changed — tooltips fade out through core (2026-11-22)
 - The local tooltip fade rules (`opacity` / `transition` on `.drp__tooltip`, the `--visible` and `@starting-style`
   rules) are gone: core `createTooltip` now fades the tooltip in AND out (`km-tooltip--hiding`, `--base-duration-fast`,
