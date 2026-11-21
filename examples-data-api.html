@@ -167,9 +167,11 @@ const pickerUS = createPicker('host-4b', 'output-4b', 'MM/DD/YYYY');</code></pre
     <div id="output-3" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const today = new Date();
-const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  <div class="code-block" data-language="js"><pre><code>// min-date / max-date are ISO strings (YYYY-MM-DD), not Date objects
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today = new Date();
+const firstDay = iso(new Date(today.getFullYear(), today.getMonth(), 1));
+const lastDay = iso(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
 const picker = document.createElement('web-daterangepicker');
 Object.assign(picker, {
@@ -1408,9 +1410,9 @@ Object.assign(picker, {
   calendarOpenTrigger: 'focus' | 'typing' | 'manual', // Default: 'focus'
 
   // Date Restrictions
-  minDate: new Date('2025-01-01'),                 // Minimum selectable date
-  maxDate: new Date('2025-12-31'),                 // Maximum selectable date
-  initialDate: new Date(),                         // Initial month to display
+  minDate: '2025-01-01',                           // Minimum selectable date (ISO string)
+  maxDate: '2025-12-31',                           // Maximum selectable date (ISO string)
+  initialDate: '2025-06-01',                       // Initial month to display (ISO string)
   disabledWeekdays: [0, 6],                        // Array of weekday numbers (0=Sunday)
   disabledDates: [new Date('2025-12-25')],         // Array of disabled dates
   disabledDatesHandling: 'allow' | 'block' | 'split' | 'individual', // Default: 'allow'
@@ -1872,10 +1874,12 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
 
     // Date restrictions
     const today = new Date();
+    // min-date / max-date are ISO strings (YYYY-MM-DD), not Date objects
+    const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     mount('host-3', {
       selectionMode: 'single', dateFormatMask: 'YYYY-MM-DD',
-      minDate: new Date(today.getFullYear(), today.getMonth(), 1),
-      maxDate: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+      minDate: iso(new Date(today.getFullYear(), today.getMonth(), 1)),
+      maxDate: iso(new Date(today.getFullYear(), today.getMonth() + 1, 0)),
       disabledWeekdays: [0, 6],
       disabledDates: [new Date(today.getFullYear(), today.getMonth(), 25)],
       onChange: (detail) => {
