@@ -45,6 +45,7 @@ properties use camelCase (`selectionMode`).
 | `disabled` | `boolean` | `false` | Disable the picker like a native input (property `isDisabled`): no interaction — the calendar doesn't open, an inline calendar is inert and greyed — not focusable, the value is not submitted; calls from code keep working. An ancestor `<fieldset disabled>` disables it too |
 | `readonly` | `boolean` | `false` | Read-only like a native input (property `isReadonly`): no day / time picks, typing, Today / Now / Clear / Apply or action buttons, and the floating calendar doesn't open; the input stays focusable, an inline calendar can still be browsed month to month, the value is submitted, calls from code keep working. Locks the `selection`, `actions` and `open` aspects (see [Locking](#locking-read-only)) |
 | `defer` | `boolean` | `false` | Hold the first build until `el.release()` / removing the attribute (core; property `shouldDefer`) |
+| `locale` | `string` | unset | BCP-47 locale for the shown date format (unset `date-format-mask`), `Intl` month / weekday names, the `auto` week start and `{count}` numbers. Unset (`el.locale` reads `null`; `auto` = unset) = the page-wide `window.components.locale`, else the browser language |
 | `labels` | JSON | English | UI strings, partial — see [Labels](#labels-i18n) |
 | `week-start-day` | `'auto' \| 0–6` | `'auto'` | First day of week (0 = Sunday, 1 = Monday, …; `'auto'` detects from locale) |
 | `min-date` | `string` | — | Minimum selectable date (`YYYY-MM-DD`) |
@@ -845,8 +846,8 @@ submitted value (`value-format` / `value-format-mask`) stays ISO either way.
 Every UI string comes from one `labels` object — a **partial** override of the
 English defaults (exported as `DEFAULT_LABELS`). Set it as a property or a JSON
 attribute; changing it at runtime re-renders without losing the selection. Month
-and weekday names are not labels: they come from `Intl` for `locale` (`auto` = the
-browser language), or from `monthNames` / `weekdayNames`. There are no built-in
+and weekday names are not labels: they come from `Intl` for `locale` (unset = the page-wide
+locale, else the browser language), or from `monthNames` / `weekdayNames`. There are no built-in
 translations.
 
 Keys are flat `<elementType>.<name>` (the Keenmate-wide shape: `buttons.*`, `ariaLabels.*`, `labels.*`,

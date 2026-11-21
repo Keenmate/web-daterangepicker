@@ -24,6 +24,11 @@
     </div>
 
     <div class="fixture">
+        <div class="fixture-label">locale="auto" — the same as unset: follows the page (cs-CZ)</div>
+        <web-daterangepicker id="auto-attr" selection-mode="single" initial-date="2026-06-15" locale="auto"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
         <div class="fixture-label">labels='{"buttons.today":"Mine"}' — the instance labels win over the page-wide labels, key by key</div>
         <web-daterangepicker id="mine" selection-mode="single" initial-date="2026-06-15" labels='{"buttons.today":"Mine"}'></web-daterangepicker>
     </div>

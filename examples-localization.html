@@ -177,10 +177,16 @@ el.translateCallback = ({ key }) =&gt; (key === 'web-daterangepicker.buttons.tod
     <label><input type="radio" name="lo11-locale" value="en-US"> en-US</label>
     <label><input type="radio" name="lo11-locale" value="en-GB"> en-GB</label>
   </div>
+  <div class="controls"><strong class="muted">element <code>locale</code> (left)</strong>
+    <label><input type="radio" name="lo11-element" value="fr" checked> fr</label>
+    <label><input type="radio" name="lo11-element" value="de"> de</label>
+    <label><input type="radio" name="lo11-element" value="cs"> cs</label>
+    <label><input type="radio" name="lo11-element" value=""> unset (follows the page)</label>
+  </div>
   <div class="demo-area">
     <div class="grid grid-2">
       <div class="form-group">
-        <label class="demo-label"><code>locale="fr"</code> (its own — ignores the page)</label>
+        <label class="demo-label" id="lo11a-label"><code>locale="fr"</code> (its own — ignores the page)</label>
         <web-daterangepicker id="lo11a" locale="fr" value="2026-06-15"></web-daterangepicker>
         <web-daterangepicker id="lo11a-cal" locale="fr" week-start-day="auto" positioning-mode="inline" initial-date="2026-06-15"></web-daterangepicker>
       </div>
@@ -356,7 +362,7 @@ month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|�
       selection-mode="range"
       visible-month-count="2"
       initial-date="2026-06-15"
-      locale="auto"
+      locale="cs"
       week-start-day="1"
       month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
       weekday-names="Ne|Po|Út|St|Čt|Pá|So"
@@ -446,6 +452,7 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
   };
   const write = (id, lines) => { $(id).textContent = lines.join('\n'); };
 
+  let lo11Element = 'fr';
   async function refreshAll() {
     await settle();
     write('lo01-out', [
@@ -462,7 +469,7 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
     ]);
     write('lo10-out', [`aria-label: ${clearName('lo10')}`]);
     write('lo11-out', [
-      `locale="fr"  shown: ${shown('lo11a')}   month: ${month('lo11a-cal')}   week starts: ${firstWeekday('lo11a-cal')}`,
+      `${lo11Element ? `locale="${lo11Element}"` : 'locale unset'}  shown: ${shown('lo11a')}   month: ${month('lo11a-cal')}   week starts: ${firstWeekday('lo11a-cal')}`,
       `page         shown: ${shown('lo11b')}   month: ${month('lo11b-cal')}   week starts: ${firstWeekday('lo11b-cal')}`,
     ]);
     const count = sr('lo12')?.querySelector('.drp__summary-count');
@@ -517,6 +524,17 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
   // ── LO11 · page locale.
   for (const radio of document.querySelectorAll('input[name="lo11-locale"]')) {
     radio.addEventListener('change', (e) => { page.locale = e.target.value; applyPage(); });
+  }
+  // ── LO11 · the element's own locale (unset = null → the page → the browser).
+  for (const radio of document.querySelectorAll('input[name="lo11-element"]')) {
+    radio.addEventListener('change', (e) => {
+      lo11Element = e.target.value;
+      for (const id of ['lo11a', 'lo11a-cal']) $(id).locale = lo11Element || null;
+      $('lo11a-label').innerHTML = lo11Element
+        ? `<code>locale="${lo11Element}"</code> (its own — ignores the page)`
+        : 'No <code>locale</code> (<code>el.locale</code> is <code>null</code> — page → browser)';
+      refreshAll();
+    });
   }
 
   // ── LO12 · shouldEscapeLabels.

@@ -47,6 +47,11 @@ test.describe('examples-localization.html', () => {
         await page.locator('input[name="lo11-locale"][value="en-US"]').check();
         await expect(out('lo11-out')).toContainText(/page\s+shown: 06\/15\/2026\s+month: June 2026\s+week starts: Su/);
         await expect(out('lo11-out')).toContainText(/locale="fr"\s+shown: 15\/06\/2026/);
+        // the element locale toggle: de → its own; unset → follows the page (en-US)
+        await page.locator('input[name="lo11-element"][value="de"]').check();
+        await expect(out('lo11-out')).toContainText(/locale="de"\s+shown: 15\.06\.2026\s+month: Juni 2026/);
+        await page.locator('input[name="lo11-element"][value=""]').check();
+        await expect(out('lo11-out')).toContainText(/locale unset\s+shown: 06\/15\/2026\s+month: June 2026/);
 
         // LO12 · shouldEscapeLabels: template markup → text
         await expect(out('lo12-out')).toContainText('markup: <b>5</b> days');

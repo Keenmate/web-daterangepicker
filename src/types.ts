@@ -649,8 +649,8 @@ export interface DatePickerOptions {
   isSummaryShown?: boolean;
 
   // Internationalization
-  /** Locale (BCP-47) for `Intl` month / weekday names. 'auto' (default) uses the browser language. UI strings are `labels`. */
-  locale?: string | 'auto';
+  /** Locale (BCP-47) for the shown date format, `Intl` month / weekday names, the `auto` week start and `{count}` numbers. Unset / `null` (default; `'auto'` = unset) = the page-wide `window.components.locale`, else the browser language. UI strings are `labels`. */
+  locale?: string | null;
   /** UI strings (partial; English defaults for the rest). See {@link DateRangePickerLabels}. */
   labels?: Partial<DateRangePickerLabels> | null;
 

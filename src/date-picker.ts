@@ -337,7 +337,7 @@ class DateRangePickerEngine {
             getDateMetadataCallback: options.getDateMetadataCallback,
             disabledDatesHandling: options.disabledDatesHandling || 'allow',
             shouldHighlightDisabledInRange: options.shouldHighlightDisabledInRange ?? true,
-            locale: options.locale || 'auto',
+            locale: options.locale ?? null,
             labels: options.labels ?? null,
             translateCallback: options.translateCallback ?? null,
             monthNames: options.monthNames,
@@ -713,7 +713,7 @@ class DateRangePickerEngine {
         const weekStartDay = this.options.weekStartDay;
         const settings = getLocaleSettings(
             {
-                locale: this.options.locale,
+                locale: this.options.locale ?? undefined,
                 weekStartDay: typeof weekStartDay === 'number' ? weekStartDay : undefined,
                 dateFormat: this.options.dateFormatMask || undefined,
             },

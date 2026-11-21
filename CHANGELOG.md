@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — `locale` is unset by default (2026-11-21)
+- **The `locale` input defaults to unset (`el.locale` reads `null`) instead of `'auto'`** (rulebook C-CA-38, the
+  shape every Keenmate component shares). Unset = the page-wide `window.components.locale.locale`, else the browser
+  language — the same behaviour as before; `locale="auto"` / `el.locale = 'auto'` keep working (core `resolveLocale`
+  treats them as unset). The internal engine no longer carries its own `'auto'` default (one source). It drives the
+  shown date format (unset `date-format-mask`), the `Intl` month / weekday names, the `auto` week start and the
+  `{count}` numbers in labels. Typed `locale?: string | null`.
+- `examples-localization.html` LO11 gets an element `locale` toggle (`fr` / `de` / `cs` / unset); LO05 uses
+  `locale="cs"` instead of `locale="auto"`.
+
 ### Changed — BREAKING: `renderSummaryCallback`'s `ctx.labels` is `{ text, html }` (2026-11-21)
 - **`ctx.labels` in a callback context (`renderSummaryCallback`'s `SummaryContext`) is now core
   `createLabelsView(labels)`: a frozen `{ text(key, params), html(key, params) }`** over the full chain — instance

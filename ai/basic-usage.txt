@@ -526,7 +526,7 @@ LABELS (i18n)
 -------------
 All UI strings come from ONE `labels` object — partial, English defaults
 (exported as DEFAULT_LABELS). No built-in translations. Month / weekday names
-come from Intl for `locale` (auto = browser language) or monthNames/weekdayNames.
+come from Intl for `locale` (unset = page-wide locale, else browser language) or monthNames/weekdayNames.
 
 <web-daterangepicker selection-mode="range" locale="de"
   labels='{"buttons.today":"Heute","buttons.clear":"Löschen","buttons.apply":"Übernehmen","labels.days":"{count} Tage","labels.nights":"{count} Nächte"}'>

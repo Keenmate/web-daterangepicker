@@ -133,3 +133,25 @@ test('renderSummaryCallback ctx.labels: element + page translateCallback, locale
     await expect(summary.locator('.x-days')).toHaveText('Mine 4');
     await expect(summary.locator('.x-nights')).toHaveText('Page 3 nocí');
 });
+
+// C-CA-38: `locale` is unset by default (null), `'auto'` is the same as unset (core resolveLocale), and an
+// unset element follows window.components.locale.locale — also after its own locale is cleared again.
+test('locale: unset (null) by default, "auto" = unset, both follow the page locale', async ({ page }) => {
+    const el = pickerById(page, 'page');
+    expect(await el.evaluate((e: any) => e.locale)).toBeNull();
+    expect(await el.evaluate((e: any) => e.hasAttribute('locale'))).toBe(false);
+
+    const auto = await open(page, 'auto-attr');
+    await expect(auto.locator('.drp__month-year').first()).toContainText(/červen/i);
+    await page.keyboard.press('Escape');
+
+    // own locale wins; clearing it (null) falls back to the page again
+    await el.evaluate((e: any) => { e.locale = 'de'; return e.whenSettled(); });
+    let p = await open(page, 'page');
+    await expect(p.locator('.drp__month-year').first()).toContainText('Juni 2026');
+    await page.keyboard.press('Escape');
+    await el.evaluate((e: any) => { e.locale = null; return e.whenSettled(); });
+    expect(await el.evaluate((e: any) => e.locale)).toBeNull();
+    p = await open(page, 'page');
+    await expect(p.locator('.drp__month-year').first()).toContainText(/červen/i);
+});
