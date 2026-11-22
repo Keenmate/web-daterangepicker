@@ -9,7 +9,13 @@ import { test, expect, devices } from './fixtures';
  * Device emulation must be top-level (Playwright forbids test.use in describe).
  * Fixture: test/presentation.html — a plain floating #picker, no overrides.
  */
-test.use({ ...devices['iPad (gen 7)'] });
+// Device preset WITHOUT its `defaultBrowserType: 'webkit'` — the project decides the browser
+// (otherwise this file launches WebKit even under --project=chromium).
+const { defaultBrowserType: _ignored, ...TABLET } = devices['iPad (gen 7)'];
+test.use({ ...TABLET });
+
+// Firefox has no `isMobile` emulation (Playwright refuses the option there).
+test.skip(({ browserName }) => browserName === 'firefox', 'isMobile emulation is not supported in Firefox');
 
 test('auto → modal on a tablet (touch, shorter side ≥ 600px)', async ({ page }) => {
   await page.goto('/test/presentation.html');

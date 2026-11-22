@@ -8,7 +8,13 @@ import { test, expect, devices } from './fixtures';
  * Device emulation must be top-level (Playwright forbids test.use in describe).
  * Fixture: test/presentation.html — a plain floating #picker, no overrides.
  */
-test.use({ ...devices['iPhone 13'] });
+// Device preset WITHOUT its `defaultBrowserType: 'webkit'` — the project decides the browser
+// (otherwise this file launches WebKit even under --project=chromium).
+const { defaultBrowserType: _ignored, ...PHONE } = devices['iPhone 13'];
+test.use({ ...PHONE });
+
+// Firefox has no `isMobile` emulation (Playwright refuses the option there).
+test.skip(({ browserName }) => browserName === 'firefox', 'isMobile emulation is not supported in Firefox');
 
 test('auto → fullscreen: opening shows the edge-to-edge sheet with a close header', async ({ page }) => {
   await page.goto('/test/presentation.html');

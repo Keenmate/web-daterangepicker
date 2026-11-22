@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Internal — phone / tablet e2e specs follow the project's browser (2026-11-22)
+- `e2e/presentation-phone.spec.ts`, `e2e/mobile-time.spec.ts` and `e2e/presentation-tablet.spec.ts` spread the
+  `iPhone 13` / `iPad (gen 7)` presets WITHOUT their `defaultBrowserType: 'webkit'`, so `--project=chromium` no
+  longer launches WebKit (whose process hung on shutdown → "worker did not exit", exit 1). They run in Chromium +
+  WebKit and skip in Firefox (no `isMobile` emulation). Tests only.
+
 ### Changed — BREAKING (types only): `DatePickerOptions` is no longer exported (2026-11-22)
 - **The `DatePickerOptions` type is gone from the package exports** — it named the internal engine (internal since
   38d76b4). `DateRangePickerConfig` is now self-contained (every input as a typed key, no engine-named base type);
