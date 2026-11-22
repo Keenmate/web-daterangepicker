@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0-rc07] - 2026-11-22
 
 ### Changed — BREAKING (types only): `DatePickerOptions` is no longer exported (2026-11-22)
 - **The `DatePickerOptions` type is gone from the package exports** — it named the internal engine (internal since
@@ -1376,7 +1376,7 @@ exported as `DateRangePickerEngine` (advanced standalone use only).
 - The temporary `[drp modal-debug]` `console.warn` sizing report from modal
   `show()` (the width-collapse diagnostic it was added for is resolved).
 
-## [2.0.0-rc06] - 2026-08-04
+## [2.0.0-rc06] - 2026-08-04 [PUBLISHED]
 
 ### Added
 
