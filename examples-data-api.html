@@ -75,7 +75,7 @@
     <div id="output-1" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>import '@keenmate/web-daterangepicker';
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>import '@keenmate/web-daterangepicker';
 
 const picker = document.createElement('web-daterangepicker');
 Object.assign(picker, {
@@ -102,7 +102,7 @@ document.getElementById('host-1').append(picker);
     <div id="output-2" class="output-box">No range selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.createElement('web-daterangepicker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.createElement('web-daterangepicker');
 Object.assign(picker, {
   selectionMode: 'range',
   visibleMonthCount: 2,
@@ -140,7 +140,7 @@ document.getElementById('host-2').append(picker);</code></pre></div>
     </div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>function createPicker(hostId, outputId, dateFormatMask) {
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>function createPicker(hostId, outputId, dateFormatMask) {
   const picker = document.createElement('web-daterangepicker');
   Object.assign(picker, {
     selectionMode: 'single',
@@ -167,7 +167,7 @@ const pickerUS = createPicker('host-4b', 'output-4b', 'MM/DD/YYYY');</code></pre
     <div id="output-3" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>// min-date / max-date are ISO strings (YYYY-MM-DD), not Date objects
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// min-date / max-date are ISO strings (YYYY-MM-DD), not Date objects
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const today = new Date();
 const firstDay = iso(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -200,7 +200,7 @@ document.getElementById('host-3').append(picker);</code></pre></div>
     <div id="output-5" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.createElement('web-daterangepicker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.createElement('web-daterangepicker');
 Object.assign(picker, {
   selectionMode: 'single',
   positioningMode: 'inline',
@@ -221,7 +221,7 @@ document.getElementById('host-5').append(picker);</code></pre></div>
     <div id="output-6" class="output-box">No date selected</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.createElement('web-daterangepicker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.createElement('web-daterangepicker');
 Object.assign(picker, {
   selectionMode: 'single',
   visibleMonthCount: 6,
@@ -246,7 +246,7 @@ document.getElementById('host-6').append(picker);</code></pre></div>
 
   <div id="dynamic-pickers"></div>
 
-  <div class="code-block" data-language="js"><pre><code>let pickerCount = 0;
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>let pickerCount = 0;
 
 document.getElementById('add-picker-btn').addEventListener('click', () => {
   pickerCount++;
@@ -586,7 +586,7 @@ document.getElementById('add-picker-btn').addEventListener('click', () => {
       </div>
     </div>
 
-    <div class="code-block" data-language="html"><pre><code>&lt;!-- This demo overrides the default placement (bottom-start).
+    <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;!-- This demo overrides the default placement (bottom-start).
      "top" is center-aligned, so the calendar sits in the middle
      of the wide input (and flips below when space above is tight).
 
@@ -670,7 +670,7 @@ console.log('Calendar open?', picker.isOpen);
       </div>
     </div>
 
-    <div class="code-block" data-language="js"><pre><code>const singlePicker = document.getElementById('picker-2a');
+    <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const singlePicker = document.getElementById('picker-2a');
 const rangePicker = document.getElementById('picker-2b');
 
 // Get current input value (formatted string)
@@ -734,7 +734,7 @@ rangePicker.value = '';</code></pre></div>
       </div>
     </div>
 
-    <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('picker-3a');
+    <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('picker-3a');
 
 // Clear selection
 picker.clearSelection();
@@ -795,7 +795,7 @@ picker.value = '2025-12-25';</code></pre></div>
       </div>
     </div>
 
-    <div class="code-block" data-language="js"><pre><code>const singlePicker = document.getElementById('picker-4a');
+    <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const singlePicker = document.getElementById('picker-4a');
 const rangePicker = document.getElementById('picker-4b');
 
 // Get selected date (single mode)
@@ -857,7 +857,7 @@ rangePicker.selectedRanges = [];</code></pre></div>
       </div>
     </div>
 
-    <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('picker-5');
+    <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('picker-5');
 
 // Check if calendar is open
 if (picker.isOpen) {
@@ -919,7 +919,7 @@ console.log('isOpen is now:', picker.isOpen); // false</code></pre></div>
       </div>
     </div>
 
-    <div class="code-block" data-language="js"><pre><code>const component = document.getElementById('picker-6');
+    <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const component = document.getElementById('picker-6');
 const controller = component.controller;
 
 // Read the selection
@@ -1045,7 +1045,7 @@ picker.onChange = (detail) => console.log('Selected:', detail.formattedValue);</
       </div>
     </div>
 
-    <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('picker-9');
+    <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('picker-9');
 
 // Nightly-rate badges — same getDateMetadataCallback as the
 // "Dynamic Calculation" demo (examples-badges-tooltips.html).
@@ -1160,7 +1160,7 @@ picker.lockedAspects;           // -> ['selection','navigation','actions','open'
       </div>
     </div>
 
-    <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker id="picker" selection-mode="range"
+    <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;web-daterangepicker id="picker" selection-mode="range"
                      commit-mode="manual"&gt;&lt;/web-daterangepicker&gt;
 
 const picker = document.getElementById('picker');
@@ -1215,7 +1215,7 @@ picker.actionButtons = [
   </div>
   <div>
     <h3>Form Integration</h3>
-    <div class="code-block" data-language="html"><pre><code>&lt;form id="booking-form"&gt;
+    <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;form id="booking-form"&gt;
     &lt;web-daterangepicker
         id="check-in"
         name="check-in-date"
@@ -1387,7 +1387,7 @@ const manager = new DateRangeManager();</code></pre></div>
   <h2>DA25 · Complete Property Reference</h2>
   <p>The element's configuration properties (each attribute's camelCase twin, plus the property-only callbacks), set in one go.</p>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('web-daterangepicker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('web-daterangepicker');
 
 Object.assign(picker, {
   // Selection

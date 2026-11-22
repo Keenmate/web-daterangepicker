@@ -60,38 +60,28 @@
 
   <div class="form-group">
     <label>Date Picker with Special Events</label>
-    <web-daterangepicker id="slots-example" date-format-mask="YYYY-MM-DD">
-      <!-- Meeting on Jan 15 -->
-      <div slot="day-2025-01-15" class="custom-day-content">
-        <strong>15</strong>
-        <span class="event-dot"></span>
-      </div>
+    <kmwc-demo>
+      <web-daterangepicker id="slots-example" date-format-mask="YYYY-MM-DD">
+        <!-- Meeting on Jan 15 -->
+        <div slot="day-2025-01-15" class="custom-day-content">
+          <strong>15</strong>
+          <span class="event-dot"></span>
+        </div>
 
-      <!-- Holiday on Jan 20 -->
-      <div slot="day-2025-01-20" class="custom-day-content">
-        <span class="emoji-day">🎉</span>
-        <small>Holiday</small>
-      </div>
+        <!-- Holiday on Jan 20 -->
+        <div slot="day-2025-01-20" class="custom-day-content">
+          <span class="emoji-day">🎉</span>
+          <small>Holiday</small>
+        </div>
 
-      <!-- Deadline on Jan 25 -->
-      <div slot="day-2025-01-25" class="custom-day-content">
-        <strong>25</strong>
-        <span class="day-note-due">⚠️ Due</span>
-      </div>
-    </web-daterangepicker>
+        <!-- Deadline on Jan 25 -->
+        <div slot="day-2025-01-25" class="custom-day-content">
+          <strong>25</strong>
+          <span class="day-note-due">⚠️ Due</span>
+        </div>
+      </web-daterangepicker>
+    </kmwc-demo>
   </div>
-
-  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker&gt;
-  &lt;div slot="day-2025-01-15" class="custom-day-content"&gt;
-    &lt;strong&gt;15&lt;/strong&gt;
-    &lt;span class="event-dot"&gt;&lt;/span&gt;
-  &lt;/div&gt;
-
-  &lt;div slot="day-2025-01-20" class="custom-day-content"&gt;
-    &lt;span class="emoji-day"&gt;🎉&lt;/span&gt;
-    &lt;small&gt;Holiday&lt;/small&gt;
-  &lt;/div&gt;
-&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- Example 2: renderDayCallback (Full Replacement) -->
@@ -107,7 +97,7 @@
     <web-daterangepicker id="callback-full" selection-mode="range" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('callback-full');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('callback-full');
 
 // Simulated price data
 const prices = {
@@ -151,7 +141,7 @@ picker.renderDayCallback = (data) => {
     <web-daterangepicker id="callback-augment" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('callback-augment');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('callback-augment');
 
 // Inject CSS for event-dot into Shadow DOM
 picker.getCustomStylesCallback = () => `
@@ -199,7 +189,7 @@ picker.renderDayContentCallback = (data) => {
     <web-daterangepicker id="callback-weekends" date-format-mask="YYYY-MM-DD"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('callback-weekends');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('callback-weekends');
 
 // Inject custom CSS into Shadow DOM for weekday styling
 picker.getCustomStylesCallback = () => `
@@ -247,7 +237,7 @@ picker.getDateMetadataCallback = ({ date }) => {
     </web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('callback-mixed');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('callback-mixed');
 
 const cloudyDates = ['2025-05-03', '2025-05-04', '2025-05-10', '2025-05-17', '2025-05-18'];
 
@@ -281,7 +271,7 @@ picker.renderDayContentCallback = (data) => {
     <div id="booking-details"></div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.getElementById('booking-system');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.getElementById('booking-system');
 
 const bookingData = {
   '2025-06-07': { available: true, price: 180, booked: false },

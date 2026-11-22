@@ -270,7 +270,7 @@
       <li>Each instance can have a different theme</li>
     </ul>
   </div>
-  <div class="code-block" data-language="css"><pre><code>/* Your page CSS */
+  <div class="code-block" data-language="css" data-kmwc-snippet><pre><code>/* Your page CSS */
 web-daterangepicker.theme-green {
 --drp-accent-color: #10b981;
 --drp-accent-color-hover: #059669;
@@ -353,7 +353,7 @@ web-daterangepicker.theme-green {
   <div class="note success">
     ✓ If calendar has dark background and light text, multiple variable override is working!
   </div>
-  <div class="code-block" data-language="css"><pre><code>web-daterangepicker.theme-dark {
+  <div class="code-block" data-language="css" data-kmwc-snippet><pre><code>web-daterangepicker.theme-dark {
 --drp-dropdown-bg: #1e293b;
 --drp-text-primary: #f1f5f9;
 --drp-text-secondary: #cbd5e1;
@@ -423,7 +423,7 @@ web-daterangepicker.theme-green {
   <div class="note success">
     ✓ Hover over the range start/end days - they should change to the hover color, NOT the generic day hover
   </div>
-  <div class="code-block" data-language="css"><pre><code>/* Full color inversion on hover */
+  <div class="code-block" data-language="css" data-kmwc-snippet><pre><code>/* Full color inversion on hover */
 web-daterangepicker.theme-selection-hover {
 /* Range start/end: black bg + white text */
 --drp-day-range-bg: #111827;
@@ -502,7 +502,7 @@ web-daterangepicker.theme-selection-hover {
     &check; All three pickers receive the same <code>specialDates</code> data; only the variable overrides differ.
   </div>
 
-  <div class="code-block" data-language="css"><pre><code>/* Override on the host element — every day/badge using that classifier repaints. */
+  <div class="code-block" data-language="css" data-kmwc-snippet><pre><code>/* Override on the host element — every day/badge using that classifier repaints. */
 web-daterangepicker.theme-classifier-corporate {
 --drp-holiday-color: #475569;          /* slate instead of red */
 --drp-event-color:   #0ea5e9;          /* sky blue instead of green */
@@ -820,7 +820,7 @@ web-daterangepicker.scale-sm {
     </div>
   </div>
 
-  <div class="code-block" data-language="css"><pre><code>/* Target the element directly */
+  <div class="code-block" data-language="css" data-kmwc-snippet><pre><code>/* Target the element directly */
 web-daterangepicker.compact {
 --drp-spacing-xs: 1px;
 --drp-spacing-sm: 2px;
@@ -863,7 +863,7 @@ web-daterangepicker.spacious {
     </div>
   </div>
 
-  <div class="code-block" data-language="css"><pre><code>/* Custom font sizes */
+  <div class="code-block" data-language="css" data-kmwc-snippet><pre><code>/* Custom font sizes */
 web-daterangepicker.large-fonts {
 --drp-font-size-2xs: 12px;
 --drp-font-size-xs: 14px;
@@ -1335,7 +1335,7 @@ web-daterangepicker.large-fonts {
     <small>8px on mobile, 10px on tablet, 12px on desktop</small>
   </div>
 
-  <div class="code-block" data-language="css"><pre><code>/* Responsive scaling with media queries */
+  <div class="code-block" data-language="css" data-kmwc-snippet><pre><code>/* Responsive scaling with media queries */
 @media (max-width: 768px) {
 web-daterangepicker.responsive-calendar {
   --drp-rem: 8px;
@@ -1531,7 +1531,7 @@ web-daterangepicker.responsive-calendar {
     <button onclick="switchTheme('theme-red')" class="swatch--red">Red</button>
     <button onclick="switchTheme('theme-dark')" class="swatch--dark">Dark</button>
   </div>
-  <div class="code-block" data-language="js"><pre><code>// Switch theme dynamically
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Switch theme dynamically
 const picker = document.getElementById('dynamic-picker');
 
 function switchTheme(newTheme) {
@@ -1620,7 +1620,7 @@ web-daterangepicker.icons-alt {
     <button type="button" class="btn-secondary" id="th27-page-off">Clear the page layer</button>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>// Every picker on the page — set it before or after the pickers exist.
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Every picker on the page — set it before or after the pickers exist.
 window.components['web-daterangepicker'].customStyles = `
   .drp__day--weekend { color: var(--base-danger-color, #dc2626); }
   .drp__day--today { outline: 2px solid var(--drp-accent-color); outline-offset: -2px; }

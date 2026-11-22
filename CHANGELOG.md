@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Docs — example-page snippets: one live demo, the rest reference snippets (2026-11-22)
+- `examples-custom-rendering.html` CR01 (named day slots) is a `<kmwc-demo>`: the shown code IS the live markup, so
+  it can't drift. The other code blocks on the action-buttons, badges-tooltips, custom-rendering, data-api,
+  events-callbacks, localization, logging, responsive and theming pages are simplified excerpts of toggle-driven page
+  scripts / API listings, so they carry `data-kmwc-snippet` (devkit: a reference snippet on purpose). Clears doctor's
+  `[pages]` hand-copied-snippet warnings.
+
 ### Internal — phone / tablet e2e specs follow the project's browser (2026-11-22)
 - `e2e/presentation-phone.spec.ts`, `e2e/mobile-time.spec.ts` and `e2e/presentation-tablet.spec.ts` spread the
   `iPhone 13` / `iPad (gen 7)` presets WITHOUT their `defaultBrowserType: 'webkit'`, so `--project=chromium` no

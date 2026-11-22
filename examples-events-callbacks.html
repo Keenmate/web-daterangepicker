@@ -197,7 +197,7 @@ picker.addEventListener('month-change', (event) => {
   </div>
 
   <h3>Code Examples</h3>
-  <div class="code-block" data-language="js"><pre><code>// Block weekends
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Block weekends
 picker.beforeSelectCallback = ({ date, controller }) => {
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   if (isWeekend) {
@@ -283,7 +283,7 @@ picker.beforeSelectCallback = async ({ date, controller }) => {
   </div>
 
   <h3>Code Examples</h3>
-  <div class="code-block" data-language="js"><pre><code>// Minimum nights requirement
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Minimum nights requirement
 picker.beforeSelectCallback = ({ range, controller }) => {
   const nights = Math.floor((range.end - range.start) / (1000 * 60 * 60 * 24));
   if (nights &lt; 2) {
@@ -518,7 +518,7 @@ picker.beforeMonthChangeCallback = ({ year, month }) => {
   </div>
 
   <h3>Code Examples</h3>
-  <div class="code-block" data-language="js"><pre><code>// Approach 1: getMonthHeaderCallback
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Approach 1: getMonthHeaderCallback
 picker.getMonthHeaderCallback = ({ month, monthName, year }) => {
   const key = `${year}-${String(month.getMonth()).padStart(2, '0')}`;
   const rooms = roomAvailability[key] || 0;

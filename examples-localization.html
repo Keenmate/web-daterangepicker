@@ -37,7 +37,7 @@
     </div>
     <div class="output"><div class="output-label">rendered strings</div><pre id="lo01-out"></pre></div>
   </div>
-  <div class="code-block" data-language="js"><pre><code>el.labels = {
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>el.labels = {
   'buttons.today': 'Dnes',                          // short key
   'labels.days': '{count} dní',
   'web-daterangepicker.buttons.clear': 'Vymazat',   // full key
@@ -73,7 +73,7 @@
     </div>
     <div class="output"><div class="output-label">rendered strings</div><pre id="lo08-out"></pre></div>
   </div>
-  <div class="code-block" data-language="js"><pre><code>// e.g. const labels = await (await fetch('/i18n/cs.json')).json();
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// e.g. const labels = await (await fetch('/i18n/cs.json')).json();
 window.components.locale = {
   labels: {
     'web-daterangepicker.buttons.today': 'Dnes',
@@ -120,7 +120,7 @@ window.components.locale = {
     </div>
     <div class="output"><div class="output-label">rendered strings</div><pre id="lo09-out"></pre></div>
   </div>
-  <div class="code-block" data-language="js"><pre><code>// an i18next-like lookup: a dictionary + t(key, params)
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// an i18next-like lookup: a dictionary + t(key, params)
 const sk = {
   'web-daterangepicker.buttons.today': 'Dnes',
   'web-daterangepicker.buttons.clear': 'Vymazať',
@@ -198,7 +198,7 @@ el.translateCallback = ({ key }) =&gt; (key === 'web-daterangepicker.buttons.tod
     </div>
     <div class="output"><div class="output-label">shown date · month · first weekday column</div><pre id="lo11-out"></pre></div>
   </div>
-  <div class="code-block" data-language="html"><pre><code>&lt;web-daterangepicker locale="fr" value="2026-06-15"&gt;&lt;/web-daterangepicker&gt;   &lt;!-- 15/06/2026 · juin · lun. --&gt;
+  <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;web-daterangepicker locale="fr" value="2026-06-15"&gt;&lt;/web-daterangepicker&gt;   &lt;!-- 15/06/2026 · juin · lun. --&gt;
 &lt;script&gt;
   window.components.locale = { locale: 'cs-CZ' };                            // every picker without its own locale
   window.components.locale = { locale: 'cs-CZ', dateFormat: 'YYYY-MM-DD' };   // one page-wide shown format
@@ -306,7 +306,7 @@ window.components.security = { shouldEscapeLabels: true };
     </div>
   </div>
 
-  <div class="code-block" data-language="html"><pre><code>&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;
+  <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;!-- Always Sunday-first: [0]=Sun … [6]=Sat. week-start-day rotates the display. --&gt;
 &lt;web-daterangepicker
 week-start-day="3"
 weekday-names="Ne|Po|Út|St|Čt|Pá|So"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
@@ -384,7 +384,7 @@ month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|�
       week-start-day="1" positioning-mode="inline"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const el = document.getElementById('js-names');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const el = document.getElementById('js-names');
 
 // [0]=January … [11]=December
 el.monthNames = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',

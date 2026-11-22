@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <div class="code-block" data-language="html"><pre><code>// HTML attributes control built-in button visibility.
+  <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>// HTML attributes control built-in button visibility.
 // The Apply button is driven by commit-mode="apply" (not a separate flag).
 &lt;web-daterangepicker
 show-today-button="false"
@@ -139,7 +139,7 @@ show-summary="false"&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
     </div>
   </div>
 
-  <div class="code-block" data-language="html"><pre><code>// Centered overlay with backdrop — close via Apply, Escape, or backdrop click
+  <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>// Centered overlay with backdrop — close via Apply, Escape, or backdrop click
 &lt;web-daterangepicker
 selection-mode="range"
 presentation="modal"&gt;&lt;/web-daterangepicker&gt;
@@ -237,7 +237,7 @@ document.querySelector('#picker').isOpen = true;
     <web-daterangepicker id="preset-picker" selection-mode="range"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('#preset-picker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('#preset-picker');
 
 // Define custom action buttons with preset date ranges
 picker.actionButtons = [
@@ -296,7 +296,7 @@ picker.actionButtons = [
     <div class="log-panel mt-1" id="multi-output">No selections yet</div>
   </div>
 
-  <div class="code-block" data-language="html"><pre><code>// Multiple mode: click dates to toggle selection
+  <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>// Multiple mode: click dates to toggle selection
 &lt;web-daterangepicker
 selection-mode="multiple"&gt;
 &lt;/web-daterangepicker&gt;
@@ -335,7 +335,7 @@ const ranges = picker.selectedRanges;  // Date ranges</code></pre></div>
     <div class="log-panel mt-1" id="external-output">No selection</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>// Programmatic control via web component properties
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Programmatic control via web component properties
 const picker = document.querySelector('#external-picker');
 
 // Set a single range programmatically
@@ -368,7 +368,7 @@ picker.isOpen = false; // Close the calendar</code></pre></div>
       commit-mode="apply"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('#conditional-picker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('#conditional-picker');
 
 picker.actionButtons = [
 { action: 'today', text: 'Today' },
@@ -396,7 +396,7 @@ picker.actionButtons = [
       commit-mode="manual"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('#disabled-picker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('#disabled-picker');
 
 picker.actionButtons = [
 { action: 'today', text: 'Today' },
@@ -429,7 +429,7 @@ picker.actionButtons = [
       commit-mode="manual"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('#text-picker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('#text-picker');
 
 picker.actionButtons = [
 { action: 'today', text: 'Today' },
@@ -469,7 +469,7 @@ picker.actionButtons = [
       commit-mode="apply"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>// Define action buttons with dynamic classes
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Define action buttons with dynamic classes
 const picker = document.querySelector('#css-picker');
 
 picker.actionButtons = [
@@ -530,7 +530,7 @@ picker.getCustomStylesCallback = () => `
       commit-mode="apply"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('#tooltip-picker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('#tooltip-picker');
 
 picker.actionButtons = [
 {
@@ -593,7 +593,7 @@ picker.actionButtons = [
       commit-mode="apply"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('#priority-picker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('#priority-picker');
 
 picker.actionButtons = [
 { action: 'today', text: 'Today' },
@@ -640,7 +640,7 @@ picker.actionButtons = [
       commit-mode="manual"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>const picker = document.querySelector('#advanced-picker');
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const picker = document.querySelector('#advanced-picker');
 
 picker.actionButtons = [
 {
@@ -716,7 +716,7 @@ picker.actionButtons = [
       commit-mode="manual"></web-daterangepicker>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>// Font Awesome is loaded in the page &lt;head&gt; (the @font-face must be document-level)
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// Font Awesome is loaded in the page &lt;head&gt; (the @font-face must be document-level)
 
 const picker = document.querySelector('#icon-picker');
 
@@ -1023,7 +1023,7 @@ el.actionButtons = classifyDevice(env) === 'mobile' ? mobileActions : desktopAct
     <div class="log-panel mt-1" id="action-event-log">Click a button…</div>
   </div>
 
-  <div class="code-block" data-language="js"><pre><code>let weekendsOff = false;
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>let weekendsOff = false;
 
 picker.actionButtons = [
 'today',
