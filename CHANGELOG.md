@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Internal — base-variables sweep (C-BV-3 / C-BV-6 / C-BV-9) (2026-11-22)
+- The manifest marks the 19 `--drp-sheet-*` knobs and `--drp-fullscreen-input-font-size` `"input": true` (unset by
+  design: pass-throughs to core's `--_km-sheet-*` / a fallback-read knob — a `:host` value would cut the page-wide
+  `--km-sheet-*` chain). The obsolete VALIDATION-NOTES "C-BV-6 input variable" entry is gone.
+- The sheet-chrome mapping and the effective sheet geometry fullscreen.css lays out around (`--_drp-sheet-close-size`
+  / `-header-gap` / `-title-font-size`, the only `--base-*` reads outside variables.css) moved to a `.drp__picker`
+  block in variables.css.
+- The `grid-rows` / `grid-columns` inputs now reach CSS through the private `--_drp-grid-rows` / `--_drp-grid-columns`
+  (runtime state, not in the manifest) instead of overwriting the public `--drp-grid-*` knobs; the CSS reads the
+  private value first, then the knob — same precedence as before. No visual change (screenshots byte-identical).
+
 ### Docs — example-page snippets: one live demo, the rest reference snippets (2026-11-22)
 - `examples-custom-rendering.html` CR01 (named day slots) is a `<kmwc-demo>`: the shown code IS the live markup, so
   it can't drift. The other code blocks on the action-buttons, badges-tooltips, custom-rendering, data-api,

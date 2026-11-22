@@ -51,7 +51,7 @@
    these back to single-column behavior on small viewports. */
 .drp__picker--modal .drp__months--grid {
   width: auto;
-  grid-template-columns: repeat(var(--drp-grid-columns, 3), minmax(var(--drp-month-min-width, 280px), 1fr));
+  grid-template-columns: repeat(var(--_drp-grid-columns, var(--drp-grid-columns, 3)), minmax(var(--drp-month-min-width, 280px), 1fr));
 }
 
 /* Per-breakpoint modal width.
@@ -155,7 +155,7 @@
      case configured is higher; users configuring >3 columns probably want
      them at >1200px tier anyway). */
   .drp__picker--modal .drp__months--grid {
-    grid-template-columns: repeat(min(var(--drp-grid-columns, 3), 3), minmax(var(--drp-month-min-width, 280px), 1fr)) !important;
+    grid-template-columns: repeat(min(var(--_drp-grid-columns, var(--drp-grid-columns, 3)), 3), minmax(var(--drp-month-min-width, 280px), 1fr)) !important;
     grid-template-rows: auto !important;
   }
 }

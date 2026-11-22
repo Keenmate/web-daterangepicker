@@ -60,34 +60,9 @@
   --drp-rem: var(--drp-fullscreen-rem);
 }
 
-/* The full-screen header (built in JS with core createSheetHeader()): the bar / title / ✕
-   look is core's sheet chrome (SHEET_CHROME_CSS — .km-sheet-header / -title / -close, adopted
-   into the picker's root in date-picker-ui.ts). drp only maps its per-instance overrides onto
-   the private --_km-sheet-* channel — WITH NO FALLBACK, and the --drp-sheet-* vars are
-   unset by default, so an unset one falls through to the page-wide --km-sheet-* / base tokens.
-   Mapped on the picker (not :root) so a light-DOM override never leaks into other components'
-   sheets. */
-.drp__picker {
-  --_km-sheet-header-gap: var(--drp-sheet-header-gap);
-  --_km-sheet-header-padding-block: var(--drp-sheet-header-padding-block);
-  --_km-sheet-header-padding-inline: var(--drp-sheet-header-padding-inline);
-  --_km-sheet-header-min-height: var(--drp-sheet-header-min-height);
-  --_km-sheet-header-bg: var(--drp-sheet-header-bg);
-  --_km-sheet-header-border: var(--drp-sheet-header-border);
-  --_km-sheet-title-color: var(--drp-sheet-title-color);
-  --_km-sheet-title-font-size: var(--drp-sheet-title-font-size);
-  --_km-sheet-title-font-weight: var(--drp-sheet-title-font-weight);
-  --_km-sheet-close-size: var(--drp-sheet-close-size);
-  --_km-sheet-close-icon-size: var(--drp-sheet-close-icon-size);
-  --_km-sheet-close-icon: var(--drp-sheet-close-icon);
-  --_km-sheet-close-color: var(--drp-sheet-close-color);
-  --_km-sheet-close-bg: var(--drp-sheet-close-bg);
-  --_km-sheet-close-bg-hover: var(--drp-sheet-close-bg-hover);
-  --_km-sheet-close-border: var(--drp-sheet-close-border);
-  --_km-sheet-close-border-radius: var(--drp-sheet-close-border-radius);
-  --_km-sheet-close-edge-nudge: var(--drp-sheet-close-edge-nudge);
-  --_km-sheet-close-focus-color: var(--drp-sheet-close-focus-color);
-}
+/* The full-screen header's sheet-chrome mapping (--drp-sheet-* → core's --_km-sheet-*) and the
+   EFFECTIVE sheet geometry this file lays out around (--_drp-sheet-close-size / -header-gap /
+   -title-font-size) live on .drp__picker in variables.css. */
 
 /* `show-fullscreen-input`: the relocated trigger input fills the header row (before the
    ✕). Override .drp__input's `width:100%` / fixed height so flex governs its size,
@@ -98,7 +73,7 @@
   width: auto;
   min-width: 0;
   height: auto;
-  font-size: var(--drp-fullscreen-input-font-size, var(--_km-sheet-title-font-size, var(--km-sheet-title-font-size, calc(var(--base-font-size-lg, 1.8) * var(--base-rem, 10px)))));
+  font-size: var(--drp-fullscreen-input-font-size, var(--_drp-sheet-title-font-size));
   padding: calc(0.9 * var(--drp-fullscreen-rem)) calc(1.2 * var(--drp-fullscreen-rem));
 }
 
@@ -143,7 +118,7 @@
      header is absolutely positioned and `inset-block-start` is measured from the
      padding EDGE, which padding-top does NOT move. So add the same top padding here
      to follow the row down; the `2.1rem − close/2` then centres the chip on it. */
-  inset-block-start: calc(var(--drp-fullscreen-content-padding-top) + 2.1 * var(--drp-fullscreen-rem) - var(--_km-sheet-close-size, var(--km-sheet-close-size, var(--base-touch-target-min, 44px))) / 2);
+  inset-block-start: calc(var(--drp-fullscreen-content-padding-top) + 2.1 * var(--drp-fullscreen-rem) - var(--_drp-sheet-close-size) / 2);
   /* Match the content gutter so the ✕ lines up with the trailing edge of the day
      grid; the edge-nudge margin on .km-sheet-close then slides it the same
      0.8rem past that gutter as the multiselect overlay's close button. */
@@ -162,7 +137,7 @@
    the ✕ chip plus the header gap on both sides of it. */
 .drp__picker--fs-merged-header .drp__header,
 .drp__picker--fs-merged-header .drp__unified-header {
-  padding-inline-end: calc(var(--_km-sheet-close-size, var(--km-sheet-close-size, var(--base-touch-target-min, 44px))) + 2 * var(--_km-sheet-header-gap, var(--km-sheet-header-gap, calc(var(--base-space-sm, 0.8) * var(--base-rem, 10px)))));
+  padding-inline-end: calc(var(--_drp-sheet-close-size) + 2 * var(--_drp-sheet-header-gap));
 }
 
 /* Give the last row of the scrolling months area breathing room above the pinned

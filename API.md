@@ -1112,8 +1112,8 @@ Five size variants for the input element, customizable via CSS variables:
 | Property | Default | Description |
 |----------|---------|-------------|
 | `--drp-input-padding-h` | `0.75rem` | Input horizontal padding |
-| `--drp-grid-rows` | (dynamic) | Grid rows count (set automatically) |
-| `--drp-grid-columns` | (dynamic) | Grid columns count (set automatically) |
+| `--drp-grid-rows` | `2` | Grid rows of `month-layout="grid"` (the `grid-rows` attribute wins) |
+| `--drp-grid-columns` | `3` | Grid columns of `month-layout="grid"` (the `grid-columns` attribute wins) |
 
 ### Theming Examples
 

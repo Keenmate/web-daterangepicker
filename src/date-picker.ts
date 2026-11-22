@@ -1448,12 +1448,14 @@ class DateRangePickerEngine {
         // Add layout class based on layout option
         if (this.options.monthLayout === 'grid') {
             monthsContainer.className = 'drp__months drp__months--grid';
-            // Set CSS custom properties for grid dimensions
+            // The grid-rows / grid-columns inputs go to PRIVATE vars (runtime state, not
+            // in the manifest); the CSS reads them first, then the public --drp-grid-*
+            // knobs on :host (base.css / modal.css).
             if (this.options.gridRows) {
-                monthsContainer.style.setProperty('--drp-grid-rows', String(this.options.gridRows));
+                monthsContainer.style.setProperty('--_drp-grid-rows', String(this.options.gridRows));
             }
             if (this.options.gridColumns) {
-                monthsContainer.style.setProperty('--drp-grid-columns', String(this.options.gridColumns));
+                monthsContainer.style.setProperty('--_drp-grid-columns', String(this.options.gridColumns));
             }
         } else {
             monthsContainer.className = 'drp__months drp__months--horizontal';
