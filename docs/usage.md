@@ -48,7 +48,7 @@ properties use camelCase (`selectionMode`).
 | `readonly` | `boolean` | `false` | Read-only like a native input (property `isReadonly`): no day / time picks, typing, Today / Now / Clear / Apply or action buttons, and the floating calendar doesn't open; the input stays focusable, an inline calendar can still be browsed month to month, the value is submitted, calls from code keep working. Locks the `selection`, `actions` and `open` aspects (see [Locking](#locking-read-only)) |
 | `required` | `boolean` | `false` | Required like a native input (property `isRequired`): no complete value → `validity.valueMissing` (the `errors.required` label) and the form refuses to submit; `aria-required`, `:state(required)`. A half-picked range is empty; read-only / disabled are never missing. See [Required and validation](#required-and-validation) |
 | `defer` | `boolean` | `false` | Hold the first build until `el.release()` / removing the attribute (core; property `shouldDefer`) |
-| `locale` | `string` | unset | BCP-47 locale for the shown date format (unset `date-format-mask`), `Intl` month / weekday names, the `auto` week start and `{count}` numbers. Unset (`el.locale` reads `null`; `auto` = unset) = the page-wide `window.components.locale`, else the browser language |
+| `locale` | `string` | unset | BCP-47 locale for the shown date format (unset `date-format-mask`), `Intl` month / weekday names, the `auto` week start and `{ctx.count}` numbers. Unset (`el.locale` reads `null`; `auto` = unset) = the page-wide `window.components.locale`, else the browser language |
 | `labels` | JSON | English | UI strings, partial — see [Labels](#labels-i18n) |
 | `week-start-day` | `'auto' \| 0–6` | `'auto'` | First day of week (0 = Sunday, 1 = Monday, …; `'auto'` detects from locale) |
 | `min-date` | `string` | — | Minimum selectable date (`YYYY-MM-DD`) |
@@ -95,7 +95,7 @@ picker.disabledDates = ['2026-06-13', '2026-06-14'];
 picker.specialDates  = [{ date: '2026-12-25', badgeText: '🎄', badgeTooltip: 'Christmas' }];
 
 // UI strings (partial over the English defaults) — see "Labels (i18n)"
-picker.labels = { 'buttons.today': 'Jump', 'buttons.clear': 'Wipe', 'labels.days': '{count} dní' };
+picker.labels = { 'buttons.today': 'Jump', 'buttons.clear': 'Wipe', 'labels.days': '{ctx.count} dní' };
 picker.monthNames    = ['01','02','03','04','05','06','07','08','09','10','11','12'];
 ```
 
@@ -919,9 +919,9 @@ one (`web-daterangepicker.buttons.today`).
 | `ariaLabels.clear` | `Clear` | ARIA label of the input's ✕ clear button (icon only); left unset, it follows a customized `buttons.clear` |
 | `ariaLabels.close` | `Close` | ARIA label of the full-screen ✕ and the message ✕ |
 | `labels.preview` | `Preview` | prefix of the range summary while hovering / dragging |
-| `labels.day` / `labels.days` | `{count} day` / `{count} days` | range summary |
-| `labels.night` / `labels.nights` | `{count} night` / `{count} nights` | range summary |
-| `labels.selectionCount` | `{count} selection(s)` | the input text in multiple mode |
+| `labels.days` | `Days: {ctx.count}` | range summary — context `SummaryLabelContext` (`ctx.count` = `ctx.days`) |
+| `labels.nights` | `Nights: {ctx.count}` | range summary — context `SummaryLabelContext` (`ctx.count` = `ctx.nights`) |
+| `labels.selectionCount` | `{ctx.count} selected` | the input text in multiple mode — context `SelectionCountContext` (`ctx.count` = `dateCount + rangeCount`) |
 | `labels.time` / `labels.hours` / `labels.minutes` / `labels.seconds` / `labels.am` / `labels.pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
 | `headers.fullscreen` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
 | `errors.valueFormat` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
@@ -933,6 +933,25 @@ shows text is named by that text. An `ariaLabels.<name>` nobody set takes a cust
 `<name>` (core `/locale`), so translating `buttons.clear` also names the input ✕ — set `ariaLabels.clear` to
 give it a different text.
 
+**Dynamic texts read their context** (rulebook D-NC-24): a count label gets its text spot's context as `{ ctx }`,
+and the template reads it with a dotted path — `{ctx.count}`, `{ctx.days}`, `{ctx.nights}`, `{ctx.dateCount}`,
+`{ctx.rangeCount}`. The summary labels read `SummaryLabelContext` (what `renderSummaryCallback` gets — `days`,
+`nights`, `startDate`, `endDate`, `selectionMode`, … — plus `count`); `labels.selectionCount` reads
+`SelectionCountContext` (`dateCount`, `rangeCount`, `count`). `ctx.count` is the number the text's noun agrees with,
+so an i18n library can pluralize; the English defaults put no plural noun after the number (`Days: 5`,
+`3 selected`) and there are no singular keys. Numbers are locale-formatted; a `translateCallback` gets the context
+raw as `params.ctx`. One generic i18next bridge covers every key:
+
+```javascript
+window.components.locale = {
+  translateCallback: ({ key, params }) => {
+    const options = { ...params, count: params.ctx?.count };
+    return i18next.exists(key, options) ? i18next.t(key, options) : null;
+  },
+};
+// cs.json: "web-daterangepicker.labels.days_one": "{{count}} den", "…_few": "{{count}} dny", "…_other": "{{count}} dní"
+```
+
 Page-wide (every picker on the page, core `/locale`): one flat dictionary of full keys —
 `window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Dnes' } }`; the instance
 `labels` wins key by key. `window.components.locale.translateCallback({ component, key, template, params, locale })`
@@ -942,10 +961,10 @@ key the instance set.
 One picker needs no page setup: its own `translateCallback` property (same signature) is asked first, then the
 page-wide one — `null` / `undefined` passes the key on. A key the instance `labels` set never reaches either; any
 other key (its `template` from the page dictionary, else English) goes to `el.translateCallback` →
-`window.components.locale.translateCallback` → the default `{name}` formatting. Changing it re-renders the labels.
+`window.components.locale.translateCallback` → the default `{ctx.*}` formatting. Changing it re-renders the labels.
 
 ```javascript
-picker.translateCallback = ({ key, params }) => key === 'web-daterangepicker.labels.days' ? i18n.t('days', params) : null;
+picker.translateCallback = ({ key, params }) => key === 'web-daterangepicker.labels.days' ? i18n.t('days', { count: params.ctx.count }) : null;
 ```
 
 A callback context carries the same chain as `ctx.labels` (core `createLabelsView`) — only
@@ -954,24 +973,24 @@ never the plain label object; numbers in `params` are locale-formatted:
 
 ```javascript
 picker.renderSummaryCallback = (ctx) =>
-  `<strong>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</strong>`;
+  `<strong>${ctx.labels.html('labels.nights', { ctx: { ...ctx, count: ctx.nights } })}</strong>`;
 ```
 
 `''` is a deliberate empty label (renders nothing); a missing / `undefined` key falls back to
-the English default. Content labels (`labels.preview`, `labels.day(s)`, `labels.night(s)`, `labels.time`,
+the English default. Content labels (`labels.preview`, `labels.days`, `labels.nights`, `labels.time`,
 `labels.hours`, `labels.minutes`, `labels.seconds`, `labels.am` / `labels.pm` in the time pickers) are inserted as HTML — never pass
-untrusted text; the `{count}` value is escaped. The others (button text, ARIA labels,
+untrusted text; the `{ctx.*}` values are escaped. The others (button text, ARIA labels,
 `headers.fullscreen`, `labels.selectionCount` in the input) are plain text. See the README's
 HTML Injection (XSS) notice.
 
 ```html
 <web-daterangepicker selection-mode="range" locale="de"
-  labels='{"buttons.today":"Heute","buttons.clear":"Löschen","buttons.apply":"Übernehmen","labels.days":"{count} Tage","labels.nights":"{count} Nächte"}'>
+  labels='{"buttons.today":"Heute","buttons.clear":"Löschen","buttons.apply":"Übernehmen","labels.days":"Tage: {ctx.count}","labels.nights":"Nächte: {ctx.count}"}'>
 </web-daterangepicker>
 ```
 
 ```js
-picker.labels = { 'buttons.today': 'Dnes', 'labels.days': '{count} dní', 'headers.fullscreen': 'Vyberte termín' };
+picker.labels = { 'buttons.today': 'Dnes', 'labels.days': 'Dní: {ctx.count}', 'headers.fullscreen': 'Vyberte termín' };
 ```
 
 ### Locking (read-only)

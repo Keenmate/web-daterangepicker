@@ -253,9 +253,9 @@ test.describe('setters keep the input and the form value in sync', () => {
     test('selectedDates / selectedRanges setters (multiple) write the count and survive open (FINDINGS #25)', async ({ page }) => {
         const p = pickerById(page, 'api-multi');
         await p.evaluate((el: any) => { el.selectedDates = [new Date(2026, 5, 3), new Date(2026, 5, 9)]; });
-        await expect(textInput(p)).toHaveValue('2 selection(s)');
+        await expect(textInput(p)).toHaveValue('2 selected');
         await p.evaluate((el: any) => { el.selectedRanges = [{ start: new Date(2026, 5, 15), end: new Date(2026, 5, 17) }]; });
-        await expect(textInput(p)).toHaveValue('3 selection(s)');
+        await expect(textInput(p)).toHaveValue('3 selected');
         await textInput(p).click();
         const kept = await p.evaluate((el: any) => [el.selectedDates.length, el.selectedRanges.length]);
         expect(kept).toEqual([2, 1]);

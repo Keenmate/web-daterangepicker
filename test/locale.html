@@ -71,9 +71,9 @@
     </div>
 
     <div class="fixture">
-        <div class="fixture-label">labels JSON attribute — {count} placeholders</div>
+        <div class="fixture-label">labels JSON attribute — {ctx.count} placeholders</div>
         <web-daterangepicker id="labels-attr" selection-mode="range" initial-date="2026-06-15"
-            labels='{"labels.days":"{count} Tage","labels.nights":"{count} Nächte"}'></web-daterangepicker>
+            labels='{"labels.days":"{ctx.count} Tage","labels.nights":"{ctx.count} Nächte"}'></web-daterangepicker>
     </div>
 
     <script type="module">

@@ -588,7 +588,7 @@ export interface DateRangePickerConfig {
   isSummaryShown?: boolean;
 
   // Internationalization
-  /** Locale (BCP-47) for the shown date format, `Intl` month / weekday names, the `auto` week start and `{count}` numbers. Unset / `null` (default; `'auto'` = unset) = the page-wide `window.components.locale`, else the browser language. UI strings are `labels`. */
+  /** Locale (BCP-47) for the shown date format, `Intl` month / weekday names, the `auto` week start and `{ctx.count}` numbers. Unset / `null` (default; `'auto'` = unset) = the page-wide `window.components.locale`, else the browser language. UI strings are `labels`. */
   locale?: string | null;
   /** UI strings (partial; English defaults for the rest). See {@link DateRangePickerLabels}. */
   labels?: Partial<DateRangePickerLabels> | null;
@@ -797,8 +797,12 @@ export interface DatePickerOptions extends Omit<DateRangePickerConfig, ElementOn
 }
 
 /**
- * The UI strings (`labels` input; English defaults, set any subset). `{count}` is
- * interpolated where noted. Month / weekday names come from `Intl` (`locale`).
+ * The UI strings (`labels` input; English defaults, set any subset). A dynamic text passes its
+ * context as `{ ctx }` (rulebook D-NC-24), so its template reads `{ctx.<path>}` — numbers
+ * locale-formatted, values escaped in HTML texts; a `translateCallback` gets the context raw as
+ * `params.ctx`. `ctx.count` is the number the text's noun agrees with (plurals belong to the app's
+ * i18n library: `i18next.t(key, { ...params, count: params.ctx?.count })`). Month / weekday names
+ * come from `Intl` (`locale`).
  */
 export interface DateRangePickerLabels {
   /** Built-in action buttons (footer captions). */
@@ -811,13 +815,13 @@ export interface DateRangePickerLabels {
   /** The ✕ that closes the full-screen sheet / a message, its ARIA label. */
   'ariaLabels.close': string;
 
-  /** Range summary: the hover/drag preview prefix and the counts (`{count}`). */
+  /** Range summary: the hover/drag preview prefix. */
   'labels.preview': string;
-  'labels.day': string;
+  /** Range summary: the day count. Context: `SummaryLabelContext` (`ctx.count` = `ctx.days`). Default `Days: {ctx.count}`. */
   'labels.days': string;
-  'labels.night': string;
+  /** Range summary: the night count. Context: `SummaryLabelContext` (`ctx.count` = `ctx.nights`). Default `Nights: {ctx.count}`. */
   'labels.nights': string;
-  /** The input text in multiple mode (`{count}`). */
+  /** The input text in multiple mode. Context: `SelectionCountContext` (`ctx.count` = dates + ranges). Default `{ctx.count} selected`. */
   'labels.selectionCount': string;
 
   /** Time picker (pickerMode `time` / `datetime`): the section caption, AM / PM, the column captions. */
@@ -1006,12 +1010,31 @@ export interface SummaryContext extends PickerContext {
    * The UI labels as core `LabelsView`: `ctx.labels.text(key, params)` (plain text) /
    * `ctx.labels.html(key, params)` (escaped for innerHTML) — the full chain (instance `labels`,
    * the element's and the page-wide `translateCallback`, page-wide labels, English), numbers
-   * locale-formatted. E.g. `ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })`.
+   * locale-formatted. E.g. `ctx.labels.html('labels.days', { ctx: { ...ctx, count: ctx.days } })`.
    */
   labels: LabelsView<DateRangePickerLabels>;
 
   // Preview flag (true when dragging)
   isPreview?: boolean;
+}
+
+/**
+ * Label context of `labels.days` / `labels.nights` — the range summary's `SummaryContext` (what
+ * `renderSummaryCallback` gets) plus `count`.
+ */
+export interface SummaryLabelContext extends SummaryContext {
+  /** The number the text's noun agrees with: `days` for `labels.days`, `nights` for `labels.nights`. */
+  count: number;
+}
+
+/** Label context of `labels.selectionCount` — the input text in multiple mode. */
+export interface SelectionCountContext extends PickerContext {
+  /** Single dates picked. */
+  dateCount: number;
+  /** Ranges picked. */
+  rangeCount: number;
+  /** The number the text's noun agrees with: `dateCount + rangeCount`. */
+  count: number;
 }
 
 /**

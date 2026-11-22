@@ -56,17 +56,17 @@ test('page-wide labels apply live; the instance labels win key by key', async ({
     await expect(mine.locator('.drp__button--today')).toHaveText('Mine');
 });
 
-test('translateCallback formats a label and gets {count} as a raw number', async ({ page }) => {
+test('translateCallback formats a label and gets the context raw (params.ctx.count a number)', async ({ page }) => {
     await page.evaluate(() => {
         (window as any).components.locale = {
             locale: 'cs-CZ',
             translateCallback: ({ component, key, params }: any) =>
-                key === 'web-daterangepicker.labels.selectionCount' ? `${component}:${typeof params.count}:${params.count}` : undefined,
+                key === 'web-daterangepicker.labels.selectionCount' ? `${component}:${typeof params.ctx.count}:${params.ctx.count}:${params.ctx.dateCount}:${params.ctx.rangeCount}` : undefined,
         };
     });
     const p = pickerById(page, 'multi');
     await p.evaluate((el: any) => { el.selectedDates = [new Date(2026, 5, 10), new Date(2026, 5, 12)]; });
-    await expect(p.locator('input').first()).toHaveValue('web-daterangepicker:number:2');
+    await expect(p.locator('input').first()).toHaveValue('web-daterangepicker:number:2:2:0');
 });
 
 // The element's own translateCallback (core createLabels reads host.translateCallback): asked before the page-wide
@@ -101,18 +101,18 @@ test('renderSummaryCallback ctx.labels: element + page translateCallback, locale
     await page.evaluate(() => {
         (window as any).components.locale = {
             locale: 'cs-CZ',
-            translateCallback: ({ key, params }: any) => key === 'web-daterangepicker.labels.nights' ? `Page ${params.count} nocí` : undefined,
+            translateCallback: ({ key, params }: any) => key === 'web-daterangepicker.labels.nights' ? `Page ${params.ctx.count} nocí` : undefined,
         };
     });
     const el = pickerById(page, 'summary');
     await el.evaluate((e: any) => {
-        e.translateCallback = ({ key, params }: any) => key === 'web-daterangepicker.labels.days' ? `Element ${params.count} dní` : null;
+        e.translateCallback = ({ key, params }: any) => key === 'web-daterangepicker.labels.days' ? `Element ${params.ctx.count} dní` : null;
         e.renderSummaryCallback = (ctx: any) => {
             (window as any).__labelsKeys = Object.keys(ctx.labels).sort();
             (window as any).__labelsFrozen = Object.isFrozen(ctx.labels);
-            return `<span class="x-days">${ctx.labels.html('labels.days', { count: ctx.days })}</span>`
-                + `<span class="x-nights">${ctx.labels.html('labels.nights', { count: ctx.nights })}</span>`
-                + `<span class="x-count">${ctx.labels.text('labels.selectionCount', { count: 1500 })}</span>`;
+            return `<span class="x-days">${ctx.labels.html('labels.days', { ctx: { ...ctx, count: ctx.days } })}</span>`
+                + `<span class="x-nights">${ctx.labels.html('labels.nights', { ctx: { ...ctx, count: ctx.nights } })}</span>`
+                + `<span class="x-count">${ctx.labels.text('labels.selectionCount', { ctx: { count: 1500 } })}</span>`;
         };
         return e.whenSettled();
     });
@@ -122,13 +122,13 @@ test('renderSummaryCallback ctx.labels: element + page translateCallback, locale
     const summary = p.locator('.drp__summary');
     await expect(summary.locator('.x-days')).toHaveText('Element 4 dní');
     await expect(summary.locator('.x-nights')).toHaveText('Page 3 nocí');
-    // the default {count} formatting goes through the locale (cs-CZ groups with a (narrow) no-break space)
-    await expect(summary.locator('.x-count')).toHaveText(/^1\s500 selection\(s\)$/);
+    // the default {ctx.count} formatting goes through the locale (cs-CZ groups with a (narrow) no-break space)
+    await expect(summary.locator('.x-count')).toHaveText(/^1\s500 selected$/);
     expect(await page.evaluate(() => (window as any).__labelsKeys)).toEqual(['html', 'text']);
     expect(await page.evaluate(() => (window as any).__labelsFrozen)).toBe(true);
 
     // the instance labels win over both callbacks
-    await el.evaluate((e: any) => { e.labels = { 'labels.days': 'Mine {count}' }; return e.whenSettled(); });
+    await el.evaluate((e: any) => { e.labels = { 'labels.days': 'Mine {ctx.count}' }; return e.whenSettled(); });
     await el.evaluate((e: any) => e.open());
     await expect(summary.locator('.x-days')).toHaveText('Mine 4');
     await expect(summary.locator('.x-nights')).toHaveText('Page 3 nocí');

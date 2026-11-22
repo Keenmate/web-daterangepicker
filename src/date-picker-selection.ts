@@ -231,8 +231,7 @@ function formatInputValue(picker: any): string | null {
         return picker.formatDate(picker._selectedDate);
     }
     if (mode === 'multiple') {
-        const count = picker._selectedDates.length + picker._selectedRanges.length;
-        return count > 0 ? picker.labels.text('labels.selectionCount', { count }) : '';
+        return picker.selectionCountText();
     }
     return null;
 }
@@ -402,8 +401,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
         }
 
         // Update input to show count (only if Apply button is NOT required)
-        const count = picker._selectedDates.length + picker._selectedRanges.length;
-        commitInputValue(picker, count > 0 ? picker.labels.text('labels.selectionCount', { count }) : '');
+        commitInputValue(picker, picker.selectionCountText());
 
         // Multiple mode always defers events (inherently requires Apply button)
         // Store pending selection for onChange callback

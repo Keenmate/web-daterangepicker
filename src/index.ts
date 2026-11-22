@@ -52,7 +52,7 @@ export type {
     DateRangePickerConfig, DateRangePickerResponsiveMap, DateRangePickerResponsiveCallback, Presentation,
     // Shared callback/event context vocabulary
     PickerContext, DateRangePickerController, ShowMessageOptions, MessageVariant, PresentationContext,
-    DayContext, MonthHeaderContext, UnifiedHeaderContext, SummaryContext,
+    DayContext, MonthHeaderContext, UnifiedHeaderContext, SummaryContext, SummaryLabelContext, SelectionCountContext,
     BeforeSelectContext, BeforeSelectResult, MonthChangeContext, BeforeMonthChangeResult, MonthDataResult,
     BeforeScrollContext, BeforeScrollResult, DateRangePickerScrollSource, DateRangePickerScrollOptions,
     // Action buttons (core ActionItem)

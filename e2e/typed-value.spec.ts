@@ -473,12 +473,12 @@ const MULTI_SEED = '2026-06-10, 2026-06-12';
 
 async function seedMultiple(p: Locator) {
     await p.evaluate((el: any, v) => { el.value = v; }, MULTI_SEED);
-    await expect(textInput(p)).toHaveValue('2 selection(s)');
+    await expect(textInput(p)).toHaveValue('2 selected');
 }
 
 async function expectMultipleRestored(page: Page, p: Locator, id: string, name: string, seeded: string[]) {
     await expect(calendar(p)).toBeHidden();
-    await expect(textInput(p)).toHaveValue('2 selection(s)');
+    await expect(textInput(p)).toHaveValue('2 selected');
     await expect(inputClear(p)).toHaveClass(/drp__input-clear--visible/);
     expect(await value(p)).toBe(seeded[0]);
     expect(await formValue(page, name)).toEqual([seeded[1]]);
@@ -507,7 +507,7 @@ for (const [id, name] of [['multiple-apply', 'multipleApply'], ['multiple-manual
         await dayByDate(p, '2026-06-15').click();
         await dayByDate(p, '2026-06-16').click();
         await dayByDate(p, '2026-06-10').click(); // toggled off
-        await expect(textInput(p)).toHaveValue('2 selection(s)'); // staged: text untouched
+        await expect(textInput(p)).toHaveValue('2 selected'); // staged: text untouched
         await page.keyboard.press('Escape');
         await expectMultipleRestored(page, p, id, name, seeded);
     });
@@ -527,12 +527,12 @@ for (const [id, name] of [['multiple-apply', 'multipleApply'], ['multiple-manual
         const p = pickerById(page, id);
         // An older committed value (also shows June), then the assigned set replaces it.
         await p.evaluate((el: any) => { el.value = '2026-06-20'; });
-        await expect(textInput(p)).toHaveValue('1 selection(s)');
+        await expect(textInput(p)).toHaveValue('1 selected');
         await p.evaluate(async (el: any) => {
             el.selectedDates = [new Date(2026, 5, 10), new Date(2026, 5, 12)];
             await el.whenSettled();
         });
-        await expect(textInput(p)).toHaveValue('2 selection(s)');
+        await expect(textInput(p)).toHaveValue('2 selected');
         const seeded = await committedState(page, p, name);
         await textInput(p).click();
         await dayByDate(p, '2026-06-15').click();
@@ -549,7 +549,7 @@ test('multiple-apply: Apply commits the picked days — change once, value, text
     await dayByDate(p, '2026-06-15').click();
     await p.locator('.drp__button--apply').click();
     await expect(calendar(p)).toBeHidden();
-    await expect(textInput(p)).toHaveValue('3 selection(s)');
+    await expect(textInput(p)).toHaveValue('3 selected');
     const committed = await committedState(page, p, 'multipleApply');
     expect(committed[0]).toContain('2026-06-15');
     expect(committed[1]).toBe(committed[0]);
@@ -559,7 +559,7 @@ test('multiple-apply: Apply commits the picked days — change once, value, text
     await dayByDate(p, '2026-06-16').click();
     await page.keyboard.press('Escape');
     await expect(calendar(p)).toBeHidden();
-    await expect(textInput(p)).toHaveValue('3 selection(s)');
+    await expect(textInput(p)).toHaveValue('3 selected');
     expect(await committedState(page, p, 'multipleApply')).toEqual(committed);
     expect(await changes(page, 'multiple-apply')).toHaveLength(1);
 });
@@ -571,7 +571,7 @@ test('multiple-manual: commit() commits the picked days', async ({ page }) => {
     await dayByDate(p, '2026-06-15').click();
     await p.evaluate((el: any) => el.commit());
     await expect(calendar(p)).toBeHidden();
-    await expect(textInput(p)).toHaveValue('3 selection(s)');
+    await expect(textInput(p)).toHaveValue('3 selected');
     const committed = await committedState(page, p, 'multipleManual');
     expect(committed[0]).toContain('2026-06-15');
     expect(await changes(page, 'multiple-manual')).toHaveLength(1);

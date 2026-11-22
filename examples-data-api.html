@@ -1432,7 +1432,7 @@ Object.assign(picker, {
   weekStartDay: 0 | 1 | 'auto',                    // Default: 'auto'
   labels: {                                        // UI strings (partial; English defaults)
     'buttons.today': 'Heute',                      // flat &lt;elementType&gt;.&lt;name&gt; keys
-    'labels.days': '{count} Tage',
+    'labels.days': 'Tage: {ctx.count}',
     // ... see DateRangePickerLabels / DEFAULT_LABELS for all keys
   },
   monthNames: ['Jan', 'Feb', ...],                 // Custom month names
@@ -2417,11 +2417,11 @@ web-daterangepicker:state(required) { … }</code></pre></div>
               ${prefix}
               <div style="font-size: 0.9em;">
                 <div><strong>${data.dateRanges.length}</strong> separate periods</div>
-                <div style="opacity: 0.7; font-size: 0.85em;">${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })} total (${disabledCount} disabled)</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${data.labels.html('labels.days', { ctx: { ...data, count: data.days } })} total (${disabledCount} disabled)</div>
               </div>
             `;
           } else if (data.dateRanges && data.dateRanges.length === 1) {
-            return `${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })}, ${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}`;
+            return `${data.labels.html('labels.days', { ctx: { ...data, count: data.days } })}, ${data.labels.html('labels.nights', { ctx: { ...data, count: data.nights } })}`;
           }
           return '';
         };
@@ -2568,7 +2568,7 @@ web-daterangepicker:state(required) { … }</code></pre></div>
           return `
             ${prefix}
             <div style="display: flex; justify-content: space-between; width: 100%; gap: 1rem;">
-              <span>${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}</span>
+              <span>${data.labels.html('labels.nights', { ctx: { ...data, count: data.nights } })}</span>
               <span style="font-weight: bold; color: var(--kmwc-success-color);">${total}</span>
             </div>
           `;
@@ -2589,7 +2589,7 @@ web-daterangepicker:state(required) { … }</code></pre></div>
               </div>
             `;
           }
-          return `${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })}`;
+          return `${data.labels.html('labels.days', { ctx: { ...data, count: data.days } })}`;
         };
       }
 
@@ -2603,11 +2603,11 @@ web-daterangepicker:state(required) { … }</code></pre></div>
               ${prefix}
               <div style="font-size: 0.9em;">
                 <div><strong>${data.dateRanges.length}</strong> separate periods</div>
-                <div style="opacity: 0.7; font-size: 0.85em;">${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })} total</div>
+                <div style="opacity: 0.7; font-size: 0.85em;">${data.labels.html('labels.days', { ctx: { ...data, count: data.days } })} total</div>
               </div>
             `;
           } else {
-            return `${data.labels.html(data.days === 1 ? 'labels.day' : 'labels.days', { count: data.days })}, ${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}`;
+            return `${data.labels.html('labels.days', { ctx: { ...data, count: data.days } })}, ${data.labels.html('labels.nights', { ctx: { ...data, count: data.nights } })}`;
           }
         };
       }
@@ -2619,7 +2619,7 @@ web-daterangepicker:state(required) { … }</code></pre></div>
 
           return `
             ${prefix}
-            <strong style="font-size: 1.1em; color: var(--kmwc-info-color);">${data.labels.html(data.nights === 1 ? 'labels.night' : 'labels.nights', { count: data.nights })}</strong>
+            <strong style="font-size: 1.1em; color: var(--kmwc-info-color);">${data.labels.html('labels.nights', { ctx: { ...data, count: data.nights } })}</strong>
           `;
         };
       }

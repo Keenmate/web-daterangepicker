@@ -13,7 +13,7 @@
  * Dependencies: @keenmate/web-components-core (escapeHtml, positioning, actions)
  */
 
-import type { ShowMessageOptions, DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, DateRangePickerLabels, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController } from './types';
+import type { ShowMessageOptions, DatePickerOptions, DateRange, FormatOptions, TimeFormatOptions, SelectedTime, MonthDisplay, DecoratedDate, DayMetadata, DateRangePickerLabels, DateRangePickerAction, DateRangePickerActionItem, DateRangePickerActionEventDetail, LoaderTarget, LockAspect, PickerContext, ChangeEventDetail, DateRangePickerController, SelectionCountContext } from './types';
 import * as Validation from './date-picker-validation';
 import * as Rendering from './date-picker-rendering';
 import * as Navigation from './date-picker-navigation';
@@ -2902,11 +2902,20 @@ class DateRangePickerEngine {
         this.updateSummary();
     }
 
-    /** Multiple mode: write the committed selection count ("N selection(s)", '' when none) into the input. */
+    /** Multiple mode: write the committed selection count (`labels.selectionCount`, '' when none) into the input. */
     private writeMultipleInputText() {
         if (!this.input) return;
-        const count = this._selectedDates.length + this._selectedRanges.length;
-        this.input.value = count > 0 ? this.labels.text('labels.selectionCount', { count }) : '';
+        this.input.value = this.selectionCountText();
+    }
+
+    /** Multiple mode: the input text — `labels.selectionCount` over a `SelectionCountContext`; '' when nothing is picked. */
+    selectionCountText(): string {
+        const dateCount = this._selectedDates.length;
+        const rangeCount = this._selectedRanges.length;
+        const count = dateCount + rangeCount;
+        if (count === 0) return '';
+        const ctx: SelectionCountContext = this.ctx({ dateCount, rangeCount, count });
+        return this.labels.text('labels.selectionCount', { ctx });
     }
 
     /**

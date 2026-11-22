@@ -64,7 +64,7 @@ test('single → multiple flip: the date carries over, reformatted for multiple 
   await expect(host.locator('input.drp__input')).toHaveValue('2026-06-10');
 
   await host.evaluate((el: any) => el.setAttribute('selection-mode', 'multiple'));
-  await expect(host.locator('input.drp__input')).toHaveValue('1 selection(s)');
+  await expect(host.locator('input.drp__input')).toHaveValue('1 selected');
   const dates = await host.evaluate((el: any) => el.selectedDates.map((d: Date) => d.toDateString()));
   expect(dates).toEqual([new Date(2026, 5, 10).toDateString()]);
 });
@@ -74,7 +74,7 @@ test('range → multiple flip: the range carries over as one range', async ({ pa
   const host = page.locator('#flip');
   await host.evaluate((el: any) => { el.selectedRanges = [{ start: new Date(2026, 5, 10), end: new Date(2026, 5, 14) }]; });
   await host.evaluate((el: any) => el.setAttribute('selection-mode', 'multiple'));
-  await expect(host.locator('input.drp__input')).toHaveValue('1 selection(s)');
+  await expect(host.locator('input.drp__input')).toHaveValue('1 selected');
   expect(await host.evaluate((el: any) => el.selectedRanges.length)).toBe(1);
 });
 

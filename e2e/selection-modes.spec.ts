@@ -110,7 +110,7 @@ test.describe('multiple mode', () => {
         await expect(calendarOf(p)).toBeHidden();
         // Multiple mode summarizes the selection count in the input rather than
         // listing every date (which would overflow for long selections).
-        await expect(inputOf(p)).toHaveValue(/3 selection/);
+        await expect(inputOf(p)).toHaveValue('3 selected');
     });
 
     test('re-clicking a selected day unselects it', async ({ page }) => {

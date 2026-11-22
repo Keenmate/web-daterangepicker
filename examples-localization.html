@@ -17,7 +17,7 @@
   <h2>LO01 · Instance <code>labels</code></h2>
   <p>Override texts on ONE element with the <code>labels</code> property (or a JSON <code>labels</code> attribute). A short
     key (<code>buttons.today</code>, <code>labels.days</code>) and a full key (<code>web-daterangepicker.buttons.clear</code>)
-    both work; every key you leave out stays English. <code>{count}</code> is interpolated (locale-formatted). The
+    both work; every key you leave out stays English. A count text reads its context: <code>{ctx.count}</code> (locale-formatted). The
     neighbour picker is untouched.</p>
   <div class="controls">
     <label><input type="checkbox" id="lo01-labels" checked> instance <code>labels</code> on the first picker</label>
@@ -39,11 +39,11 @@
   </div>
   <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>el.labels = {
   'buttons.today': 'Dnes',                          // short key
-  'labels.days': '{count} dní',
+  'labels.days': '{ctx.count} dní',
   'web-daterangepicker.buttons.clear': 'Vymazat',   // full key
 };
 // or declaratively
-&lt;web-daterangepicker labels='{"buttons.today":"Dnes","labels.days":"{count} dní"}'&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
+&lt;web-daterangepicker labels='{"buttons.today":"Dnes","labels.days":"{ctx.count} dní"}'&gt;&lt;/web-daterangepicker&gt;</code></pre></div>
 </div>
 
 <!-- ============================================================= -->
@@ -79,10 +79,8 @@ window.components.locale = {
     'web-daterangepicker.buttons.today': 'Dnes',
     'web-daterangepicker.buttons.clear': 'Vymazat',
     'web-daterangepicker.buttons.now': 'Teď',
-    'web-daterangepicker.labels.day': '{count} den',
-    'web-daterangepicker.labels.days': '{count} dní',
-    'web-daterangepicker.labels.night': '{count} noc',
-    'web-daterangepicker.labels.nights': '{count} nocí',
+    'web-daterangepicker.labels.days': 'Dní: {ctx.count}',
+    'web-daterangepicker.labels.nights': 'Nocí: {ctx.count}',
     'web-daterangepicker.labels.time': 'Čas',
     'web-multiselect.placeholders.search': 'Hledat…',   // other components share the same JSON
   },
@@ -124,13 +122,15 @@ window.components.locale = {
 const sk = {
   'web-daterangepicker.buttons.today': 'Dnes',
   'web-daterangepicker.buttons.clear': 'Vymazať',
-  'web-daterangepicker.labels.days': '{{count}} dní',
+  'web-daterangepicker.labels.days': '{{count}} dní',   // i18next reads count
 };
 const t = (key, params) =&gt; sk[key]?.replace(/\{\{(\w+)\}\}/g, (_, p) =&gt; params?.[p] ?? '');
 const exists = (key) =&gt; key in sk;
 
 // page-wide — every component on the page
-window.components.locale = { translateCallback: ({ key, params }) =&gt; (exists(key) ? t(key, params) : null) };
+window.components.locale = {
+  translateCallback: ({ key, params }) =&gt; (exists(key) ? t(key, { ...params, count: params.ctx?.count }) : null),
+};
 
 // one element — asked BEFORE the page-wide callback; null = not mine
 el.translateCallback = ({ key }) =&gt; (key === 'web-daterangepicker.buttons.today' ? 'Heute' : null);</code></pre></div>
@@ -169,7 +169,7 @@ el.translateCallback = ({ key }) =&gt; (key === 'web-daterangepicker.buttons.tod
     <code>cs</code> <code>15. 06. 2026</code>, <code>de</code> <code>15.06.2026</code>, <code>en-US</code>
     <code>06/15/2026</code>; a page-wide <code>window.components.locale.dateFormat</code> or an explicit mask wins; the
     submitted value stays ISO), the <code>Intl</code> <strong>month / weekday names</strong>, the <strong>week start</strong>
-    under <code>week-start-day="auto"</code> and the numbers in <code>{count}</code> labels.</p>
+    under <code>week-start-day="auto"</code> and the numbers in <code>{ctx.count}</code> labels.</p>
   <div class="controls"><strong class="muted">page locale</strong>
     <label><input type="radio" name="lo11-locale" value="" checked> unset (browser)</label>
     <label><input type="radio" name="lo11-locale" value="cs-CZ"> cs-CZ</label>
@@ -211,23 +211,23 @@ el.translateCallback = ({ key }) =&gt; (key === 'web-daterangepicker.buttons.tod
 <!-- ============================================================= -->
 <div class="card">
   <h2>LO12 · <code>shouldEscapeLabels</code></h2>
-  <p>Labels rendered as HTML (the summary <code>labels.day(s)</code> / <code>labels.night(s)</code> /
+  <p>Labels rendered as HTML (the summary <code>labels.days</code> / <code>labels.nights</code> /
     <code>labels.preview</code>, the time-picker captions) are templates: the template's own <code>&lt;b&gt;</code> renders
-    bold, while a <code>{param}</code> is DATA and always escaped (a typed <code>&lt;i&gt;Ann&lt;/i&gt;</code> would show
-    its tags as text — here the only param is the number <code>{count}</code>). With
+    bold, while a <code>{ctx.*}</code> value is DATA and always escaped (a typed <code>&lt;i&gt;Ann&lt;/i&gt;</code> would show
+    its tags as text — here the only value is the number <code>{ctx.count}</code>). With
     <code>window.components.security.shouldEscapeLabels</code> the whole label is text: the template's <code>&lt;b&gt;</code>
     shows as characters too (for apps whose translators must not inject markup). Buttons and aria names are always text.</p>
   <div class="controls">
     <label><input type="checkbox" id="lo12-escape"> <code>shouldEscapeLabels</code></label>
   </div>
   <div class="demo-area">
-    <label class="demo-label"><code>labels.days</code> = <code>&lt;b&gt;{count}&lt;/b&gt; days</code></label>
+    <label class="demo-label"><code>labels.days</code> = <code>&lt;b&gt;{ctx.count}&lt;/b&gt; days</code></label>
     <web-daterangepicker id="lo12" selection-mode="range" show-summary positioning-mode="inline"
       visible-month-count="1" value="2026-06-10 - 2026-06-14"
-      labels='{"labels.days":"<b>{count}</b> days"}'></web-daterangepicker>
+      labels='{"labels.days":"<b>{ctx.count}</b> days"}'></web-daterangepicker>
     <div class="output"><div class="output-label">the summary: markup → shown text</div><pre id="lo12-out"></pre></div>
   </div>
-  <div class="code-block" data-language="js"><pre><code>el.labels = { 'labels.days': '&lt;b&gt;{count}&lt;/b&gt; days' };
+  <div class="code-block" data-language="js"><pre><code>el.labels = { 'labels.days': '&lt;b&gt;{ctx.count}&lt;/b&gt; days' };
 // → &lt;b&gt;5&lt;/b&gt; days   (bold)
 window.components.security = { shouldEscapeLabels: true };
 // → &amp;lt;b&amp;gt;5&amp;lt;/b&amp;gt; days   (the whole label is text)</code></pre></div>
@@ -366,7 +366,7 @@ month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|�
       week-start-day="1"
       month-names="Leden|Únor|Březen|Duben|Květen|Červen|Červenec|Srpen|Září|Říjen|Listopad|Prosinec"
       weekday-names="Ne|Po|Út|St|Čt|Pá|So"
-      labels='{"buttons.today":"Dnes","buttons.clear":"Vymazat","labels.day":"{count} den","labels.days":"{count} dní","labels.night":"{count} noc","labels.nights":"{count} nocí"}'
+      labels='{"buttons.today":"Dnes","buttons.clear":"Vymazat","labels.days":"Dní: {ctx.count}","labels.nights":"Nocí: {ctx.count}"}'
       positioning-mode="inline"></web-daterangepicker>
   </div>
 </div>
@@ -481,8 +481,8 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
   // ── LO01 · instance labels.
   const LO01_LABELS = {
     'buttons.today': 'Dnes',
-    'labels.days': '{count} dní',
-    'labels.nights': '{count} nocí',
+    'labels.days': '{ctx.count} dní',
+    'labels.nights': '{ctx.count} nocí',
     'web-daterangepicker.buttons.clear': 'Vymazat',
   };
   const lo01 = () => { $('lo01').labels = $('lo01-labels').checked ? LO01_LABELS : undefined; refreshAll(); };
@@ -494,10 +494,8 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
     'web-daterangepicker.buttons.today': 'Dnes',
     'web-daterangepicker.buttons.clear': 'Vymazat',
     'web-daterangepicker.buttons.now': 'Teď',
-    'web-daterangepicker.labels.day': '{count} den',
-    'web-daterangepicker.labels.days': '{count} dní',
-    'web-daterangepicker.labels.night': '{count} noc',
-    'web-daterangepicker.labels.nights': '{count} nocí',
+    'web-daterangepicker.labels.days': 'Dní: {ctx.count}',
+    'web-daterangepicker.labels.nights': 'Nocí: {ctx.count}',
     'web-daterangepicker.labels.time': 'Čas',
     'web-multiselect.placeholders.search': 'Hledat…',
   };
@@ -510,7 +508,7 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
     'web-daterangepicker.labels.days': '{{count}} dní',
   };
   const t = (key, params) => sk[key].replace(/\{\{(\w+)\}\}/g, (_, p) => String(params?.[p] ?? ''));
-  const pageTranslate = ({ key, params }) => (key in sk ? t(key, params) : null);
+  const pageTranslate = ({ key, params }) => (key in sk ? t(key, { ...params, count: params.ctx?.count }) : null);
   const ownTranslate = ({ key }) => (key === 'web-daterangepicker.buttons.today' ? 'Heute' : null);
   $('lo09-page').addEventListener('change', (e) => { page.translateCallback = e.target.checked ? pageTranslate : null; applyPage(); });
   $('lo09-own').addEventListener('change', (e) => { $('lo09a').translateCallback = e.target.checked ? ownTranslate : undefined; refreshAll(); });

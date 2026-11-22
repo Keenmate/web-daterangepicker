@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Changed — BREAKING: label templates read the text's context (`{ctx.*}`, `ctx.count`) (2026-11-22)
+- **BREAKING: every count label passes its text spot's context as `{ ctx }`** (core rc25 dotted-path labels,
+  rulebook D-NC-24) — templates read `{ctx.<path>}`, numbers locale-formatted, values escaped in HTML labels; a
+  `translateCallback` gets the context raw as `params.ctx`. `labels.days` / `labels.nights` → new
+  `SummaryLabelContext` (the `SummaryContext` of `renderSummaryCallback` + `count` = `days` / `nights`; built for the
+  default summary too, not only when the callback is set); `labels.selectionCount` → new `SelectionCountContext`
+  (`dateCount`, `rangeCount`, `count`). Both types exported. No aliases for `{count}`.
+- **`ctx.count` = the number the text's noun agrees with** (for an i18n library's plurals:
+  `i18next.t(key, { ...params, count: params.ctx?.count })`).
+- **English defaults put no plural noun after a number:** `labels.days` `{count} days` → `Days: {ctx.count}`,
+  `labels.nights` `{count} nights` → `Nights: {ctx.count}`, `labels.selectionCount` `{count} selection(s)` →
+  `{ctx.count} selected`. **BREAKING:** `labels.day` / `labels.night` are removed — `labels.days` / `labels.nights`
+  cover every count (plurals via `translateCallback`).
+- Docs: usage guide "Labels (i18n)" (the `{ctx.*}` rule, per-key contexts, the i18next bridge), README What's New,
+  release notes, API.md, `ai/basic-usage.txt`, `examples-localization.html` / `examples-data-api.html` snippets; e2e
+  label / locale specs.
+
 ### Added — `required` through core validity (rulebook C-CA-41) (2026-11-22)
 - **`required` attribute / `isRequired` property** (`toBool('presence')`, reflects, element-only): while the picker
   has no complete value the host has `validity.valueMissing` and a form refuses to submit (core `refreshRequired()`,
@@ -72,7 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   language — the same behaviour as before; `locale="auto"` / `el.locale = 'auto'` keep working (core `resolveLocale`
   treats them as unset). The internal engine no longer carries its own `'auto'` default (one source). It drives the
   shown date format (unset `date-format-mask`), the `Intl` month / weekday names, the `auto` week start and the
-  `{count}` numbers in labels. Typed `locale?: string | null`.
+  `{ctx.count}` numbers in labels. Typed `locale?: string | null`.
 - `examples-localization.html` LO11 gets an element `locale` toggle (`fr` / `de` / `cs` / unset); LO05 uses
   `locale="cs"` instead of `locale="auto"`.
 

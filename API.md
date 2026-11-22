@@ -109,8 +109,8 @@ All attributes can be set directly on the `<web-daterangepicker>` HTML element.
 | `disabled-dates` | `Array<Date \| string>` | — | Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string. |
 | `disabled-dates-handling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual' \| null` | — | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
 | `highlight-disabled-in-range` | `boolean \| null` | `null` | Visually mark disabled dates that fall inside a selected range. |
-| `locale` | `string \| null` | — | BCP-47 locale for the shown date format (unset `date-format-mask`), the `Intl` month / weekday names, the `auto` week start and the `{count}` numbers in labels, or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). UI strings are `labels`. |
-| `labels` | `Partial<DateRangePickerLabels>` | — | UI strings — a partial object over the English defaults, flat `<elementType>.<name>` keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now`, `ariaLabels.clear` (the input ✕) / `ariaLabels.close` (sheet / message ✕), `labels.preview`, `labels.day` / `labels.days` / `labels.night` / `labels.nights` and `labels.selectionCount` (`{count}` placeholder), `labels.time` / `labels.am` / `labels.pm` / `labels.hours` / `labels.minutes` / `labels.seconds`, `headers.fullscreen` (heading in the phone full-screen sheet; empty = none), `errors.valueFormat` (validation message when `getValueFormatCallback` throws), `errors.required` (validation message while `required` and empty), `ariaLabels.loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"buttons.today":"Heute","labels.days":"{count} Tage"}'` (short keys, or full `web-daterangepicker.buttons.today`). Per key: these → the page-wide flat dictionary `window.components.locale.labels["web-daterangepicker.buttons.today"]` → English (core `/locale`; the own `translateCallback`, then the page-wide one, apply to keys the instance did not set; `{count}` shows locale-formatted). Month / weekday names come from `Intl` via `locale`. |
+| `locale` | `string \| null` | — | BCP-47 locale for the shown date format (unset `date-format-mask`), the `Intl` month / weekday names, the `auto` week start and the `{ctx.*}` numbers in labels, or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). UI strings are `labels`. |
+| `labels` | `Partial<DateRangePickerLabels>` | — | UI strings — a partial object over the English defaults, flat `<elementType>.<name>` keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now`, `ariaLabels.clear` (the input ✕) / `ariaLabels.close` (sheet / message ✕), `labels.preview`, `labels.days` / `labels.nights` (range summary, context `SummaryLabelContext`: `{ctx.count}`, `{ctx.days}`, `{ctx.nights}`, …) and `labels.selectionCount` (multiple-mode input text, context `SelectionCountContext`: `{ctx.count}`, `{ctx.dateCount}`, `{ctx.rangeCount}`), `labels.time` / `labels.am` / `labels.pm` / `labels.hours` / `labels.minutes` / `labels.seconds`, `headers.fullscreen` (heading in the phone full-screen sheet; empty = none), `errors.valueFormat` (validation message when `getValueFormatCallback` throws), `errors.required` (validation message while `required` and empty), `ariaLabels.loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"buttons.today":"Heute","labels.days":"Tage: {ctx.count}"}'` (short keys, or full `web-daterangepicker.buttons.today`). Per key: these → the page-wide flat dictionary `window.components.locale.labels["web-daterangepicker.buttons.today"]` → English (core `/locale`; the own `translateCallback`, then the page-wide one, apply to keys the instance did not set and get the context raw as `params.ctx`; `{ctx.count}` shows locale-formatted; `ctx.count` = the number the noun agrees with, for i18n plurals — rulebook D-NC-24). Month / weekday names come from `Intl` via `locale`. |
 | `month-names` | `string[]` | — | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
 | `weekday-names` | `string[]` | — | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rolling-year-range` | `string \| null` | — | Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY's year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one. |
@@ -1424,7 +1424,7 @@ interface SummaryContext extends PickerContext {
   // Context
   selectionMode: 'single' | 'range' | 'multiple';
   disabledDatesHandling?: 'allow' | 'prevent' | 'block' | 'split' | 'individual';
-  labels: DateRangePickerLabels; // the resolved UI labels ({count} templates)
+  labels: LabelsView<DateRangePickerLabels>; // ctx.labels.text / .html(key, { ctx }) — the resolved UI labels
 
   // Preview flag (true when dragging)
   isPreview?: boolean;
@@ -1545,8 +1545,8 @@ The web component provides convenient property accessors for JavaScript:
 | `disabledDates` | `Array<Date \| string>` | Read/Write | Specific dates that cannot be selected. Attribute: CSV of ISO strings; property: array of Date or string. |
 | `disabledDatesHandling` | `'allow' \| 'prevent' \| 'block' \| 'split' \| 'individual' \| null` | Read/Write | Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`. |
 | `shouldHighlightDisabledInRange` | `boolean \| null` | Read/Write | Visually mark disabled dates that fall inside a selected range. |
-| `locale` | `string \| null` | Read/Write | BCP-47 locale for the shown date format (unset `date-format-mask`), the `Intl` month / weekday names, the `auto` week start and the `{count}` numbers in labels, or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). UI strings are `labels`. |
-| `labels` | `Partial<DateRangePickerLabels>` | Read/Write | UI strings — a partial object over the English defaults, flat `<elementType>.<name>` keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now`, `ariaLabels.clear` (the input ✕) / `ariaLabels.close` (sheet / message ✕), `labels.preview`, `labels.day` / `labels.days` / `labels.night` / `labels.nights` and `labels.selectionCount` (`{count}` placeholder), `labels.time` / `labels.am` / `labels.pm` / `labels.hours` / `labels.minutes` / `labels.seconds`, `headers.fullscreen` (heading in the phone full-screen sheet; empty = none), `errors.valueFormat` (validation message when `getValueFormatCallback` throws), `errors.required` (validation message while `required` and empty), `ariaLabels.loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"buttons.today":"Heute","labels.days":"{count} Tage"}'` (short keys, or full `web-daterangepicker.buttons.today`). Per key: these → the page-wide flat dictionary `window.components.locale.labels["web-daterangepicker.buttons.today"]` → English (core `/locale`; the own `translateCallback`, then the page-wide one, apply to keys the instance did not set; `{count}` shows locale-formatted). Month / weekday names come from `Intl` via `locale`. |
+| `locale` | `string \| null` | Read/Write | BCP-47 locale for the shown date format (unset `date-format-mask`), the `Intl` month / weekday names, the `auto` week start and the `{ctx.*}` numbers in labels, or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). UI strings are `labels`. |
+| `labels` | `Partial<DateRangePickerLabels>` | Read/Write | UI strings — a partial object over the English defaults, flat `<elementType>.<name>` keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now`, `ariaLabels.clear` (the input ✕) / `ariaLabels.close` (sheet / message ✕), `labels.preview`, `labels.days` / `labels.nights` (range summary, context `SummaryLabelContext`: `{ctx.count}`, `{ctx.days}`, `{ctx.nights}`, …) and `labels.selectionCount` (multiple-mode input text, context `SelectionCountContext`: `{ctx.count}`, `{ctx.dateCount}`, `{ctx.rangeCount}`), `labels.time` / `labels.am` / `labels.pm` / `labels.hours` / `labels.minutes` / `labels.seconds`, `headers.fullscreen` (heading in the phone full-screen sheet; empty = none), `errors.valueFormat` (validation message when `getValueFormatCallback` throws), `errors.required` (validation message while `required` and empty), `ariaLabels.loading` (accessible label of the loaders). Property, or a JSON attribute: `labels='{"buttons.today":"Heute","labels.days":"Tage: {ctx.count}"}'` (short keys, or full `web-daterangepicker.buttons.today`). Per key: these → the page-wide flat dictionary `window.components.locale.labels["web-daterangepicker.buttons.today"]` → English (core `/locale`; the own `translateCallback`, then the page-wide one, apply to keys the instance did not set and get the context raw as `params.ctx`; `{ctx.count}` shows locale-formatted; `ctx.count` = the number the noun agrees with, for i18n plurals — rulebook D-NC-24). Month / weekday names come from `Intl` via `locale`. |
 | `monthNames` | `string[]` | Read/Write | Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`. |
 | `weekdayNames` | `string[]` | Read/Write | Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`. |
 | `rollingYearRange` | `string \| null` | Read/Write | Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY's year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one. |
@@ -1592,7 +1592,7 @@ The web component provides convenient property accessors for JavaScript:
 | `renderDayContentCallback` | `(ctx: DayContext) => string \| Node \| null \| undefined \| false` | Read/Write | Content added after the day number (core `renderSlot`, in a `display: contents` `.drp__day-extra` box). A string is HTML, a Node is mounted, `null` / `undefined` draws the default (the number only), `false` hides the content of the cell (number included). Property-only. |
 | `renderSummaryCallback` | `(ctx: SummaryContext) => string \| Node \| null \| undefined \| false` | Read/Write | Render the range summary (core `renderSlot`). A string is HTML, a Node is mounted, `null` / `undefined` draws the default (`N days, N nights`), `false` hides the summary. Property-only. |
 | `renderLoadingCallback` | `(ctx: LoaderRenderContext) => void \| (() => void)` | Read/Write | Draw every loader (`showLoader()` targets, the one around async callbacks): fill `ctx.containerElement` (`ctx.context` = `calendar` \| `message` \| `summary`), optionally return a cleanup. Beats the page-wide `window.components.renderLoadingCallback`; unset = that, else the default `.drp__loader` (the shared `--base-loader-*` contract). Property-only. |
-| `translateCallback` | `(ctx: LabelTranslateContext) => string \| null \| undefined` | Read/Write | Own label translator of this picker (core `/locale`): asked for every label key the instance `labels` did not set, before the page-wide `window.components.locale.translateCallback`. `ctx` = `{ component, key, template, params, locale }` (`key` is the full key, `web-daterangepicker.buttons.today`; `{count}` arrives as a raw number). Return a string, or `null` / `undefined` for "not mine" (the page-wide callback, then the page dictionary, then English). Changing it re-renders the labels. Property-only. |
+| `translateCallback` | `(ctx: LabelTranslateContext) => string \| null \| undefined` | Read/Write | Own label translator of this picker (core `/locale`): asked for every label key the instance `labels` did not set, before the page-wide `window.components.locale.translateCallback`. `ctx` = `{ component, key, template, params, locale }` (`key` is the full key, `web-daterangepicker.buttons.today`; `params.ctx` = the label context, raw — `params.ctx.count` a number). Return a string, or `null` / `undefined` for "not mine" (the page-wide callback, then the page dictionary, then English). Changing it re-renders the labels. Property-only. |
 | `renderIconCallback` | `(name: string, ctx: IconRenderContext) => string \| null \| undefined` | Read/Write | Map an action-button `icon` name to markup (core `renderIcon`). Asked after the built-in names (`check`, `close`, … — reserved, never sent here) and before the page-wide `window.components.renderIconCallback`. Return markup, an empty string for no icon, or `null` / `undefined` for "not mine" (the page hook, then an icon-font class list → `<i class="drp__icon …">`, else text). `ctx` = `{ component, element, prefix, item }`. Property-only. |
 | `getUnifiedHeaderCallback` | `(ctx: UnifiedHeaderContext) => string` | Read/Write | Render the unified grid header label. |
 | `getMonthHeaderCallback` | `(ctx: MonthHeaderContext) => string` | Read/Write | Render a per-column month header label. |
@@ -1790,7 +1790,7 @@ picker.labels = {
   'buttons.today': 'Ahora',
   'buttons.clear': 'Borrar todo',
   'buttons.apply': 'Confirmar',
-  'labels.days': '{count} días',
+  'labels.days': 'Días: {ctx.count}',
 };
 ```
 
@@ -1840,7 +1840,7 @@ Keys are flat `<elementType>.<name>` (`buttons.*`, `labels.*`, `ariaLabels.*`, �
 | Weekday names (Mo, Tu, We...) | Intl API (`Intl.DateTimeFormat`) | ❌ No (browser-provided) |
 | Month names (January, February...) | Intl API (`Intl.DateTimeFormat`) | ❌ No (browser-provided) |
 | Button labels (Today, Clear, Apply) | `labels` (English defaults) | ✅ Yes (`buttons.today` / `buttons.clear` / `buttons.apply`) |
-| Summary text (day, days, night, nights) | `labels` (English defaults) | ✅ Yes (`labels.day` / `labels.days` / `labels.night` / `labels.nights`) |
+| Summary text (days, nights) | `labels` (English defaults) | ✅ Yes (`labels.days` / `labels.nights`, `{ctx.count}`) |
 | Placeholder format hint | `placeholder-format-mask` / `placeholder-time-format-mask` attributes | ✅ Yes |
 | Week start day | Intl API (`Intl.Locale.weekInfo`) | ✅ Yes (via `week-start-day`) |
 
@@ -1854,7 +1854,7 @@ The `renderSummaryCallback` property allows you to completely customize the summ
 // <web-daterangepicker selection-mode="range">
 const picker = document.querySelector('web-daterangepicker');
 picker.renderSummaryCallback = (ctx) => {
-  return `<strong>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</strong>`;
+  return `<strong>${ctx.labels.html('labels.nights', { ctx: { ...ctx, count: ctx.nights } })}</strong>`;
 };
 ```
 
@@ -1869,7 +1869,7 @@ picker.renderSummaryCallback = (ctx) => {
 
   return `
     <div style="display: flex; justify-content: space-between; width: 100%;">
-      <span>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</span>
+      <span>${ctx.labels.html('labels.nights', { ctx: { ...ctx, count: ctx.nights } })}</span>
       <span style="font-weight: bold;">$${total}</span>
     </div>
   `;
@@ -1887,12 +1887,12 @@ picker.renderSummaryCallback = (ctx) => {
     return `
       <div>
         <div>${ctx.dateRanges.length} separate periods</div>
-        <div>${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })} total</div>
+        <div>${ctx.labels.html('labels.days', { ctx: { ...ctx, count: ctx.days } })} total</div>
       </div>
     `;
   } else {
     // Single range
-    return `${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })}, ${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}`;
+    return `${ctx.labels.html('labels.days', { ctx: { ...ctx, count: ctx.days } })}, ${ctx.labels.html('labels.nights', { ctx: { ...ctx, count: ctx.nights } })}`;
   }
 };
 ```
@@ -1911,7 +1911,7 @@ picker.renderSummaryCallback = (ctx) => {
       </div>
     `;
   }
-  return `${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })}`;
+  return `${ctx.labels.html('labels.days', { ctx: { ...ctx, count: ctx.days } })}`;
 };
 ```
 
@@ -1926,9 +1926,9 @@ picker.renderSummaryCallback = (ctx) => {
 
   return `
     ${prefix}
-    <span>${ctx.labels.html(ctx.days === 1 ? 'labels.day' : 'labels.days', { count: ctx.days })}</span>
+    <span>${ctx.labels.html('labels.days', { ctx: { ...ctx, count: ctx.days } })}</span>
     <span>, </span>
-    <span>${ctx.labels.html(ctx.nights === 1 ? 'labels.night' : 'labels.nights', { count: ctx.nights })}</span>
+    <span>${ctx.labels.html('labels.nights', { ctx: { ...ctx, count: ctx.nights } })}</span>
   `;
 };
 ```
@@ -1945,7 +1945,7 @@ The callback receives a context with the following properties (plus `controller`
 | `endDate` | `Date \| null` | Always | End date of selection |
 | `selectionMode` | `'single' \| 'range' \| 'multiple'` | Always | Current selection mode |
 | `disabledDatesHandling` | `string` | Always | Current disabled handling mode |
-| `labels` | `LabelsView<DateRangePickerLabels>` | Always | `labels.text(key, params)` / `labels.html(key, params)` (core `createLabelsView`) — the full chain: instance `labels`, the element's and the page-wide `translateCallback`, page-wide labels, English; numbers locale-formatted. E.g. `ctx.labels.html('labels.days', { count: ctx.days })` |
+| `labels` | `LabelsView<DateRangePickerLabels>` | Always | `labels.text(key, params)` / `labels.html(key, params)` (core `createLabelsView`) — the full chain: instance `labels`, the element's and the page-wide `translateCallback`, page-wide labels, English; numbers locale-formatted. E.g. `ctx.labels.html('labels.days', { ctx: { ...ctx, count: ctx.days } })` |
 | `isPreview` | `boolean` | Always | True when dragging (preview) |
 | `dateRanges` | `DateRange[]` | Split mode | Array of separate ranges |
 | `dates` | `Date[]` | Individual/Split mode | Array of selected dates |

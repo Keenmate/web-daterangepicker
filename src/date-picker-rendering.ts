@@ -12,6 +12,7 @@ import { scrollOnOwn } from './date-picker-ui';
 import { hasEnabledDaysInYear } from './date-picker-validation';
 import * as Validation from './date-picker-validation';
 import { renderingLogger } from './logger';
+import type { SummaryContext, SummaryLabelContext } from './types';
 
 /**
  * Resolve the rolling year range to min/max years.
@@ -1405,34 +1406,32 @@ export function updateSummary(picker: any) {
 
         summary.className = 'drp__summary drp__summary--visible';
 
-        // Check if custom formatter exists
-        let callbackData: any = null;
-        if (picker.options.renderSummaryCallback) {
-            callbackData = picker.ctx({
-                days,
-                nights,
-                startDate: picker._selectedStartDate,
-                endDate: picker._selectedEndDate,
-                selectionMode: picker.options.selectionMode,
-                disabledDatesHandling: picker.options.disabledDatesHandling,
-                labels: picker.labelsView,
-                isPreview: false
-            });
+        // The summary context — what renderSummaryCallback gets and what the default labels read ({ctx.*}).
+        const callbackData: SummaryContext = picker.ctx({
+            days,
+            nights,
+            startDate: picker._selectedStartDate,
+            endDate: picker._selectedEndDate,
+            selectionMode: picker.options.selectionMode,
+            disabledDatesHandling: picker.options.disabledDatesHandling,
+            labels: picker.labelsView,
+            isPreview: false
+        });
 
-            // Add mode-specific data
-            if (enabledDates) callbackData.enabledDates = enabledDates;
-            if (disabledDates) callbackData.disabledDates = disabledDates;
-            if (dates) callbackData.dates = dates;
-            if (dateRanges) callbackData.dateRanges = dateRanges;
+        // Add mode-specific data
+        if (enabledDates) callbackData.enabledDates = enabledDates;
+        if (disabledDates) callbackData.disabledDates = disabledDates;
+        if (dates) callbackData.dates = dates;
+        if (dateRanges) callbackData.dateRanges = dateRanges;
 
-        }
         // Core renderSlot: string = HTML, Node = mounted, null / undefined = the default, false = hidden.
-        renderSlot(summary, () => callbackData ? picker.options.renderSummaryCallback(callbackData) : null, {
+        const renderSummary = picker.options.renderSummaryCallback;
+        renderSlot(summary, () => renderSummary ? renderSummary(callbackData) : null, {
             renderDefault: (c) => {
                 c.innerHTML = `
-                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'labels.day' : 'labels.days', { count: days })}</span>
+                <span class="drp__summary-count">${picker.labels.html('labels.days', { ctx: summaryLabelCtx(picker, callbackData, days) })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'labels.night' : 'labels.nights', { count: nights })}</span>
+                <span class="drp__summary-count">${picker.labels.html('labels.nights', { ctx: summaryLabelCtx(picker, callbackData, nights) })}</span>
             `;
             },
         });
@@ -1442,6 +1441,11 @@ export function updateSummary(picker: any) {
     }
 
     reapplySummaryLoader(picker, summary);
+}
+
+/** Label context of `labels.days` / `labels.nights`: the summary context + `count` (the days or the nights). */
+function summaryLabelCtx(picker: any, summaryCtx: SummaryContext, count: number): SummaryLabelContext {
+    return picker.ctx({ ...summaryCtx, count });
 }
 
 export function updateSummaryWithPreview(picker: any) {
@@ -1507,35 +1511,33 @@ export function updateSummaryWithPreview(picker: any) {
 
         summary.className = 'drp__summary drp__summary--visible';
 
-        // Check if custom formatter exists
-        let callbackData: any = null;
-        if (picker.options.renderSummaryCallback) {
-            callbackData = picker.ctx({
-                days,
-                nights,
-                startDate: picker.dragPreviewStart,
-                endDate: picker.dragPreviewEnd,
-                selectionMode: picker.options.selectionMode,
-                disabledDatesHandling: picker.options.disabledDatesHandling,
-                labels: picker.labelsView,
-                isPreview: true
-            });
+        // The summary context — what renderSummaryCallback gets and what the default labels read ({ctx.*}).
+        const callbackData: SummaryContext = picker.ctx({
+            days,
+            nights,
+            startDate: picker.dragPreviewStart,
+            endDate: picker.dragPreviewEnd,
+            selectionMode: picker.options.selectionMode,
+            disabledDatesHandling: picker.options.disabledDatesHandling,
+            labels: picker.labelsView,
+            isPreview: true
+        });
 
-            // Add mode-specific data
-            if (enabledDates) callbackData.enabledDates = enabledDates;
-            if (disabledDates) callbackData.disabledDates = disabledDates;
-            if (dates) callbackData.dates = dates;
-            if (dateRanges) callbackData.dateRanges = dateRanges;
+        // Add mode-specific data
+        if (enabledDates) callbackData.enabledDates = enabledDates;
+        if (disabledDates) callbackData.disabledDates = disabledDates;
+        if (dates) callbackData.dates = dates;
+        if (dateRanges) callbackData.dateRanges = dateRanges;
 
-        }
         // Core renderSlot: string = HTML, Node = mounted, null / undefined = the default, false = hidden.
-        renderSlot(summary, () => callbackData ? picker.options.renderSummaryCallback(callbackData) : null, {
+        const renderSummary = picker.options.renderSummaryCallback;
+        renderSlot(summary, () => renderSummary ? renderSummary(callbackData) : null, {
             renderDefault: (c) => {
                 c.innerHTML = `
                 <span style="opacity: 0.7;">${picker.labels.html('labels.preview')}: </span>
-                <span class="drp__summary-count">${picker.labels.html(days === 1 ? 'labels.day' : 'labels.days', { count: days })}</span>
+                <span class="drp__summary-count">${picker.labels.html('labels.days', { ctx: summaryLabelCtx(picker, callbackData, days) })}</span>
                 <span>, </span>
-                <span class="drp__summary-count">${picker.labels.html(nights === 1 ? 'labels.night' : 'labels.nights', { count: nights })}</span>
+                <span class="drp__summary-count">${picker.labels.html('labels.nights', { ctx: summaryLabelCtx(picker, callbackData, nights) })}</span>
             `;
             },
         });

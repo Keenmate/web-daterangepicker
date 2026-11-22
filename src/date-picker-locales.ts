@@ -8,7 +8,7 @@
 
 import type { DateRangePickerLabels } from './types';
 
-/** Built-in English UI labels. Resolved and `{count}`-interpolated by core `createLabels` (`DateRangePickerEngine#labels`):
+/** Built-in English UI labels. Resolved by core `createLabels` (a dynamic text reads its context: `{ctx.count}`, rulebook D-NC-24) (`DateRangePickerEngine#labels`):
  *  instance `labels` (short `buttons.today` or full `web-daterangepicker.buttons.today` keys) → the page-wide flat
  *  dictionary `window.components.locale.labels['web-daterangepicker.buttons.today']` → these. Keys are flat
  *  `<elementType>.<name>`. */
@@ -20,11 +20,9 @@ export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
   'ariaLabels.clear': 'Clear',
   'ariaLabels.close': 'Close',
   'labels.preview': 'Preview',
-  'labels.day': '{count} day',
-  'labels.days': '{count} days',
-  'labels.night': '{count} night',
-  'labels.nights': '{count} nights',
-  'labels.selectionCount': '{count} selection(s)',
+  'labels.days': 'Days: {ctx.count}',
+  'labels.nights': 'Nights: {ctx.count}',
+  'labels.selectionCount': '{ctx.count} selected',
   'labels.time': 'Time',
   'labels.am': 'AM',
   'labels.pm': 'PM',

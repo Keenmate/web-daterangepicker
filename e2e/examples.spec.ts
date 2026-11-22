@@ -22,10 +22,10 @@ test.describe('examples-localization.html', () => {
 
         // LO08 · page dictionary; LO01's instance key still wins
         await page.locator('#lo08-dict').check();
-        await expect(out('lo08-out')).toContainText('5 dní');
+        await expect(out('lo08-out')).toContainText('Dní: 5');
         await expect(out('lo08-out')).toContainText('time caption: Čas');
         await page.locator('#lo08-dict').uncheck();
-        await expect(out('lo08-out')).toContainText('5 days');
+        await expect(out('lo08-out')).toContainText('Days: 5');
 
         // LO09 · own callback first, null → page callback; instance labels win
         await page.locator('#lo09-page').check();
