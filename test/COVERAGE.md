@@ -297,6 +297,7 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | Range mode = list of ranges: json `[{start,end}]`, array one `name[]` per range, round-trip of several ranges | ✓ | `form-association.spec.ts` | `form-association.html` |
 | Throwing `getValueFormatCallback` → `''`, `validity.customError` + `errors.valueFormat` label message (live label change), `value-format-error` + twin, submit blocked (`invalid`), `novalidate` submits `''`, recovery | ✓ | `form-association.spec.ts` | `form-association.html` |
 | `el.value` = submitted value (string / `string[]` for array); `value-format-mask` + `value-separator` (text / json / array / multiple / datetime), parse back, live change | ✓ | `form-association.spec.ts` | `form-association.html` |
+| `required`: empty → `valueMissing` + `errors.required` message (label override), `:state(required)`, reflects, `aria-required` on the inner input; submit blocked (`invalid`); a pick / `el.value` clears it; ✕ / `clearSelection()` / `controller.clearSelection()` / `value = ''` → missing again; half-picked range / partly typed text = empty; `form.reset()`; readonly / disabled / disabled fieldset → never missing; time mode; independent of the format `customError`; no "anchor rejected" after a rebuild | ✓ | `required-validity.spec.ts` | `required-validity.html` |
 
 ## 18. Lock / readonly
 

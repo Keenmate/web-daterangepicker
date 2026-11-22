@@ -128,6 +128,13 @@ the implementation note.
 Also: `aria-hidden="true"` on the wheel-picker's center selection band
 (decorative).
 
+**The host** (form control): `required` sets `aria-required="true"` on the host's
+`ElementInternals` (`internals.ariaRequired`, core SPEC §6.6), so a screen reader
+announces the picker as required, and core also sets `aria-required="true"` on the
+visible input (the validity anchor — focus sits there; `inline` has none); the `errors.required` label is the
+`validationMessage` the browser bubble shows. The host matches `:state(required)`
+for styling (the native `:required` does not match a custom element).
+
 **Known gaps to disclose:**
 
 - Day cells have no `aria-label` — a screen reader reads the day number

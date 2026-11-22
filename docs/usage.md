@@ -13,6 +13,7 @@ page see the README quick start; for theming see
 - [Methods](#methods)
 - [Events](#events)
 - [Form integration](#form-integration)
+  - [Required and validation](#required-and-validation)
 - [Working with dates across timezones](#working-with-dates-across-timezones) — **read this** before shipping
 - [Advanced features](#advanced-features)
   - [Week start day](#week-start-day)
@@ -45,6 +46,7 @@ properties use camelCase (`selectionMode`).
 | `placeholder` | `string` | — | Input placeholder |
 | `disabled` | `boolean` | `false` | Disable the picker like a native input (property `isDisabled`): no interaction — the calendar doesn't open, an inline calendar is inert and greyed — not focusable, the value is not submitted; calls from code keep working. An ancestor `<fieldset disabled>` disables it too |
 | `readonly` | `boolean` | `false` | Read-only like a native input (property `isReadonly`): no day / time picks, typing, Today / Now / Clear / Apply or action buttons, and the floating calendar doesn't open; the input stays focusable, an inline calendar can still be browsed month to month, the value is submitted, calls from code keep working. Locks the `selection`, `actions` and `open` aspects (see [Locking](#locking-read-only)) |
+| `required` | `boolean` | `false` | Required like a native input (property `isRequired`): no complete value → `validity.valueMissing` (the `errors.required` label) and the form refuses to submit; `aria-required`, `:state(required)`. A half-picked range is empty; read-only / disabled are never missing. See [Required and validation](#required-and-validation) |
 | `defer` | `boolean` | `false` | Hold the first build until `el.release()` / removing the attribute (core; property `shouldDefer`) |
 | `locale` | `string` | unset | BCP-47 locale for the shown date format (unset `date-format-mask`), `Intl` month / weekday names, the `auto` week start and `{count}` numbers. Unset (`el.locale` reads `null`; `auto` = unset) = the page-wide `window.components.locale`, else the browser language |
 | `labels` | JSON | English | UI strings, partial — see [Labels](#labels-i18n) |
@@ -319,6 +321,51 @@ An empty selection submits `''` (`text` / `json`) or no field at all (`array`).
   `onValueFormatError`). The next successful format makes it valid again. The
   standard `validity` / `validationMessage` / `willValidate` / `checkValidity()` /
   `reportValidity()` are available on the element.
+
+### Required and validation
+
+`required` works like on a native input (core SPEC §6.6): while the picker has **no
+complete value** the host has `validity.valueMissing`, the message is the
+`errors.required` label (default "Select a date."), and the form refuses to submit —
+the browser shows its validation bubble at the visible input (the host for `inline`).
+A `<form novalidate>` submits anyway.
+
+```html
+<form>
+  <web-daterangepicker name="stay" selection-mode="range" required></web-daterangepicker>
+  <web-daterangepicker name="arrival" required
+    labels='{"errors.required":"Pick the arrival day."}'></web-daterangepicker>
+  <button>Submit</button>
+</form>
+```
+
+"No complete value" = nothing the form would submit:
+
+| Mode | Empty |
+|---|---|
+| `single` (`date` / `datetime`) | no date |
+| `range` | no complete range — a half-picked range (start only) is empty |
+| `multiple` | no date and no range |
+| `time` | no time |
+
+Typed text counts only once it is committed (a complete date / range typed into the
+input); text still being typed, or text that never parsed, is empty. The state is
+re-evaluated on every value change — a pick, the ✕ / Clear, `el.value`,
+`selectedDate` / `selectedRanges` / …, `clearSelection()` (also
+`el.controller.clearSelection()`), `form.reset()`.
+
+- `readonly` and `disabled` (or a disabled `<fieldset>`) pickers are never missing — native semantics.
+- `el.isRequired` / the `required` attribute (reflects); `aria-required` is set on the
+  host's internals and on the visible input, and the host matches `:state(required)` (the native `:required`
+  does not match a custom element):
+
+  ```css
+  web-daterangepicker:state(required) { /* … */ }
+  ```
+
+- Independent of the `getValueFormatCallback` error (`customError`) — both can be set.
+- Read `el.validity.valueMissing` / `el.validationMessage`, or call
+  `el.checkValidity()` / `el.reportValidity()`.
 
 ## Working with dates across timezones
 
@@ -878,6 +925,7 @@ one (`web-daterangepicker.buttons.today`).
 | `labels.time` / `labels.hours` / `labels.minutes` / `labels.seconds` / `labels.am` / `labels.pm` | `Time` / `Hours` / … / `AM` / `PM` | time picker |
 | `headers.fullscreen` | `''` | heading in the phone full-screen sheet (empty = none, the ✕ merges into the month row) |
 | `errors.valueFormat` | `The value could not be formatted.` | validation message while `getValueFormatCallback` throws (`validationMessage`) |
+| `errors.required` | `Select a date.` | validation message while `required` and there is no complete value (`validity.valueMissing`) — one key for every mode |
 | `ariaLabels.loading` | `Loading…` | accessible label (`aria-label`, `role="status"`) of every loader |
 
 `ariaLabels.*` exist only where nothing visible names the element (the ✕ icons, the loaders); a button that

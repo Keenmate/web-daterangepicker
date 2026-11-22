@@ -130,7 +130,7 @@ const INPUTS: readonly InputDef[] = [
   { configKey: 'disabledDatesHandling',        attribute: 'disabled-dates-handling',       converter: toEnum(DISABLED_HANDLING), on: 'update', description: 'Strategy for ranges that span disabled dates: `allow`, `prevent`, `block`, `split`, or `individual`.' },
   { configKey: 'shouldHighlightDisabledInRange', attribute: 'highlight-disabled-in-range',   converter: toBool('tristate'), on: 'update', description: 'Visually mark disabled dates that fall inside a selected range.' },
   { configKey: 'locale',                       attribute: 'locale',                        converter: toText({ isNullable: true }), on: 'update', description: 'BCP-47 locale for the shown date format (unset `date-format-mask`), the `Intl` month / weekday names, the `auto` week start and the `{count}` numbers in labels, or unset (the page-wide `window.components.locale`, else the browser language; `auto` = unset). UI strings are `labels`.' },
-  { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults, flat `<elementType>.<name>` keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now`, `ariaLabels.clear` (the input ✕) / `ariaLabels.close` (sheet / message ✕), `labels.preview`, `labels.day` / `labels.days` / `labels.night` / `labels.nights` and `labels.selectionCount` (`{count}` placeholder), `labels.time` / `labels.am` / `labels.pm` / `labels.hours` / `labels.minutes` / `labels.seconds`, `headers.fullscreen` (heading in the phone full-screen sheet; empty = none), `errors.valueFormat` (validation message when `getValueFormatCallback` throws), `ariaLabels.loading` (accessible label of the loaders). Property, or a JSON attribute: `labels=\'{"buttons.today":"Heute","labels.days":"{count} Tage"}\'` (short keys, or full `web-daterangepicker.buttons.today`). Per key: these → the page-wide flat dictionary `window.components.locale.labels["web-daterangepicker.buttons.today"]` → English (core `/locale`; the own `translateCallback`, then the page-wide one, apply to keys the instance did not set; `{count}` shows locale-formatted). Month / weekday names come from `Intl` via `locale`.' },
+  { configKey: 'labels',                       attribute: 'labels',                        converter: toObject(), on: 'update', type: 'Partial<DateRangePickerLabels>', description: 'UI strings — a partial object over the English defaults, flat `<elementType>.<name>` keys: `buttons.today` / `buttons.clear` / `buttons.apply` / `buttons.now`, `ariaLabels.clear` (the input ✕) / `ariaLabels.close` (sheet / message ✕), `labels.preview`, `labels.day` / `labels.days` / `labels.night` / `labels.nights` and `labels.selectionCount` (`{count}` placeholder), `labels.time` / `labels.am` / `labels.pm` / `labels.hours` / `labels.minutes` / `labels.seconds`, `headers.fullscreen` (heading in the phone full-screen sheet; empty = none), `errors.valueFormat` (validation message when `getValueFormatCallback` throws), `errors.required` (validation message while `required` and empty), `ariaLabels.loading` (accessible label of the loaders). Property, or a JSON attribute: `labels=\'{"buttons.today":"Heute","labels.days":"{count} Tage"}\'` (short keys, or full `web-daterangepicker.buttons.today`). Per key: these → the page-wide flat dictionary `window.components.locale.labels["web-daterangepicker.buttons.today"]` → English (core `/locale`; the own `translateCallback`, then the page-wide one, apply to keys the instance did not set; `{count}` shows locale-formatted). Month / weekday names come from `Intl` via `locale`.' },
   { configKey: 'monthNames',                   attribute: 'month-names',                   converter: toPipeList(12), on: 'update', type: 'string[]', description: 'Override month names. Attribute: 12 pipe-delimited names, index 0=January; property: `string[]`.' },
   { configKey: 'weekdayNames',                 attribute: 'weekday-names',                 converter: toPipeList(7), on: 'update', type: 'string[]', description: 'Override weekday names. Attribute: 7 pipe-delimited names, index 0=Sunday; property: `string[]`.' },
   { configKey: 'rollingYearRange',             attribute: 'rolling-year-range',            converter: toYearRange(), on: 'update', type: 'string | null', description: 'Years offered by the rolling year selector (and the navigable year span): one year `2024`, absolute `2022-2026`, relative `-5:+5` (signed sides count from TODAY\'s year, not the shown one) or mixed `2020:+2`. Unset: the shown year ±1 (or the min-date/max-date years). A malformed value warns and keeps the previous one.' },
@@ -173,6 +173,7 @@ Empty selection: \`''\` (\`text\` / \`json\`), no fields (\`array\`). \`getValue
   { configKey: 'placeholder',                  attribute: 'placeholder',                   converter: toText({ isNullable: true }), on: 'update', description: 'Input placeholder. When unset, a format hint is derived: date mode — placeholder-format-mask / the shown date mask (`date-format-mask`, unset = the locale format, e.g. `DD.MM.YYYY`), doubled in `range` mode (`DD.MM.YYYY - DD.MM.YYYY`); `time` — placeholder-time-format-mask / time-format-mask (`HH:mm`); `datetime` — the date hint + " " + the time hint.' },
   { configKey: 'isDisabled',                   attribute: 'disabled',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Disable the control (like a native input: no interaction — the floating calendar does not open, an inline calendar is inert and greyed — not focusable, not submitted; calls from code keep working). Reflects (a form-associated host is disabled by its own `disabled` attribute). An ancestor `<fieldset disabled>` disables it too (core `isEffectivelyDisabled`) without changing `el.isDisabled`.' },
   { configKey: 'isReadonly',                   attribute: 'readonly',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Read-only, like a native input (core SPEC §6.4): the user cannot change the value — no day / time picks, typing, Today / Now / Clear / Apply or action buttons, and the floating calendar does not open — but the input stays focusable, an inline calendar can still be browsed month to month, and the value is submitted. Calls from code (`value`, `selectedDate`, `el.controller`, …) keep working. Reflects. Locks the aspects `selection`, `actions`, `open`; use `lock()` / `lockedAspects` for other combinations.' },
+  { configKey: 'isRequired',                   attribute: 'required',                      converter: toBool('presence'), shouldReflect: true, on: 'update', description: 'Required, like a native input (core SPEC §6.6): while the picker has no complete value the host is invalid (`validity.valueMissing`, message = the `errors.required` label, default "Select a date.") and a form refuses to submit (`<form novalidate>` submits). "No complete value" = nothing the form would submit: no date (single), no complete range — a half-picked range (start only) or typed text that has not been committed counts as empty — no date / range (multiple), no time (time / datetime). A read-only or disabled picker is never missing (native). Sets `aria-required` and `:state(required)` (the native `:required` does not match a custom element). Independent of the `getValueFormatCallback` error (`customError`). Reflects.' },
   { configKey: 'inputSize',                    attribute: 'input-size',                    converter: toEnum(INPUT_SIZES, { default: 'md' }), on: 'update', description: 'Input size scale: `xs` | `sm` | `md` | `lg` | `xl` (floating only).' },
   { configKey: 'presentation',                 attribute: 'presentation',                  converter: toEnum(PRESENTATIONS, { default: 'auto' }), shouldReflect: true, on: 'update', description: 'How a `floating` picker opens (SPEC §12.9, via web-components-core). `auto` (default) follows the device: the floating popover on desktop, a centered `modal` on tablets, a full-screen sheet on phones (touch-primary + shorter viewport side < 600px, orientation-robust). `floating` / `modal` / `fullscreen` force that presentation on any device. Ignored when `positioning-mode` is `inline`. Resolved reactively from the device/viewport environment; tune it per device class with the core `responsive` rules.' },
   { configKey: 'shouldFullscreenAutofocus',    attribute: 'fullscreen-autofocus',          converter: toBool('default-false'), on: 'update', description: 'In the phone full-screen overlay, focus the date input on open (pops the soft keyboard for type-to-fill). Default off: the sheet opens with the calendar visible and the keyboard closed. No effect in floating/modal presentations.' },
@@ -242,7 +243,7 @@ const EVENTS = [
 const READONLY_ASPECTS: LockAspect[] = ['selection', 'actions', 'open'];
 
 const NON_PICKER_KEYS = new Set([
-  'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'inputSize',
+  'defaultValue', 'placeholder', 'isDisabled', 'isReadonly', 'isRequired', 'inputSize',
   'presentation', 'getCustomStylesCallback', 'customStyles',
   'name', 'valueFormat', 'valueFormatMask', 'valueSeparator', 'getValueFormatCallback',
   'placeholderFormatMask', 'placeholderTimeFormatMask',
@@ -316,6 +317,10 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   #pendingValue: string | readonly string[] | null = null;
   /** What the form submits now (the hidden input values) — also `el.value`. */
   #formValues: string[] = [];
+  /** The controller's target per engine: the engine's controller with the element's `clearSelection`. */
+  #controllerTarget?: { engine: DateRangePickerEngine; target: DateRangePickerController };
+  /** The last form write had no item (no complete value) — `isValueEmpty()` for `required`. */
+  #isSelectionEmpty = true;
   /** `getValueFormatCallback` threw on the last format — the host is invalid (core setFormatError). */
   #hasFormatError = false;
   #formatError: unknown = null;
@@ -736,6 +741,8 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       ? (s: FormValueSelection) => callback(this.withContext({ ...s }) as unknown as FormValueSelection & PickerContext)
       : undefined;
     const selection = this.#currentSelection(detail);
+    // `required` reads what the form submits — the committed items, not the formatted text.
+    this.#isSelectionEmpty = selection.items.length === 0;
     let values: string[];
     try {
       values = serializeFormValue(selection, format, withCtx, this.#valueWriteOptions());
@@ -747,6 +754,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       this.#formatError = error;
       this.#applyFormatError();
       this.emit('value-format-error', { error, value: selection } as ValueFormatErrorEventDetail);
+      this.refreshRequired();
       return;
     }
     if (this.#hasFormatError) {
@@ -757,12 +765,35 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     this.#formValues = values;
     // A callback always produces the one `name` field, whatever value-format says.
     this.#renderHiddenInputs(callback ? 'text' : format, values);
+    this.refreshRequired();
   }
 
   /** Mark the host invalid for the last format error (message = the `errors.valueFormat` label). */
   #applyFormatError(): void {
     const anchor = this.#inputElement && this.#inputElement.type !== 'hidden' ? this.#inputElement : undefined;
     this.setFormatError(this.#formatError, this.#labels.text('errors.valueFormat'), anchor);
+  }
+
+  // ── required (core SPEC §6.6: core sets valueMissing / aria-required / :state(required)) ──
+
+  /**
+   * No complete value — nothing the form would submit: no date (single), no complete range (a half-picked
+   * range or uncommitted typed text is empty), no date / range (multiple), no time. Reads the snapshot of the
+   * last form write (never a flushing getter: core calls this during a flush).
+   */
+  protected override isValueEmpty(): boolean {
+    return this.#isSelectionEmpty;
+  }
+
+  /** The `valueMissing` message — the `errors.required` label. */
+  protected override getRequiredMessage(): string {
+    return this.#labels.text('errors.required');
+  }
+
+  /** The validation bubble points at the visible input (floating); inline has none → the host. */
+  protected override getValidityAnchor(): HTMLElement | undefined {
+    const input = this.#inputElement;
+    return input && input.type !== 'hidden' && input.isConnected ? input : undefined;
   }
 
   /** The submitted value's per-date mask + separator (unset = the defaults). */
@@ -1232,7 +1263,21 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   protected override createController(): DateRangePickerController {
     // Core facade (SPEC §12.34): frozen, methods bound to the CURRENT engine at call time (a
     // rebuild is picked up), state read live, empty answers before the first build.
-    return createControllerFacade<DateRangePickerController>(() => { this.flush(); return this.#picker?.getController(); }, {
+    // `clearSelection` goes through the element's own (the engine's is silent): the hidden form
+    // input(s) and `required` follow it like every other programmatic write.
+    const target = (): DateRangePickerController | undefined => {
+      this.flush();
+      const picker = this.#picker;
+      if (!picker) return undefined;
+      if (this.#controllerTarget?.engine !== picker) {
+        this.#controllerTarget = {
+          engine: picker,
+          target: Object.create(picker.getController(), { clearSelection: { value: () => this.clearSelection() } }),
+        };
+      }
+      return this.#controllerTarget.target;
+    };
+    return createControllerFacade<DateRangePickerController>(target, {
       methods: [
         'selectToday', 'selectNow', 'clearSelection', 'commit', 'open', 'close', 'toggle', 'setPresentation',
         'prevMonth', 'nextMonth', 'lock', 'unlock', 'showMessage', 'hideMessage', 'showSummary', 'hideSummary',

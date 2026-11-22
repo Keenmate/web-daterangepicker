@@ -1233,12 +1233,7 @@ const checkIn = document.getElementById('check-in');
 form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    const date = checkIn.selectedDate;
-    if (!date) {
-        alert('Please select a check-in date');
-        return;
-    }
-
+    // `required` already blocked an empty picker (native validation, see DA27).
     // Submit form data
     const formData = new FormData();
     formData.append('check-in', checkIn.value);
@@ -1656,6 +1651,12 @@ Object.assign(picker, {
           <td>Full read-only lock (attribute <code>readonly</code>) — use <code>lock([…])</code> / <code>lockedAspects</code> for partial locks</td>
         </tr>
         <tr>
+          <td><code>isRequired</code></td>
+          <td><code>boolean</code></td>
+          <td>Read/Write</td>
+          <td>Required (attribute <code>required</code>): no complete value → <code>validity.valueMissing</code>, the form refuses to submit (see DA27)</td>
+        </tr>
+        <tr>
           <td><code>isDisabled</code></td>
           <td><code>boolean</code></td>
           <td>Read/Write</td>
@@ -1822,6 +1823,63 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
         console.log('Range:', event.detail.dateRange.start, '-', event.detail.dateRange.end);
     }
 });</code></pre></div>
+  </div>
+</section>
+
+<!-- Section 27: Required + validation -->
+<section class="card">
+  <div>
+    <h2>DA27 · Required + validation</h2>
+    <p class="description">
+      <code>required</code> works like on a native input: while the picker has <strong>no complete
+      value</strong> the host is invalid (<code>validity.valueMissing</code>, message = the
+      <code>errors.required</code> label) and the form refuses to submit — the browser shows its
+      validation bubble at the input. A <strong>half-picked range</strong> (start only) or typed text
+      that was not committed counts as empty. <code>readonly</code> / <code>disabled</code> pickers are
+      never missing. The host matches <code>:state(required)</code> and announces
+      <code>aria-required</code>.
+    </p>
+  </div>
+  <div>
+    <div class="demo-area">
+      <form id="required-form" class="field-row">
+        <div class="field-grow">
+          <web-daterangepicker id="required-range" name="stay" selection-mode="range"
+            visible-month-count="2" required placeholder="Stay (required)"></web-daterangepicker>
+        </div>
+        <div class="field-grow">
+          <web-daterangepicker id="required-single" name="arrival" selection-mode="single"
+            required labels='{"errors.required":"Pick the arrival day."}'></web-daterangepicker>
+        </div>
+      </form>
+
+      <div class="controls">
+        <button type="submit" form="required-form" class="btn-primary">Submit</button>
+        <button type="reset" form="required-form">Reset</button>
+        <button type="button" id="required-toggle-readonly">Toggle readonly</button>
+      </div>
+
+      <div class="log-panel" id="required-output"></div>
+    </div>
+
+    <div class="code-block" data-language="html" data-kmwc-snippet><pre><code>&lt;form id="booking"&gt;
+  &lt;web-daterangepicker name="stay" selection-mode="range" required&gt;&lt;/web-daterangepicker&gt;
+  &lt;web-daterangepicker name="arrival" required
+    labels='{"errors.required":"Pick the arrival day."}'&gt;&lt;/web-daterangepicker&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+// Native constraint validation: an empty required picker blocks the submit and the
+// browser shows its bubble (the same as form.reportValidity()).
+const picker = document.querySelector('[name="stay"]');
+picker.addEventListener('change', () =&gt; {
+  console.log(picker.validity.valueMissing, picker.validationMessage);
+});
+&lt;/script&gt;
+
+/* style a required picker (native :required doesn't match a custom element) */
+web-daterangepicker:state(required) { … }</code></pre></div>
   </div>
 </section>
 
@@ -2566,4 +2624,37 @@ picker.addEventListener('change', (event: CustomEvent&lt;ChangeEventDetail&gt;) 
         };
       }
     });
+  </script>
+
+  <!-- DA27 · Required + validation -->
+  <script type="module">
+    import './src/index.ts';
+
+    const form = document.getElementById('required-form');
+    const pickers = [document.getElementById('required-range'), document.getElementById('required-single')];
+    const output = document.getElementById('required-output');
+    const FLAGS = ['valueMissing', 'rangeUnderflow', 'rangeOverflow', 'customError'];
+
+    const line = (text) => Object.assign(document.createElement('div'), { textContent: text });
+    const render = async (submitted) => {
+      await Promise.all(pickers.map((el) => el.whenSettled()));
+      output.replaceChildren(...pickers.map((el) => {
+        const set = FLAGS.filter((flag) => el.validity[flag]);
+        return line(`${el.getAttribute('name')} — validity: ${set.length ? set.join(' / ') : 'valid'}`
+          + (el.validationMessage ? ` · validationMessage: "${el.validationMessage}"` : ''));
+      }), ...(submitted ? [line(`Submitted: ${submitted}`)] : []));
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      render([...new FormData(form)].map(([k, v]) => `${k}=${v}`).join('&'));
+    });
+    form.addEventListener('reset', () => setTimeout(() => render()));
+    form.addEventListener('invalid', () => render(), true);
+    for (const el of pickers) el.addEventListener('change', () => render());
+    document.getElementById('required-toggle-readonly').addEventListener('click', () => {
+      for (const el of pickers) el.isReadonly = !el.isReadonly;
+      render();
+    });
+    customElements.whenDefined('web-daterangepicker').then(() => render());
   </script>

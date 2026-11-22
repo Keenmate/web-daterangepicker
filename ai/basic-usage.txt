@@ -483,6 +483,13 @@ won't submit (`invalid` fires; <form novalidate> submits ''); event
 `value-format-error` { error, value } (twin onValueFormatError). The next successful
 format clears it. el.validity / validationMessage / checkValidity() / reportValidity().
 
+REQUIRED: <web-daterangepicker name="stay" selection-mode="range" required> (el.isRequired,
+reflects). No complete value → validity.valueMissing (message = errors.required label,
+default 'Select a date.'), the form won't submit (bubble at the input). Empty = nothing the
+form would submit: no date / no complete range (a half-picked range is empty) / no time;
+typed text counts once committed. readonly / disabled → never missing. aria-required +
+:state(required) on the host. Independent of the getValueFormatCallback customError.
+
 COMMON PATTERNS
 ---------------
 Weekdays only:
@@ -540,6 +547,7 @@ ariaLabels.close, labels.preview, labels.day, labels.days, labels.night, labels.
 labels.selectionCount ({count}), labels.time, labels.am, labels.pm, labels.hours,
 labels.minutes, labels.seconds, headers.fullscreen,
 errors.valueFormat (validation message when getValueFormatCallback throws),
+errors.required (validation message while required and empty, default 'Select a date.'),
 ariaLabels.loading (aria-label of every loader, default 'Loading…').
 Page-wide: ONE flat dictionary of full keys —
 window.components.locale = { labels: { 'web-daterangepicker.buttons.today': 'Dnes' } };

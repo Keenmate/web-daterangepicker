@@ -2880,6 +2880,11 @@ class DateRangePickerEngine {
                     ? this._selectedRanges.map(r => `${this.formatDate(r.start)} - ${this.formatDate(r.end)}`).join(', ')
                     : `${this.formatDate(this._selectedStartDate)} - ${this.formatDate(this._selectedEndDate)}`;
             }
+        } else if (this.options.selectionMode === 'range') {
+            // An empty array clears the range (the envelope too — it read back otherwise).
+            this._selectedStartDate = null;
+            this._selectedEndDate = null;
+            if (this.input && !this.stagesSelection()) this.input.value = '';
         } else if (this.options.selectionMode === 'multiple') {
             // Multiple mode: the input carries the selection count (as a pick does);
             // leaving it empty made the next open() re-sync from '' and wipe the

@@ -736,6 +736,8 @@ export interface DateRangePickerConfig {
   placeholder?: string | null;
   isDisabled?: boolean;
   isReadonly?: boolean;
+  /** Required (`required` attribute): no complete value → `validity.valueMissing` (core SPEC §6.6). */
+  isRequired?: boolean;
   /** `xs` | `sm` | `md` | `lg` | `xl`. */
   inputSize?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   name?: string | null;
@@ -749,7 +751,7 @@ export interface DateRangePickerConfig {
 }
 
 /** Element-level inputs the internal engine does not take. */
-type ElementOnlyInput = 'presentation' | 'defaultValue' | 'placeholder' | 'isDisabled' | 'isReadonly'
+type ElementOnlyInput = 'presentation' | 'defaultValue' | 'placeholder' | 'isDisabled' | 'isReadonly' | 'isRequired'
   | 'inputSize' | 'name' | 'valueFormat' | 'valueFormatMask' | 'valueSeparator' | 'getValueFormatCallback'
   | 'placeholderFormatMask' | 'placeholderTimeFormatMask' | 'customStyles';
 
@@ -831,6 +833,9 @@ export interface DateRangePickerLabels {
 
   /** Validation message when `getValueFormatCallback` throws (the host turns invalid). */
   'errors.valueFormat': string;
+  /** Validation message while `required` and there is no complete value (`validity.valueMissing`) — one key for
+   *  every mode: no date (single), no complete range (a half-picked range counts as empty), no time. */
+  'errors.required': string;
 
   /** Accessible label of every loader (`showLoader()`, async callbacks) — its `aria-label`. */
   'ariaLabels.loading': string;

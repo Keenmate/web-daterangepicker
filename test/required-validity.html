@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test — required + validity</title>
+    <link rel="stylesheet" href="test-fixtures.css">
+    <style>
+        web-daterangepicker { display: block; max-width: 320px; }
+    </style>
+</head>
+<body>
+    <h1>required + validity</h1>
+    <p>Targeted by <code>e2e/required-validity.spec.ts</code>. <code>required</code> → core
+       <code>valueMissing</code> while there is no complete value (core SPEC §6.6).</p>
+
+    <div class="fixture">
+        <div class="fixture-label">floating, single, required</div>
+        <form id="fs">
+            <web-daterangepicker id="single" name="when" selection-mode="single" required
+                initial-date="2026-06-15"></web-daterangepicker>
+            <button type="submit" id="submit-single">Submit</button>
+            <button type="reset" id="reset-single">Reset</button>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">inline, range, required</div>
+        <form id="fr">
+            <web-daterangepicker id="range" name="stay" selection-mode="range" positioning-mode="inline" required
+                initial-date="2026-06-15"></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">floating, single, required, value attribute (reset default)</div>
+        <form id="fv">
+            <web-daterangepicker id="valued" name="when" selection-mode="single" required
+                value="2026-06-15"></web-daterangepicker>
+            <button type="reset" id="reset-valued">Reset</button>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">floating, time, required</div>
+        <form id="ft">
+            <web-daterangepicker id="time" name="at" picker-mode="time" required></web-daterangepicker>
+        </form>
+    </div>
+
+    <div class="fixture">
+        <div class="fixture-label">floating, single, NOT required</div>
+        <form id="fn">
+            <web-daterangepicker id="optional" name="when" selection-mode="single"></web-daterangepicker>
+        </form>
+    </div>
+
+    <script>
+        window.components = window.components || {};
+        window.components.locale = { ...(window.components.locale || {}), dateFormat: 'YYYY-MM-DD' };
+    </script>
+    <script type="module">
+        import '/src/index.ts';
+        window.submits = 0;
+        document.getElementById('fs').addEventListener('submit', (e) => { e.preventDefault(); window.submits++; });
+    </script>
+</body>
+</html>

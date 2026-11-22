@@ -33,5 +33,6 @@ export const DEFAULT_LABELS: Readonly<DateRangePickerLabels> = Object.freeze({
   'labels.seconds': 'Seconds',
   'headers.fullscreen': '',
   'errors.valueFormat': 'The value could not be formatted.',
+  'errors.required': 'Select a date.',
   'ariaLabels.loading': 'Loading…',
 });

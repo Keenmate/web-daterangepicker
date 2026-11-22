@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Added — `required` through core validity (rulebook C-CA-41) (2026-11-22)
+- **`required` attribute / `isRequired` property** (`toBool('presence')`, reflects, element-only): while the picker
+  has no complete value the host has `validity.valueMissing` and a form refuses to submit (core `refreshRequired()`,
+  SPEC §6.6; the browser bubble anchors on the visible input, the host for `inline`). "No complete value" = nothing
+  the form would submit: no date (single), no complete range (a half-picked range is empty), no date / range
+  (multiple), no time; typed text counts once committed. Read-only / disabled (incl. a disabled `<fieldset>`) are
+  never missing. Core sets `aria-required` on the internals and `:state(required)`. Re-evaluated on every form-value
+  write (pick, ✕ / Clear, `el.value`, the selection setters, `clearSelection()`, `form.reset()`, rebuilds).
+  Independent of the `getValueFormatCallback` `customError`.
+- New label **`errors.required`** (default "Select a date.") — the `valueMissing` message; one key for every mode.
+- `examples-data-api.html` **DA27 · Required + validation** (a form with a required range + single picker, the native
+  bubble on Submit, a live `validity` / `validationMessage` line); DA25 lists `isRequired`; the DA23 form snippet
+  drops its manual empty check. e2e `required-validity.spec.ts` (fixture `test/required-validity.html`).
+
+### Fixed — clearing a range from code (2026-11-22)
+- `el.selectedRanges = []` in `range` mode now clears the selection (the start / end envelope stayed, so the range
+  read back and was still submitted).
+- `el.controller.clearSelection()` now also clears the submitted form value (it cleared only the engine; the hidden
+  input kept the old value) — it goes through the element's `clearSelection()`.
+
 ### Internal — base-variables sweep (C-BV-3 / C-BV-6 / C-BV-9) (2026-11-22)
 - The manifest marks the 19 `--drp-sheet-*` knobs and `--drp-fullscreen-input-font-size` `"input": true` (unset by
   design: pass-throughs to core's `--_km-sheet-*` / a fallback-read knob — a `:host` value would cut the page-wide
