@@ -96,7 +96,9 @@ window.components.locale = {
     <code>{ component, key, template, params, locale }</code> — <code>key</code> is the full
     <code>web-daterangepicker.&lt;elementType&gt;.&lt;name&gt;</code> — and returns the text, or <code>null</code> = not mine.
     The element's own <code>translateCallback</code> is asked first (German, only <code>buttons.today</code> here); its
-    <code>null</code> passes the key on to the page-wide one (a small Slovak i18next-like lookup). A key the instance
+    <code>null</code> passes the key on to the page-wide one — the app's i18next (Slovak, with plural forms: the bridge
+    hands i18next <code>params.ctx.count</code> as its <code>count</code>, so the summary reads "5 dní, 4 noci"). The page
+    itself runs without i18next: the same forms are picked with <code>Intl.PluralRules('sk')</code>. A key the instance
     <code>labels</code> set (the second picker's <code>buttons.today</code>) is never sent to any callback.</p>
   <div class="controls">
     <label><input type="checkbox" id="lo09-page"> page-wide <code>translateCallback</code> (Slovak)</label>
@@ -118,18 +120,28 @@ window.components.locale = {
     </div>
     <div class="output"><div class="output-label">rendered strings</div><pre id="lo09-out"></pre></div>
   </div>
-  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// an i18next-like lookup: a dictionary + t(key, params)
-const sk = {
-  'web-daterangepicker.buttons.today': 'Dnes',
-  'web-daterangepicker.buttons.clear': 'Vymazať',
-  'web-daterangepicker.labels.days': '{{count}} dní',   // i18next reads count
-};
-const t = (key, params) =&gt; sk[key]?.replace(/\{\{(\w+)\}\}/g, (_, p) =&gt; params?.[p] ?? '');
-const exists = (key) =&gt; key in sk;
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>// the app's own i18next — its JSON, plural forms as i18next's _one / _few / _other suffixes
+i18next.init({
+  lng: 'sk',
+  interpolation: { escapeValue: false },   // the component escapes what goes into HTML
+  resources: { sk: { translation: {
+    'web-daterangepicker': {
+      buttons: { today: 'Dnes', clear: 'Vymazať' },
+      labels: {
+        days_one: '{{count}} deň',    days_few: '{{count}} dni',    days_other: '{{count}} dní',
+        nights_one: '{{count}} noc',  nights_few: '{{count}} noci', nights_other: '{{count}} nocí',
+      },
+    },
+  } } },
+});
 
-// page-wide — every component on the page
+// page-wide — ONE generic bridge for every key of every component. params.ctx = the label's context;
+// ctx.count = the number the text's noun agrees with → i18next's `count` (exists() needs it too)
 window.components.locale = {
-  translateCallback: ({ key, params }) =&gt; (exists(key) ? t(key, { ...params, count: params.ctx?.count }) : null),
+  translateCallback: ({ key, params }) =&gt; {
+    const options = { ...params, count: params.ctx?.count };
+    return i18next.exists(key, options) ? i18next.t(key, options) : null;   // null = not mine
+  },
 };
 
 // one element — asked BEFORE the page-wide callback; null = not mine
@@ -231,6 +243,53 @@ el.translateCallback = ({ key }) =&gt; (key === 'web-daterangepicker.buttons.tod
 // → &lt;b&gt;5&lt;/b&gt; days   (bold)
 window.components.security = { shouldEscapeLabels: true };
 // → &amp;lt;b&amp;gt;5&amp;lt;/b&amp;gt; days   (the whole label is text)</code></pre></div>
+</div>
+
+<!-- ============================================================= -->
+<!-- LO13 · Czech plurals (a real count)                            -->
+<!-- ============================================================= -->
+<div class="card">
+  <h2>LO13 · Czech plurals — the summary and the selection count</h2>
+  <p>Each count text gets its number as <code>params.ctx.count</code> — the number the noun agrees with: the days /
+    the nights of the range summary (<code>labels.days</code> / <code>labels.nights</code>) and the picked items of
+    multiple mode (<code>labels.selectionCount</code>, dates + ranges). The element's own <code>translateCallback</code>
+    picks the Czech form with <code>Intl.PluralRules('cs')</code>: "1 den / 3 dny / 5 dní", "0 nocí / 2 noci / 4 noci",
+    "1 vybraný termín / 3 vybrané termíny / 5 vybraných termínů". No i18n library needed; with i18next it is the generic
+    bridge of LO09 (<code>labels.days_one</code> / <code>_few</code> / <code>_other</code> in the app's JSON).</p>
+  <div class="controls"><strong class="muted">count</strong>
+    <label><input type="radio" name="lo13-count" value="1" checked> 1</label>
+    <label><input type="radio" name="lo13-count" value="3"> 3</label>
+    <label><input type="radio" name="lo13-count" value="5"> 5</label>
+  </div>
+  <div class="demo-area">
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label class="demo-label">Range of N days (summary)</label>
+        <web-daterangepicker id="lo13a" selection-mode="range" show-summary positioning-mode="inline"
+          visible-month-count="1" value="2026-06-10 - 2026-06-10"></web-daterangepicker>
+      </div>
+      <div class="form-group">
+        <label class="demo-label">Multiple mode, N dates picked (input text)</label>
+        <web-daterangepicker id="lo13b" selection-mode="multiple" initial-date="2026-06-10"></web-daterangepicker>
+      </div>
+    </div>
+    <div class="output"><div class="output-label">rendered strings</div><pre id="lo13-out"></pre></div>
+  </div>
+  <div class="code-block" data-language="js" data-kmwc-snippet><pre><code>const plural = new Intl.PluralRules('cs');
+const CS = {
+  'web-daterangepicker.labels.days':           { one: 'den', few: 'dny', other: 'dní' },
+  'web-daterangepicker.labels.nights':         { one: 'noc', few: 'noci', other: 'nocí' },
+  'web-daterangepicker.labels.selectionCount': { one: 'vybraný termín', few: 'vybrané termíny', other: 'vybraných termínů' },
+};
+
+el.translateCallback = ({ key, params }) =&gt; {
+  const forms = CS[key];
+  if (!forms) return null;   // null = not mine → the next layer / English
+  const n = params.ctx.count;
+  return `${n} ${forms[plural.select(n)] ?? forms.other}`;
+};
+
+// with i18next: the one generic bridge of LO09 (labels.days_one / _few / _other in the app's JSON)</code></pre></div>
 </div>
 
 <div class="note info">
@@ -440,7 +499,7 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
   // ── Readouts: what the shadow root actually renders.
   const sr = (id) => $(id).shadowRoot;
   const buttons = (id) => [...(sr(id)?.querySelectorAll('.drp__button') ?? [])].map((b) => b.textContent.trim()).join(' / ') || '(none)';
-  const summary = (id) => sr(id)?.querySelector('.drp__summary')?.textContent.replace(/\s+/g, ' ').trim() || '(none)';
+  const summary = (id) => sr(id)?.querySelector('.drp__summary')?.textContent.replace(/\s+/g, ' ').replace(/ ,/g, ',').trim() || '(none)';
   const timeLabel = (id) => sr(id)?.querySelector('.drp__time-label')?.textContent.trim() ?? '(none)';
   const month = (id) => sr(id)?.querySelector('.drp__month-year')?.textContent.trim() ?? '(none)';
   const firstWeekday = (id) => sr(id)?.querySelector('.drp__weekdays')?.textContent.trim().split(/\s+/)[0] ?? '(none)';
@@ -472,6 +531,10 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
       `${lo11Element ? `locale="${lo11Element}"` : 'locale unset'}  shown: ${shown('lo11a')}   month: ${month('lo11a-cal')}   week starts: ${firstWeekday('lo11a-cal')}`,
       `page         shown: ${shown('lo11b')}   month: ${month('lo11b-cal')}   week starts: ${firstWeekday('lo11b-cal')}`,
     ]);
+    write('lo13-out', [
+      `#lo13a  summary: ${summary('lo13a')}`,
+      `#lo13b  input:   ${shown('lo13b') || '(empty)'}`,
+    ]);
     const count = sr('lo12')?.querySelector('.drp__summary-count');
     write('lo12-out', count
       ? [`markup: ${count.innerHTML.trim()}`, `text:   ${count.textContent.trim()}`]
@@ -502,13 +565,21 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
   $('lo08-dict').addEventListener('change', (e) => { page.labels = e.target.checked ? CS : null; applyPage(); });
 
   // ── LO09 · translateCallback.
-  const sk = {
+  // The snippet's i18next setup without loading i18next: the same Slovak forms, picked with Intl.PluralRules.
+  const skPlural = new Intl.PluralRules('sk');
+  const SK = {
     'web-daterangepicker.buttons.today': 'Dnes',
     'web-daterangepicker.buttons.clear': 'Vymazať',
-    'web-daterangepicker.labels.days': '{{count}} dní',
+    'web-daterangepicker.labels.days': { one: '{n} deň', few: '{n} dni', other: '{n} dní' },
+    'web-daterangepicker.labels.nights': { one: '{n} noc', few: '{n} noci', other: '{n} nocí' },
   };
-  const t = (key, params) => sk[key].replace(/\{\{(\w+)\}\}/g, (_, p) => String(params?.[p] ?? ''));
-  const pageTranslate = ({ key, params }) => (key in sk ? t(key, { ...params, count: params.ctx?.count }) : null);
+  const pageTranslate = ({ key, params }) => {
+    const entry = SK[key];
+    if (entry === undefined) return null;   // not mine
+    if (typeof entry === 'string') return entry;
+    const n = params.ctx?.count;
+    return (entry[skPlural.select(n)] ?? entry.other).replace('{n}', String(n));
+  };
   const ownTranslate = ({ key }) => (key === 'web-daterangepicker.buttons.today' ? 'Heute' : null);
   $('lo09-page').addEventListener('change', (e) => { page.translateCallback = e.target.checked ? pageTranslate : null; applyPage(); });
   $('lo09-own').addEventListener('change', (e) => { $('lo09a').translateCallback = e.target.checked ? ownTranslate : undefined; refreshAll(); });
@@ -540,6 +611,32 @@ el.weekdayNames = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];</code></pre></div>
     window.components.security = { shouldEscapeLabels: e.target.checked };
     refreshAll();
   });
+
+  // ── LO13 · Czech plurals through the element's own translateCallback.
+  const csPlural = new Intl.PluralRules('cs');
+  const CS_FORMS = {
+    'web-daterangepicker.labels.days': { one: 'den', few: 'dny', other: 'dní' },
+    'web-daterangepicker.labels.nights': { one: 'noc', few: 'noci', other: 'nocí' },
+    'web-daterangepicker.labels.selectionCount': { one: 'vybraný termín', few: 'vybrané termíny', other: 'vybraných termínů' },
+  };
+  // With i18next: the generic bridge shown in LO09.
+  const csTranslate = ({ key, params }) => {
+    const forms = CS_FORMS[key];
+    if (!forms) return null;
+    const n = params.ctx.count;
+    return `${n} ${forms[csPlural.select(n)] ?? forms.other}`;
+  };
+  $('lo13a').translateCallback = csTranslate;
+  $('lo13b').translateCallback = csTranslate;
+  const lo13 = (n) => {
+    $('lo13a').value = `2026-06-10 - 2026-06-${String(9 + n).padStart(2, '0')}`;
+    $('lo13b').selectedDates = Array.from({ length: n }, (_, i) => new Date(2026, 5, 10 + i * 2));
+    refreshAll();
+  };
+  for (const radio of document.querySelectorAll('input[name="lo13-count"]')) {
+    radio.addEventListener('change', (e) => lo13(Number(e.target.value)));
+  }
+  lo13(1);
 
   refreshAll();
 </script>

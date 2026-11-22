@@ -30,6 +30,7 @@ test.describe('examples-localization.html', () => {
         // LO09 · own callback first, null → page callback; instance labels win
         await page.locator('#lo09-page').check();
         await expect(out('lo09-out')).toContainText('#lo09a  buttons: Dnes / Vymazať');
+        await expect(out('lo09-out')).toContainText('summary: 5 dní, 4 noci');   // Slovak plurals via ctx.count
         await page.locator('#lo09-own').check();
         await expect(out('lo09-out')).toContainText('#lo09a  buttons: Heute / Vymazať');
         await expect(out('lo09-out')).toContainText('#lo09b  buttons: Instance wins / Vymazať');
@@ -57,6 +58,16 @@ test.describe('examples-localization.html', () => {
         await expect(out('lo12-out')).toContainText('markup: <b>5</b> days');
         await page.locator('#lo12-escape').check();
         await expect(out('lo12-out')).toContainText('text:   <b>5</b> days');
+
+        // LO13 · Czech plurals from ctx.count: the count switches 1 / 3 / 5
+        await expect(out('lo13-out')).toContainText('#lo13a  summary: 1 den, 0 nocí');
+        await expect(out('lo13-out')).toContainText('#lo13b  input:   1 vybraný termín');
+        await page.locator('input[name="lo13-count"][value="3"]').check();
+        await expect(out('lo13-out')).toContainText('#lo13a  summary: 3 dny, 2 noci');
+        await expect(out('lo13-out')).toContainText('#lo13b  input:   3 vybrané termíny');
+        await page.locator('input[name="lo13-count"][value="5"]').check();
+        await expect(out('lo13-out')).toContainText('#lo13a  summary: 5 dní, 4 noci');
+        await expect(out('lo13-out')).toContainText('#lo13b  input:   5 vybraných termínů');
 
         expect(consoleErrors).toEqual([]);
     });

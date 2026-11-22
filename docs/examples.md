@@ -94,6 +94,18 @@ viewport-tier widths (xs / sm / md / lg), container-query inner layout,
 the `headers.fullscreen` label heading, the `fullscreen-autofocus` / `show-fullscreen-input`
 options, and container-responsive compaction (the `responsive` map's `container` axis).
 
+### Localization — [`examples-localization.html`](../examples-localization.html)
+
+Every UI string through core `/locale`: instance `labels` (LO01), the
+page-wide dictionary (LO08), `translateCallback` — the element's own
+first, then the page-wide one, with the generic i18next bridge
+(`count: params.ctx?.count`, Slovak `_one` / `_few` / `_other`; the page
+picks the same forms with `Intl.PluralRules`) (LO09), screen-reader
+twins (LO10), `locale` + date formatting (LO11), `shouldEscapeLabels`
+(LO12), Czech plurals on a real count — a range of 1 / 3 / 5 days in
+the summary and 1 / 3 / 5 picked dates in multiple mode (LO13) — then
+week start and custom month / weekday names (LO02–LO07).
+
 ## Time / datetime
 
 ### Time & datetime — [`examples-time-picker.html`](../examples-time-picker.html)
