@@ -35,8 +35,6 @@ import {
   createFormInputs,
   createControllerFacade,
   ICON_CSS,
-  extractConsumedCssVars,
-  lintCssVars,
   getEnvironment,
   observeTextInput,
   resolvePresentation,
@@ -62,15 +60,6 @@ import type {
   ChangeEventDetail, SelectedTime, MonthDisplay, PickerContext, ShowMessageOptions, ValueFormatErrorEventDetail,
 } from './types';
 import styles from './css/main.css?inline';
-
-// Dev-mode custom-styles lint: the set of `--drp-*` names the component's own
-// stylesheet actually consumes, used as the ground truth for typo detection in
-// author-injected CSS (custom-styles attribute / getCustomStylesCallback). Computed
-// once, lazily — parsing the full stylesheet is not free.
-let consumedDrpVarsCache: Set<string> | null = null;
-function consumedDrpVars(): Set<string> {
-  return (consumedDrpVarsCache ??= extractConsumedCssVars(styles, '--drp-'));
-}
 
 // Build-time constant (Vite define).
 declare const __VERSION__: string;
@@ -306,9 +295,6 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   #inputWrapper?: HTMLDivElement;
   #inputClearButton?: HTMLButtonElement;
   #customStyles: CustomStylesHandle | null = null;
-  // Dev-mode custom-styles lint: `--drp-*` names already warned about, so a
-  // re-apply (or a reactive update) doesn't re-spam the console.
-  #customStyleVarsWarned = new Set<string>();
   // Light-DOM hidden <input>(s) that carry the selection into form submission
   // (core createFormInputs, SPEC §12.21). Children of the host, so they sit inside
   // the <form> and submit under `name`; the host itself never calls setFormValue.
@@ -906,29 +892,10 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
         css: this.config.customStyles as string | null | undefined,
         callback: this.config.getCustomStylesCallback as ((ctx: PickerContext) => string | null | undefined) | null | undefined,
       }),
-      appliedCallback: (css) => { if (import.meta.env?.DEV) this.#checkCustomStyleVars(css); },
+      // Dev-only typo lint (core): warns once per name when custom CSS sets a `--drp-*`
+      // variable the component's stylesheet never reads. Stripped from production builds.
+      lintCssVars: import.meta.env?.DEV ? { prefix: '--drp-', componentCss: styles } : undefined,
     });
-  }
-
-  /**
-   * Dev-only lint: warn when injected custom CSS references a `--drp-*` variable
-   * the component's own stylesheet never consumes — almost always a typo (e.g.
-   * `--drp-day-background` instead of `--drp-day-bg`). Pure matching lives in core
-   * (`lintCssVars`); the element owns only the dev gate and the warned-set dedupe.
-   * Guarded by `import.meta.env.DEV`, so it's stripped from production builds.
-   */
-  #checkCustomStyleVars(css: string): void {
-    const consumed = consumedDrpVars();
-    if (consumed.size === 0) return; // stylesheet not inlined (e.g. vitest) — no ground truth
-    for (const { name, suggestions } of lintCssVars(css, { prefix: '--drp-', consumed })) {
-      if (this.#customStyleVarsWarned.has(name)) continue;
-      this.#customStyleVarsWarned.add(name);
-      const hint = suggestions.length ? ` Did you mean ${suggestions.map((s) => `"${s}"`).join(', ')}?` : '';
-      this.log.UI.warn(
-        `custom styles set "${name}", which no ` +
-        `--drp-* variable in the component reads — likely a typo.${hint}`,
-      );
-    }
   }
 
   // ── writing direction (core `isRtl` / `directionChanged`) ─────────────────

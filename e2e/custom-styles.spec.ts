@@ -60,3 +60,17 @@ test('the instance getCustomStylesCallback wins over custom-styles; clearing bot
     });
     await expect.poll(() => outlineColor('c')(page)).toBe('rgb(255, 0, 0)');
 });
+
+test('dev: custom CSS setting a --drp-* variable nothing reads warns once per name, with a suggestion (core lintCssVars)', async ({ page }) => {
+    const warnings: string[] = [];
+    page.on('console', (msg) => { if (msg.type() === 'warning') warnings.push(msg.text()); });
+    await pickerById(page, 'a').evaluate((el: any) => { el.customStyles = '.drp__picker { --drp-primary-bg-hovr: red; --drp-primary-bg: blue; }'; });
+    await expect.poll(() => warnings.filter((w) => w.includes('"--drp-primary-bg-hovr"')).length).toBe(1);
+    // A re-apply (another write) doesn't repeat it; a variable the stylesheet reads never warns.
+    await pickerById(page, 'a').evaluate((el: any) => { el.customStyles = '.drp__picker { --drp-primary-bg-hovr: green; }'; });
+    await pickerById(page, 'a').evaluate((el: any) => el.whenSettled());
+    const typo = warnings.filter((w) => w.includes('"--drp-primary-bg-hovr"'));
+    expect(typo).toHaveLength(1);
+    expect(typo[0]).toContain('Did you mean');
+    expect(warnings.some((w) => w.includes('sets "--drp-primary-bg"'))).toBe(false);
+});

@@ -167,6 +167,7 @@ see [Unit layer](#unit-layer) at the end. Unit tests never render the element.
 | `getUnifiedHeaderCallback` overrides unified-mode header text | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `getCustomStylesCallback` injects styles into Shadow DOM      | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | Page-wide `window.components[tag].customStyles` / `.getCustomStylesCallback` style every picker; instance `custom-styles` / callback override it (core `createCustomStyles`) | ✓ | `custom-styles.spec.ts` | `custom-styles.html` |
+| Dev: custom CSS setting a `--drp-*` variable no style reads warns once per name with a "Did you mean" hint (core `lintCssVars`, G26) | ✓ | `custom-styles.spec.ts` | `custom-styles.html` |
 | A disabled picker's hidden form inputs are not submitted (own `disabled`, set at creation or later) | ✓ | `form-association.spec.ts` | `form-association.html` |
 | `week-start-day="auto"` follows the `locale` input (also on a live locale change) | ✓ | `locale.spec.ts` | `locale.html` |
 | Closed sets refused through core `input-rejected`: `input-size`, `calendar-placement`, `week-start-day`, `disabled-weekdays`, `month-names`, `weekday-names` | ✓ | `sizing-theming.spec.ts`, `locale.spec.ts` | `sizing-theming.html`, `locale.html` |

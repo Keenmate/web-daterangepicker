@@ -48,6 +48,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the neighbour month. Deleted the pre-listener's arrow routing and `canGridMoveWithinMonth` (a private copy of
   core's grid step rule). e2e: RTL month edge, min / max edge, neighbour-month cell (`day-grid.spec.ts`).
 
+### Internal — custom-CSS variable lint from core (G26) (2026-11-23)
+- The dev-only "custom CSS sets a `--drp-*` variable nothing reads" warning is core's
+  `createCustomStyles({ lintCssVars: { prefix: '--drp-', componentCss } })` (passed only under
+  `import.meta.env.DEV`, so production builds skip it). drp's own consumed-var cache, warned set and check method are
+  gone. Same behaviour (one warning per name per element, "Did you mean …" hints); the text is now core's
+  (`custom CSS (<layer>) sets "--x", which no web-daterangepicker style reads — it has no effect. …`).
+
 ### Fixed — range day / night counts across a DST change (2026-11-23)
 - The summary's days / nights (`allow` / `block` handling, also the drag preview) and the `change` event's
   `getTotalDays()` divided the millisecond difference by 24h and floored it — a range over the spring-forward day
