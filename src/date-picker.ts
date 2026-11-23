@@ -27,7 +27,7 @@ import { createLabels, createLabelsView, resolveLocaleSettings, getMonthNames, g
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
-import { adoptStyles, createAsyncRunner, createPresentationContext, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, observeTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createAsyncRunner, createPresentationContext, deepActiveElement, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, observeTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { formatShortcut, isTypingTarget, matchesShortcut, normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -3169,15 +3169,8 @@ class DateRangePickerEngine {
 
     /** Whether the focus is in the field (input / calendar) — also true while the window is in the background. */
     private isFocusInsideField(): boolean {
-        const roots = new Set<Node>();
-        if (this.input) roots.add(this.input.getRootNode());
-        if (this.calendar) roots.add(this.calendar.getRootNode());
-        for (const root of roots) {
-            let active = (root as Document | ShadowRoot).activeElement as Element | null | undefined;
-            while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
-            if (active && this.isInsideField([active])) return true;
-        }
-        return false;
+        const active = deepActiveElement(); // core: descends through open shadow roots
+        return !!active && this.isInsideField([active]);
     }
 
     private hasStagedChange(): boolean {

@@ -48,6 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the neighbour month. Deleted the pre-listener's arrow routing and `canGridMoveWithinMonth` (a private copy of
   core's grid step rule). e2e: RTL month edge, min / max edge, neighbour-month cell (`day-grid.spec.ts`).
 
+### Internal — core `deepActiveElement` instead of a private copy (Q14) (2026-11-23)
+- The staged-selection leave check ("is the focus still in the field?") reads core `deepActiveElement()` (the focused
+  element through open shadow roots) instead of its own per-root `shadowRoot.activeElement` walk. No other private
+  copies of the now-exported core helpers (`deepClosest`, `isDeepInside`, `runSafely`, `notifyListeners`) in drp.
+
 ### Internal — custom-CSS variable lint from core (G26) (2026-11-23)
 - The dev-only "custom CSS sets a `--drp-*` variable nothing reads" warning is core's
   `createCustomStyles({ lintCssVars: { prefix: '--drp-', componentCss } })` (passed only under
