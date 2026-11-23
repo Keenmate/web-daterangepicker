@@ -120,6 +120,46 @@ test('beforeMonthChangeCallback returning false prevents navigation to the targe
     await expect(p.locator('.drp__month-year').first()).toContainText(/July\s+2026/);
 });
 
+// One month change at a time (core createAsyncRunner 'exclusive'): clicks / keys while a
+// slow async beforeMonthChangeCallback runs are refused, not stacked.
+test('rapid next clicks during a slow async beforeMonthChangeCallback move one month only', async ({ page }) => {
+    const p = await open(page, 'before-month-slow');
+    const next = p.locator('.drp__nav--next[data-month-index="0"]');
+    const title = p.locator('.drp__month-year').first();
+
+    // The loader may cover the nav while the callback runs — click the button directly.
+    for (let i = 0; i < 4; i++) await next.evaluate((el: HTMLElement) => el.click());
+    await page.keyboard.press('PageDown');
+    expect(await page.evaluate(() => (window as any).monthChangeCalls)).toBe(1);
+    await expect(title).toContainText(/June\s+2026/);
+
+    await page.evaluate(() => (window as any).releaseMonthChange(true));
+    await expect(title).toContainText(/July\s+2026/);
+    // Settled: the refused clicks didn't queue — still one call, still July.
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => (window as any).monthChangeCalls)).toBe(1);
+    await expect(title).toContainText(/July\s+2026/);
+
+    // The runner is free again: the next click starts a new change.
+    await next.evaluate((el: HTMLElement) => el.click());
+    await expect.poll(() => page.evaluate(() => (window as any).monthChangeCalls)).toBe(2);
+    await page.evaluate(() => (window as any).releaseMonthChange(true));
+    await expect(title).toContainText(/August\s+2026/);
+});
+
+test('a slow async beforeMonthChangeCallback refusing keeps the month (clicks meanwhile ignored)', async ({ page }) => {
+    const p = await open(page, 'before-month-slow');
+    const next = p.locator('.drp__nav--next[data-month-index="0"]');
+    const title = p.locator('.drp__month-year').first();
+
+    await next.evaluate((el: HTMLElement) => el.click());
+    await next.evaluate((el: HTMLElement) => el.click());
+    await page.evaluate(() => (window as any).releaseMonthChange(false));
+    await page.waitForTimeout(100);
+    await expect(title).toContainText(/June\s+2026/);
+    expect(await page.evaluate(() => (window as any).monthChangeCalls)).toBe(1);
+});
+
 // =============================================================================
 // getDateMetadataCallback
 // =============================================================================

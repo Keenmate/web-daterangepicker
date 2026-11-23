@@ -43,6 +43,12 @@
     </div>
 
     <div class="fixture">
+        <div class="fixture-label">beforeMonthChangeCallback — slow async (resolved by window.releaseMonthChange(answer))</div>
+        <web-daterangepicker id="before-month-slow" selection-mode="single"
+            initial-date="2026-06-15"></web-daterangepicker>
+    </div>
+
+    <div class="fixture">
         <div class="fixture-label">getDateMetadataCallback — disables 2026-06-17 dynamically</div>
         <web-daterangepicker id="metadata" selection-mode="single"
             initial-date="2026-06-15"></web-daterangepicker>
@@ -94,6 +100,14 @@
         document.getElementById('before-month').beforeMonthChangeCallback = ({ month }) => {
             // Block August (month index 7) navigation.
             if (month === 7) return false;
+        };
+
+        // Slow async gate: each call waits until the test calls releaseMonthChange(answer)
+        // (true / undefined = allow, false = refuse). monthChangeCalls counts the invocations.
+        window.monthChangeCalls = 0;
+        document.getElementById('before-month-slow').beforeMonthChangeCallback = () => {
+            window.monthChangeCalls++;
+            return new Promise((resolve) => { window.releaseMonthChange = resolve; });
         };
 
         document.getElementById('metadata').getDateMetadataCallback = ({ date }) => {

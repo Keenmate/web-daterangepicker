@@ -175,6 +175,7 @@ see [Unit layer](#unit-layer) at the end. Unit tests never render the element.
 | `beforeSelectCallback`: accept / `false` / `DateRange[]` (adjust to N ranges, replaces the previous selection) | ✓ | `callbacks.spec.ts`  | `callbacks.html`          |
 | `beforeSelectCallback` returning `null` clears                | ✓      | `context-callbacks.spec.ts`  | `context-callbacks.html`  |
 | `beforeMonthChangeCallback` returning `false` blocks          | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |
+| slow async `beforeMonthChangeCallback`: rapid clicks don't stack, refusal keeps month | ✓ | `callbacks.spec.ts` | `callbacks.html` |
 | `getMonthDataCallback` bulk metadata (set after upgrade) + `reloadMonthData()` | ✓ | `context-callbacks.spec.ts` | `context-callbacks.html` |
 | `specialDates` + `*Member` property mapping                   | ✓      | `callbacks-extra.spec.ts`    | `callbacks-extra.html`    |
 | `getDateMetadataCallback` per-date                            | ✓      | `callbacks.spec.ts`          | `callbacks.html`          |

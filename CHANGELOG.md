@@ -43,6 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (a 23h day) counted one day short (28–30 Mar 2026 in Europe/Prague: 2 days instead of 3). They now count calendar
   days (`countDaysInclusive`).
 
+### Internal — month navigation on core's exclusive async runner (2026-11-23)
+- One month change at a time (`beforeMonthChangeCallback` + `getMonthDataCallback`) now runs on core
+  `createAsyncRunner({ concurrency: 'exclusive' })` instead of drp's own `isMonthChanging` flag (decision Q9).
+  Behaviour unchanged: clicks / keys during a slow async callback are ignored (not stacked), a refusing callback
+  keeps the month. New e2e for rapid navigation during a slow async callback (`callbacks.spec.ts`).
+- `VALIDATION-NOTES.md`: the C-RO-9 entry is gone — the rulebook check now accepts core's `.km-sheet` frame.
+
 ### Internal — unit test suite (2026-11-23)
 - **vitest unit suite** for the pure date logic in `test/unit/` (`npm test` / `npm run test:unit`; vitest 3 dev
   dependency, node environment, `TZ` pinned to a DST zone in `vitest.config.ts`): date-mask parsing, typed / range

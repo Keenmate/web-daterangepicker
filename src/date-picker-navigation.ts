@@ -89,6 +89,24 @@ function withLoader<A, R>(picker: any, fn: (arg: A) => R, state: { isLoading: bo
     };
 }
 
+/**
+ * Run one month change on the picker's exclusive runner (`createAsyncRunner({ concurrency: 'exclusive' })`):
+ * resolves with the task's result, or `null` when refused because another month change is still running
+ * (rapid clicks / keys during an async callback don't stack). A task rejection rejects the returned promise.
+ */
+function runMonthChange<T>(picker: any, task: () => Promise<T>): Promise<T | null> {
+    return new Promise<T | null>((resolve, reject) => {
+        const isStarted = picker.monthChangeRunner.run(
+            () => task().then((value) => ({ value }), (error: unknown) => ({ error, isFailed: true as const })),
+            (outcome: { value?: T; error?: unknown; isFailed?: true }) => {
+                if (outcome.isFailed) reject(outcome.error);
+                else resolve(outcome.value as T);
+            },
+        );
+        if (!isStarted) resolve(null);
+    });
+}
+
 /** Run `getMonthDataCallback(ctx)` (sync or async); a throw is logged and yields no data. */
 async function loadMonthData(picker: any, ctx: MonthChangeContext, state: { isLoading: boolean }): Promise<MonthDataResult | null> {
     const fn = picker.options.getMonthDataCallback;
@@ -111,16 +129,13 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
         return;
     }
 
-    // Prevent concurrent month changes
-    if (picker.isMonthChanging) {
-        navigationLogger.debug('handleInitialMonthLoad() - already changing month, skipping');
-        return;
-    }
+    const isDone = await runMonthChange(picker, () => loadInitialMonthData(picker));
+    if (isDone === null) navigationLogger.debug('handleInitialMonthLoad() - already changing month, skipping');
+}
 
+async function loadInitialMonthData(picker: any): Promise<true> {
     const loader = { isLoading: false };
     try {
-        picker.isMonthChanging = true;
-
         const combinedMetadata = new Map<string, any>();
         const combinedMonthHeaders = new Map<string, string>();
         const merge = (data: MonthDataResult | null) => {
@@ -147,9 +162,9 @@ export async function handleInitialMonthLoad(picker: any): Promise<void> {
         if (combinedMetadata.size > 0) picker.bulkMetadataCache = combinedMetadata;
         if (combinedMonthHeaders.size > 0) picker.monthHeadersCache = combinedMonthHeaders;
         if (combinedMetadata.size > 0 || combinedMonthHeaders.size > 0) picker.renderCalendar();
+        return true;
     } finally {
         if (loader.isLoading) hideLoader(picker);
-        picker.isMonthChanging = false;
     }
 }
 
@@ -164,21 +179,23 @@ export async function handleBeforeMonthChange(
     targetMonth: number, // 0-11
     monthIndex: number
 ): Promise<boolean> {
-    const beforeFn = picker.options.beforeMonthChangeCallback;
-    if (!beforeFn && !picker.options.getMonthDataCallback) {
+    if (!picker.options.beforeMonthChangeCallback && !picker.options.getMonthDataCallback) {
         return true;
     }
 
-    // Prevent concurrent month changes
-    if (picker.isMonthChanging) {
+    const shouldProceed = await runMonthChange(picker, () => runBeforeMonthChange(picker, targetYear, targetMonth, monthIndex));
+    if (shouldProceed === null) {
         navigationLogger.debug('handleBeforeMonthChange() - already changing month, ignoring');
         return false;
     }
+    return shouldProceed;
+}
 
+/** The month-change task: the before-callback gate, then the month data merged into the caches. */
+async function runBeforeMonthChange(picker: any, targetYear: number, targetMonth: number, monthIndex: number): Promise<boolean> {
+    const beforeFn = picker.options.beforeMonthChangeCallback;
     const loader = { isLoading: false };
     try {
-        picker.isMonthChanging = true;
-
         const range = picker.options.isUnifiedNavigationEnabled
             ? visibleRangeUnified(picker)
             : visibleRangeForMonth(picker, targetYear, targetMonth);
@@ -209,7 +226,6 @@ export async function handleBeforeMonthChange(
         return true;
     } finally {
         if (loader.isLoading) hideLoader(picker);
-        picker.isMonthChanging = false;
     }
 }
 

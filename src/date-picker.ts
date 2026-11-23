@@ -27,7 +27,7 @@ import { createLabels, createLabelsView, resolveLocaleSettings, getMonthNames, g
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
-import { adoptStyles, createPresentationContext, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, observeTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createAsyncRunner, createPresentationContext, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, observeTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { formatShortcut, isTypingTarget, matchesShortcut, normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -175,7 +175,8 @@ class DateRangePickerEngine {
     loaderRemovers: Partial<Record<LoaderTarget, (() => void) | undefined>> = {};
 
     // Month change callback state
-    private isMonthChanging: boolean = false;
+    // One month change at a time (before-callback + month data): a click / key while one runs is refused.
+    monthChangeRunner = createAsyncRunner({ concurrency: 'exclusive' });
     bulkMetadataCache: Map<string, DayMetadata> | null = null;
     monthHeadersCache: Map<string, string> | null = null;
 
