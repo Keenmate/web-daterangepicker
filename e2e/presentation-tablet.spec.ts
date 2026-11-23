@@ -122,3 +122,38 @@ test('modal: a backdrop tap closes it and releases the page', async ({ page }) =
   expect(await page.locator('h1').evaluate(el => el.closest('[inert]') !== null)).toBe(false);
   await expect(host.locator('.drp__backdrop')).not.toHaveClass(/drp__backdrop--visible/);
 });
+
+// G5: the backdrop is the modal's "outside" — close-on-outside-click="false" keeps it open on a
+// backdrop tap (core's backdrop click, gated in drp's dismissCallback).
+test('modal: close-on-outside-click="false" keeps it open on a backdrop tap', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.evaluate(async (el: any) => { el.setAttribute('close-on-outside-click', 'false'); await el.whenSettled(); });
+  await host.locator('input').tap();
+  const cal = host.locator('.drp__picker');
+  await expect(cal).toHaveClass(/drp__picker--modal/);
+  await page.waitForTimeout(100);
+  await page.touchscreen.tap(10, 10);
+  await page.waitForTimeout(100);
+  await expect(cal).toHaveClass(/drp__picker--visible/);
+  await page.keyboard.press('Escape');
+  await expect(cal).not.toHaveClass(/drp__picker--visible/);
+});
+
+// W11 / BG6 regression: the modal was ALSO a floating popover in the page overlay group, so a page
+// overlay opening (another picker's floating calendar, opened in code) dismissed the modal. The modal
+// is now only its core modal session (the modal-only overlay group).
+test('modal: a page overlay opening in code does not dismiss the modal', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  const low = page.locator('#low');
+  await host.waitFor();
+  await low.evaluate(async (el: any) => { el.setAttribute('presentation', 'floating'); await el.whenSettled(); });
+  await host.evaluate(el => (el as any).open());
+  const cal = host.locator('.drp__picker');
+  await expect(cal).toHaveClass(/drp__picker--modal/);
+  await low.evaluate(el => (el as any).open());
+  await expect(low.locator('.drp__picker')).toHaveClass(/drp__picker--visible/);
+  await expect(cal).toHaveClass(/drp__picker--visible/);
+});

@@ -4,46 +4,18 @@
    Activated at runtime when the resolved presentation is `fullscreen` — a phone
    (touch-primary + shorter viewport side < 600px) with `presentation`
    `auto`, or any device when it is forced. The calendar becomes an edge-to-edge
-   sheet with a close header; the flex-column layout (header pinned → months
+   sheet (core `.km-sheet` frame) with a close header; the flex-column layout (header pinned → months
    scroll → actions pinned) is shared with the other non-inline presentations and
    lives in `base.css`. */
 
-.drp__picker--fullscreen {
-  position: fixed;
-  /* top/inline-start only — NOT `inset: 0`. `inset` also pins `bottom: 0`, and a
-     fixed box with both top and bottom constrained ignores its `height`.
-     fitToVisibleViewport() shrinks the sheet above the soft keyboard by writing
-     inline `height` (+ `top`); a pinned bottom would silently defeat it and leave
-     the months/actions behind the keyboard. With only top/inline-start pinned,
-     height governs and the keyboard reflow works. */
-  top: 0;
-  inset-inline-start: 0;
-  width: 100dvw;
-  max-width: 100dvw;
-  height: 100dvh;
-  max-height: 100dvh;
-  margin: 0;
-  border: none;
-  border-radius: 0;
-  background: var(--drp-fullscreen-bg);
-  color: var(--drp-fullscreen-text-color);
-  z-index: var(--drp-z-index-fullscreen);
-
-  /* Keep the sheet's CONTENT inside the display's safe area. The axis that bites is
-     LANDSCAPE: the Android nav bar sits on one side and a camera cutout / rounded corner
-     on the other, so a plain full-width (`100dvw`) sheet runs its header, day grid, and summary
-     UNDER those system bars (edges clipped). `box-sizing: border-box` keeps the outer box
-     a full-bleed 100dvw × 100dvh (BACKGROUND still edge-to-edge), while the safe-area
-     padding pulls the flex column into the visible region. `env(safe-area-inset-*)` is 0
-     unless the host page sets `<meta name="viewport" content="… viewport-fit=cover">`, so
-     this is a no-op on non-cutout / letterboxed pages — a fix where needed, never a
-     regression. See BlissFramework responsive-overlay.md constraint #4. */
-  box-sizing: border-box;
-  padding-top: env(safe-area-inset-top);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-}
+/* The sheet FRAME is core's `.km-sheet` (SHEET_CHROME_CSS, added next to
+   `.drp__picker--fullscreen` in enterFullscreen): fixed at top / inline-start with
+   100dvw x 100dvh (not `inset: 0`: fitToVisibleViewport() writes an inline height / top
+   above the soft keyboard, which a pinned bottom would defeat), full-bleed background,
+   content padded out of the safe areas, no border / radius / shadow, the modal tier.
+   drp maps --drp-fullscreen-bg / --drp-fullscreen-text-color / --drp-z-index-fullscreen
+   onto it (variables.css, `.drp__picker`). `.drp__picker--fullscreen` stays the hook for
+   drp's own layout inside the frame (below). */
 
 /* Re-scale the whole calendar for touch: override --drp-rem so every size token
    (`calc(N × --drp-rem)`) grows together — bigger day cells, text, spacing, and

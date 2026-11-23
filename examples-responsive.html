@@ -258,7 +258,8 @@ web-daterangepicker {
     By <strong>default the keyboard stays closed</strong> when the full-screen sheet opens — it
     shows the calendar first, so you tap dates and the bottom action row stays reachable. Set
     <code>fullscreen-autofocus</code> to focus the input on open instead (pops the keyboard for
-    type-to-fill, like a native picker).
+    type-to-fill, like a native picker). The sheet is modal, so the focused input moves into its
+    header (as <code>show-fullscreen-input</code>, RS08, does).
   </p>
   <p>
     Both pickers use <code>presentation="auto"</code>: a floating popover here on desktop, a

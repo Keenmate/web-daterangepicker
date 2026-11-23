@@ -320,9 +320,9 @@ see [Unit layer](#unit-layer) at the end. Unit tests never render the element.
 | Feature                                                       | Status | Spec | Fixture |
 | ------------------------------------------------------------- | :----: | ---- | ------- |
 | Desktop: `presentation="auto"` → floating; forced `fullscreen` applies | ✓ | `presentation-desktop.spec.ts` | `presentation.html` |
-| Phone: auto → full-screen sheet, ✕ close, header merge, `show-fullscreen-input`, keyboard-off, `fullscreen-autofocus` | ✓ | `presentation-phone.spec.ts` | `presentation.html` |
+| Phone: auto → full-screen sheet, ✕ close, header merge, `show-fullscreen-input`, keyboard-off, `fullscreen-autofocus` (input moves into the header); modal sheet (core `.km-sheet` frame + modal session: page inert, Tab trapped, Escape closes, focus back to the input), `--drp-fullscreen-*` drive the frame, opening closes a page floating calendar | ✓ | `presentation-phone.spec.ts` | `presentation.html` |
 | Responsive rules (core §6.7): `device` map / callback / per-tag rule vs explicit attr (desktop); `breakpoint` axis on a narrowed desktop + old shape ignored; device beats breakpoint on a phone | ✓ | `presentation-desktop.spec.ts`, `presentation-phone.spec.ts` | `presentation.html` |
-| Tablet: auto → modal; tap opens and stays open (ghost click)  | ✓      | `presentation-tablet.spec.ts` | `presentation.html` |
+| Tablet: auto → modal; tap opens and stays open (ghost click); backdrop tap obeys `close-on-outside-click`; a page overlay opening in code does not dismiss the modal (W11 / BG6) | ✓      | `presentation-tablet.spec.ts` | `presentation.html` |
 | Back gesture closes modal / full-screen without navigating    | ✓      | `back-gesture.spec.ts`       | `presentation.html` |
 | Adaptive action set: rich on desktop, essentials on phone     | ✓      | `adaptive-actions.spec.ts`, `adaptive-actions-phone.spec.ts` | `adaptive-actions.html` |
 | Container-width compaction (2 → 1 month, hides Today/Clear) keeps the range | ✓ | `responsive-compact.spec.ts` | `responsive-compact.html` |

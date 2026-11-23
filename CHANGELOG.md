@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Changed — the phone full-screen sheet is modal on core's `.km-sheet` frame (2026-11-23)
+- **The full-screen sheet is a core modal session** (`startModalSession`, rulebook C-CA-19): the page behind is
+  inert, Tab stays in the sheet, Escape / the phone Back gesture / the ✕ close it, the page scroll is locked, the
+  sheet fits above the soft keyboard, and a tap-open's ghost click is swallowed — one core call instead of drp's own
+  scroll lock / Back entry / keyboard inset / ghost-click guard. Opening it closes the page's open dropdowns and
+  popovers (core). A keyboard open hands focus back to the input on close; a tap open doesn't (no soft keyboard).
+- **The sheet frame is core's `.km-sheet`** (`SHEET_CHROME_CSS`): drp's own fixed / 100dvw x 100dvh / safe-area
+  frame CSS is gone. The documented `--drp-fullscreen-bg`, `--drp-fullscreen-text-color` and
+  `--drp-z-index-fullscreen` still drive it (mapped onto core's `--_km-sheet-*`). drp keeps its floating ✕ (merged
+  header), the relocated input and the touch-scale `--drp-fullscreen-rem`. New: the sheet fades / slides in on open
+  (core motion tokens; `motion="none"` / reduced motion = instant).
+- **`fullscreen-autofocus` moves the input into the sheet header** (as `show-fullscreen-input` does): the page
+  behind the modal sheet is inert, so the focused field has to be in the sheet, visible above the keyboard.
+- **The modal and the sheet are no longer also a floating popover** (W11): one overlay entry each — the core modal
+  session (Escape keeps the "a compact time field's Escape reverts its edit first" rule). Fixes BG6: a page overlay
+  opening in code (another picker's floating calendar) no longer dismisses an open modal.
+- **The modal backdrop click is core's** (session `dismissCallback('backdrop')`, ignored when
+  `close-on-outside-click` is off) — drp's own pointerdown / click gate is gone; core's ghost-click guard covers the
+  opening tap. The backdrop keeps its `.drp__backdrop` element and `--drp-modal-backdrop-bg` /
+  `--drp-z-index-modal-backdrop` / `--drp-modal-transition`.
+
 ### Changed — core 1.0.0-rc26 (the naming release) (2026-11-23)
 - `@keenmate/web-components-core` → `^1.0.0-rc26`; adopted its renames: `observeTextInput`, `fitToVisibleViewport`,
   `resolveLocaleSettings`, `getEngineConfig()`, option fields `closeCallback` / `driftCallback` (popover),

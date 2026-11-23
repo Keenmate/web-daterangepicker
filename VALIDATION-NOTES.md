@@ -251,3 +251,15 @@ presentation, each written once per file:
   variables, so the literals repeat; both files name each other);
 - `time-picker.css` 600 — stacking the calendar above the time picker in a
   non-inline datetime popover.
+
+---
+
+## C-RO-9 — the sheet's safe-area padding is core's `.km-sheet` frame
+
+The phone full-screen sheet is core's `.km-sheet` frame (`SHEET_CHROME_CSS`, added in
+`src/date-picker-ui.ts` `enterFullscreen()`, decision Q8 2026-11-23): `box-sizing: border-box` +
+`padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+env(safe-area-inset-left)`. It ships in core's JS, so the static scan of `src/css/` can't see it;
+drp's own `fullscreen.css` keeps only the merged-header `env(safe-area-inset-top)` offset. e2e:
+`presentation-phone.spec.ts` (the frame fills the viewport, the documented `--drp-fullscreen-*`
+variables drive it).

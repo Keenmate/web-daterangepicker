@@ -762,6 +762,11 @@
   --_km-sheet-close-border-radius: var(--drp-sheet-close-border-radius);
   --_km-sheet-close-edge-nudge: var(--drp-sheet-close-edge-nudge);
   --_km-sheet-close-focus-color: var(--drp-sheet-close-focus-color);
+  /* The full-screen FRAME (core .km-sheet, added in full-screen mode): drp's documented sheet
+     background / text colour / z-index drive it (these drp vars always resolve, so no fallback). */
+  --_km-sheet-bg: var(--drp-fullscreen-bg);
+  --_km-sheet-color: var(--drp-fullscreen-text-color);
+  --_km-sheet-z-index: var(--drp-z-index-fullscreen);
   /* The EFFECTIVE sheet geometry, re-read for drp's own layout around core's bar (fullscreen.css:
      the floated ✕'s vertical centring, the month header's trailing room, the relocated input's
      font size): the same 3-layer chain + base-token defaults as core's SHEET_CHROME_CSS, so it

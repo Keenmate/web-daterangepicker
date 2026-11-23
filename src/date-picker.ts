@@ -118,14 +118,13 @@ class DateRangePickerEngine {
     private calendarContentHeight?: number; // Store calendar height for rolling selector
     private calendarContentWidth?: number; // Store calendar width for rolling selector
     isCalendarActive: boolean = false; // Track if this calendar is the keyboard-active one
-    // The open calendar as a core popover (date-picker-ui.ts createCalendarPopover):
+    // The open FLOATING calendar as a core popover (date-picker-ui.ts createCalendarPopover):
     // anchoring, the cross-component overlay tree ("one overlay open at a time" per
     // overlay group — other datepickers, multiselects, external popovers — Escape and
-    // the outside click) and the scroll / resize close. Exists only while open (non-
-    // inline); torn down by close() / deactivate() / destroy().
+    // the outside click) and the scroll / resize close. Exists only while open floating;
+    // the modal / full-screen sheet is `modalSession` instead. Torn down by close() /
+    // deactivate() / destroy().
     calendarPopover: PopoverHandle | null = null;
-    // Release of the core page-scroll lock held by an open modal / full-screen sheet.
-    releaseScrollLock: (() => void) | null = null;
     private readonly onAnotherPickerActivated = (e: Event) => {
         if ((e as CustomEvent).detail === this) return;
         // Inline keyboard-active tracking only: exactly one inline picker responds to
@@ -229,13 +228,10 @@ class DateRangePickerEngine {
      * as the device environment changes. `inline` pickers ignore this field.
      */
     presentation: 'floating' | 'modal' | 'fullscreen' = 'floating';
-    // Release of the phone Back entry (core `claimBackEntry`) held while the full-screen
-    // sheet is open — claimBack() / releaseBack() in date-picker-ui.ts.
-    releaseBack: (() => void) | null = null;
-    // The core modal session while presentation="modal" is open (enterModal / exitModal).
+    // The core modal session while the modal / full-screen sheet is open (date-picker-ui.ts
+    // startCalendarSession): inert page, Tab trap, Escape / Back / backdrop, scroll lock,
+    // keyboard inset (the sheet), ghost-click guard.
     modalSession: ModalSession | null = null;
-    // The ghost-click guard of a full-screen sheet opened by a tap (enterFullscreen / exitFullscreen).
-    stopGhostClickGuard: (() => void) | null = null;
     /**
      * Set by the input's pointer triggers so the just-opened modal/full-screen sheet
      * knows to swallow the tap's trailing "ghost" click (which would otherwise land
@@ -2151,7 +2147,7 @@ class DateRangePickerEngine {
                 key = key === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
             }
 
-            // Escape is the core overlay tree's (calendarPopover: one level per press).
+            // Escape is the core overlay tree's (calendarPopover / modalSession: one level per press).
             if (e.key === 'ArrowUp') {
                 this.moveFocus(-7);
                 e.preventDefault();

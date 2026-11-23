@@ -149,14 +149,89 @@ test('keyboard-off default: the input is not focused when the sheet opens', asyn
   expect(inputIsActive).toBe(false);
 });
 
-test('fullscreen-autofocus: the input is focused when the sheet opens', async ({ page }) => {
+// The sheet is modal (the page behind is inert), so the input autofocus focuses moves into the
+// sheet header (as show-fullscreen-input does) and goes back home on close.
+test('fullscreen-autofocus: the input moves into the header and is focused when the sheet opens', async ({ page }) => {
   await page.goto('/test/presentation.html');
   const host = page.locator('#picker');
   await host.waitFor();
   await host.evaluate(async (el: any) => { el.setAttribute('fullscreen-autofocus', ''); await el.whenSettled(); el.open(); });
   await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--fullscreen/);
+  await expect(host.locator('.drp__fullscreen-header input')).toHaveCount(1);
   await expect.poll(() => host.evaluate(el =>
     el.shadowRoot?.activeElement === el.shadowRoot?.querySelector('input'))).toBe(true);
+  await host.evaluate(el => (el as any).close());
+  await expect(host.locator('.drp__fullscreen-header')).toHaveCount(0);
+  await expect(host.locator('.drp__picker input')).toHaveCount(0);
+});
+
+// Q2 / Q8: the sheet is core's .km-sheet frame run as a core modal session — the page behind is
+// inert, Tab stays in the sheet, Escape closes it and a keyboard open hands focus back to the input.
+test('the sheet is modal: .km-sheet frame, page inert, Tab stays inside, Escape closes, focus returns', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.locator('input').focus(); // a keyboard / focus open
+  const cal = host.locator('.drp__picker');
+  await expect(cal).toHaveClass(/drp__picker--fullscreen/);
+  await expect(cal).toHaveClass(/km-sheet/);
+  await expect(cal).toHaveAttribute('aria-modal', 'true');
+  await page.waitForTimeout(400); // the .km-sheet enter animation (translateY) settles
+  const box = await cal.boundingBox();
+  const vp = page.viewportSize()!;
+  expect(Math.round(box!.x)).toBe(0);
+  expect(Math.round(box!.y)).toBe(0);
+  expect(Math.round(box!.width)).toBe(vp.width);
+  expect(Math.round(box!.height)).toBe(vp.height);
+  expect(await page.locator('h1').evaluate(el => el.closest('[inert]') !== null)).toBe(true);
+
+  const focusInSheet = () => host.evaluate(el => {
+    const a = el.shadowRoot!.activeElement;
+    return !!a && !!el.shadowRoot!.querySelector('.drp__picker')!.contains(a);
+  });
+  expect(await focusInSheet()).toBe(true);
+  for (let i = 0; i < 15; i++) await page.keyboard.press('Tab');
+  expect(await focusInSheet()).toBe(true);
+  for (let i = 0; i < 5; i++) await page.keyboard.press('Shift+Tab');
+  expect(await focusInSheet()).toBe(true);
+
+  await page.keyboard.press('Escape');
+  await expect(cal).not.toHaveClass(/drp__picker--visible/);
+  await expect(cal).not.toHaveClass(/km-sheet/);
+  expect(await page.locator('h1').evaluate(el => el.closest('[inert]') !== null)).toBe(false);
+  expect(await host.evaluate(el => el.shadowRoot!.activeElement?.tagName)).toBe('INPUT');
+});
+
+test('the .km-sheet frame takes the documented --drp-fullscreen-bg / -text-color / --drp-z-index-fullscreen', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await host.evaluate(el => {
+    (el as HTMLElement).style.setProperty('--drp-fullscreen-bg', 'rgb(1, 2, 3)');
+    (el as HTMLElement).style.setProperty('--drp-fullscreen-text-color', 'rgb(4, 5, 6)');
+    (el as HTMLElement).style.setProperty('--drp-z-index-fullscreen', '7123');
+    (el as any).open();
+  });
+  const cal = host.locator('.drp__picker');
+  await expect(cal).toHaveClass(/km-sheet/);
+  const css = await cal.evaluate(el => {
+    const cs = getComputedStyle(el);
+    return { bg: cs.backgroundColor, color: cs.color, z: cs.zIndex, radius: cs.borderTopLeftRadius, shadow: cs.boxShadow };
+  });
+  expect(css).toEqual({ bg: 'rgb(1, 2, 3)', color: 'rgb(4, 5, 6)', z: '7123', radius: '0px', shadow: 'none' });
+});
+
+// Q3: opening the modal sheet closes the page's open overlays (another picker's floating calendar).
+test('opening the sheet closes an open floating calendar on the page', async ({ page }) => {
+  await page.goto('/test/presentation.html');
+  const low = page.locator('#low');
+  const host = page.locator('#picker');
+  await host.waitFor();
+  await low.evaluate(async (el: any) => { el.setAttribute('presentation', 'floating'); await el.whenSettled(); el.open(); });
+  await expect(low.locator('.drp__picker')).toHaveClass(/drp__picker--visible/);
+  await host.evaluate(el => (el as any).open());
+  await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--fullscreen/);
+  await expect(low.locator('.drp__picker')).not.toHaveClass(/drp__picker--visible/);
 });
 
 test('responsive map: the device axis beats the breakpoint axis on a phone', async ({ page }) => {

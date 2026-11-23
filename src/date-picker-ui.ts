@@ -6,15 +6,16 @@
  */
 
 // All positioning goes through core `@keenmate/web-components-core/positioning`:
-// the calendar is a core `createPopover()` (anchoring, the overlay tree — group
-// exclusivity, Escape, outside click — and the scroll / resize close), the day/badge
+// the FLOATING calendar is a core `createPopover()` (anchoring, the overlay tree — group
+// exclusivity, Escape, outside click — and the scroll / resize close); the modal and the
+// phone full-screen sheet are a core `startModalSession()` alone (no popover), the day/badge
 // tooltip a delegated core `createTooltip()` (date-picker.ts createDayTooltip). Both use
 // the first-class `shouldUseFixedContainingBlock`
 // (the narrowed containing-block heuristic); the calendar adds `onDrift` (the drift
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
 import { createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, announce, claimBackEntry, createSheetHeader, findScrollContainer, guardGhostClick, lockBodyScroll, fitToVisibleViewport, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS, startModalSession } from '@keenmate/web-components-core';
+import { adoptStyles, announce, createSheetHeader, findScrollContainer, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS, startModalSession, type ModalDismissReason, type ModalSessionOptions } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -114,60 +115,16 @@ export function scrollOnOwn(
     scrollIntoContainer(item, container ? { ...options, container } : options);
 }
 
-/** Body scroll lock for the modal / full-screen sheet (core `lockBodyScroll`, shared and ref-counted page-wide). */
-function lockPageScroll(picker: any) {
-    if (picker.releaseScrollLock) return;
-    picker.releaseScrollLock = lockBodyScroll();
-}
-
-function unlockPageScroll(picker: any) {
-    const release = picker.releaseScrollLock;
-    picker.releaseScrollLock = null;
-    release?.();
-}
-
 /**
- * Phone Back gesture / browser Back closes the open modal / full-screen sheet instead of
- * leaving the page: core `claimBackEntry` (one page-wide history entry, the page keeps its
- * scroll; a release followed by a claim in the same task — a presentation swap, a DOM move —
- * adopts the entry). The release on every other close is idempotent.
+ * The modal presentation's scrim (`.drp__backdrop`, styled by modal.css: `--drp-modal-backdrop-bg`,
+ * `--drp-z-index-modal-backdrop`, the `--drp-modal-transition` fade). Handed to the core modal
+ * session, which wires its click (`dismissCallback('backdrop')`, decided by `close-on-outside-click`
+ * in {@link onSessionDismiss}) and swallows the opening tap's ghost click on it (`isOpenedByPointer`).
  */
-function claimBack(picker: any) {
-    if (picker.releaseBack) return;
-    picker.releaseBack = claimBackEntry(() => {
-        picker.releaseBack = null; // the entry is gone already
-        if (picker.calendar.classList.contains('drp__picker--visible')) close(picker);
-    });
-}
-
-function releaseBack(picker: any) {
-    const release = picker.releaseBack;
-    picker.releaseBack = null;
-    release?.();
-}
-
 function ensureModalBackdrop(picker: any): HTMLElement {
     if (picker.modalBackdrop) return picker.modalBackdrop;
     const backdrop = document.createElement('div');
     backdrop.className = 'drp__backdrop';
-    // Dismiss only when a pointer press BOTH starts and ends on the scrim. Gating
-    // on the press start (not a bare `click`) is what prevents the open-then-close
-    // bug on touch: the opening tap presses on the input, then the synthesized
-    // `click` retargets onto the backdrop we just appended over the viewport — a
-    // bare click handler would treat that as a dismiss. Because the press started
-    // on the input, `pressedOnBackdrop` stays false and we ignore it. A real scrim
-    // tap (press + release on the backdrop) still dismisses; a drag out of the
-    // calendar onto the scrim does not.
-    let pressedOnBackdrop = false;
-    backdrop.addEventListener('pointerdown', (e) => { pressedOnBackdrop = e.target === backdrop; });
-    backdrop.addEventListener('click', (e) => {
-        if (e.target !== backdrop || !pressedOnBackdrop) return;
-        pressedOnBackdrop = false;
-        // The backdrop is the modal's "outside" — same switch as the floating outside click.
-        if (!picker.closesOnOutsideClick()) return;
-        uiLogger.debug('Backdrop pressed - closing modal');
-        close(picker);
-    });
     picker.containerElement.appendChild(backdrop);
     picker.modalBackdrop = backdrop;
     return backdrop;
@@ -258,25 +215,22 @@ export function open(picker: any) {
 }
 
 /**
- * Stand up the chrome for the picker's current runtime `presentation`, then open the
- * calendar popover (anchored only when `floating`) or switch its anchoring. Called by
- * open(), by activate() (a moved, open picker) and by setPresentation() when the
- * environment flips while open.
+ * Stand up the chrome for the picker's current runtime `presentation`: the anchored calendar
+ * popover when `floating`, else a core modal session (the centered modal, the phone full-screen
+ * sheet) — one overlay entry per presentation, never both (a page overlay opening can't dismiss
+ * the modal, BG6 / W11). Called by open(), by activate() (a moved, open picker) and by
+ * setPresentation() when the environment flips while open.
  */
 export function applyPresentationChrome(picker: any) {
     if (picker.presentation === 'modal') enterModal(picker);
     else if (picker.presentation === 'fullscreen') enterFullscreen(picker);
-    const isAnchored = picker.presentation === 'floating';
-    if (picker.calendarPopover) {
-        // Un-anchoring puts back the inline geometry the anchor wrote (CSS places a sheet).
-        picker.calendarPopover.setAnchored(isAnchored);
-    } else {
-        picker.calendarPopover = createCalendarPopover(picker, isAnchored);
+    else if (!picker.calendarPopover) {
+        picker.calendarPopover = createCalendarPopover(picker);
         picker.calendarPopover.open();
     }
 }
 
-/** Reverse the modal / full-screen chrome (the popover stays open). */
+/** Reverse the modal / full-screen chrome (the floating popover is cleanupPositioning()'s). */
 function exitPresentationChrome(picker: any) {
     if (picker.presentation === 'modal') exitModal(picker);
     else if (picker.presentation === 'fullscreen') exitFullscreen(picker);
@@ -305,14 +259,13 @@ export function teardownPresentationChrome(picker: any) {
  * and loops. Anchor once, let it grow downward. Created per open, so the current
  * `calendar-placement` / `overlay-group` apply.
  */
-function createCalendarPopover(picker: any, isAnchored: boolean) {
+function createCalendarPopover(picker: any) {
     return createPopover({
         reference: picker.input,
         panel: picker.calendar,
         shouldKeepMounted: true,
         // A marker only: the calendar's own `drp__picker--visible` shows it.
         visibleClass: 'drp__picker--open',
-        isAnchored,
         inheritThemeFrom: false, // the calendar lives in our shadow root (or the page for the engine)
         overlayGroup: picker.options.overlayGroup || undefined,
         // Escape closes the calendar — except while a compact time field is being edited
@@ -321,8 +274,7 @@ function createCalendarPopover(picker: any, isAnchored: boolean) {
         // The input is the reference: focusing it opens the calendar again, so Escape
         // returns focus nowhere.
         returnFocusTo: null,
-        // Floating only: the modal closes on its backdrop, the full-screen sheet has no outside.
-        shouldCloseOnOutsideClick: () => picker.presentation === 'floating' && picker.closesOnOutsideClick(),
+        shouldCloseOnOutsideClick: () => picker.closesOnOutsideClick(),
         // External trigger buttons and the day / badge tooltip don't count as outside.
         getInsideElements: () => [
             picker.dayTooltipElement,
@@ -334,7 +286,7 @@ function createCalendarPopover(picker: any, isAnchored: boolean) {
         shouldCloseOnScroll: () => picker.closesOnScroll(),
         // With elementResize off the calendar can't adapt to a smaller / larger window:
         // dismiss it and let the user reopen it in the new viewport.
-        shouldCloseOnResize: () => picker.presentation === 'floating',
+        shouldCloseOnResize: true,
         // A close by the overlay tree, a scroll or a resize: run the picker's own close
         // (discard a staged pick, `close` event). 'api' is our own close — already running.
         closeCallback: (reason: PopoverCloseReason) => {
@@ -372,65 +324,78 @@ function isEditingInCalendar(picker: any): boolean {
 }
 
 /**
- * Modal mode: a core modal session (SPEC §12.19) — the page behind is inert, Tab stays in the
- * calendar, Escape / the phone Back gesture close it, page scroll is locked. Our own backdrop
- * keeps its press-start check and the `close-on-outside-click` switch. Opened by a tap on the
- * input (`pointerdown`, before the press focuses it): `isOpenedByPointer` swallows the tap's own
- * trailing click on the calendar / backdrop, and the inert input can't take the press's focus.
+ * The modal and the phone full-screen sheet are one core modal session each (SPEC §12.19): the page
+ * behind is inert, Tab stays in the calendar, Escape / the phone Back gesture / the modal's backdrop
+ * ask {@link onSessionDismiss}, page scroll is locked, the page's open overlays close at open (Q3).
+ * Opened by a tap on the input (`pointerdown`, before the press focuses it): `isOpenedByPointer`
+ * swallows the tap's own trailing click on the calendar / backdrop.
  */
-function enterModal(picker: any) {
+function startCalendarSession(picker: any, opts: Pick<ModalSessionOptions, 'backdrop' | 'shouldFitToVisibleViewport' | 'initialFocus'>) {
     const isPointerOpen = !!picker.openViaPointer;
     picker.openViaPointer = false;
-    const backdrop = ensureModalBackdrop(picker);
-    backdrop.classList.add('drp__backdrop--visible');
     // Compare against the input's own root: inside the web component's shadow root
     // `document.activeElement` is the HOST, never the input (FINDINGS #29).
     const root = picker.input?.getRootNode() as Document | ShadowRoot | undefined;
     // Keyboard / programmatic focus opened it — hand focus back on close. Not after a pointer
     // open: that would bring the soft keyboard back up.
     picker.modalRestoreFocus = !!picker.input && root?.activeElement === picker.input;
-    picker.calendar.classList.add('drp__picker--modal');
-    // Modal is centered purely via CSS — no Floating UI involvement.
     picker.modalSession = startModalSession(picker.calendar, {
-        backdrop,
-        shouldCloseOnBackdropClick: false, // ensureModalBackdrop() decides
-        // Escape: the popover's overlay entry closes the picker; the session stays out of it.
-        shouldCloseOnEscape: false,
-        dismissCallback: () => close(picker),
+        ...opts,
+        // Escape closes the calendar — except while a compact time field is being edited
+        // (its own Escape reverts the edit first: one level per press).
+        shouldCloseOnEscape: () => !isEditingInCalendar(picker),
+        dismissCallback: (reason) => onSessionDismiss(picker, reason),
         isOpenedByPointer: isPointerOpen,
         trigger: picker.input ?? null,
     });
 }
 
-/** Reverse enterModal(): hide backdrop, unlock scroll, restore focus. */
-function exitModal(picker: any) {
+/** The session asks to close: the backdrop is the modal's "outside" — same switch as the floating outside click. */
+function onSessionDismiss(picker: any, reason: ModalDismissReason) {
+    if (reason === 'backdrop' && !picker.closesOnOutsideClick()) return;
+    uiLogger.debug(`modal session dismiss (${reason}) - closing`);
+    close(picker);
+}
+
+/** End the session; focus goes back to the input only when it had it at open (see startCalendarSession). */
+function endCalendarSession(picker: any) {
     picker.modalSession?.end({ shouldReturnFocus: false });
     picker.modalSession = null;
-    if (picker.modalBackdrop) {
-        picker.modalBackdrop.classList.remove('drp__backdrop--visible');
-    }
-    picker.calendar.classList.remove('drp__picker--modal');
-    // Restore focus to the input if it was focused before opening — the user is
-    // back in the input flow and may want to type or Tab away.
-    if (picker.modalRestoreFocus && picker.input) {
-        picker.input.focus();
+    if (picker.modalRestoreFocus && picker.input?.isConnected && !picker.input.disabled) {
+        picker.input.focus({ preventScroll: true });
     }
     picker.modalRestoreFocus = false;
 }
 
+/** Modal mode: centered purely via CSS (modal.css), over our `.drp__backdrop` scrim. */
+function enterModal(picker: any) {
+    const backdrop = ensureModalBackdrop(picker);
+    backdrop.classList.add('drp__backdrop--visible');
+    picker.calendar.classList.add('drp__picker--modal');
+    startCalendarSession(picker, { backdrop });
+}
+
+/** Reverse enterModal(): end the session, hide the backdrop, restore focus. */
+function exitModal(picker: any) {
+    if (picker.modalBackdrop) {
+        picker.modalBackdrop.classList.remove('drp__backdrop--visible');
+    }
+    picker.calendar.classList.remove('drp__picker--modal');
+    endCalendarSession(picker);
+}
+
 /**
- * Phone full-screen overlay (SPEC §12.9): an edge-to-edge sheet with a close
- * header, page-scroll lock, soft-keyboard tracking, and a Back-gesture trap. The
- * flex-column layout (header pinned, months scroll, actions pinned) is shared with
- * the other non-inline presentations and lives in base.css / fullscreen.css.
+ * Phone full-screen sheet (SPEC §12.9): core's `.km-sheet` frame (SHEET_CHROME_CSS: fixed, edge to
+ * edge, safe-area padding, the modal tier; drp maps `--drp-fullscreen-bg` / `-text-color` /
+ * `--drp-z-index-fullscreen` onto it in variables.css) with drp's close header, run as a modal
+ * session that also fits the sheet above the soft keyboard. The flex-column layout (header pinned,
+ * months scroll, actions pinned) is shared with the other non-inline presentations (base.css /
+ * fullscreen.css).
  */
 function enterFullscreen(picker: any) {
-    // Opened by a tap on the input: swallow that tap's own trailing click on the sheet.
-    if (picker.openViaPointer) picker.stopGhostClickGuard = guardGhostClick([picker.calendar]);
-    picker.openViaPointer = false;
-    picker.calendar.classList.add('drp__picker--fullscreen');
+    picker.calendar.classList.add('drp__picker--fullscreen', 'km-sheet');
     // Rescale every size token to the touch scale by overriding --drp-rem on the
-    // element that DECLARES the tokens — a sheet-level override can't reach the
+    // element that DECLARES the tokens: a sheet-level override can't reach the
     // already-resolved tokens. In the web component that owner is the shadow host;
     // for the standalone light-DOM class the tokens live on :root (variables.css
     // declares them on `:host, :root`), so fall back to <html>. fullscreen.css
@@ -439,31 +404,21 @@ function enterFullscreen(picker: any) {
     picker.fullscreenScaleHost = (picker.calendar.getRootNode() as ShadowRoot)?.host ?? document.documentElement;
     picker.fullscreenScaleHost?.setAttribute('data-drp-fullscreen', '');
     buildFullscreenHeader(picker);
-    lockPageScroll(picker);
-    // Shrink the fixed sheet above the soft keyboard (writes inline height/top —
-    // see fullscreen.css for why the sheet pins only top, not bottom).
-    picker.keyboardInsetCleanup = fitToVisibleViewport(picker.calendar);
-    // The phone Back gesture/button closes the sheet instead of navigating.
-    claimBack(picker);
-    // Keyboard-off by default: drop any focus the opening tap gave the input so the
-    // soft keyboard doesn't linger over the calendar. Opt in via shouldFullscreenAutofocus.
-    if (picker.options.shouldFullscreenAutofocus && picker.input) {
-        picker.input.focus();
-    } else if (picker.input) {
-        picker.input.blur();
-    }
+    startCalendarSession(picker, {
+        // Shrink the fixed sheet above the soft keyboard (inline height / top; the
+        // .km-sheet frame pins only top, not bottom, for it).
+        shouldFitToVisibleViewport: true,
+        // Keyboard-off by default: focus goes into the sheet (its first control), never to a
+        // text field. `fullscreen-autofocus` focuses the date input (moved into the header).
+        initialFocus: () => (picker.options.shouldFullscreenAutofocus && picker.input && picker.calendar.contains(picker.input))
+            ? picker.input
+            : undefined,
+    });
 }
 
-/** Reverse enterFullscreen(): detach keyboard tracking, drop the header + Back trap, unlock scroll. */
+/** Reverse enterFullscreen(): end the session, drop the header + frame. */
 function exitFullscreen(picker: any) {
-    picker.stopGhostClickGuard?.();
-    picker.stopGhostClickGuard = null;
-    if (picker.keyboardInsetCleanup) {
-        picker.keyboardInsetCleanup();
-        picker.keyboardInsetCleanup = null;
-    }
-    releaseBack(picker);
-    picker.calendar.classList.remove('drp__picker--fullscreen', 'drp__picker--fs-merged-header');
+    picker.calendar.classList.remove('drp__picker--fullscreen', 'km-sheet', 'drp__picker--fs-merged-header');
     // Remove from the SAME element enterFullscreen tagged (shadow host or <html>).
     (picker.fullscreenScaleHost ?? (picker.calendar.getRootNode() as ShadowRoot)?.host)?.removeAttribute('data-drp-fullscreen');
     picker.fullscreenScaleHost = null;
@@ -472,7 +427,7 @@ function exitFullscreen(picker: any) {
         picker.fullscreenHeader.remove();
         picker.fullscreenHeader = null;
     }
-    unlockPageScroll(picker);
+    endCalendarSession(picker);
 }
 
 /**
@@ -489,8 +444,10 @@ function buildFullscreenHeader(picker: any) {
 
     // `show-fullscreen-input` relocates the real trigger input into the header (it carries
     // the mask + form value, and otherwise sits offscreen behind the fixed sheet). It
-    // takes over the flex-growing header slot, so it wins over a title.
-    const wantsInput = !!(picker.options.isFullscreenInputShown && picker.input);
+    // takes over the flex-growing header slot, so it wins over a title. `fullscreen-autofocus`
+    // implies it: the sheet is modal (the page behind is inert), so the input it focuses must
+    // be IN the sheet, visible above the keyboard.
+    const wantsInput = !!((picker.options.isFullscreenInputShown || picker.options.shouldFullscreenAutofocus) && picker.input);
     const fullscreenTitle = picker.labels.text('headers.fullscreen');
     const merged = !fullscreenTitle && !wantsInput;
     const { header, title, close: closeBtn } = createSheetHeader({
@@ -570,8 +527,8 @@ export function setPresentation(picker: any, next: 'floating' | 'modal' | 'fulls
     const isOpen = picker.calendar.classList.contains('drp__picker--visible');
     if (!isOpen) { picker.presentation = next; return; }
 
-    // The popover stays open (and in the overlay tree); only its anchoring switches.
-    exitPresentationChrome(picker);
+    // One overlay entry per presentation: the floating popover or the modal session.
+    teardownPresentationChrome(picker);
     picker.presentation = next;
     applyPresentationChrome(picker);
     // Re-render so month/day sizing reflects the new presentation (e.g. the
