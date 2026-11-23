@@ -109,11 +109,6 @@ export function renderCalendar(picker: any) {
     // Open / closed year-month selectors ↔ their core overlay entries (outside click, Escape).
     picker.syncSelectorOverlays?.();
 
-    // Initialize drag listeners for range mode
-    if (picker.options.selectionMode === 'range' && !picker.isDragging) {
-        picker.initDragListeners();
-    }
-
     // Re-render action buttons to update dynamic properties (callbacks)
     if (picker.actionsContainer) {
         picker.renderButtons(picker.actionsContainer);

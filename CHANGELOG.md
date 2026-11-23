@@ -48,6 +48,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the neighbour month. Deleted the pre-listener's arrow routing and `canGridMoveWithinMonth` (a private copy of
   core's grid step rule). e2e: RTL month edge, min / max edge, neighbour-month cell (`day-grid.spec.ts`).
 
+### Changed — range drag on core `createPointerDrag` (G10b) (2026-11-23)
+- The day-cell drag (draw a range / drag an endpoint) runs on core `createPointerDrag` on the calendar instead of
+  drp's own per-cell `pointerdown` + document `pointermove` / `pointerup` listeners and pointer capture. Same rules:
+  mouse / pen drag from any enabled day past 5 px; touch drags only an endpoint of a complete range (no long press),
+  a swipe elsewhere still scrolls; the drp hit test (`elementsFromPoint` stack scan, nav-button month repeat) runs in
+  `moveCallback`; a `pointercancel` still finalizes like a release.
+- New: **Escape during a drag aborts it** — the preview goes, the range goes back to what it was and the calendar
+  stays open (before, Escape went on to the picker). The click that ends a drag is swallowed by core. A secondary
+  mouse button no longer starts a drag.
+
 ### Internal — hover-preview e2e no longer depends on the viewport height (2026-11-23)
 - `hover-preview.spec.ts` "moving the mouse away … clears the hover preview" moved the mouse onto the page `<h1>`. On
   a short viewport (Playwright's default 1280x720) the bottom-most picker's floating calendar flips above its input

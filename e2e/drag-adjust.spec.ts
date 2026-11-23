@@ -85,3 +85,39 @@ test('during drag the dragged cell gets the --dragging class', async ({ page }) 
 
     await page.mouse.up();
 });
+
+test('Escape during a drag aborts it: the range stays as it was, the calendar stays open', async ({ page }) => {
+    const from = (await dayByDate(page, '2026-06-15').boundingBox())!;
+    const to = (await dayByDate(page, '2026-06-19').boundingBox())!;
+
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + from.width / 2 + 12, from.y + from.height / 2, { steps: 2 });
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 4 });
+    await expect(dayByDate(page, '2026-06-18')).toHaveClass(/drp__day--drag-preview/); // the preview runs
+
+    await page.keyboard.press('Escape');
+    await expect(dayByDate(page, '2026-06-15')).not.toHaveClass(/drp__day--dragging/);
+    await page.mouse.up();
+
+    await expect(inputOf(page)).toHaveValue('2026-06-10 - 2026-06-15');
+    await expect(dayByDate(page, '2026-06-15')).toHaveClass(/drp__day--range-end/);
+    await expect(dayByDate(page, '2026-06-18')).not.toHaveClass(/drp__day--drag-preview|drp__day--in-range/);
+    await expect(calendar(page)).toBeVisible();
+});
+
+test('drawing a range from scratch with the mouse: press a day, drag, release', async ({ page }) => {
+    // Clear the seeded range first, then draw 06-08 .. 06-11.
+    await picker(page).evaluate(el => (el as any).clearSelection());
+    await expect(inputOf(page)).toHaveValue('');
+    const from = (await dayByDate(page, '2026-06-08').boundingBox())!;
+    const to = (await dayByDate(page, '2026-06-11').boundingBox())!;
+
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + from.width / 2 + 12, from.y + from.height / 2, { steps: 2 });
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 6 });
+    await page.mouse.up();
+
+    await expect.poll(() => inputOf(page).inputValue()).toBe('2026-06-08 - 2026-06-11');
+});

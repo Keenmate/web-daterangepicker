@@ -50,3 +50,58 @@ test('touch pointer events on a range endpoint adjust the range', async ({ page 
     .poll(() => host.locator('input').inputValue())
     .toMatch(/^2026-06-10 - 2026-06-20$/);
 });
+
+// Real touch through CDP (Chromium only): the endpoint drags with the finger (no long
+// press), any other day leaves the swipe alone — tap-tap stays the way to draw a range.
+async function touch(page: import('@playwright/test').Page, steps: { type: 'touchStart' | 'touchMove' | 'touchEnd'; x?: number; y?: number }[]) {
+  const cdp = await page.context().newCDPSession(page);
+  for (const s of steps) {
+    await cdp.send('Input.dispatchTouchEvent', { type: s.type, touchPoints: s.type === 'touchEnd' ? [] : [{ x: s.x!, y: s.y! }] });
+    await page.waitForTimeout(20);
+  }
+}
+
+async function openFloating(page: import('@playwright/test').Page) {
+  await page.goto('/test/drag-adjust.html');
+  const host = page.locator('#range');
+  await host.waitFor();
+  await host.evaluate(el => el.setAttribute('presentation', 'floating'));
+  await host.evaluate(el => (el as any).open());
+  await expect(host.locator('.drp__picker')).toHaveClass(/drp__picker--visible/);
+  const center = async (iso: string) => {
+    const box = (await host.locator(`.drp__day[data-date="${iso}"]`).boundingBox())!;
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  };
+  return { host, center };
+}
+
+test('a real finger drag on the range end moves it (CDP touch)', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'CDP touch events');
+  const { host, center } = await openFloating(page);
+  const from = await center('2026-06-15');
+  const mid = await center('2026-06-17');
+  const to = await center('2026-06-19');
+  await touch(page, [
+    { type: 'touchStart', ...from },
+    { type: 'touchMove', x: from.x + 12, y: from.y },
+    { type: 'touchMove', ...mid },
+    { type: 'touchMove', ...to },
+    { type: 'touchEnd' },
+  ]);
+  await expect.poll(() => host.locator('input').inputValue()).toBe('2026-06-10 - 2026-06-19');
+});
+
+test('a finger swipe from a day that is not an endpoint does not drag (CDP touch)', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'CDP touch events');
+  const { host, center } = await openFloating(page);
+  const from = await center('2026-06-12');
+  const to = await center('2026-06-19');
+  await touch(page, [
+    { type: 'touchStart', ...from },
+    { type: 'touchMove', x: from.x + 12, y: from.y },
+    { type: 'touchMove', ...to },
+    { type: 'touchEnd' },
+  ]);
+  await expect(host.locator('.drp__day--dragging')).toHaveCount(0);
+  await expect(host.locator('input')).toHaveValue('2026-06-10 - 2026-06-15');
+});

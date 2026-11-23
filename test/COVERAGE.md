@@ -25,6 +25,8 @@ see [Unit layer](#unit-layer) at the end. Unit tests never render the element.
 | Range: drag-to-adjust start                                   | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Range: drag-to-adjust end                                     | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Range: drag-to-adjust with touch pointer events               | ✓      | `drag-adjust-touch.spec.ts`  | `drag-adjust.html`        |
+| Range: real finger drag on an endpoint; swipe elsewhere = no drag (CDP) | ✓      | `drag-adjust-touch.spec.ts`  | `drag-adjust.html`        |
+| Range: Escape aborts a drag (range restored); mouse draw from scratch | ✓      | `drag-adjust.spec.ts`        | `drag-adjust.html`        |
 | Multiple-date selection (toggle individual days)              | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |
 | `selectedRanges` (range mode) always returns the selection: plain `[{start,end}]`, `split` pieces, independent ranges; getter/setter round-trip | ✓ | `disabled-handling.spec.ts` | `disabled-handling.html` |
 | Apply-required: cancel restores `originalInputValue`          | ✓      | `selection-modes.spec.ts`    | `selection-modes.html`    |

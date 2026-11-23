@@ -9,104 +9,73 @@ import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, for
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
-import { isImeEnter, readPasteText } from '@keenmate/web-components-core';
+import { createPointerDrag, isImeEnter, readPasteText, type PointerDrag } from '@keenmate/web-components-core';
 
 // === DRAG FUNCTIONALITY ===
 
-export function initDragListeners(picker: any) {
-    // For range mode, add pointerdown listeners to ALL enabled days. Pointer events
-    // unify mouse, touch, and pen, so drag-to-adjust works with a finger too.
-    // This allows drawing a range from scratch (mouse/pen) or adjusting an endpoint,
-    // detecting an actual drag vs a click/tap via a small movement threshold.
-    if (picker.options.selectionMode === 'range') {
-        const allDays = picker.calendar.querySelectorAll('.drp__day:not(.drp__day--disabled)');
-
-        allDays.forEach(day => {
-            day.addEventListener('pointerdown', (e) => {
-                // Selection lock: a drag adjusts the range, so freeze it here (the
-                // click fallback is separately gated in the calendar click handler).
-                if (picker.isAspectLocked('selection')) return;
-                const pe = e as PointerEvent;
-                const dayElement = day as HTMLElement;
-
-                // Determine drag type based on what's grabbed and what's selected.
-                const isRangeStart = dayElement.classList.contains('drp__day--range-start');
-                const isRangeEnd = dayElement.classList.contains('drp__day--range-end');
-                const isEndpoint = isRangeStart || isRangeEnd;
-
-                // On TOUCH, only an existing range endpoint starts a drag — otherwise a
-                // swipe on a day must stay free to scroll the month list (modal/full-
-                // screen), and tap-tap still creates ranges. The endpoint cells carry
-                // `touch-action: none` (see calendar-grid.css) so their drag doesn't
-                // scroll. Mouse/pen keep the draw-from-scratch behaviour on any day.
-                if (pe.pointerType === 'touch' && !(isEndpoint && picker._selectedStartDate && picker._selectedEndDate)) {
-                    return;
-                }
-
-                // Store initial position to detect actual dragging
-                const startX = pe.clientX;
-                const startY = pe.clientY;
-                const pointerId = pe.pointerId;
-                const dragThreshold = 5; // pixels
-
-                let hasMoved = false;
-                let dragStarted = false;
-
-                let dragType: 'start' | 'end';
-                if (isRangeStart && picker._selectedStartDate && picker._selectedEndDate) {
-                    dragType = 'start';
-                } else if (isRangeEnd && picker._selectedStartDate && picker._selectedEndDate) {
-                    dragType = 'end';
-                } else {
-                    // Drawing from scratch - set as start point
-                    dragType = 'start';
-                }
-
-                // Listen for pointer movement (same pointer only)
-                const onPointerMove = (moveEvent: PointerEvent) => {
-                    if (moveEvent.pointerId !== pointerId) return;
-                    const deltaX = Math.abs(moveEvent.clientX - startX);
-                    const deltaY = Math.abs(moveEvent.clientY - startY);
-
-                    // Check if moved beyond threshold
-                    if (!hasMoved && (deltaX > dragThreshold || deltaY > dragThreshold)) {
-                        hasMoved = true;
-                    }
-
-                    // Start dragging if we've moved and haven't started yet
-                    if (hasMoved && !dragStarted) {
-                        dragStarted = true;
-                        // Now start the drag (this will add its own move/up listeners)
-                        // Pass the dayElement we have in scope instead of relying on event.currentTarget
-                        startDrag(picker, moveEvent, dragType, dayElement);
-                        cleanup();
-                    }
-                };
-
-                const onPointerUp = () => {
-                    // Released without movement - this is a click/tap, not a drag.
-                    // Clean up and let the click event handler in date-picker.ts run.
-                    cleanup();
-                };
-
-                const cleanup = () => {
-                    document.removeEventListener('pointermove', onPointerMove);
-                    document.removeEventListener('pointerup', onPointerUp);
-                    document.removeEventListener('pointercancel', onPointerUp);
-                };
-
-                // Add temporary listeners to detect movement
-                document.addEventListener('pointermove', onPointerMove);
-                document.addEventListener('pointerup', onPointerUp);
-                document.addEventListener('pointercancel', onPointerUp);
-            });
-        });
-    }
+/**
+ * Range drag on the day cells (draw a range from scratch, or drag an endpoint) — core
+ * `createPointerDrag` on the stable calendar element (SPEC §12.28): mouse, pen and touch,
+ * pointer capture on the calendar, the trailing click after a drop swallowed, Escape aborts.
+ * Mouse / pen: any enabled day starts a drag after 5 px. Touch: only an endpoint of a complete
+ * range drags (it carries `touch-action: none`, see calendar-grid.css) — a swipe on any other
+ * day must stay free to scroll the month list, and tap-tap still creates ranges; no long press
+ * (`longPressMs: 0`), the finger drags like a mouse past the threshold.
+ */
+export function createDayDrag(picker: any): PointerDrag {
+    return createPointerDrag(picker.calendar, {
+        getSource: (target, event) => {
+            if (picker.options.selectionMode !== 'range' || picker.isDragging) return null;
+            // Selection lock: a drag adjusts the range, so freeze it here (the click
+            // fallback is separately gated in the calendar click handler).
+            if (picker.isAspectLocked('selection')) return null;
+            const day = target.closest?.('.drp__day:not(.drp__day--disabled)') as HTMLElement | null;
+            if (!day || !picker.calendar.contains(day)) return null;
+            if (event.pointerType === 'touch' && !(isRangeEndpoint(day) && picker._selectedStartDate && picker._selectedEndDate)) {
+                return null;
+            }
+            return day;
+        },
+        threshold: 5,
+        longPressMs: 0,
+        autoScroll: false,
+        beforeStartCallback: (ctx) => {
+            startDrag(picker, ctx.event as PointerEvent | null, getDragType(picker, ctx.source), ctx.source);
+        },
+        moveCallback: (ctx) => onDragMove(picker, ctx.x, ctx.y),
+        dropCallback: () => { void onDragEnd(picker); },
+        // pointercancel (the OS interrupting a touch) finalizes like a release; Escape aborts.
+        cancelCallback: (ctx) => {
+            if (ctx.event?.type === 'pointercancel') void onDragEnd(picker);
+            else abortDrag(picker);
+        },
+    });
 }
 
-export function startDrag(picker: any, event: PointerEvent, type: 'start' | 'end', dayElement: HTMLElement) {
-    event.preventDefault();
-    event.stopPropagation();
+function isRangeEndpoint(day: HTMLElement): boolean {
+    return day.classList.contains('drp__day--range-start') || day.classList.contains('drp__day--range-end');
+}
+
+/** Which end the press grabbed: an endpoint of a complete range, else drawing from scratch ('start'). */
+function getDragType(picker: any, day: HTMLElement): 'start' | 'end' {
+    const hasRange = !!(picker._selectedStartDate && picker._selectedEndDate);
+    return hasRange && day.classList.contains('drp__day--range-end') && !day.classList.contains('drp__day--range-start')
+        ? 'end'
+        : 'start';
+}
+
+export function startDrag(picker: any, event: PointerEvent | null, type: 'start' | 'end', dayElement: HTMLElement) {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    // What Escape restores (abortDrag): the drag below rewrites the selection as it goes.
+    picker.dragRestore = {
+        start: picker._selectedStartDate,
+        end: picker._selectedEndDate,
+        ranges: picker._selectedRanges,
+        invalidStart: picker.invalidRangeStart,
+        invalidEnd: picker.invalidRangeEnd,
+    };
 
     picker.isDragging = true;
     picker.draggingType = type;
@@ -182,30 +151,11 @@ export function startDrag(picker: any, event: PointerEvent, type: 'start' | 'end
 
     dragLogger.debug(`Started dragging ${type} date`);
 
-    // Take explicit pointer capture on the STABLE calendar element. A touch pointer
-    // gets an *implicit* capture on the day cell under the finger; once the drag
-    // starts (and preview classes churn on that cell) it stops delivering moves
-    // reliably, so onDragMove would fire only once. Re-capturing to the calendar —
-    // which never leaves the DOM mid-drag — keeps pointermove/up/cancel flowing.
-    // Captured events still bubble to document, so the listeners below cover mouse
-    // (no capture, events land on document) and touch/pen alike; elementFromPoint is
-    // geometric, so day-under-finger detection is unaffected.
-    picker.dragPointerId = event.pointerId;
-    try { picker.calendar.setPointerCapture?.(event.pointerId); } catch { /* older engines */ }
-
-    // Add document-level pointer listeners (mouse, touch, and pen). pointercancel
-    // (e.g. the OS interrupting a touch) finalizes like a release.
-    picker.onDragMoveBound = (e: PointerEvent) => onDragMove(picker, e);
-    picker.onDragEndBound = async (e: PointerEvent) => await onDragEnd(picker, e);
-    document.addEventListener('pointermove', picker.onDragMoveBound);
-    document.addEventListener('pointerup', picker.onDragEndBound);
-    document.addEventListener('pointercancel', picker.onDragEndBound);
-
     // Change body cursor
     document.body.style.cursor = 'grabbing';
 }
 
-export function onDragMove(picker: any, event: PointerEvent) {
+export function onDragMove(picker: any, x: number, y: number) {
     if (!picker.isDragging) return;
 
     // Hit-test the point under the pointer. We scan the WHOLE stack (elementsFromPoint)
@@ -215,8 +165,8 @@ export function onDragMove(picker: any, event: PointerEvent) {
     // intermittent mouse drags that happened to land on the slot pixel).
     const canShadowHitTest = picker.containerElement instanceof ShadowRoot && 'elementsFromPoint' in picker.containerElement;
     const stack: Element[] = canShadowHitTest
-        ? (picker.containerElement as any).elementsFromPoint(event.clientX, event.clientY)
-        : document.elementsFromPoint(event.clientX, event.clientY);
+        ? (picker.containerElement as any).elementsFromPoint(x, y)
+        : document.elementsFromPoint(x, y);
     const findClosest = (selector: string): HTMLElement | null =>
         (stack.map(el => (el as HTMLElement).closest?.(selector)).find(Boolean) as HTMLElement | undefined) ?? null;
 
@@ -319,7 +269,7 @@ export function onDragMove(picker: any, event: PointerEvent) {
     picker.updateDragPreview();
 }
 
-export async function onDragEnd(picker: any, event: PointerEvent) {
+export async function onDragEnd(picker: any) {
     if (!picker.isDragging) return;
 
     dragLogger.debug('Ended dragging, finalizing selection');
@@ -385,40 +335,7 @@ export async function onDragEnd(picker: any, event: PointerEvent) {
         }
     }
 
-    // Clean up
-    picker.isDragging = false;
-    picker.draggingType = null;
-    picker.dragPreviewStart = null;
-    picker.dragPreviewEnd = null;
-
-    // Remove dragging class
-    picker.calendar.querySelectorAll('.drp__day--dragging').forEach(day => {
-        day.classList.remove('drp__day--dragging');
-    });
-
-    // Release the calendar's pointer capture taken in startDrag.
-    if (picker.dragPointerId != null) {
-        try { picker.calendar.releasePointerCapture?.(picker.dragPointerId); } catch { /* already released */ }
-        picker.dragPointerId = null;
-    }
-
-    // Remove document-level listeners
-    if (picker.onDragMoveBound) {
-        document.removeEventListener('pointermove', picker.onDragMoveBound);
-    }
-    if (picker.onDragEndBound) {
-        document.removeEventListener('pointerup', picker.onDragEndBound);
-        document.removeEventListener('pointercancel', picker.onDragEndBound);
-    }
-
-    // Clear navigation interval
-    if (picker.navInterval) {
-        clearInterval(picker.navInterval);
-        picker.navInterval = null;
-    }
-
-    // Reset body cursor
-    document.body.style.cursor = '';
+    endDragState(picker);
 
     // Drag commit is a new selection — clear any pinned summary override.
     picker.summaryOverride = null;
@@ -464,6 +381,43 @@ export async function onDragEnd(picker: any, event: PointerEvent) {
     if (picker.options.positioningMode !== 'inline' && picker.shouldAutoClose() && validationSucceeded) {
         picker.close();
     }
+}
+
+/** The drag's own state off: flags, previews, the dragging class, the nav repeat, the cursor. */
+function endDragState(picker: any) {
+    picker.isDragging = false;
+    picker.draggingType = null;
+    picker.dragPreviewStart = null;
+    picker.dragPreviewEnd = null;
+    picker.dragRestore = null;
+
+    picker.calendar.querySelectorAll('.drp__day--dragging').forEach((day: Element) => {
+        day.classList.remove('drp__day--dragging');
+    });
+
+    if (picker.navInterval) {
+        clearInterval(picker.navInterval);
+        picker.navInterval = null;
+    }
+
+    document.body.style.cursor = '';
+}
+
+/** Escape during a drag (core `cancelCallback`): drop the preview, the selection goes back to what it was. */
+export function abortDrag(picker: any) {
+    if (!picker.isDragging) return;
+    const restore = picker.dragRestore;
+    if (restore) {
+        picker._selectedStartDate = restore.start;
+        picker._selectedEndDate = restore.end;
+        picker._selectedRanges = restore.ranges;
+        picker.invalidRangeStart = restore.invalidStart;
+        picker.invalidRangeEnd = restore.invalidEnd;
+    }
+    dragLogger.debug('Drag aborted, selection restored');
+    endDragState(picker);
+    picker.renderCalendar();
+    picker.updateSummary();
 }
 
 /**

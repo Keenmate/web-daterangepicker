@@ -27,7 +27,7 @@ import { createLabels, createLabelsView, resolveLocaleSettings, getMonthNames, g
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
-import { adoptStyles, createAsyncRunner, createPresentationContext, deepActiveElement, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, observeTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createAsyncRunner, type PointerDrag, createPresentationContext, deepActiveElement, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, observeTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { formatShortcut, isTypingTarget, matchesShortcut, normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -114,8 +114,10 @@ class DateRangePickerEngine {
     navInterval?: number | null;
     calendar!: HTMLElement;
     containerElement: HTMLElement;
-    onDragMoveBound?: (event: MouseEvent) => void;
-    onDragEndBound?: (event: MouseEvent) => void;
+    /** The range drag on the day cells (core createPointerDrag on the calendar, see createDayDrag). */
+    private dayDrag?: PointerDrag;
+    /** The selection before the drag (Escape restores it); set by startDrag. */
+    dragRestore: { start: Date | null; end: Date | null; ranges: DateRange[]; invalidStart: Date | null; invalidEnd: Date | null } | null = null;
     private isFirstRender: boolean = true;
     private calendarContentHeight?: number; // Store calendar height for rolling selector
     private calendarContentWidth?: number; // Store calendar width for rolling selector
@@ -1932,6 +1934,10 @@ class DateRangePickerEngine {
             this.setCalendarActive();
         });
 
+        // Range drag (draw / adjust) on the day cells — core pointer drag on the calendar.
+        this.dayDrag?.destroy();
+        this.dayDrag = Interaction.createDayDrag(this);
+
         // Keyboard navigation (document-level; a named field so destroy() /
         // deactivate() can detach it)
         // Focus in a day grid: its own listener (setupDayGridNavigation) runs the same
@@ -3102,6 +3108,10 @@ class DateRangePickerEngine {
     }
 
     destroy() {
+        // A drag in progress is aborted (selection restored) while the calendar still stands.
+        this.dayDrag?.destroy();
+        this.dayDrag = undefined;
+
         // The year / month selectors' overlay entries
         this.destroySelectorOverlays();
 
@@ -3430,10 +3440,6 @@ class DateRangePickerEngine {
     selectNow() { return Selection.selectNow(this); }
 
     // Interaction methods - wrappers for pure functions
-    initDragListeners() { return Interaction.initDragListeners(this); }
-    handleStartDrag(event: PointerEvent, type: 'start' | 'end', dayElement: HTMLElement) { return Interaction.startDrag(this, event, type, dayElement); }
-    handleDragMove(event: PointerEvent) { return Interaction.onDragMove(this, event); }
-    async onDragEnd(event: PointerEvent) { return await Interaction.onDragEnd(this, event); }
     findNearestEnabledDate(targetDate: Date, preferredDirection: string = 'forward') { return Interaction.findNearestEnabledDate(this, targetDate, preferredDirection); }
     handleInputMask(event: Event) { return Interaction.handleInputMask(this, event); }
     applyMask(value: string) { return Interaction.applyMask(this, value); }
