@@ -875,7 +875,7 @@ its `@font-face` loads; see [theming](theming.md)).
 ### Shown date format
 
 With no `date-format-mask`, the input shows the date the way the locale writes it (core `/locale`
-`getLocaleSettings().dateFormat`): the page-wide `window.components.locale.dateFormat` when the page set
+`resolveLocaleSettings().dateFormat`): the page-wide `window.components.locale.dateFormat` when the page set
 one, else derived from `Intl` for the effective locale — the element's `locale`, else the page-wide
 `window.components.locale.locale`, else the browser language.
 

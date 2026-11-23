@@ -14,7 +14,7 @@
 // diagnostic). This file keeps only the daterangepicker-branded warning copy (see
 // warnDrift). daterangepicker does not depend on `@floating-ui/dom` directly.
 import { createPopover, type DriftReport, type PopoverCloseReason } from '@keenmate/web-components-core/positioning';
-import { adoptStyles, announce, claimBackEntry, createSheetHeader, findScrollContainer, guardGhostClick, lockBodyScroll, observeKeyboardInset, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS, startModalSession } from '@keenmate/web-components-core';
+import { adoptStyles, announce, claimBackEntry, createSheetHeader, findScrollContainer, guardGhostClick, lockBodyScroll, fitToVisibleViewport, renderLoader, runBeforeCallbackSync, scrollIntoContainer, SHEET_CHROME_CSS, startModalSession } from '@keenmate/web-components-core';
 import { uiLogger } from './logger';
 import { handleInitialMonthLoad } from './date-picker-navigation';
 import { updateCalendarFromInput } from './date-picker-interaction';
@@ -337,7 +337,7 @@ function createCalendarPopover(picker: any, isAnchored: boolean) {
         shouldCloseOnResize: () => picker.presentation === 'floating',
         // A close by the overlay tree, a scroll or a resize: run the picker's own close
         // (discard a staged pick, `close` event). 'api' is our own close — already running.
-        onClose: (reason: PopoverCloseReason) => {
+        closeCallback: (reason: PopoverCloseReason) => {
             if (reason !== 'api') close(picker);
         },
         placement: (picker.options.calendarPlacement || 'bottom-start'),
@@ -360,7 +360,7 @@ function createCalendarPopover(picker: any, isAnchored: boolean) {
         // (resize→reposition→re-hover loop); reposition only on scroll/ancestor moves.
         autoUpdateOptions: { elementResize: false },
         // One-shot drift warning if an unrecognized ancestor CB still shifts the panel.
-        onDrift: (report: DriftReport) => warnDrift(picker, report),
+        driftCallback: (report: DriftReport) => warnDrift(picker, report),
     });
 }
 
@@ -396,7 +396,7 @@ function enterModal(picker: any) {
         shouldCloseOnBackdropClick: false, // ensureModalBackdrop() decides
         // Escape: the popover's overlay entry closes the picker; the session stays out of it.
         shouldCloseOnEscape: false,
-        onDismiss: () => close(picker),
+        dismissCallback: () => close(picker),
         isOpenedByPointer: isPointerOpen,
         trigger: picker.input ?? null,
     });
@@ -442,7 +442,7 @@ function enterFullscreen(picker: any) {
     lockPageScroll(picker);
     // Shrink the fixed sheet above the soft keyboard (writes inline height/top —
     // see fullscreen.css for why the sheet pins only top, not bottom).
-    picker.keyboardInsetCleanup = observeKeyboardInset(picker.calendar);
+    picker.keyboardInsetCleanup = fitToVisibleViewport(picker.calendar);
     // The phone Back gesture/button closes the sheet instead of navigating.
     claimBack(picker);
     // Keyboard-off by default: drop any focus the opening tap gave the input so the
@@ -496,7 +496,7 @@ function buildFullscreenHeader(picker: any) {
     const { header, title, close: closeBtn } = createSheetHeader({
         title: wantsInput || merged ? null : fullscreenTitle,
         closeLabel: picker.labels.text('ariaLabels.close'),
-        onClose: () => close(picker),
+        closeCallback: () => close(picker),
     });
     header.classList.add('drp__fullscreen-header');
     title?.classList.add('drp__fullscreen-title');

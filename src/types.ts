@@ -1,5 +1,5 @@
 import type {
-  ComponentContext, PresentationContext, RenderLoaderCallback, RenderIconCallback, Presentation, ResponsiveMap, ResponsiveCallback, SlotResult,
+  ComponentContext, PresentationContext, RenderLoadingCallback, RenderIconCallback, Presentation, ResponsiveMap, ResponsiveCallback, SlotResult,
 } from '@keenmate/web-components-core';
 import type { ActionEventDetail, ActionItem } from '@keenmate/web-components-core/actions';
 import type { LabelsView, TranslateCallback } from '@keenmate/web-components-core/locale';
@@ -624,7 +624,7 @@ export interface DateRangePickerConfig {
    * (`ctx.context` = `'calendar' | 'message' | 'summary'`); optionally return a
    * cleanup. Unset = the page hook, else the default `.drp__loader` (SPEC §12.14 of core).
    */
-  renderLoadingCallback?: RenderLoaderCallback | null;
+  renderLoadingCallback?: RenderLoadingCallback | null;
 
   /**
    * Map an action item's `icon` name to markup (core `renderIcon`, SPEC §12.33): asked

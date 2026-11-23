@@ -5,7 +5,7 @@
  */
 
 import { showLoader, hideLoader, showMessage, hideMessage } from './date-picker-ui';
-import { isImeEnter, onTextInput, runBeforeCallback } from '@keenmate/web-components-core';
+import { isImeEnter, observeTextInput, runBeforeCallback } from '@keenmate/web-components-core';
 import type { BeforeSelectContext, DateRange } from './types';
 import { validationLogger, selectionLogger } from './logger';
 import log from './logger';
@@ -950,8 +950,8 @@ export function beginCompactEdit(picker: any, el: HTMLElement) {
     };
     el.addEventListener('blur', commit);
     el.addEventListener('keydown', onKey);
-    // Core onTextInput (IME-safe): a composition commits once, on compositionend.
-    const stopTextInput = onTextInput(el, onInput);
+    // Core observeTextInput (IME-safe): a composition commits once, on compositionend.
+    const stopTextInput = observeTextInput(el, onInput);
 }
 
 export function selectNow(picker: any) {

@@ -12,7 +12,7 @@
   position: fixed;
   /* top/inline-start only — NOT `inset: 0`. `inset` also pins `bottom: 0`, and a
      fixed box with both top and bottom constrained ignores its `height`.
-     observeKeyboardInset() shrinks the sheet above the soft keyboard by writing
+     fitToVisibleViewport() shrinks the sheet above the soft keyboard by writing
      inline `height` (+ `top`); a pinned bottom would silently defeat it and leave
      the months/actions behind the keyboard. With only top/inline-start pinned,
      height governs and the keyboard reflow works. */

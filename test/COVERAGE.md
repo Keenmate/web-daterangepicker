@@ -201,7 +201,7 @@ see [Unit layer](#unit-layer) at the end. Unit tests never render the element.
 | Custom `renderSummaryCallback` `ctx.labels` = core `createLabelsView` (only `text` / `html`, frozen): element + page `translateCallback`, locale-formatted numbers, instance `labels` win | ✓ | `page-locale.spec.ts` | `page-locale.html` |
 | Unset `date-format-mask` = the locale format (cs / en-US / en-GB / de range / datetime), page-wide `dateFormat`, explicit mask wins, locale change re-writes the text + hint, typing round-trips (cs, sk, de, hr, ko, nl, en-US, auto-pad, cs range) | ✓ | `locale-date-format.spec.ts` | `locale-date-format.html` |
 | Paste: core `readPasteText`, cleaned + masked (synthetic ClipboardEvent, clipboard stubbed) | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
-| IME composition: core `onTextInput` / `isImeEnter` — no mask while composing, masked on `compositionend`; composing keydown not filtered | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
+| IME composition: core `observeTextInput` / `isImeEnter` — no mask while composing, masked on `compositionend`; composing keydown not filtered | ✓ | `input-behavior.spec.ts` | `input-behavior.html` |
 | `labels` overrides individual UI strings (property + JSON attribute, `{ctx.count}`, live update); `locale` only changes Intl names | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `monthNames` override (property)                              | ✓      | `locale.spec.ts`             | `locale.html`             |
 | `month-names` override (pipe-delimited attribute)             | ✓      | `locale.spec.ts`             | `locale.html`             |

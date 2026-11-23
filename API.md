@@ -279,7 +279,7 @@ Available on `<web-daterangepicker>` element:
 | `setRollingItemAlignment()` | `(alignment: 'flex-start' \| 'center' \| 'flex-end') => void` | Align items within the rolling year/month selector (`flex-start` \| `center` \| `flex-end`). |
 | `whenReady()` | `() => Promise<void>` | Resolves once the first build is live (also settles when the element is destroyed first). Never rejects. |
 | `release()` | `() => void` | Build an element held by `defer` (SPEC §6.3), with everything assigned meanwhile. |
-| `setAttributes()` | `(values: Record<string, unknown>) => InputRejection[]` | Apply many inputs (by configKey or attribute name) as ONE rebuild / update. Returns the values it refused (each also fires `input-rejected`). |
+| `setProperties()` | `(values: Record<string, unknown>) => InputRejection[]` | Apply many inputs (by configKey or attribute name) as ONE rebuild / update. Returns the values it refused (each also fires `input-rejected`). |
 | `batch()` | `(fn: () => void) => void` | Run `fn` and coalesce every input change it makes into one rebuild / update. |
 | `flush()` | `() => void` | Apply pending input writes synchronously, now (SPEC §12.7). |
 | `whenSettled()` | `() => Promise<void>` | Resolves once every staged input change has been applied (SPEC §12.7). |
@@ -287,6 +287,7 @@ Available on `<web-daterangepicker>` element:
 | `enableLogging()` | `(level?: LogLevelDesc) => void` | Set this element's own log level (default `debug`): it logs that level and above, whatever its component type or the page is set to. |
 | `disableLogging()` | `() => void` | Silence this element (its own level = `silent`). |
 | `resetLogging()` | `() => void` | Clear this element's own log level: it follows its component type / the page again. |
+| `on()` | `(name: string, handler: (event: CustomEvent) => void, options?: AddEventListenerOptions) => () => void` | Typed `addEventListener` for a declared event; returns an unsubscribe function (SPEC §12.5). |
 | `checkValidity()` | `() => boolean` | Form validity check (SPEC §6.6). |
 | `reportValidity()` | `() => boolean` | Form validity check that reports to the user (SPEC §6.6). |
 <!-- GEN:methods:end -->
@@ -1610,6 +1611,8 @@ The web component provides convenient property accessors for JavaScript:
 | `responsiveCallback` | `ResponsiveCallback \| null` | Read/Write | Instance computed responsive rule (core, SPEC §6.7): `(ctx) => partial config \| null \| undefined`, ctx `{ env, deviceClass, breakpoint, container, width, element, component, config }` (`config` = base; `width` = its own box). Runs after `responsive` (wins key by key); re-runs on environment flips, throttled viewport-width and own-width changes, rule and config changes. `null` ignores every page rule. |
 | `isReady` | `boolean` | Read-only | The first build is live (core, SPEC §6.3) — the `ready` event has fired. |
 | `isDestroyed` | `boolean` | Read-only | `destroy()` ran. |
+| `isLoggingEnabled` | `boolean` | Read-only | This element has its own log level that prints something (set by `enableLogging()`, not `silent`). |
+| `controller` | `unknown` | Read-only | The component's public facade (SPEC §12.34) — the same object every event detail and callback `ctx` carries as `controller`; `undefined` for a component without one. |
 | `form` | `HTMLFormElement \| null` | Read-only | The owning form (form-associated components). |
 | `validity` | `ValidityState` | Read-only | Form validity (SPEC §6.6). |
 | `validationMessage` | `string` | Read-only | Form validation message (SPEC §6.6). |

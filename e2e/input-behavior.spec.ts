@@ -138,7 +138,7 @@ test('paste: DD.MM.YYYY mask applies to the pasted digits', async ({ page }) => 
 });
 
 // =============================================================================
-// IME composition (core onTextInput / isImeEnter) — synthetic composition events
+// IME composition (core observeTextInput / isImeEnter) — synthetic composition events
 // =============================================================================
 
 test('IME: half-composed text is not masked; the composition result is masked once, on compositionend', async ({ page }) => {

@@ -2,7 +2,7 @@ import { test, expect, pickerById, inputOf, dayByDate } from './fixtures';
 
 /**
  * Unset `date-format-mask` = the locale's own format through core `/locale`
- * (`getLocaleSettings().dateFormat`): the page-wide `window.components.locale.dateFormat`
+ * (`resolveLocaleSettings().dateFormat`): the page-wide `window.components.locale.dateFormat`
  * when set, else derived from `Intl` for the effective locale. An explicit mask always
  * wins; the submitted value stays ISO; a locale change re-writes the shown text.
  *

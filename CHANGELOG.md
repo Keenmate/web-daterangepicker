@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Changed — core 1.0.0-rc26 (the naming release) (2026-11-23)
+- `@keenmate/web-components-core` → `^1.0.0-rc26`; adopted its renames: `observeTextInput`, `fitToVisibleViewport`,
+  `resolveLocaleSettings`, `getEngineConfig()`, option fields `closeCallback` / `driftCallback` (popover),
+  `dismissCallback` (modal session), `closeCallback` (sheet header), `focusItemCallback` (roving focus),
+  `appliedCallback` (custom styles). No behaviour change.
+- **BREAKING (forced by core):** the re-exported type `RenderLoaderCallback` → `RenderLoadingCallback`; the core
+  element method `setAttributes()` → `setProperties()` (API.md regenerated; it also now lists core's `on()`,
+  `isLoggingEnabled`, `controller`).
+
 ### Fixed — range day / night counts across a DST change (2026-11-23)
 - The summary's days / nights (`allow` / `block` handling, also the drag preview) and the `change` event's
   `getTotalDays()` divided the millisecond difference by 24h and floored it — a range over the spring-forward day

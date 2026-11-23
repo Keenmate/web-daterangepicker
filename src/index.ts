@@ -37,7 +37,7 @@ export type {
     BreakpointMap,
 } from '@keenmate/web-components-core';
 // Shared loader (renderLoadingCallback / window.components.renderLoadingCallback)
-export type { LoaderRenderContext, RenderLoaderCallback } from '@keenmate/web-components-core';
+export type { LoaderRenderContext, RenderLoadingCallback } from '@keenmate/web-components-core';
 // Icon hook (renderIconCallback / window.components.renderIconCallback)
 export type { IconRenderContext, RenderIconCallback } from '@keenmate/web-components-core';
 // Label translator (translateCallback / window.components.locale.translateCallback)

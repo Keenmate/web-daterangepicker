@@ -38,7 +38,7 @@ import {
   extractConsumedCssVars,
   lintCssVars,
   getEnvironment,
-  onTextInput,
+  observeTextInput,
   resolvePresentation,
   type InputDef,
   type CustomStylesHandle,
@@ -47,7 +47,7 @@ import {
 } from '@keenmate/web-components-core';
 import { DateRangePickerEngine } from './date-picker';
 import { DEFAULT_LABELS } from './date-picker-locales';
-import { createLabels, getLocaleSettings } from '@keenmate/web-components-core/locale';
+import { createLabels, resolveLocaleSettings } from '@keenmate/web-components-core/locale';
 import { toWeekStartDay, toDisabledWeekdays, toDisabledDates, toPipeList, toYearRange } from './converters';
 import {
   serializeFormValue, toEngineValueText, isoDate, isoDateTime, isoTime,
@@ -561,7 +561,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       clear.addEventListener('click', () => this.#clearInput());
       // Toggle the clear's visibility as the user types (mask handler dispatches
       // 'input' too), and keep the form value fresh on manual edits.
-      onTextInput(input, () => this.#updateInputClear());
+      observeTextInput(input, () => this.#updateInputClear());
       wrapper.appendChild(input);
       wrapper.appendChild(clear);
       this.#shadow.appendChild(wrapper);
@@ -606,7 +606,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // a cleared nullable input reaches the picker as `null` (the clear signal), which the
     // picker resolves per field (`?? default` / falsy reads). Replaces the old per-component
     // delete-null loop.
-    const cfg = this.engineConfig(NON_PICKER_KEYS);
+    const cfg = this.getEngineConfig(NON_PICKER_KEYS);
 
     cfg.onChange = (detail: ChangeEventDetail) => this.#handleChange(detail);
     cfg.onAction = (detail: DateRangePickerActionEventDetail) => this.emit('action', detail);
@@ -880,7 +880,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    */
   #shownDateMask(): string {
     return this.#picker?.dateFormatMask
-      ?? getLocaleSettings({ locale: (this.config.locale as string | null) ?? undefined, dateFormat: (this.config.dateFormatMask as string | null) || undefined }).dateFormat;
+      ?? resolveLocaleSettings({ locale: (this.config.locale as string | null) ?? undefined, dateFormat: (this.config.dateFormatMask as string | null) || undefined }).dateFormat;
   }
 
   #applyInputSizeStyles(): void {
@@ -906,7 +906,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
         css: this.config.customStyles as string | null | undefined,
         callback: this.config.getCustomStylesCallback as ((ctx: PickerContext) => string | null | undefined) | null | undefined,
       }),
-      onApply: (css) => { if (import.meta.env?.DEV) this.#checkCustomStyleVars(css); },
+      appliedCallback: (css) => { if (import.meta.env?.DEV) this.#checkCustomStyleVars(css); },
     });
   }
 

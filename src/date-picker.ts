@@ -23,11 +23,11 @@ import * as Interaction from './date-picker-interaction';
 import * as UI from './date-picker-ui';
 import * as Lock from './date-picker-lock';
 import { DEFAULT_LABELS } from './date-picker-locales';
-import { createLabels, createLabelsView, getLocaleSettings, getMonthNames, getWeekdayNames, type Labels, type LabelsView } from '@keenmate/web-components-core/locale';
+import { createLabels, createLabelsView, resolveLocaleSettings, getMonthNames, getWeekdayNames, type Labels, type LabelsView } from '@keenmate/web-components-core/locale';
 import { drpLogger, navigationLogger } from './logger';
 import { createTooltip, type TooltipHandle, type PopoverHandle } from '@keenmate/web-components-core/positioning';
 import { createRovingFocus, type RovingFocus } from '@keenmate/web-components-core/a11y';
-import { adoptStyles, createPresentationContext, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, onTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
+import { adoptStyles, createPresentationContext, registerOverlay, type OverlayHandle, escapeHtml, getEnvironment, ICON_CSS, isImeEnter, observeTextInput, renderIcon, withComponentContext, type ModalSession, type PresentationContext } from '@keenmate/web-components-core';
 import { formatShortcut, isTypingTarget, matchesShortcut, normalizeActionItems, readActionDataset, resolveActionItem, runAction, type ActionSource } from '@keenmate/web-components-core/actions';
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
@@ -712,7 +712,7 @@ class DateRangePickerEngine {
      */
     private applyLocale(): boolean {
         const weekStartDay = this.options.weekStartDay;
-        const settings = getLocaleSettings(
+        const settings = resolveLocaleSettings(
             {
                 locale: this.options.locale ?? undefined,
                 weekStartDay: typeof weekStartDay === 'number' ? weekStartDay : undefined,
@@ -1688,7 +1688,7 @@ class DateRangePickerEngine {
             // Diagnose: log when the input loses focus and when window focus changes.
         } else if (triggerMode === 'typing') {
             // Open when user starts typing
-            const stopTyping = onTextInput(this.input, () => {
+            const stopTyping = observeTextInput(this.input, () => {
                 if (!this.calendar.classList.contains('drp__picker--visible') && this.input && this.input.value.length > 0) {
                     drpLogger.debug('User started typing - opening calendar');
                     this.open();
@@ -1699,9 +1699,9 @@ class DateRangePickerEngine {
         // 'manual' mode: no automatic trigger, calendar only opens via .open()/.toggle() methods
 
         // Input masking handlers (always attached regardless of trigger mode)
-        // Core onTextInput (IME-safe, SPEC §12.30): no masking of half-composed text;
+        // Core observeTextInput (IME-safe, SPEC §12.30): no masking of half-composed text;
         // the composition result arrives once, on compositionend.
-        const stopMask = onTextInput(this.input, (_value, e) => this.handleInputMask(e));
+        const stopMask = observeTextInput(this.input, (_value, e) => this.handleInputMask(e));
         signal.addEventListener('abort', stopMask, { once: true });
         this.input.addEventListener('keydown', (e) => this.handleKeydown(e), { signal });
         this.input.addEventListener('paste', (e) => this.handlePaste(e), { signal });
@@ -1969,7 +1969,7 @@ class DateRangePickerEngine {
                 orientation: 'grid',
                 columns: 7,
                 isSkipped: (cell) => this.isDayCellSkipped(cell),
-                onFocusItem: (cell) => this.onDayCellFocused(grid, cell),
+                focusItemCallback: (cell) => this.onDayCellFocused(grid, cell),
                 // beforeScrollCallback gates the scroll: drp scrolls itself (callback, replaced
                 // options, --drp-scroll-behavior) and tells core not to. revealDay scrolls on its own.
                 shouldScroll: (cell) => {
