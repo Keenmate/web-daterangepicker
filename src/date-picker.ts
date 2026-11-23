@@ -32,6 +32,8 @@ import { formatShortcut, isTypingTarget, matchesShortcut, normalizeActionItems, 
 // Import styles for static injection (only used when injectGlobalStyles is called)
 import styles from './css/main.css?inline';
 
+/** The plain arrows core's roving focus moves (drp's pre-listener leaves them alone). */
+const ARROW_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
 class DateRangePickerEngine {
     input: HTMLInputElement | null;
@@ -1951,22 +1953,30 @@ class DateRangePickerEngine {
 
     /**
      * WAI-ARIA grid (core `createRovingFocus`, SPEC §12.25): each month's `.drp__days` is ONE
-     * tab stop; plain arrows inside the month move REAL focus (Left / Right follow the writing
-     * direction, disabled / neighbour-month cells skipped). drp's own keys (month edge, PageUp /
-     * PageDown, Home / End, Enter / Space, Ctrl+arrows, t, Tab between columns) run in a keydown
-     * listener registered BEFORE core's and call `preventDefault()` — core skips handled events.
+     * tab stop; plain arrows move REAL focus (Left / Right follow the writing direction,
+     * disabled / neighbour-month cells skipped); at the month edge core calls `boundaryCallback`
+     * and drp crosses into the neighbour month. drp's own keys (PageUp / PageDown, Home / End,
+     * Enter / Space, Ctrl+arrows, t, Tab between columns) run in a keydown listener registered
+     * BEFORE core's and call `preventDefault()` — core skips handled events.
      */
     private setupDayGridNavigation() {
         for (const nav of this.dayGridNavs.values()) nav.destroy();
         this.dayGridNavs.clear();
         this.calendar.querySelectorAll<HTMLElement>('.drp__days').forEach(grid => {
-            grid.addEventListener('keydown', (e) => this.handleDayGridKeydown(e, grid)); // before core's
+            grid.addEventListener('keydown', (e) => this.handleDayGridKeydown(e)); // before core's
             const nav = createRovingFocus(grid, {
                 getItems: () => Array.from(grid.querySelectorAll<HTMLElement>('.drp__day')),
                 orientation: 'grid',
                 columns: 7,
                 isSkipped: (cell) => this.isDayCellSkipped(cell),
                 focusItemCallback: (cell) => this.onDayCellFocused(grid, cell),
+                // No enabled day of this month in the arrow's direction: drp's moveFocus continues
+                // into the neighbour month (next / previous enabled day, the same weekday for Up / Down).
+                boundaryCallback: (_key, cell, e) => {
+                    this.syncFocusFromOtherMonth(grid, cell);
+                    this.handleCalendarKeydown(e);
+                    return true;
+                },
                 // beforeScrollCallback gates the scroll: drp scrolls itself (callback, replaced
                 // options, --drp-scroll-behavior) and tells core not to. revealDay scrolls on its own.
                 shouldScroll: (cell) => {
@@ -1980,6 +1990,19 @@ class DateRangePickerEngine {
 
     private isDayCellSkipped(cell: HTMLElement): boolean {
         return cell.classList.contains('drp__day--other-month') || cell.getAttribute('aria-disabled') === 'true';
+    }
+
+    /**
+     * The month edge reached from a focused neighbour-month cell: moveFocus steps from the keyboard
+     * position, so it becomes the month's first day (a leading cell) / last day (a trailing one).
+     */
+    private syncFocusFromOtherMonth(grid: HTMLElement, cell: HTMLElement) {
+        if (!cell.classList.contains('drp__day--other-month')) return;
+        const cells = Array.from(grid.querySelectorAll('.drp__day'));
+        const days = cells.filter(d => !d.classList.contains('drp__day--other-month'));
+        if (!days.length) return;
+        this.activeMonthIndex = Number(grid.dataset.monthIndex) || 0;
+        this.focusedDayIndex = cells.indexOf(cell) < cells.indexOf(days[0]) ? 0 : days.length - 1;
     }
 
     /** A day cell got real focus (keys, a click, Tab): it becomes the keyboard position. */
@@ -2029,7 +2052,7 @@ class DateRangePickerEngine {
     }
 
     /** Keys pressed on a focused day cell (runs before core's roving focus). */
-    private handleDayGridKeydown(e: KeyboardEvent, grid: HTMLElement) {
+    private handleDayGridKeydown(e: KeyboardEvent) {
         if (e.defaultPrevented || isImeEnter(e)) return;
         const cell = (e.target as HTMLElement | null)?.closest?.('.drp__day') as HTMLElement | null;
         if (!cell) return;
@@ -2038,35 +2061,9 @@ class DateRangePickerEngine {
             e.preventDefault();
             return;
         }
-        const isPlainArrow = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey;
-        if (isPlainArrow && this.canGridMoveWithinMonth(grid, cell, e.key)) return; // core moves the focus
-        this.handleCalendarKeydown(e); // month edge, PageUp / PageDown, Home / End, Ctrl+arrows, t, Tab …
-    }
-
-    /**
-     * Would core's grid step land on an enabled day of THIS month? Core keeps Left / Right inside the
-     * row and stops at the month edge; a week-wrapping Left / Right or a month-edge arrow stays drp's
-     * (moveFocus: next / previous enabled day, crossing into the neighbour month as before).
-     */
-    private canGridMoveWithinMonth(grid: HTMLElement, cell: HTMLElement, key: string): boolean {
-        const cells = Array.from(grid.querySelectorAll<HTMLElement>('.drp__day'));
-        const from = cells.indexOf(cell);
-        if (from === -1 || cell.classList.contains('drp__day--other-month')) return false;
-        const forward = this.isRtl() ? 'ArrowLeft' : 'ArrowRight';
-        let step: number;
-        let lo = 0;
-        let hi = cells.length - 1;
-        if (key === 'ArrowUp' || key === 'ArrowDown') {
-            step = key === 'ArrowDown' ? 7 : -7;
-        } else {
-            step = key === forward ? 1 : -1;
-            lo = from - (from % 7);
-            hi = Math.min(lo + 6, hi);
-        }
-        for (let i = from + step; i >= lo && i <= hi; i += step) {
-            if (!this.isDayCellSkipped(cells[i])) return true;
-        }
-        return false;
+        // Plain arrows are core's (grid step; the month edge comes back through boundaryCallback).
+        if (ARROW_KEYS.has(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) return;
+        this.handleCalendarKeydown(e); // PageUp / PageDown, Home / End, Ctrl+arrows, t, Tab …
     }
 
     /** Shift+PageUp / Shift+PageDown: the same month a year back / forward, same day index. */

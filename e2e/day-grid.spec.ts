@@ -112,6 +112,49 @@ test('an arrow at the month edge continues into the next / previous month', asyn
     await expect(p.locator('.drp__day--focused')).toHaveCount(1);
 });
 
+test('RTL: an arrow at the month edge continues into the next / previous month', async ({ page }) => {
+    const p = page.locator('#rtl');
+    await focusDay(p, '2026-06-30');
+    await page.keyboard.press('ArrowLeft');                   // RTL: Left = next day → July
+    await expect(header(p)).toContainText(/July\s+2026/);
+    await expect.poll(() => focusedDate(page)).toBe('2026-07-01');
+    await page.keyboard.press('ArrowRight');                  // back into June
+    await expect(header(p)).toContainText(/June\s+2026/);
+    await expect.poll(() => focusedDate(page)).toBe('2026-06-30');
+});
+
+test('min / max: an arrow at the bounded month edge keeps the month and the focused day', async ({ page }) => {
+    const p = page.locator('#bounded');
+    await focusDay(p, '2026-06-30');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowDown');
+    await expect(header(p)).toContainText(/June\s+2026/);
+    expect(await focusedDate(page)).toBe('2026-06-30');
+    await focusDay(p, '2026-06-01');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowUp');
+    await expect(header(p)).toContainText(/June\s+2026/);
+    expect(await focusedDate(page)).toBe('2026-06-01');
+    await expect(p.locator('.drp__day--focused')).toHaveCount(1);
+});
+
+test('from a focused neighbour-month cell the arrows step to the nearest day of the month', async ({ page }) => {
+    const p = page.locator('#inline');
+    const trailing = p.locator('.drp__day--other-month[data-date="2026-07-01"]');   // Wed after Tue 06-30
+    await trailing.focus();
+    await page.keyboard.press('ArrowLeft');
+    expect(await focusedDate(page)).toBe('2026-06-30');
+    await expect(header(p)).toContainText(/June\s+2026/);
+    await trailing.focus();
+    await page.keyboard.press('ArrowUp');                     // Wed 07-01 → Wed 06-24
+    expect(await focusedDate(page)).toBe('2026-06-24');
+    await p.locator('.drp__day--other-month[data-date="2026-07-05"]').focus();   // last cell of the grid
+    await page.keyboard.press('ArrowRight');                  // the edge: the month's last day + 1 → July
+    await expect(header(p)).toContainText(/July\s+2026/);
+    await expect.poll(() => focusedDate(page)).toBe('2026-07-01');
+    await expect(p.locator('.drp__day--focused')).toHaveCount(1);
+});
+
 test('Enter / Space on a focused day pick it', async ({ page }) => {
     const p = page.locator('#inline');
     await focusDay(p, '2026-06-15');

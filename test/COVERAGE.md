@@ -97,7 +97,7 @@ see [Unit layer](#unit-layer) at the end. Unit tests never render the element.
 | Keyboard: Home/End (start/end of month)                       | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: Ctrl+Home/End (year jump, step year-by-year)        | ✓      | `keyboard-navigation.spec.ts`, `navigation-extras.spec.ts` | `keyboard-navigation.html`, `navigation-extras.html` |
 | Keyboard: Ctrl+Home/End leave a single focused day (FINDINGS #26, fixed) | ✓ | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
-| Day grid: ARIA grid roles, one tab stop, real-focus arrows (disabled skipped, RTL), PgDn / Shift+PgDn, month-edge arrows, Enter / Space, focus back to the input | ✓ | `day-grid.spec.ts` | `day-grid.html` |
+| Day grid: ARIA grid roles, one tab stop, real-focus arrows (disabled skipped, RTL), PgDn / Shift+PgDn, month-edge arrows (LTR / RTL, min / max edge stays, from a neighbour-month cell), Enter / Space, focus back to the input | ✓ | `day-grid.spec.ts` | `day-grid.html` |
 | Keyboard: `t` jumps to today                                  | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | Keyboard: crossing a month edge leaves a single focused day   | ✓      | `keyboard-navigation.spec.ts` | `keyboard-navigation.html` |
 | `beforeScrollCallback`: keyboard day reveal + time-roll centring (ctx, `false` skips, options replace) | ✓ | `before-scroll.spec.ts` | `before-scroll.html` |

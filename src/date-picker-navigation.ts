@@ -452,6 +452,20 @@ export function moveFocus(picker: any, offset: number) {
     // Calculate new index
     const newIndex = picker.focusedDayIndex + offset;
 
+    // Crossing into the neighbour month only when it can be shown (min / max / disabled months,
+    // the navigation lock): otherwise the focus stays where it is (no jump to the month's start).
+    const canEnterMonth = (direction: 1 | -1): boolean => {
+        if (picker.isAspectLocked('navigation')) return false;
+        const shown = picker._monthDates[picker.activeMonthIndex];
+        const target = new Date(shown.getFullYear(), shown.getMonth() + direction, 1);
+        return hasEnabledDaysInMonth(picker, target.getFullYear(), target.getMonth());
+    };
+    const stay = () => { days[picker.focusedDayIndex]?.classList.add('drp__day--focused'); };
+    if ((newIndex < 0 && !canEnterMonth(-1)) || (newIndex >= days.length && !canEnterMonth(1))) {
+        stay();
+        return;
+    }
+
     // Check if we need to change months
     if (newIndex < 0) {
         const savedMonthIndex = picker.activeMonthIndex;
@@ -572,6 +586,10 @@ export function moveFocus(picker: any, offset: number) {
     const result = findNextEnabledDayIndex(picker, newIndex, offset, days, picker.activeMonthIndex);
 
     if (result.monthChanged) {
+        if (!canEnterMonth(result.direction === 'next' ? 1 : -1)) {
+            stay();
+            return;
+        }
         // Need to navigate to next/prev month to find enabled day
         const savedMonthIndex = picker.activeMonthIndex;
         if (result.direction === 'next') {

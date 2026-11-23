@@ -37,6 +37,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   element method `setAttributes()` → `setProperties()` (API.md regenerated; it also now lists core's `on()`,
   `isLoggingEnabled`, `controller`).
 
+### Fixed — day-grid arrows at the month edge (2026-11-23)
+- **An arrow at a `min-date` / `max-date` (or navigation-locked) month edge keeps the focused day**: it used to jump
+  to the first / last day of the same month because the refused month change still moved the focus.
+- **Arrows from a focused neighbour-month cell** step to the nearest day of the shown month (core's grid step);
+  they used to move from the previous keyboard position instead.
+
+### Internal — day-grid month edge on core `createRovingFocus({ boundaryCallback })` (G11) (2026-11-23)
+- Plain arrows are core's alone; at the month edge core calls `boundaryCallback` and drp's `moveFocus` crosses into
+  the neighbour month. Deleted the pre-listener's arrow routing and `canGridMoveWithinMonth` (a private copy of
+  core's grid step rule). e2e: RTL month edge, min / max edge, neighbour-month cell (`day-grid.spec.ts`).
+
 ### Fixed — range day / night counts across a DST change (2026-11-23)
 - The summary's days / nights (`allow` / `block` handling, also the drag preview) and the `change` event's
   `getTotalDays()` divided the millisecond difference by 24h and floored it — a range over the spring-forward day
