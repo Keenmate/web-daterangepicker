@@ -186,8 +186,12 @@ test('moving the mouse away from the calendar clears the hover preview', async (
 
     await expect(dayByDate(p, '2026-06-12')).toHaveClass(/drp__day--hover-preview/);
 
-    // Move the mouse to the page heading, well outside the calendar.
-    await page.locator('h1').hover();
+    // Move the mouse to a free spot beside the calendar. Not the page heading:
+    // on a short viewport (e.g. 1280x720) the floating calendar of this
+    // bottom-most picker flips above its input and covers the <h1>, so a
+    // heading hover would land on the calendar itself.
+    const box = (await p.locator('.drp__picker').boundingBox())!;
+    await page.mouse.move(box.x + box.width + 40, box.y + box.height / 2);
 
     const previewCells = p.locator(
         '.drp__day--hover-preview, .drp__day--hover-preview-invalid'

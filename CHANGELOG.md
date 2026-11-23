@@ -48,6 +48,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the neighbour month. Deleted the pre-listener's arrow routing and `canGridMoveWithinMonth` (a private copy of
   core's grid step rule). e2e: RTL month edge, min / max edge, neighbour-month cell (`day-grid.spec.ts`).
 
+### Internal — hover-preview e2e no longer depends on the viewport height (2026-11-23)
+- `hover-preview.spec.ts` "moving the mouse away … clears the hover preview" moved the mouse onto the page `<h1>`. On
+  a short viewport (Playwright's default 1280x720) the bottom-most picker's floating calendar flips above its input
+  and covers the heading, so the hover hit the calendar (correct flip behaviour, not a regression). The test now moves
+  to a free spot beside the calendar's own box.
+
 ### Internal — core `deepActiveElement` instead of a private copy (Q14) (2026-11-23)
 - The staged-selection leave check ("is the focus still in the field?") reads core `deepActiveElement()` (the focused
   element through open shadow roots) instead of its own per-root `shadowRoot.activeElement` walk. No other private
