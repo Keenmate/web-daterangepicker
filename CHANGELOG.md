@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Fixed — range day / night counts across a DST change (2026-11-23)
+- The summary's days / nights (`allow` / `block` handling, also the drag preview) and the `change` event's
+  `getTotalDays()` divided the millisecond difference by 24h and floored it — a range over the spring-forward day
+  (a 23h day) counted one day short (28–30 Mar 2026 in Europe/Prague: 2 days instead of 3). They now count calendar
+  days (`countDaysInclusive`).
+
+### Internal — unit test suite (2026-11-23)
+- **vitest unit suite** for the pure date logic in `test/unit/` (`npm test` / `npm run test:unit`; vitest 3 dev
+  dependency, node environment, `TZ` pinned to a DST zone in `vitest.config.ts`): date-mask parsing, typed / range
+  text parsing, the progressive input mask, rolling year / month ranges, the min / max / weekday / disabled-date
+  rules, ranges over disabled days (`block` / `split`), the form-value serializer and its round trip, the attribute
+  converters, the English labels. Rendering stays in the Playwright e2e specs. `test/COVERAGE.md` lists it.
+- The date-mask parsing moved out of the engine class into the pure `src/date-format.ts` (`parseDateFormat`,
+  `parseDateText`, `findDatePair`); the engine methods delegate — no behaviour change.
+
 ### Changed — BREAKING: label templates read the text's context (`{ctx.*}`, `ctx.count`) (2026-11-22)
 - **BREAKING: every count label passes its text spot's context as `{ ctx }`** (core rc25 dotted-path labels,
   rulebook D-NC-24) — templates read `{ctx.<path>}`, numbers locale-formatted, values escaped in HTML labels; a

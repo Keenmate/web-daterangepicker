@@ -294,3 +294,13 @@ export function isInRange(date: Date, start: Date | null, end: Date | null): boo
     if (!start || !end) return false;
     return date > start && date < end;
 }
+
+/**
+ * Calendar days from `start` to `end`, both included (`0` when `end` is before
+ * `start`). Counts on the UTC calendar so a DST change inside the range (a 23h or
+ * 25h day) doesn't drop or add a day.
+ */
+export function countDaysInclusive(start: Date, end: Date): number {
+    const utc = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+    return Math.max(0, Math.round((utc(end) - utc(start)) / 86_400_000) + 1);
+}

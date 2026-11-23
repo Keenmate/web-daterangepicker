@@ -11,6 +11,9 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 `e2e/` that exercises it, and **Fixture** at the dedicated HTML page under
 `test/` (the spec hits no example pages, only fixtures).
 
+The pure date logic also has a **unit layer** (vitest, `test/unit/`, `npm run test:unit`) —
+see [Unit layer](#unit-layer) at the end. Unit tests never render the element.
+
 ---
 
 ## 1. Selection modes
@@ -387,8 +390,25 @@ When a row is marked `✓`/`△`, the **Spec** column points at the file under
 | RTL: Ctrl+ArrowLeft/Right = next/previous month; runtime `dir` flip on the element | ✓ | `rtl.spec.ts` | `rtl.html` |
 | Wheel commit logs via `console.log` (FINDINGS #23, fixed — removed) | ✓ | _no test (console noise)_ |              |
 
+## Unit layer
+
+vitest, node environment, `TZ=Europe/Prague` pinned in `vitest.config.ts` (a DST zone — the 23h / 25h days are
+exercised). **Spec** is the file under `test/unit/`; **Module** the source under `src/`.
+
+| Feature                                                       | Status | Spec | Module |
+| ------------------------------------------------------------- | :----: | ---- | ------ |
+| Date mask parsing (`parseFormat`): part order, multi-char / trailing literals, bidi marks, `maxLength` | ✓ | `date-format.test.ts` | `date-format.ts` |
+| Typed / value date text (`parseDateText`): mask order, ISO, real dates only, 2-digit years | ✓ | `date-format.test.ts` | `date-format.ts` |
+| Range text (`findDatePair`): any digit-free separator, mask literals around the pair | ✓ | `date-format.test.ts` | `date-format.ts` |
+| Progressive input mask (`applyMask` / `applyRangeMask`)       | ✓      | `input-mask.test.ts` | `date-picker-interaction.ts` |
+| Rolling year / month ranges, `isSameOrAfterMonth`             | ✓      | `input-mask.test.ts`, `date-validation.test.ts` | `date-picker-rendering.ts`, `date-picker-validation.ts` |
+| `normalizeDate`, `formatDateKey`, min / max / weekday / date constraints | ✓ | `date-validation.test.ts` | `date-picker-validation.ts` |
+| Ranges over disabled days: enabled / disabled lists, `block` gap, `split` pieces | ✓ | `date-validation.test.ts` | `date-picker-validation.ts` |
+| Summary day count across DST (`countDaysInclusive`)           | ✓      | `date-validation.test.ts` | `date-picker-validation.ts` |
+| Form value: ISO atoms, value masks (h12 / h24), `serializeFormValue` per mode × format, `toEngineValueText` round trip | ✓ | `form-value.test.ts` | `form-value.ts` |
+| Attribute converters (`week-start-day`, `disabled-weekdays`, `disabled-dates`, `rolling-year-range`, pipe lists) | ✓ | `converters.test.ts` | `converters.ts` |
+| Default English labels: flat keys, `{ctx.count}` counts       | ✓      | `locales.test.ts` | `date-picker-locales.ts` |
+
 ## Not covered (by design)
 
-| Feature                                                       | Status | Note |
-| ------------------------------------------------------------- | :----: | ---- |
-| Unit layer (parsing / format masks / range math)              | ✗      | optional separate WP (vitest + `test/unit/`) — not started |
+Nothing at the moment.

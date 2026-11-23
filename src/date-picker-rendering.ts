@@ -1392,14 +1392,10 @@ export function updateSummary(picker: any) {
                 picker._selectedEndDate
             );
             // Count total days for allow mode
-            const msPerDay = 1000 * 60 * 60 * 24;
-            const timeDiff = picker._selectedEndDate.getTime() - picker._selectedStartDate.getTime();
-            days = Math.floor(timeDiff / msPerDay) + 1;
+            days = Validation.countDaysInclusive(picker._selectedStartDate, picker._selectedEndDate);
         } else {
             // For block mode, count total days
-            const msPerDay = 1000 * 60 * 60 * 24;
-            const timeDiff = picker._selectedEndDate.getTime() - picker._selectedStartDate.getTime();
-            days = Math.floor(timeDiff / msPerDay) + 1; // +1 to include both start and end days
+            days = Validation.countDaysInclusive(picker._selectedStartDate, picker._selectedEndDate);
         }
 
         const nights = days > 0 ? days - 1 : 0; // Nights = days - 1
@@ -1497,14 +1493,10 @@ export function updateSummaryWithPreview(picker: any) {
                 picker.dragPreviewEnd
             );
             // Count total days for allow mode
-            const msPerDay = 1000 * 60 * 60 * 24;
-            const timeDiff = picker.dragPreviewEnd.getTime() - picker.dragPreviewStart.getTime();
-            days = Math.floor(timeDiff / msPerDay) + 1;
+            days = Validation.countDaysInclusive(picker.dragPreviewStart, picker.dragPreviewEnd);
         } else {
             // For block mode, count total days
-            const msPerDay = 1000 * 60 * 60 * 24;
-            const timeDiff = picker.dragPreviewEnd.getTime() - picker.dragPreviewStart.getTime();
-            days = Math.floor(timeDiff / msPerDay) + 1;
+            days = Validation.countDaysInclusive(picker.dragPreviewStart, picker.dragPreviewEnd);
         }
 
         const nights = days > 0 ? days - 1 : 0;

@@ -91,6 +91,9 @@
     "publish:dry": "npm run build && npm publish --dry-run",
     "clean": "rimraf dist dist-examples --glob \"*.tgz\"",
     "clean:dist": "rimraf dist",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:e2e": "playwright test --project=chromium",
     "test:e2e:all": "playwright test --workers=4",
     "test:e2e:ui": "playwright test --ui",
@@ -134,7 +137,8 @@
     "custom-element-vs-code-integration": "^1.5.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3",
-    "vite": "^7.3.7"
+    "vite": "^7.3.7",
+    "vitest": "^3.2.7"
   },
   "dependencies": {
     "@keenmate/web-components-core": "^1.0.0-rc25"
