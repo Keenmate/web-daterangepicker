@@ -358,7 +358,7 @@ function onSessionDismiss(picker: any, reason: ModalDismissReason) {
 }
 
 /** End the session; focus goes back to the input only when it had it at open (see startCalendarSession). */
-function endCalendarSession(picker: any) {
+function completeCalendarSession(picker: any) {
     picker.modalSession?.end({ shouldReturnFocus: false });
     picker.modalSession = null;
     if (picker.modalRestoreFocus && picker.input?.isConnected && !picker.input.disabled) {
@@ -381,7 +381,7 @@ function exitModal(picker: any) {
         picker.modalBackdrop.classList.remove('drp__backdrop--visible');
     }
     picker.calendar.classList.remove('drp__picker--modal');
-    endCalendarSession(picker);
+    completeCalendarSession(picker);
 }
 
 /**
@@ -427,7 +427,7 @@ function exitFullscreen(picker: any) {
         picker.fullscreenHeader.remove();
         picker.fullscreenHeader = null;
     }
-    endCalendarSession(picker);
+    completeCalendarSession(picker);
 }
 
 /**

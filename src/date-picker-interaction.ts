@@ -820,16 +820,16 @@ export function updateCalendarFromInput(picker: any) {
             const beforeStart: Date | null = picker._selectedStartDate;
             const beforeEnd: Date | null = picker._selectedEndDate;
             const beforeRanges = picker._selectedRanges;
-            const startComplete = parseAndUpdateSingleDate(picker, startValue, 'start');
-            let endComplete = false;
+            const isStartComplete = parseAndUpdateSingleDate(picker, startValue, 'start');
+            let isEndComplete = false;
             if (endValue) {
-                endComplete = parseAndUpdateSingleDate(picker, endValue, 'end');
+                isEndComplete = parseAndUpdateSingleDate(picker, endValue, 'end');
             } else {
                 picker._selectedEndDate = null;
             }
             // Both endpoints fully typed → run the validation gate (callback +
             // adjustedRanges), matching the click / drag commit paths.
-            if (startComplete && endComplete && picker._selectedStartDate && picker._selectedEndDate) {
+            if (isStartComplete && isEndComplete && picker._selectedStartDate && picker._selectedEndDate) {
                 // The text re-parsed to the range already selected (opening the calendar
                 // syncs from the input, a digit past the mask) — no new pick: keep its
                 // committed result (multi-range / split) and fire nothing, like the single path.
