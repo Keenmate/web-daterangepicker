@@ -218,7 +218,7 @@ function moveFocusToDate(picker, target: Date): boolean { ... }
 Repeated three times in `selection.ts` (selectDay, selectToday, clearSelection). Small but easy. A `commitSelection(picker)` helper centralizes it and gives a single hook for adding (e.g.) a debounced `change` event later. (This is also the natural seat for the per-item callbacks if those ever need to fire on bulk operations — c.f. multiselect's §2.7.)
 
 ### 2.6 Mask application: single vs range (~15 lines)
-`src/date-picker-interaction.ts:546-580` and `:582-615`. `applyRangeMask` calls `applyMask` twice and concatenates with " to ". Functional but tightly coupled. A single `applyMask(value, { isRange })` would inline the separator logic. Lowest leverage in this list.
+`src/date-picker-interaction.ts:546-580` and `:582-615`. `computeMaskedRangeValue` calls `computeMaskedValue` twice and concatenates with " to ". Functional but tightly coupled. A single `computeMaskedValue(value, { isRange })` would inline the separator logic. Lowest leverage in this list.
 
 ### 2.7 Tooltip implementations — ✅ DONE (Phase 3, scoped down)
 The codebase has at least the action-button tooltip path (`createActionButtonTooltip` in `date-picker.ts`) and tooltip rendering tied to `dayTooltipCallback` / `badgeTooltipCallback` (in `date-picker-rendering.ts`). They share the same scaffolding — Floating UI position, hover-delay timers, cleanup map keyed by ID — but are written separately. Same dedup opportunity multiselect had (its §2.5). Worth extracting to a single `Tooltip` class once 1.1 is fixed; the leak fix and the consolidation should land together.

@@ -177,7 +177,7 @@ function moveFocusToDate(picker: any, target: Date): void {
  * Returns the payload for onChange / pendingSelection (a DateRange[] for a
  * multi-range result, else a single {start,end}).
  */
-export function applyValidatedRangeSelection(
+export function setValidatedRangeSelection(
     picker: any,
     validation: { adjustedRanges?: DateRange[]; adjustedStart?: Date; adjustedEnd?: Date },
     startDate: Date,
@@ -461,7 +461,7 @@ export async function selectDay(picker: any, dayElement: HTMLElement) {
 
             // Apply validated/adjusted dates (multi-range aware; shared with the
             // drag and typed-input commit paths so they can't drift).
-            const selection = applyValidatedRangeSelection(picker, validation, startDate, endDate);
+            const selection = setValidatedRangeSelection(picker, validation, startDate, endDate);
 
             // Clear any previous message on successful selection (if no adjustment message)
             if (!validation.message) {
@@ -782,7 +782,7 @@ export function commitWheelScroll(picker: any, col: HTMLElement, listKey: string
  * commit. The commit clamps to the field's range and snaps minutes/seconds to
  * `timeStep` before routing through selectHour / selectMinute / selectSecond.
  */
-export function beginCompactEdit(picker: any, el: HTMLElement) {
+export function startCompactEdit(picker: any, el: HTMLElement) {
     const field = el.dataset.compactField as 'hours' | 'minutes' | 'seconds' | undefined;
     if (!field) return;
     if (el.isContentEditable) return;

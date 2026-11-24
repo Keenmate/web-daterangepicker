@@ -442,7 +442,7 @@ class DateRangePickerEngine {
         }
 
         // Initialize internationalization (also resolves the shown date mask → formatInfo)
-        this.applyLocale();
+        this.updateLocale();
         drpLogger.debug('disabledDatesHandling:', this.options.disabledDatesHandling);
         drpLogger.debug('Format info:', this.formatInfo);
 
@@ -614,7 +614,7 @@ class DateRangePickerEngine {
      * render): a newly open selector activates (its trigger — the month-year header — sits in the
      * calendar, so a floating calendar is its parent), a closed one deactivates.
      */
-    syncSelectorOverlays() {
+    reconcileSelectorOverlays() {
         const keys: (number | 'unified')[] = this.rollingSelectorOpenByColumn.map((_, i) => i);
         keys.push('unified');
         for (const key of keys) {
@@ -711,7 +711,7 @@ class DateRangePickerEngine {
      * Returns `true` when the effective date mask changed (not on the first call) — the
      * caller rewrites the input text in the new form.
      */
-    private applyLocale(): boolean {
+    private updateLocale(): boolean {
         const weekStartDay = this.options.weekStartDay;
         const settings = resolveLocaleSettings(
             {
@@ -748,9 +748,9 @@ class DateRangePickerEngine {
      * need a rebuild — the caller rebuilds, carrying the selection (same as a `labels` change).
      */
     refreshLocale(): boolean {
-        const isMaskChanged = this.applyLocale();
+        const isMaskChanged = this.updateLocale();
         if (this.options.pickerMode !== 'date') return false;
-        if (isMaskChanged) this.syncInputFromSelection();
+        if (isMaskChanged) this.reconcileInputFromSelection();
         this.renderCalendar();
         this.updateSummary();
         this.calendar.querySelector('.drp__message-close')?.setAttribute('aria-label', this.labels.text('ariaLabels.close'));
@@ -816,7 +816,7 @@ class DateRangePickerEngine {
         // The shown date mask follows the locale when `dateFormatMask` is unset; a new
         // effective mask rewrites the input text in the new form.
         if (has('locale') || has('monthNames') || has('weekdayNames') || has('weekStartDay') || has('dateFormatMask')) {
-            if (this.applyLocale()) this.syncInputFromSelection();
+            if (this.updateLocale()) this.reconcileInputFromSelection();
         }
         if (has('minDate') || has('maxDate') || has('disabledDates') || has('specialDates') || has('dateMember')) {
             this.initializeDateRestrictions();
@@ -1636,8 +1636,8 @@ class DateRangePickerEngine {
         this.rollingSelectorOpenByColumn = new Array(this.options.visibleMonthCount).fill(false);
 
         // Re-apply any active lock to the freshly built DOM (classes + input.readOnly).
-        Lock.syncLockUI(this);
-        this.syncDisabledUI();
+        Lock.reconcileLockUI(this);
+        this.reconcileDisabledUI();
     }
 
     attachInputListeners() {
@@ -1721,7 +1721,7 @@ class DateRangePickerEngine {
             const target = e.target as HTMLElement;
             if (target && target.matches && target.matches('[data-compact-field]')) {
                 if (!target.isContentEditable) {
-                    this.beginCompactEdit(target);
+                    this.startCompactEdit(target);
                 }
             }
         });
@@ -1841,7 +1841,7 @@ class DateRangePickerEngine {
             // wrappers that ultimately call selectHour / selectMinute / selectSecond.
             else if (target.closest('[data-compact-field]')) {
                 const el = target.closest('[data-compact-field]') as HTMLElement;
-                this.beginCompactEdit(el);
+                this.startCompactEdit(el);
             }
             else if (target.closest('[data-compact-ampm]')) {
                 const el = target.closest('[data-compact-ampm]') as HTMLElement;
@@ -1893,7 +1893,7 @@ class DateRangePickerEngine {
                 }
             }
             // A click elsewhere closes an open year / month selector through core's outside click
-            // (syncSelectorOverlays).
+            // (reconcileSelectorOverlays).
         });
 
         // Hover preview: paint the would-be range while the user is in the
@@ -1979,7 +1979,7 @@ class DateRangePickerEngine {
                 // No enabled day of this month in the arrow's direction: drp's moveFocus continues
                 // into the neighbour month (next / previous enabled day, the same weekday for Up / Down).
                 boundaryCallback: (_key, cell, e) => {
-                    this.syncFocusFromOtherMonth(grid, cell);
+                    this.reconcileFocusFromOtherMonth(grid, cell);
                     this.handleCalendarKeydown(e);
                     return true;
                 },
@@ -2002,7 +2002,7 @@ class DateRangePickerEngine {
      * The month edge reached from a focused neighbour-month cell: moveFocus steps from the keyboard
      * position, so it becomes the month's first day (a leading cell) / last day (a trailing one).
      */
-    private syncFocusFromOtherMonth(grid: HTMLElement, cell: HTMLElement) {
+    private reconcileFocusFromOtherMonth(grid: HTMLElement, cell: HTMLElement) {
         if (!cell.classList.contains('drp__day--other-month')) return;
         const cells = Array.from(grid.querySelectorAll('.drp__day'));
         const days = cells.filter(d => !d.classList.contains('drp__day--other-month'));
@@ -2641,7 +2641,7 @@ class DateRangePickerEngine {
             }
         }
         Selection.storeCommittedSnapshot(this);
-        this.syncInputFromSelection();
+        this.reconcileInputFromSelection();
         this.summaryOverride = null;
         // Silent, month-change included: callers are the app's own `value` assignment and
         // a form reset (a native form.reset() fires nothing). The render re-baselines.
@@ -2854,7 +2854,7 @@ class DateRangePickerEngine {
      * holds. Used after a selection/picker-mode flip, where the old text was
      * formatted for the old mode.
      */
-    syncInputFromSelection(): void {
+    reconcileInputFromSelection(): void {
         if (!this.input) return;
         const pm = this.options.pickerMode;
         const sm = this.options.selectionMode;
@@ -3101,7 +3101,7 @@ class DateRangePickerEngine {
         if (isOpen) {
             // Re-opens the calendar popover too (anchor, overlay tree — dismissing the
             // group's other overlays — and the scroll / resize close).
-            UI.applyPresentationChrome(this);
+            UI.enterPresentationChrome(this);
             (this as any).modalRestoreFocus = this.suspendedModalRestoreFocus;
         }
         this.suspendedModalRestoreFocus = false;
@@ -3302,10 +3302,10 @@ class DateRangePickerEngine {
     setDisabled(isDisabled: boolean): void {
         this._isDisabled = isDisabled;
         if (isDisabled && this.isOpen) this.close();
-        this.syncDisabledUI();
+        this.reconcileDisabledUI();
     }
     /** Re-apply the disabled state to the (possibly re-rendered) calendar root. */
-    syncDisabledUI(): void {
+    reconcileDisabledUI(): void {
         const root = this.calendar as HTMLElement | undefined;
         if (!root) return;
         root.inert = this._isDisabled;
@@ -3320,7 +3320,7 @@ class DateRangePickerEngine {
     // Rendering methods - wrappers for pure functions
     renderCalendar() {
         const result = Rendering.renderCalendar(this);
-        this.notifyMonthChange();
+        this.dispatchMonthChange();
         return result;
     }
 
@@ -3335,7 +3335,7 @@ class DateRangePickerEngine {
      * programmatic) ends in a render, so detecting it here can't miss one. The
      * first render only records the baseline.
      */
-    private notifyMonthChange(): void {
+    private dispatchMonthChange(): void {
         const months: Date[] = this._monthDates ?? [];
         const key = months.map((m) => `${m.getFullYear()}-${m.getMonth()}`).join('|');
         const previous = this.lastVisibleMonthsKey;
@@ -3436,14 +3436,14 @@ class DateRangePickerEngine {
     setClockStep(step: 'hours' | 'minutes') { return Selection.setClockStep(this, step); }
     scrollWheelItemToCenter(el: HTMLElement) { return Selection.scrollWheelItemToCenter(this, el); }
     commitWheelScroll(col: HTMLElement, listKey: string) { return Selection.commitWheelScroll(this, col, listKey); }
-    beginCompactEdit(el: HTMLElement) { return Selection.beginCompactEdit(this, el); }
+    startCompactEdit(el: HTMLElement) { return Selection.startCompactEdit(this, el); }
     selectNow() { return Selection.selectNow(this); }
 
     // Interaction methods - wrappers for pure functions
     findNearestEnabledDate(targetDate: Date, preferredDirection: string = 'forward') { return Interaction.findNearestEnabledDate(this, targetDate, preferredDirection); }
     handleInputMask(event: Event) { return Interaction.handleInputMask(this, event); }
-    applyMask(value: string) { return Interaction.applyMask(this, value); }
-    applyRangeMask(value: string) { return Interaction.applyRangeMask(this, value); }
+    computeMaskedValue(value: string) { return Interaction.computeMaskedValue(this, value); }
+    computeMaskedRangeValue(value: string) { return Interaction.computeMaskedRangeValue(this, value); }
     handleKeydown(event: KeyboardEvent) { return Interaction.handleKeydown(this, event); }
     handlePaste(event: ClipboardEvent) { return Interaction.handlePaste(this, event); }
     updateCalendarFromInput() { return Interaction.updateCalendarFromInput(this); }

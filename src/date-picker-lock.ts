@@ -27,13 +27,13 @@ function normalize(aspects?: LockAspect | LockAspect[]): LockAspect[] {
 /** Freeze the given aspect(s), or every aspect when called with no argument. */
 export function lock(picker: any, aspects?: LockAspect | LockAspect[]): void {
     for (const a of normalize(aspects)) picker._lockedAspects.add(a);
-    syncLockUI(picker);
+    reconcileLockUI(picker);
 }
 
 /** Release the given aspect(s), or every aspect when called with no argument. */
 export function unlock(picker: any, aspects?: LockAspect | LockAspect[]): void {
     for (const a of normalize(aspects)) picker._lockedAspects.delete(a);
-    syncLockUI(picker);
+    reconcileLockUI(picker);
 }
 
 /** True when `aspect` is currently locked. */
@@ -48,7 +48,7 @@ export function isAspectLocked(picker: any, aspect: LockAspect): boolean {
  * is frozen (so typing / paste can't mutate the value). Idempotent — safe to re-run
  * after a re-render.
  */
-export function syncLockUI(picker: any): void {
+export function reconcileLockUI(picker: any): void {
     const root = picker.calendar as HTMLElement | undefined;
     if (root && root.classList) {
         for (const a of ALL_LOCK_ASPECTS) {

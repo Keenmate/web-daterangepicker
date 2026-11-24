@@ -22,7 +22,7 @@ whether to fix the picker, change the docs, or accept the behavior.
    verifies the suppression.
 
 3. **~~Range-typing separator differs from committed-range separator.~~** ✅ FIXED
-   `applyRangeMask` now auto-injects `" - "` (matching the committed form)
+   `computeMaskedRangeValue` now auto-injects `" - "` (matching the committed form)
    instead of `" to "`. The keydown whitelist allows `-` and space in
    range mode; the parser splits on `" - "` first and falls back to a
    position-based split (anything past `maxLength` is the end side, with
@@ -236,7 +236,7 @@ component is fixed the test starts passing and Playwright flags it — drop the 
     partial (the committed time survives).
 
 19. **~~DRP-7 — `display-time-format-mask` is accepted but never used.~~** ✅ FIXED
-    Where: `src/web-component.ts` `#applyPlaceholderTo()` only reads `displayFormatMask` /
+    Where: `src/web-component.ts` `#writePlaceholderTo()` only reads `displayFormatMask` /
     `dateFormatMask`; `displayTimeFormatMask` is passed to the engine and stored, nothing
     reads it. Symptom: `<web-daterangepicker picker-mode="time" display-time-format-mask="hh:mm">`
     shows no placeholder hint. Suggested fix: in time mode use it as the hint; in datetime

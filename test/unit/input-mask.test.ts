@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyMask, applyRangeMask } from '../../src/date-picker-interaction';
+import { computeMaskedValue, computeMaskedRangeValue } from '../../src/date-picker-interaction';
 import { parseMonthRange, parseYearRange } from '../../src/date-picker-rendering';
 import { isSameOrAfterMonth } from '../../src/date-picker-navigation';
 import { parseDateFormat } from '../../src/date-format';
@@ -7,53 +7,53 @@ import { parseDateFormat } from '../../src/date-format';
 // The mask helpers read only `picker.formatInfo`.
 const picker = (mask: string) => ({ formatInfo: parseDateFormat(mask) });
 
-describe('applyMask (progressive typing)', () => {
+describe('computeMaskedValue (progressive typing)', () => {
   const iso = picker('YYYY-MM-DD');
 
   it('inserts the literal after each complete segment', () => {
-    expect(applyMask(iso, '2')).toBe('2');
-    expect(applyMask(iso, '2026')).toBe('2026-');
-    expect(applyMask(iso, '20260')).toBe('2026-0');
-    expect(applyMask(iso, '202606')).toBe('2026-06-');
-    expect(applyMask(iso, '20260610')).toBe('2026-06-10');
+    expect(computeMaskedValue(iso, '2')).toBe('2');
+    expect(computeMaskedValue(iso, '2026')).toBe('2026-');
+    expect(computeMaskedValue(iso, '20260')).toBe('2026-0');
+    expect(computeMaskedValue(iso, '202606')).toBe('2026-06-');
+    expect(computeMaskedValue(iso, '20260610')).toBe('2026-06-10');
   });
 
   it('ignores typed non-digits and caps at maxLength', () => {
-    expect(applyMask(iso, '2026-06-10')).toBe('2026-06-10');
-    expect(applyMask(iso, '2026061099')).toBe('2026-06-10');
+    expect(computeMaskedValue(iso, '2026-06-10')).toBe('2026-06-10');
+    expect(computeMaskedValue(iso, '2026061099')).toBe('2026-06-10');
   });
 
   it('follows the mask order and its multi-character literals', () => {
-    expect(applyMask(picker('DD.MM.YYYY'), '1006')).toBe('10.06.');
-    expect(applyMask(picker('DD. MM. YYYY'), '17')).toBe('17. ');
-    expect(applyMask(picker('DD. MM. YYYY'), '17112026')).toBe('17. 11. 2026');
+    expect(computeMaskedValue(picker('DD.MM.YYYY'), '1006')).toBe('10.06.');
+    expect(computeMaskedValue(picker('DD. MM. YYYY'), '17')).toBe('17. ');
+    expect(computeMaskedValue(picker('DD. MM. YYYY'), '17112026')).toBe('17. 11. 2026');
   });
 
   it('writes the leading literal and the trailing one when complete', () => {
-    expect(applyMask(picker('YYYY. MM. DD.'), '20261117')).toBe('2026. 11. 17.');
-    expect(applyMask(picker('YYYY. MM. DD.'), '2026111')).toBe('2026. 11. 1');
+    expect(computeMaskedValue(picker('YYYY. MM. DD.'), '20261117')).toBe('2026. 11. 17.');
+    expect(computeMaskedValue(picker('YYYY. MM. DD.'), '2026111')).toBe('2026. 11. 1');
   });
 
   it('empty stays empty', () => {
-    expect(applyMask(iso, '')).toBe('');
+    expect(computeMaskedValue(iso, '')).toBe('');
   });
 });
 
-describe('applyRangeMask', () => {
+describe('computeMaskedRangeValue', () => {
   const iso = picker('YYYY-MM-DD');
 
   it('adds " - " once the start date is complete', () => {
-    expect(applyRangeMask(iso, '2026061')).toBe('2026-06-1');
-    expect(applyRangeMask(iso, '20260610')).toBe('2026-06-10 - ');
+    expect(computeMaskedRangeValue(iso, '2026061')).toBe('2026-06-1');
+    expect(computeMaskedRangeValue(iso, '20260610')).toBe('2026-06-10 - ');
   });
 
   it('masks the end side after an explicit separator', () => {
-    expect(applyRangeMask(iso, '2026-06-10 - 202606')).toBe('2026-06-10 - 2026-06-');
-    expect(applyRangeMask(iso, '2026-06-10 - 20260614')).toBe('2026-06-10 - 2026-06-14');
+    expect(computeMaskedRangeValue(iso, '2026-06-10 - 202606')).toBe('2026-06-10 - 2026-06-');
+    expect(computeMaskedRangeValue(iso, '2026-06-10 - 20260614')).toBe('2026-06-10 - 2026-06-14');
   });
 
   it('splits a pasted run without spaces at maxLength', () => {
-    expect(applyRangeMask(iso, '2026-06-10-2026-06-15')).toBe('2026-06-10 - 2026-06-15');
+    expect(computeMaskedRangeValue(iso, '2026-06-10-2026-06-15')).toBe('2026-06-10 - 2026-06-15');
   });
 });
 

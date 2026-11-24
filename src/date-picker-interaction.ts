@@ -5,7 +5,7 @@
  * and input masking.
  */
 
-import { validateRangeAsync, commitInputValue, applyValidatedRangeSelection, formatRangeInput, callBeforeSelectCallback, clearByUser } from './date-picker-selection';
+import { validateRangeAsync, commitInputValue, setValidatedRangeSelection, formatRangeInput, callBeforeSelectCallback, clearByUser } from './date-picker-selection';
 import { hideMessage } from './date-picker-ui';
 import { dragLogger, interactionLogger } from './logger';
 import log from './logger';
@@ -313,7 +313,7 @@ export async function onDragEnd(picker: any) {
         } else {
             // Apply validated/adjusted dates (multi-range aware; shared with the
             // click and typed-input commit paths so drag snaps identically).
-            const selection = applyValidatedRangeSelection(picker, validation, startDate, endDate);
+            const selection = setValidatedRangeSelection(picker, validation, startDate, endDate);
             validationSucceeded = true;
 
             // Clear any previous error message on successful selection (if no adjustment message)
@@ -488,7 +488,7 @@ export function handleInputMask(picker: any, event: Event) {
         const cleanValue = currentValue.replace(new RegExp(`[^0-9${literalChars}\\- ]`, 'g'), '');
 
         // Apply range mask
-        const formatted = applyRangeMask(picker, cleanValue);
+        const formatted = computeMaskedRangeValue(picker, cleanValue);
 
         if (formatted !== currentValue) {
             input.value = formatted;
@@ -519,7 +519,7 @@ export function handleInputMask(picker: any, event: Event) {
     } else {
         // Single date mode
         const cleanValue = currentValue.replace(new RegExp(`[^0-9${literalChars}]`, 'g'), '');
-        const formatted = applyMask(picker, cleanValue);
+        const formatted = computeMaskedValue(picker, cleanValue);
 
         if (formatted !== currentValue) {
             input.value = formatted;
@@ -549,7 +549,7 @@ export function handleInputMask(picker: any, event: Event) {
     updateCalendarFromInput(picker);
 }
 
-export function applyMask(picker: any, value: string): string {
+export function computeMaskedValue(picker: any, value: string): string {
     const { literals, parts, maxLength } = picker.formatInfo;
 
     // Remove the literal text for clean processing
@@ -586,7 +586,7 @@ export function applyMask(picker: any, value: string): string {
     return result.substring(0, maxLength);
 }
 
-export function applyRangeMask(picker: any, value: string): string {
+export function computeMaskedRangeValue(picker: any, value: string): string {
     const { maxLength } = picker.formatInfo;
 
     // Canonical range separator is " - " (mirrors the committed value form).
@@ -611,13 +611,13 @@ export function applyRangeMask(picker: any, value: string): string {
         startPart = value;
     }
 
-    const formattedStart = applyMask(picker, startPart);
+    const formattedStart = computeMaskedValue(picker, startPart);
 
     if (formattedStart.length === maxLength) {
         if (!hasExplicitSep) {
             return formattedStart + RANGE_SEP;
         }
-        const formattedEnd = applyMask(picker, endPart);
+        const formattedEnd = computeMaskedValue(picker, endPart);
         return formattedStart + RANGE_SEP + formattedEnd;
     }
     return formattedStart;
@@ -754,7 +754,7 @@ export function handlePaste(picker: any, event: ClipboardEvent) {
     const cleaned = pastedText.replace(new RegExp(`[^0-9${escapeRegExp(maskLiteralChars(picker))}]`, 'g'), '');
 
     // Apply mask to cleaned content
-    const formatted = applyMask(picker, cleaned);
+    const formatted = computeMaskedValue(picker, cleaned);
 
     // Insert formatted text at cursor position
     const input = event.target as HTMLInputElement;
@@ -763,7 +763,7 @@ export function handlePaste(picker: any, event: ClipboardEvent) {
     const currentValue = input.value;
 
     const newValue = currentValue.substring(0, start) + formatted + currentValue.substring(end);
-    input.value = applyMask(picker, newValue);
+    input.value = computeMaskedValue(picker, newValue);
 
     // Set cursor after pasted content
     const newCursorPos = start + formatted.length;
@@ -1018,7 +1018,7 @@ async function commitTypedRange(picker: any) {
             return;
         }
 
-        const selection = applyValidatedRangeSelection(picker, validation, startDate, endDate);
+        const selection = setValidatedRangeSelection(picker, validation, startDate, endDate);
         if (!validation.message) hideMessage(picker);
         commitInputValue(picker, formatRangeInput(picker));
 

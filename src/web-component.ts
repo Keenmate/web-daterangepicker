@@ -345,17 +345,17 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // Element-level (non-picker) side effects.
     // The `value` attribute changed (e.g. a server-rendered patch): it becomes the
     // current selection, like a native input that hasn't been edited.
-    if ('defaultValue' in partial) this.#applyValueText((partial.defaultValue as string | null) ?? '', 'value attribute');
+    if ('defaultValue' in partial) this.#setSelectionFromValueText((partial.defaultValue as string | null) ?? '', 'value attribute');
     // Form wiring changes (name / serialization) re-render the hidden input(s).
     if ('name' in partial || 'valueFormat' in partial || 'valueFormatMask' in partial
       || 'valueSeparator' in partial || 'getValueFormatCallback' in partial) {
       this.#refreshFormValue();
     }
-    else if (isLabelsChange && this.#hasFormatError) this.#applyFormatError();
-    if ('placeholder' in partial) this.#applyPlaceholder();
+    else if (isLabelsChange && this.#hasFormatError) this.#reconcileFormatError();
+    if ('placeholder' in partial) this.#writePlaceholder();
     if (isLabelsChange) this.#inputClearButton?.setAttribute('aria-label', this.#labels.text('ariaLabels.clear'));
     if ('isReadonly' in partial && this.#picker) { partial.isReadonly ? this.#picker.lock(READONLY_ASPECTS) : this.#picker.unlock(READONLY_ASPECTS); this.#updateInputClear(); }
-    if ('inputSize' in partial) this.#applyInputSizeStyles();
+    if ('inputSize' in partial) this.#reconcileInputSizeStyles();
     // The masks feed the derived placeholder hint (no-op for an explicit placeholder).
     // (`locale` too: an unset date mask follows it.)
     const isPlaceholderChange = 'placeholderFormatMask' in partial || 'placeholderTimeFormatMask' in partial
@@ -364,7 +364,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     if ('presentation' in partial && this.#picker) {
       // Presentation policy changed at runtime — the environment observable won't
       // re-fire on its own, so re-resolve against the current environment now.
-      this.#applyPresentation(getEnvironment());
+      this.#reconcilePresentation(getEnvironment());
     }
 
     // Everything else goes to the live picker as an in-place patch. Forward `null`
@@ -381,7 +381,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       if (!this.#picker.updateOptions(pickerPartial as Partial<DatePickerOptions>)) this.#rebuildPreservingSelection();
     }
     // After the picker patch: the hint reads the picker's effective date mask.
-    if (isPlaceholderChange) this.#applyPlaceholder();
+    if (isPlaceholderChange) this.#writePlaceholder();
   }
 
   /**
@@ -440,7 +440,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    */
   formResetCallback(): void {
     this.flush();
-    this.#applyValueText(this.getAttribute('value') ?? '', 'value attribute');
+    this.#setSelectionFromValueText(this.getAttribute('value') ?? '', 'value attribute');
   }
 
   // ── picker lifecycle ──────────────────────────────────────────────────────
@@ -473,7 +473,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     }
     this.#ensureInput();
     // A reused input keeps its old hint — re-derive it for the (possibly new) modes.
-    this.#applyPlaceholder();
+    this.#writePlaceholder();
 
     const options = this.#assembleConfig();
     this.#picker = new DateRangePickerEngine(this.#inputElement ?? null, options as DatePickerOptions);
@@ -488,23 +488,23 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // restores the selection snapshot instead.
     if (!isRebuild) {
       const initial = this.config.defaultValue as string | null;
-      if (initial) this.#applyValueText(initial, 'value attribute');
+      if (initial) this.#setSelectionFromValueText(initial, 'value attribute');
       if (this.#pendingValue !== null) {
         const pending = this.#pendingValue;
         this.#pendingValue = null;
-        this.#applyValueText(pending, 'value property');
+        this.#setSelectionFromValueText(pending, 'value property');
       }
     }
 
     // Seed the hidden form input(s) (also clears stale inputs from a prior mode).
     this.#refreshFormValue();
 
-    this.#applyCustomStyles();
+    this.#reconcileCustomStyles();
     // Resolve the device presentation for the freshly built picker. A rebuild via
     // reinit (e.g. positioning-mode change) does NOT re-fire environmentChanged, so
     // seed it here; on a plain connect this is a harmless no-op before the hook's
     // own immediate fire.
-    this.#applyPresentation(getEnvironment());
+    this.#reconcilePresentation(getEnvironment());
     // `ready` (event, attribute, :state(ready), whenReady) is core's — announced
     // once after the first build goes live.
   }
@@ -524,7 +524,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     } else {
       input.type = 'text';
       input.classList.add('drp__input');
-      this.#applyPlaceholderTo(input);
+      this.#writePlaceholderTo(input);
     }
     if (this.isEffectivelyDisabled && !isHidden) input.disabled = true;
 
@@ -557,7 +557,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
     this.#inputElement = input;
     if (!isHidden) {
-      this.#applyInputSizeStyles();
+      this.#reconcileInputSizeStyles();
       this.#updateInputClear();
     }
   }
@@ -640,7 +640,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       detail.formattedValue = this.#inputElement.value || detail.formattedValue;
     }
 
-    this.#emitChange(detail);
+    this.#dispatchChange(detail);
   }
 
   /** A `change` detail for a clear (`buildSelectDetail(null)`): no date fields, empty text. */
@@ -655,7 +655,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * the control submit under its `name` (see #updateFormValue) — carrying a stable
    * value-format value (default ISO), not the display-formatted string in `detail.formattedValue`.
    */
-  #emitChange(detail: ChangeEventDetail): void {
+  #dispatchChange(detail: ChangeEventDetail): void {
     this.#updateFormValue(detail);
     this.emit('change', detail);
   }
@@ -738,7 +738,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       this.#renderHiddenInputs('text', this.#formValues);
       this.#hasFormatError = true;
       this.#formatError = error;
-      this.#applyFormatError();
+      this.#reconcileFormatError();
       this.emit('value-format-error', { error, value: selection } as ValueFormatErrorEventDetail);
       this.refreshRequired();
       return;
@@ -755,7 +755,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   }
 
   /** Mark the host invalid for the last format error (message = the `errors.valueFormat` label). */
-  #applyFormatError(): void {
+  #reconcileFormatError(): void {
     const anchor = this.#inputElement && this.#inputElement.type !== 'hidden' ? this.#inputElement : undefined;
     this.setFormatError(this.#formatError, this.#labels.text('errors.valueFormat'), anchor);
   }
@@ -802,7 +802,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * selection empty — the attribute itself is never rewritten (`value` is not a
    * reflected input).
    */
-  #applyValueText(value: string | readonly string[], source: 'value attribute' | 'value property'): void {
+  #setSelectionFromValueText(value: string | readonly string[], source: 'value attribute' | 'value property'): void {
     const picker = this.#picker;
     if (!picker) return;
     // The value-format form (mask + separator, json, array) first; then the raw
@@ -837,11 +837,11 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
 
   // ── element-level styling helpers ─────────────────────────────────────────
 
-  #applyPlaceholder(): void {
-    if (this.#inputElement && this.#inputElement.type !== 'hidden') this.#applyPlaceholderTo(this.#inputElement);
+  #writePlaceholder(): void {
+    if (this.#inputElement && this.#inputElement.type !== 'hidden') this.#writePlaceholderTo(this.#inputElement);
   }
 
-  #applyPlaceholderTo(input: HTMLInputElement): void {
+  #writePlaceholderTo(input: HTMLInputElement): void {
     // Explicit placeholder wins verbatim (including an intentional empty string).
     const explicit = this.config.placeholder as string | null;
     if (explicit != null) { input.placeholder = explicit; return; }
@@ -869,7 +869,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
       ?? resolveLocaleSettings({ locale: (this.config.locale as string | null) ?? undefined, dateFormat: (this.config.dateFormatMask as string | null) || undefined }).dateFormat;
   }
 
-  #applyInputSizeStyles(): void {
+  #reconcileInputSizeStyles(): void {
     const input = this.#inputElement;
     if (!input) return;
     input.classList.remove('drp__input--xs', 'drp__input--sm', 'drp__input--lg', 'drp__input--xl');
@@ -883,7 +883,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * then the instance layer (`custom-styles` / `getCustomStylesCallback`, the callback
    * wins). Created on the first build (writes both layers), refreshed per build.
    */
-  #applyCustomStyles(): void {
+  #reconcileCustomStyles(): void {
     if (this.#customStyles) return this.#customStyles.refresh();
     this.#customStyles = createCustomStyles<PickerContext>(this, this.#shadow, { // writes both layers now
       cssClass: 'drp-custom-styles',
@@ -922,9 +922,9 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
     // the rebuild a `labels` change takes (selection carried).
     if (!this.#picker.refreshLocale()) this.#rebuildPreservingSelection();
     // An unset date mask follows the locale — the derived hint too.
-    this.#applyPlaceholder();
+    this.#writePlaceholder();
     this.#inputClearButton?.setAttribute('aria-label', this.#labels.text('ariaLabels.clear'));
-    if (this.#hasFormatError) this.#applyFormatError();
+    if (this.#hasFormatError) this.#reconcileFormatError();
   }
 
   // ── page-wide icon hook (core `iconsChanged`, SPEC §12.33) ────────────────
@@ -949,7 +949,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * unsubscribes on disconnect.
    */
   protected override environmentChanged(env: EnvironmentSnapshot): void {
-    this.#applyPresentation(env);
+    this.#reconcilePresentation(env);
   }
 
   /**
@@ -965,7 +965,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
    * A forced `presentation` (`floating`/`modal`/`fullscreen`) wins on any
    * device — e.g. `modal` everywhere, or previewing the phone sheet on a desktop.
    */
-  #applyPresentation(env: EnvironmentSnapshot): void {
+  #reconcilePresentation(env: EnvironmentSnapshot): void {
     if (!this.#picker) return;
     if ((this.config.positioningMode as string) !== 'floating') return;
     const mode = (this.config.presentation as Presentation | null) ?? 'auto';
@@ -1071,7 +1071,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
         p.selectedDates = oldDate ? [oldDate] : oldDates;
       }
     }
-    p.syncInputFromSelection();
+    p.reconcileInputFromSelection();
   }
 
   // ── imperative API (flush pending writes, then delegate to the picker) ─────
@@ -1164,7 +1164,7 @@ export class WebDaterangepickerElement extends BlissElement<DrpEvents, DateRange
   set value(val: string | readonly string[]) {
     this.flush();
     const v = val ?? '';
-    if (this.#picker) this.#applyValueText(v, 'value property');
+    if (this.#picker) this.#setSelectionFromValueText(v, 'value property');
     else this.#pendingValue = v;
   }
 

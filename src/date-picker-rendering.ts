@@ -107,7 +107,7 @@ export function renderCalendar(picker: any) {
     picker.refreshDayGrids?.(hadDayFocus);
 
     // Open / closed year-month selectors ↔ their core overlay entries (outside click, Escape).
-    picker.syncSelectorOverlays?.();
+    picker.reconcileSelectorOverlays?.();
 
     // Re-render action buttons to update dynamic properties (callbacks)
     if (picker.actionsContainer) {

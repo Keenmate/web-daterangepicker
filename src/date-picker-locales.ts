@@ -3,7 +3,7 @@
  *
  * UI labels (`labels`, English defaults; resolved through core `createLabels`). The locale itself, the week start and the
  * month / weekday names come from core `/locale` (instance `locale` → page-wide
- * `window.components.locale` → the browser language) — see `DatePicker#applyLocale`.
+ * `window.components.locale` → the browser language) — see `DatePicker#updateLocale`.
  */
 
 import type { DateRangePickerLabels } from './types';

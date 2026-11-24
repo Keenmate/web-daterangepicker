@@ -209,7 +209,7 @@ export function open(picker: any) {
     // full-screen overlay) and open the calendar's core popover: it joins the overlay
     // tree (dismissing every other overlay of the group — pickers, multiselects, …),
     // anchors the floating presentation and watches the scroll / resize close.
-    applyPresentationChrome(picker);
+    enterPresentationChrome(picker);
 
     picker.options.onOpen?.(picker.ctx({}));
 }
@@ -221,7 +221,7 @@ export function open(picker: any) {
  * the modal, BG6 / W11). Called by open(), by activate() (a moved, open picker) and by
  * setPresentation() when the environment flips while open.
  */
-export function applyPresentationChrome(picker: any) {
+export function enterPresentationChrome(picker: any) {
     if (picker.presentation === 'modal') enterModal(picker);
     else if (picker.presentation === 'fullscreen') enterFullscreen(picker);
     else if (!picker.calendarPopover) {
@@ -530,7 +530,7 @@ export function setPresentation(picker: any, next: 'floating' | 'modal' | 'fulls
     // One overlay entry per presentation: the floating popover or the modal session.
     teardownPresentationChrome(picker);
     picker.presentation = next;
-    applyPresentationChrome(picker);
+    enterPresentationChrome(picker);
     // Re-render so month/day sizing reflects the new presentation (e.g. the
     // full-screen scale-up), then reposition a floating anchor.
     picker.renderCalendar();
@@ -573,7 +573,7 @@ export function discardStaged(picker: any, { shouldRender = true }: { shouldRend
     // The text follows the committed selection — what commit() / the value setter
     // wrote. Not the text captured on open: a change staged while the calendar was
     // closed (✕, emptied / typed text) is already in it then.
-    picker.syncInputFromSelection();
+    picker.reconcileInputFromSelection();
     picker._previousInputValue = picker.input.value;
     // An open calendar (manual mode keeps it open on an outside click) shows the
     // committed selection again; close() renders on its own.

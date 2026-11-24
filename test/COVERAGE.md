@@ -404,7 +404,7 @@ exercised). **Spec** is the file under `test/unit/`; **Module** the source under
 | Date mask parsing (`parseFormat`): part order, multi-char / trailing literals, bidi marks, `maxLength` | ✓ | `date-format.test.ts` | `date-format.ts` |
 | Typed / value date text (`parseDateText`): mask order, ISO, real dates only, 2-digit years | ✓ | `date-format.test.ts` | `date-format.ts` |
 | Range text (`findDatePair`): any digit-free separator, mask literals around the pair | ✓ | `date-format.test.ts` | `date-format.ts` |
-| Progressive input mask (`applyMask` / `applyRangeMask`)       | ✓      | `input-mask.test.ts` | `date-picker-interaction.ts` |
+| Progressive input mask (`computeMaskedValue` / `computeMaskedRangeValue`)       | ✓      | `input-mask.test.ts` | `date-picker-interaction.ts` |
 | Rolling year / month ranges, `isSameOrAfterMonth`             | ✓      | `input-mask.test.ts`, `date-validation.test.ts` | `date-picker-rendering.ts`, `date-picker-validation.ts` |
 | `normalizeDate`, `formatDateKey`, min / max / weekday / date constraints | ✓ | `date-validation.test.ts` | `date-picker-validation.ts` |
 | Ranges over disabled days: enabled / disabled lists, `block` gap, `split` pieces | ✓ | `date-validation.test.ts` | `date-picker-validation.ts` |
