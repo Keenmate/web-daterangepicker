@@ -953,7 +953,7 @@ class DateRangePickerEngine {
                 buttonEl.setAttribute('aria-pressed', 'true');
             }
             // Icon before the label — core renderIcon (SPEC §12.33): markup (`<svg…>`) raw, a
-            // built-in name masked from `--base-icon-<name>` (`.drp__icon--<name>`), then the
+            // built-in name masked from `--base-icon-<name>` (core's glyph when unset; `.drp__icon--<name>`), then the
             // element's `renderIconCallback`, the page-wide one, an icon-font class list
             // (`<i class="drp__icon fa-solid …">`), anything else text.
             const iconHtml = renderIcon(resolved.icon, {
@@ -3032,7 +3032,7 @@ class DateRangePickerEngine {
         await runAction({
             detail,
             beforeActionCallback: this.options.beforeActionCallback,
-            emitAction: (d) => this.options.onAction?.(d),
+            dispatchAction: (d) => this.options.onAction?.(d),
             runBuiltIn: (d) => this.runBuiltInAction(d.action),
         });
     }

@@ -542,7 +542,7 @@ picker.addEventListener('action', (e) => {
 | `action` | `'today' \| 'now' \| 'clear' \| 'apply'` | Built-in behaviour; omit for a custom button |
 | `id` | `string` | Identifies a custom button (reported back as `detail.id`) |
 | `text` | `string` | Label (plain text) |
-| `icon` | `string` | Icon (core `renderIcon`), first match wins: `<svg…>` markup raw; a built-in name (`check`, `close`, `settings`, … — core `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>`; the element's `renderIconCallback`, then the page-wide `window.components.renderIconCallback`; ASCII class names (`fa-solid fa-star`) → `<i class="drp__icon fa-solid fa-star">` (an icon font); anything else text |
+| `icon` | `string` | Icon (core `renderIcon`), first match wins: `<svg…>` markup raw; a built-in name (`check`, `close`, `settings`, … — core `BUILT_IN_ICON_NAMES`) masked from `--base-icon-<name>`, core's own glyph when the page sets none; the element's `renderIconCallback`, then the page-wide `window.components.renderIconCallback`; ASCII class names (`fa-solid fa-star`) → `<i class="drp__icon fa-solid fa-star">` (an icon font); anything else text |
 | `tooltip` | `string` | Tooltip text |
 | `shortcut` | `string` | Key chord in the core `/actions` syntax (`'Mod+T'`, `'Shift+C'`, `'m'`; `Mod` = ⌘ on Apple, Ctrl elsewhere): shown as a `<kbd class="drp__button-shortcut">` keycap (core `formatShortcut`) and runs the button while the picker is open and keyboard-active. A plain key (no Ctrl / Alt / Meta) is skipped while typing in the input. Single chord only |
 | `cssClass` | `string` | Extra CSS classes |

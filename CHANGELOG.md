@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Changed — core 1.0.0-rc27 (2026-11-27)
+- `@keenmate/web-components-core` → `^1.0.0-rc27`: its internal verbs are renamed (`dispatch*` / `reconcile*`;
+  drp passes `runAction(…, { dispatchAction })`), and built-in action-button icon names (`check`, `close`, …) now
+  draw core's own glyph on a page without `base-css-variables` (a page `--base-icon-<name>` still wins). No
+  consumer-facing change.
+
 ### Changed — the phone full-screen sheet is modal on core's `.km-sheet` frame (2026-11-23)
 - **The full-screen sheet is a core modal session** (`startModalSession`, rulebook C-CA-19): the page behind is
   inert, Tab stays in the sheet, Escape / the phone Back gesture / the ✕ close it, the page scroll is locked, the
