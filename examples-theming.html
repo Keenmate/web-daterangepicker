@@ -878,7 +878,7 @@ web-daterangepicker.large-fonts {
 <div class="card">
   <div class="controls-header">
     <h2>TH14 · Typography Controls</h2>
-    <button class="btn-secondary" id="resetBtn">Reset All</button>
+    <button type="button" class="btn-secondary" id="resetBtn" data-kmwc-css-variables-reset>Reset All</button>
   </div>
 
   <!-- Font Link -->
@@ -887,9 +887,9 @@ web-daterangepicker.large-fonts {
     <div class="control-row">
       <div class="control-group">
         <label for="fontLink">Paste &lt;link&gt; tag or URL</label>
-        <input type="text" id="fontLink" class="font-link-input" placeholder="e.g., https://fonts.googleapis.com/css2?family=Lexend...">
+        <input type="text" id="fontLink" class="font-link-input" data-kmwc-font-link="fontFamily" placeholder="e.g., https://fonts.googleapis.com/css2?family=Lexend...">
       </div>
-      <button id="loadFontBtn" class="btn-outline">Load Font</button>
+      <button type="button" id="loadFontBtn" class="btn-outline" data-kmwc-font-link-load="fontLink">Load Font</button>
     </div>
   </div>
 
@@ -899,7 +899,7 @@ web-daterangepicker.large-fonts {
     <div class="control-row">
       <div class="control-group">
         <label for="fontFamily">--base-font-family</label>
-        <input type="text" id="fontFamily" placeholder="e.g., 'Lexend', sans-serif">
+        <input type="text" id="fontFamily" data-kmwc-css-variable="--base-font-family" placeholder="e.g., 'Lexend', sans-serif">
       </div>
     </div>
   </div>
@@ -917,31 +917,31 @@ web-daterangepicker.large-fonts {
     <div class="control-row">
       <div class="control-group">
         <label for="fontSize2xs">2xs</label>
-        <input type="number" id="fontSize2xs" value="1" step="0.1">
+        <input type="number" id="fontSize2xs" data-kmwc-css-variable="--base-font-size-2xs" value="1" step="0.1">
       </div>
       <div class="control-group">
         <label for="fontSizeXs">xs</label>
-        <input type="number" id="fontSizeXs" value="1.2" step="0.1">
+        <input type="number" id="fontSizeXs" data-kmwc-css-variable="--base-font-size-xs" value="1.2" step="0.1">
       </div>
       <div class="control-group">
         <label for="fontSizeSm">sm</label>
-        <input type="number" id="fontSizeSm" value="1.4" step="0.1">
+        <input type="number" id="fontSizeSm" data-kmwc-css-variable="--base-font-size-sm" value="1.4" step="0.1">
       </div>
       <div class="control-group">
         <label for="fontSizeBase">base</label>
-        <input type="number" id="fontSizeBase" value="1.6" step="0.1">
+        <input type="number" id="fontSizeBase" data-kmwc-css-variable="--base-font-size-base" value="1.6" step="0.1">
       </div>
       <div class="control-group">
         <label for="fontSizeLg">lg</label>
-        <input type="number" id="fontSizeLg" value="1.8" step="0.1">
+        <input type="number" id="fontSizeLg" data-kmwc-css-variable="--base-font-size-lg" value="1.8" step="0.1">
       </div>
       <div class="control-group">
         <label for="fontSizeXl">xl</label>
-        <input type="number" id="fontSizeXl" value="2" step="0.1">
+        <input type="number" id="fontSizeXl" data-kmwc-css-variable="--base-font-size-xl" value="2" step="0.1">
       </div>
       <div class="control-group">
         <label for="fontSize2xl">2xl</label>
-        <input type="number" id="fontSize2xl" value="2.4" step="0.1">
+        <input type="number" id="fontSize2xl" data-kmwc-css-variable="--base-font-size-2xl" value="2.4" step="0.1">
       </div>
     </div>
   </div>
@@ -952,15 +952,15 @@ web-daterangepicker.large-fonts {
     <div class="control-row">
       <div class="control-group">
         <label for="fontWeightNormal">normal</label>
-        <input type="number" id="fontWeightNormal" value="400" step="100" min="100" max="900">
+        <input type="number" id="fontWeightNormal" data-kmwc-css-variable="--base-font-weight-normal" value="400" step="100" min="100" max="900">
       </div>
       <div class="control-group">
         <label for="fontWeightMedium">medium</label>
-        <input type="number" id="fontWeightMedium" value="500" step="100" min="100" max="900">
+        <input type="number" id="fontWeightMedium" data-kmwc-css-variable="--base-font-weight-medium" value="500" step="100" min="100" max="900">
       </div>
       <div class="control-group">
         <label for="fontWeightSemibold">semibold</label>
-        <input type="number" id="fontWeightSemibold" value="600" step="100" min="100" max="900">
+        <input type="number" id="fontWeightSemibold" data-kmwc-css-variable="--base-font-weight-semibold" value="600" step="100" min="100" max="900">
       </div>
     </div>
   </div>
@@ -971,15 +971,15 @@ web-daterangepicker.large-fonts {
     <div class="control-row">
       <div class="control-group">
         <label for="lineHeightTight">tight</label>
-        <input type="number" id="lineHeightTight" value="1.25" step="0.05" min="1" max="3">
+        <input type="number" id="lineHeightTight" data-kmwc-css-variable="--base-line-height-tight" value="1.25" step="0.05" min="1" max="3">
       </div>
       <div class="control-group">
         <label for="lineHeightNormal">normal</label>
-        <input type="number" id="lineHeightNormal" value="1.5" step="0.05" min="1" max="3">
+        <input type="number" id="lineHeightNormal" data-kmwc-css-variable="--base-line-height-normal" value="1.5" step="0.05" min="1" max="3">
       </div>
       <div class="control-group">
         <label for="lineHeightRelaxed">relaxed</label>
-        <input type="number" id="lineHeightRelaxed" value="1.75" step="0.05" min="1" max="3">
+        <input type="number" id="lineHeightRelaxed" data-kmwc-css-variable="--base-line-height-relaxed" value="1.75" step="0.05" min="1" max="3">
       </div>
     </div>
   </div>
@@ -1016,9 +1016,7 @@ web-daterangepicker.large-fonts {
   <!-- Current Values Display -->
   <div class="log-panel log-panel--dark current-values">
     <div class="current-values-header">/* Current --base-* CSS Variables */</div>
-    <div id="currentValues">:root {
-/* No overrides set - using component defaults */
-}</div>
+    <div id="currentValues" data-kmwc-css-variables-readout></div>
   </div>
 </div>
 
@@ -1280,8 +1278,8 @@ web-daterangepicker.large-fonts {
   <div class="controls demo-controls">
     <label>
       --drp-rem:
-      <input type="range" id="remSlider" min="5" max="25" value="10" step="1">
-      <output id="remValue">10px</output>
+      <input type="range" id="remSlider" min="5" max="25" value="10" step="1" data-kmwc-css-variable="--drp-rem" data-kmwc-css-unit="px" data-kmwc-css-target="#interactive-demo">
+      <output id="remValue" for="remSlider">10px</output>
     </label>
   </div>
 
@@ -1294,7 +1292,7 @@ web-daterangepicker.large-fonts {
 
   <div class="code-block"><span class="comment">/* The CSS variable being changed: */</span>
 <span class="keyword">#interactive-demo</span> {
-<span class="property">--drp-rem</span>: <span class="string" id="codeRemValue">10px</span>;
+<span class="property">--drp-rem</span>: <output class="string" id="codeRemValue" for="remSlider">10px</output>;
 }</div>
 </div>
 
@@ -1764,160 +1762,11 @@ window.components['web-daterangepicker'].customStyles = `
   console.log('✅ Theming examples loaded — same rich demo applied to every themed picker');
 </script>
 
-<script>
-  // Interactive scale demo (from the Sizing page)
-  document.addEventListener('DOMContentLoaded', () => {
-    const slider = document.getElementById('remSlider');
-    const output = document.getElementById('remValue');
-    const codeValue = document.getElementById('codeRemValue');
-    const demoElement = document.getElementById('interactive-demo');
-
-    if (slider && output && demoElement) {
-      slider.addEventListener('input', (e) => {
-        const value = e.target.value + 'px';
-        output.textContent = value;
-        codeValue.textContent = value;
-        // Set directly on the element (important for shadow DOM!)
-        demoElement.style.setProperty('--drp-rem', value);
-      });
-    }
-  });
-</script>
+<!-- Interactive scale demo: the --drp-rem slider is the devkit's (data-kmwc-css-variable on #interactive-demo, <output for>). -->
 
 <script type="module">
-  // Typography-controls panel (from the Base Variables page)
-  // Variable mappings
-  const variableMap = {
-    fontFamily: '--base-font-family',
-    fontSize2xs: '--base-font-size-2xs',
-    fontSizeXs: '--base-font-size-xs',
-    fontSizeSm: '--base-font-size-sm',
-    fontSizeBase: '--base-font-size-base',
-    fontSizeLg: '--base-font-size-lg',
-    fontSizeXl: '--base-font-size-xl',
-    fontSize2xl: '--base-font-size-2xl',
-    fontWeightNormal: '--base-font-weight-normal',
-    fontWeightMedium: '--base-font-weight-medium',
-    fontWeightSemibold: '--base-font-weight-semibold',
-    lineHeightTight: '--base-line-height-tight',
-    lineHeightNormal: '--base-line-height-normal',
-    lineHeightRelaxed: '--base-line-height-relaxed'
-  };
-
-  // Track current values
-  const currentValues = {};
-
-  // Update CSS variable
-  function updateVariable(inputId, value) {
-    const varName = variableMap[inputId];
-    if (!varName) return;
-
-    if (value === '' || value === null || value === undefined) {
-      // Remove the variable
-      document.documentElement.style.removeProperty(varName);
-      delete currentValues[varName];
-    } else {
-      // Set the variable
-      let cssValue = value;
-
-      // Font sizes are unitless multipliers (component multiplies by --drp-rem)
-      // No unit conversion needed - just pass the number
-
-      document.documentElement.style.setProperty(varName, cssValue);
-      currentValues[varName] = cssValue;
-    }
-
-    updateDisplay();
-  }
-
-  // Update the display of current values
-  function updateDisplay() {
-    const display = document.getElementById('currentValues');
-    const keys = Object.keys(currentValues);
-
-    if (keys.length === 0) {
-      display.textContent = `:root {
-/* No overrides set - using component defaults */
-}`;
-    } else {
-      const lines = keys.map(k => `  ${k}: ${currentValues[k]};`).join('\n');
-      display.textContent = `:root {\n${lines}\n}`;
-    }
-  }
-
-  // Reset all variables
-  function resetAll() {
-    // Clear all inputs
-    Object.keys(variableMap).forEach(inputId => {
-      const input = document.getElementById(inputId);
-      if (input) {
-        input.value = '';
-      }
-      const varName = variableMap[inputId];
-      document.documentElement.style.removeProperty(varName);
-    });
-
-    // Clear tracking
-    Object.keys(currentValues).forEach(k => delete currentValues[k]);
-    updateDisplay();
-  }
-
-  // Set up event listeners
-  Object.keys(variableMap).forEach(inputId => {
-    const input = document.getElementById(inputId);
-    if (input) {
-      input.addEventListener('input', (e) => {
-        updateVariable(inputId, e.target.value);
-      });
-    }
-  });
-
-  // Reset button
-  document.getElementById('resetBtn').addEventListener('click', resetAll);
-
-  // Load font button
-  document.getElementById('loadFontBtn').addEventListener('click', () => {
-    const input = document.getElementById('fontLink');
-    let value = input.value.trim();
-
-    if (!value) return;
-
-    // Extract URL if it's a full <link> tag
-    const hrefMatch = value.match(/href=["']([^"']+)["']/);
-    if (hrefMatch) {
-      value = hrefMatch[1];
-    }
-
-    // Remove existing font link if present
-    const existingLink = document.getElementById('customFontLink');
-    if (existingLink) {
-      existingLink.remove();
-    }
-
-    // Create and add new link
-    const link = document.createElement('link');
-    link.id = 'customFontLink';
-    link.rel = 'stylesheet';
-    link.href = value;
-    document.head.appendChild(link);
-
-    // Try to extract font family name from URL
-    const familyMatch = value.match(/family=([^:&]+)/);
-    if (familyMatch) {
-      const fontName = decodeURIComponent(familyMatch[1].replace(/\+/g, ' '));
-      const fontFamilyInput = document.getElementById('fontFamily');
-      fontFamilyInput.value = `'${fontName}', sans-serif`;
-      updateVariable('fontFamily', fontFamilyInput.value);
-    }
-  });
-
-  // Apply initial values on page load
-  Object.keys(variableMap).forEach(inputId => {
-    const input = document.getElementById(inputId);
-    if (input && input.value) {
-      updateVariable(inputId, input.value);
-    }
-  });
+  // Typography-controls panel: the inputs, readout, Reset and font link are the devkit's
+  // (data-kmwc-css-variable …); this script only feeds the two pickers.
 
   // Set up special dates for both typography-panel pickers
   const today = new Date();

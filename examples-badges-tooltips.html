@@ -362,14 +362,14 @@ picker.getDateMetadataCallback = ({ date }) => {
 <div class="control-row">
   <div class="control-group">
     <label for="tt-width">--drp-tooltip-width</label>
-    <select id="tt-width">
+    <select id="tt-width" data-kmwc-css-variable="--drp-tooltip-width" data-kmwc-css-target="#html-tooltips-booking, #html-tooltips-events">
       <option value="auto" selected>auto (default)</option>
       <option value="260px">260px (fixed)</option>
     </select>
   </div>
   <div class="control-group">
     <label for="tt-min-width">--drp-tooltip-min-width</label>
-    <select id="tt-min-width">
+    <select id="tt-min-width" data-kmwc-css-variable="--drp-tooltip-min-width" data-kmwc-css-target="#html-tooltips-booking, #html-tooltips-events">
       <option value="0" selected>0 (default)</option>
       <option value="180px">180px</option>
       <option value="240px">240px</option>
@@ -377,7 +377,7 @@ picker.getDateMetadataCallback = ({ date }) => {
   </div>
   <div class="control-group">
     <label for="tt-max-width">--drp-tooltip-max-width</label>
-    <select id="tt-max-width">
+    <select id="tt-max-width" data-kmwc-css-variable="--drp-tooltip-max-width" data-kmwc-css-target="#html-tooltips-booking, #html-tooltips-events">
       <option value="200px">200px (default)</option>
       <option value="320px" selected>320px</option>
       <option value="none">none</option>
@@ -1169,24 +1169,7 @@ const formatTooltipDate = (date) =>
 const htmlTooltipsBooking = document.getElementById('html-tooltips-booking');
 const htmlTooltipsEvents = document.getElementById('html-tooltips-events');
 
-// Tooltip width controls (component CSS variables on the two BT07 pickers).
-const tooltipWidthControls = [
-  ['tt-width', '--drp-tooltip-width'],
-  ['tt-min-width', '--drp-tooltip-min-width'],
-  ['tt-max-width', '--drp-tooltip-max-width']
-];
-const applyTooltipWidths = () => {
-  for (const [id, variable] of tooltipWidthControls) {
-    const value = document.getElementById(id).value;
-    for (const picker of [htmlTooltipsBooking, htmlTooltipsEvents]) {
-      picker?.style.setProperty(variable, value);
-    }
-  }
-};
-for (const [id] of tooltipWidthControls) {
-  document.getElementById(id).addEventListener('change', applyTooltipWidths);
-}
-applyTooltipWidths();
+// The tooltip width selects set their variables on both BT07 pickers through the devkit (data-kmwc-css-variable).
 
 if (htmlTooltipsBooking) {
   const bookingInfo = {
