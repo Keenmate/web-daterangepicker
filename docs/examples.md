@@ -2,7 +2,7 @@
 
 Every example below is a runnable HTML file at the repo root. Open it
 in a browser, or run `npm run dev` and navigate to it through the
-[live demo site](https://web-daterangepicker.keenmate.dev). Examples
+[live demo site](https://examples.web-daterangepicker.keenmate.dev). Examples
 are listed in **rough learning order** — start with `examples-basic.html`,
 follow your nose from there.
 
@@ -135,4 +135,4 @@ debugging.
 - [`theming.md`](./theming.md) — the four theming contracts.
 - [`accessibility.md`](./accessibility.md) — keyboard, ARIA, focus.
 - [`../README.md`](../README.md) — quick start + "Known limitations".
-- [Live demo site](https://web-daterangepicker.keenmate.dev) — every example above, deployed.
+- [Live demo site](https://examples.web-daterangepicker.keenmate.dev) — every example above, deployed.

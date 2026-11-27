@@ -54,18 +54,14 @@
       "dev": 12200,
       "image": 12210
     },
-    "theme": {
-      "accentColor": "#667eea",
-      "accentEndColor": "#764ba2"
-    },
     "examples": {
-      "canonicalOrigin": "https://web-daterangepicker.keenmate.dev"
+      "canonicalOrigin": "https://examples.web-daterangepicker.keenmate.dev"
     },
     "analytics": {
       "plausibleSiteId": "pa-xm8cEqZhjMwAin_SCBXXj"
     },
     "image": {
-      "name": "registry.km8.es/web-daterangepicker-examples:prod",
+      "name": "registry.keenmate.dev/web-daterangepicker-examples:prod",
       "runner": "podman"
     },
     "cssVariables": {
@@ -124,14 +120,14 @@
     "type": "git",
     "url": "git+https://github.com/keenmate/web-daterangepicker.git"
   },
-  "homepage": "https://web-daterangepicker.keenmate.dev",
+  "homepage": "https://examples.web-daterangepicker.keenmate.dev",
   "bugs": {
     "url": "https://github.com/keenmate/web-daterangepicker/issues"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@keenmate/base-css-variables": "^2.0.2",
-    "@keenmate/web-components-devkit": "^1.0.0-rc14",
+    "@keenmate/web-components-devkit": "^1.0.0-rc15",
     "@playwright/test": "^1.60.0",
     "custom-element-jet-brains-integration": "^1.7.0",
     "custom-element-vs-code-integration": "^1.5.0",

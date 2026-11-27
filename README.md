@@ -81,7 +81,7 @@ see [`docs/accessibility.md`](./docs/accessibility.md).
 
 ## Demos & docs
 
-- 🚀 [Live demo](https://web-daterangepicker.keenmate.dev)
+- 🚀 [Live demo](https://examples.web-daterangepicker.keenmate.dev)
 - 📘 [Usage / API reference](./docs/usage.md)
 - 🎨 [Theming contract](./docs/theming.md)
 - 📚 [Examples / cookbook](./docs/examples.md)
