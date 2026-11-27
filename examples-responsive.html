@@ -382,7 +382,8 @@ labels='{"headers.fullscreen":"Choose your dates"}'&gt;&lt;/web-daterangepicker&
   <div class="form-group">
     <label>Drag the bottom-right handle to resize (threshold: 520px)</label>
     <p class="form-text">Below 520px the two-month layout collapses to one and the action buttons drop away. Pick a range first, then resize across the threshold — the selection is preserved.</p>
-    <div style="width: 640px; max-width: 100%; min-width: min(300px, 100%); overflow: auto; resize: horizontal; padding: 12px; border: 1px dashed var(--drp-border, #cbd5e1); border-radius: 8px;">
+    <div class="width-readout" data-kmwc-width-readout="compact-demo" data-kmwc-narrow-below="520">picker box: <strong>—</strong></div>
+    <div class="resize-frame" style="--kmwc-resize-frame-width: 640px; --kmwc-resize-frame-min-width: 300px">
       <web-daterangepicker
         id="compact-demo"
         selection-mode="range"
