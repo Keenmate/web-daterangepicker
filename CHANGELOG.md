@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0-rc07] - 2026-11-22
 
+### Changed — base-css-variables 2.2.0 (2026-11-27)
+- `@keenmate/base-css-variables` → `^2.2.0`: without pure-admin the picker now renders at its intended size (the
+  contract's `--base-rem` is 10px, was 1rem); the `--base-rem` contract allowance is removed from `contract-check.json`.
+
 ### Changed — core 1.0.0-rc27 (2026-11-27)
 - `@keenmate/web-components-core` → `^1.0.0-rc27`: its internal verbs are renamed (`dispatch*` / `reconcile*`;
   drp passes `runAction(…, { dispatchAction })`), and built-in action-button icon names (`check`, `close`, …) now
